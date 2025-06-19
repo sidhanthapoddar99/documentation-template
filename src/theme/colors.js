@@ -1,4 +1,4 @@
-export const colors = {
+const colors = {
   // Main colors
   main: {
     dark: "#000000",
@@ -213,5 +213,13 @@ export const colors = {
     light: "rgba(0, 0, 0, 0.05)",
     medium: "rgba(0, 0, 0, 0.1)",
     dark: "rgba(0, 0, 0, 0.2)"
+  },
+  
+  // Icon filters for SVG images
+  iconFilter: {
+    light: "none",        // Keep black icons in light mode
+    dark: "invert(1)"     // Invert to white in dark mode
   }
 };
+
+module.exports = { colors };

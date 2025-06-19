@@ -334,6 +334,11 @@ pre {
   }
 }
 
+/* Global icon filter */
+img[src*="/img/icons/"] {
+  filter: var(--theme-icon-filter) !important;
+}
+
 /* Print styles */
 @media print {
   .navbar,

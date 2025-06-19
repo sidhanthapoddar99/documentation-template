@@ -42,14 +42,7 @@
   border-color: var(--theme-border-default);
 }
 
-/* Icon filter for light/dark mode */
-.home-features-grid .feature-icon img {
-  filter: grayscale(100%) opacity(0.7);
-}
-
-[data-theme='dark'] .home-features-grid .feature-icon img {
-  filter: grayscale(100%) opacity(0.8) brightness(1.2);
-}
+/* Icon filter - uses theme variable */
 
 /* Responsive adjustments */
 @media (max-width: 1200px) {

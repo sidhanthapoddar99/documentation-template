@@ -1,0 +1,156 @@
+
+## Writing Documentation
+
+### Creating a New Doc
+
+1. Create a new MDX file in the appropriate directory under `docs/`
+2. Add front matter at the top:
+
+```js
+---
+id: <id>
+title: <title>
+sidebar_label: <sidebar-label>
+sidebar_position: <sidebar-index>
+---
+
+import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/Card';
+import { Callout } from '@site/src/components/Callout';
+import { Features, Feature } from '@site/src/components/Features';
+import { CollapsibleCodeBlock, InlineCodeCard } from '@site/src/components/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock';
+
+# Document Title
+
+Your content here...
+
+<ComponentName />
+```
+
+### Adding Images
+
+Place images in `static/img/` and reference them:
+
+```markdown
+![Alt text](/img/your-image.png)
+```
+
+### Creating Categories
+
+Create a `_category_.json` file in any folder to configure the category:
+
+```json
+{
+  "label": "Category Name",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Category description"
+  }
+}
+```
+
+
+## Configuration
+
+### docusaurus.config.js
+
+Key configurations to update:
+
+```javascript
+module.exports = {
+  title: 'NeuraLabs Documentation',
+  tagline: 'Decentralized AI Workflow Platform',
+  url: 'https://your-documentation-url.com',
+  baseUrl: '/',
+  projectName: 'neuralabs-docs',
+  organizationName: 'neuralabs',
+  
+  themeConfig: {
+    navbar: {
+      title: 'NeuraLabs',
+      logo: {
+        alt: 'NeuraLabs Logo',
+        src: 'img/logo.svg',
+      },
+      items: [
+        {
+          type: 'doc',
+          docId: 'intro',
+          position: 'left',
+          label: 'Documentation',
+        },
+        {
+          href: 'https://github.com/your-repo',
+          label: 'GitHub',
+          position: 'right',
+        },
+      ],
+    },
+  },
+};
+```
+
+### sidebars.js
+
+Configure the sidebar structure:
+
+```javascript
+module.exports = {
+  docs: [
+    'intro',
+    {
+      type: 'category',
+      label: 'Theoretical Concepts',
+      items: ['theoretical/overview', 'theoretical/architecture'],
+    },
+    {
+      type: 'category',
+      label: 'Implementation',
+      items: [
+        'implementation/database/setup',
+        'implementation/frontend/getting-started',
+        // ... more items
+      ],
+    },
+  ],
+};
+```
+
+## MDX Features
+
+### Using React Components
+
+```mdx
+import { Highlight, CodeBlock } from '@site/src/components';
+
+<Highlight color="#25c2a0">This is highlighted text</Highlight>
+
+<CodeBlock language="typescript">
+{`const example = "Hello World";`}
+</CodeBlock>
+```
+
+### Interactive Examples
+
+```mdx
+import LiveCodeBlock from '@site/src/components/LiveCodeBlock';
+
+<LiveCodeBlock>
+{`function Example() {
+  return <div>Interactive code example</div>;
+}`}
+</LiveCodeBlock>
+```
+
+## Best Practices
+
+1. **Consistent Structure**: Follow the established folder structure
+2. **Clear Titles**: Use descriptive titles and sidebar labels
+3. **Code Examples**: Include practical code examples
+4. **Diagrams**: Use Mermaid for diagrams when possible
+5. **Cross-linking**: Link between related documentation pages
+6. **Versioning**: Use Docusaurus versioning for API documentation
+7. **MDX Components**: Leverage React components for interactive documentation

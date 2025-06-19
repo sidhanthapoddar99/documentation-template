@@ -1,4 +1,4 @@
-import { colors } from './colors';
+const { colors } = require('./colors');
 
 /**
  * Converts the nested color object into CSS variables
@@ -29,7 +29,7 @@ function generateCSSVariables(colorObj, prefix = 'color') {
  * Generates theme-specific CSS variables for light and dark modes
  * @returns {string} Complete CSS with theme variables
  */
-export function generateThemeCSS() {
+function generateThemeCSS() {
   const lightThemeVars = generateCSSVariables(colors, 'color');
   
   // Generate semantic theme variables for light mode
@@ -76,6 +76,8 @@ export function generateThemeCSS() {
   --theme-callout-danger-bg: var(--color-components-callout-danger-background-light);
   --theme-callout-danger-border: var(--color-components-callout-danger-border-light);
   --theme-callout-danger-text: var(--color-components-callout-danger-text-light);
+  
+  --theme-icon-filter: var(--color-iconFilter-light);
 `;
 
   const darkSemanticVars = `
@@ -121,6 +123,8 @@ export function generateThemeCSS() {
   --theme-callout-danger-bg: var(--color-components-callout-danger-background-dark);
   --theme-callout-danger-border: var(--color-components-callout-danger-border-dark);
   --theme-callout-danger-text: var(--color-components-callout-danger-text-dark);
+  
+  --theme-icon-filter: var(--color-iconFilter-dark);
 `;
 
   return `
@@ -141,7 +145,7 @@ ${darkSemanticVars}
  * @param {string} path - The path to the color value (e.g., 'background.primary.light')
  * @returns {string} The color value
  */
-export function getColor(path) {
+function getColor(path) {
   const keys = path.split('.');
   let current = colors;
   
@@ -161,7 +165,14 @@ export function getColor(path) {
  * @param {string} path - The path to the color value (e.g., 'background.primary.light')
  * @returns {string} The CSS variable name (e.g., 'var(--color-background-primary-light)')
  */
-export function getColorVar(path) {
+function getColorVar(path) {
   const varName = path.replace(/\./g, '-');
   return `var(--color-${varName})`;
 }
+
+module.exports = {
+  generateCSSVariables,
+  generateThemeCSS,
+  getColor,
+  getColorVar
+};

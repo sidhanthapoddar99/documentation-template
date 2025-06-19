@@ -107,160 +107,78 @@ documentation/
 └── package.json
 ```
 
-## Writing Documentation
+## Theme System & Color Management
 
-### Creating a New Doc
+This project uses a centralized color theme system for consistent styling across all components.
 
-1. Create a new MDX file in the appropriate directory under `docs/`
-2. Add front matter at the top:
+### Color Theme Architecture
 
-```js
----
-id: <id>
-title: <title>
-sidebar_label: <sidebar-label>
-sidebar_position: <sidebar-index>
----
+1. **Centralized Colors** (`src/theme/colors.js`)
+   - All colors are defined in a single JavaScript file
+   - Supports nested color structures for organization
+   - Includes light/dark mode variants
+   - Icon filters for SVG images
 
-import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/Card';
-import { Callout } from '@site/src/components/Callout';
-import { Features, Feature } from '@site/src/components/Features';
-import { CollapsibleCodeBlock, InlineCodeCard } from '@site/src/components/CodeBlock';
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import CodeBlock from '@theme/CodeBlock';
+2. **Color Provider** (`src/theme/colorProvider.js`)
+   - Converts JavaScript color definitions to CSS variables
+   - Generates theme-specific CSS for light/dark modes
+   - Provides semantic color mappings
 
-# Document Title
+3. **Generated CSS** (`src/css/generated-colors.css`)
+   - Auto-generated CSS file with all color variables
+   - DO NOT EDIT MANUALLY - regenerate from colors.js
 
-Your content here...
+### Updating Colors
 
-<ComponentName />
+1. Edit `src/theme/colors.js` to modify colors
+2. Run the generation script:
+   ```bash
+   node src/theme/generateColors.js
+   ```
+3. The CSS will be automatically updated
+
+### Component Structure
+
+Components are organized with their own CSS files:
+
+```
+src/elements/
+├── Card/
+│   ├── Card.js
+│   ├── Card.css
+│   └── index.js
+├── Callout/
+│   ├── Callout.js
+│   ├── Callout.css
+│   └── index.js
+└── ... other components
 ```
 
-### Adding Images
+### SVG Icons
 
-Place images in `static/img/` and reference them:
+All SVG icons use pure black (`#000000`) strokes and are inverted in dark mode:
+- Light mode: Icons remain black (no filter)
+- Dark mode: Icons are inverted to white using `filter: invert(1)`
 
-```markdown
-![Alt text](/img/your-image.png)
-```
+This is controlled by the `--theme-icon-filter` CSS variable.
 
-### Creating Categories
+### Using Colors in CSS
 
-Create a `_category_.json` file in any folder to configure the category:
+Reference colors using CSS variables:
 
-```json
-{
-  "label": "Category Name",
-  "position": 1,
-  "link": {
-    "type": "generated-index",
-    "description": "Category description"
-  }
+```css
+/* Use semantic theme variables */
+.my-component {
+  background: var(--theme-bg-primary);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border-default);
+}
+
+/* Or use specific color variables */
+.brand-element {
+  color: var(--color-brand-primary);
 }
 ```
-
-## Configuration
-
-### docusaurus.config.js
-
-Key configurations to update:
-
-```javascript
-module.exports = {
-  title: 'NeuraLabs Documentation',
-  tagline: 'Decentralized AI Workflow Platform',
-  url: 'https://your-documentation-url.com',
-  baseUrl: '/',
-  projectName: 'neuralabs-docs',
-  organizationName: 'neuralabs',
-  
-  themeConfig: {
-    navbar: {
-      title: 'NeuraLabs',
-      logo: {
-        alt: 'NeuraLabs Logo',
-        src: 'img/logo.svg',
-      },
-      items: [
-        {
-          type: 'doc',
-          docId: 'intro',
-          position: 'left',
-          label: 'Documentation',
-        },
-        {
-          href: 'https://github.com/your-repo',
-          label: 'GitHub',
-          position: 'right',
-        },
-      ],
-    },
-  },
-};
-```
-
-### sidebars.js
-
-Configure the sidebar structure:
-
-```javascript
-module.exports = {
-  docs: [
-    'intro',
-    {
-      type: 'category',
-      label: 'Theoretical Concepts',
-      items: ['theoretical/overview', 'theoretical/architecture'],
-    },
-    {
-      type: 'category',
-      label: 'Implementation',
-      items: [
-        'implementation/database/setup',
-        'implementation/frontend/getting-started',
-        // ... more items
-      ],
-    },
-  ],
-};
-```
-
-## MDX Features
-
-### Using React Components
-
-```mdx
-import { Highlight, CodeBlock } from '@site/src/components';
-
-<Highlight color="#25c2a0">This is highlighted text</Highlight>
-
-<CodeBlock language="typescript">
-{`const example = "Hello World";`}
-</CodeBlock>
-```
-
-### Interactive Examples
-
-```mdx
-import LiveCodeBlock from '@site/src/components/LiveCodeBlock';
-
-<LiveCodeBlock>
-{`function Example() {
-  return <div>Interactive code example</div>;
-}`}
-</LiveCodeBlock>
-```
-
-## Best Practices
-
-1. **Consistent Structure**: Follow the established folder structure
-2. **Clear Titles**: Use descriptive titles and sidebar labels
-3. **Code Examples**: Include practical code examples
-4. **Diagrams**: Use Mermaid for diagrams when possible
-5. **Cross-linking**: Link between related documentation pages
-6. **Versioning**: Use Docusaurus versioning for API documentation
-7. **MDX Components**: Leverage React components for interactive documentation
 
 ## Troubleshooting
 
