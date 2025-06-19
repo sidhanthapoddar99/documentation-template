@@ -16,16 +16,20 @@ function Hero() {
             Create workflows without centralized control.
           </p>
           <div className="hero-buttons">
-            <Link
+            <a
               className="button button--lg button--primary hero-btn-primary"
-              to="/docs/intro">
-              Documentation
-            </Link>
-            <Link
+              href="https://github.com/neuralabs/neuralabs-sui"
+              target="_blank"
+              rel="noopener noreferrer">
+              View on GitHub
+            </a>
+            <a
               className="button button--lg button--secondary hero-btn-secondary"
-              to="/docs/theoretical/getting-started">
-              Quick Start
-            </Link>
+              href="https://neuralabs.org"
+              target="_blank"
+              rel="noopener noreferrer">
+              Visit Website
+            </a>
           </div>
           <div className="hero-stats">
             <p className="hero-stats-text">
