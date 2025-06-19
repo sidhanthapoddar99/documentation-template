@@ -1,0 +1,255 @@
+/**
+ * NeuraLabs Theme Variables
+ * Centralized color and theme management
+ */
+
+:root {
+  /* ========================================
+     COLOR PALETTE
+     ======================================== */
+  
+  /* Gray Scale - Base palette */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: #404040;
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+  --color-gray-950: #0a0a0a;
+  
+  /* Pure Colors */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  
+  /* Brand Colors */
+  --color-primary: #1a1a1a;
+  --color-primary-hover: #000000;
+  --color-primary-light: #404040;
+  --color-primary-lighter: #737373;
+  
+  /* Accent Colors */
+  --color-accent-blue: #1E63EA;
+  --color-accent-blue-light: #E9F2FF;
+  --color-accent-blue-dark: #1F3458;
+  --color-accent-green: #38a169;
+  --color-accent-yellow: #d69e2e;
+  --color-accent-red: #e53e3e;
+  
+  /* ========================================
+     SEMANTIC VARIABLES - LIGHT MODE
+     ======================================== */
+  
+  /* Backgrounds */
+  --theme-bg-primary: var(--color-white);
+  --theme-bg-secondary: var(--color-gray-50);
+  --theme-bg-tertiary: var(--color-gray-100);
+  --theme-bg-surface: var(--color-white);
+  --theme-bg-elevated: var(--color-white);
+  --theme-bg-navbar: var(--color-white);
+  --theme-bg-footer: var(--color-white);
+  --theme-bg-input: var(--color-white);
+  --theme-bg-hover: var(--color-gray-100);
+  --theme-bg-active: var(--color-gray-200);
+  
+  /* Text Colors */
+  --theme-text-primary: var(--color-gray-900);
+  --theme-text-secondary: var(--color-gray-700);
+  --theme-text-tertiary: var(--color-gray-600);
+  --theme-text-muted: var(--color-gray-500);
+  --theme-text-inverse: var(--color-white);
+  --theme-text-link: var(--color-primary);
+  --theme-text-link-hover: var(--color-primary-hover);
+  
+  /* Borders */
+  --theme-border-primary: var(--color-gray-200);
+  --theme-border-secondary: var(--color-gray-300);
+  --theme-border-hover: var(--color-primary);
+  --theme-border-focus: var(--color-accent-blue);
+  
+  /* Hero Section */
+  --theme-hero-bg: var(--color-white);
+  --theme-hero-text: var(--color-gray-900);
+  --theme-hero-subtitle: var(--color-gray-600);
+  --theme-hero-border: var(--color-gray-200);
+  
+  /* Buttons */
+  --theme-btn-primary-bg: var(--color-primary);
+  --theme-btn-primary-text: var(--color-white);
+  --theme-btn-primary-border: var(--color-primary);
+  --theme-btn-primary-hover-bg: transparent;
+  --theme-btn-primary-hover-text: var(--color-primary);
+  --theme-btn-primary-hover-border: var(--color-primary);
+  
+  --theme-btn-secondary-bg: transparent;
+  --theme-btn-secondary-text: var(--color-primary);
+  --theme-btn-secondary-border: var(--color-primary);
+  --theme-btn-secondary-hover-bg: var(--color-primary);
+  --theme-btn-secondary-hover-text: var(--color-white);
+  --theme-btn-secondary-hover-border: var(--color-primary);
+  
+  /* Cards */
+  --theme-card-bg: var(--color-white);
+  --theme-card-border: var(--color-gray-200);
+  --theme-card-hover-border: var(--color-primary);
+  --theme-card-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  --theme-card-hover-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  
+  /* Features */
+  --theme-feature-bg: var(--color-gray-50);
+  --theme-feature-icon-filter: grayscale(100%) opacity(0.7);
+  
+  /* Blog */
+  --theme-blog-hero-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%);
+  --theme-blog-pattern-overlay: radial-gradient(circle at 25% 25%, rgba(0,0,0, 0.1) 0%, transparent 40%);
+  
+  /* Code */
+  --theme-code-bg: var(--color-gray-100);
+  --theme-code-border: var(--color-gray-200);
+  --theme-code-text: #e74c3c;
+  
+  /* Sidebar */
+  --theme-sidebar-bg: var(--color-white);
+  --theme-sidebar-active-bg: var(--color-accent-blue-light);
+  --theme-sidebar-active-text: var(--color-accent-blue);
+  --theme-sidebar-hover-bg: var(--color-gray-100);
+  
+  /* Miscellaneous */
+  --theme-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --theme-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --theme-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --theme-focus-ring: 0 0 0 3px rgba(26, 26, 26, 0.1);
+  
+  /* Icon Colors */
+  --theme-icon-primary: var(--color-gray-700);
+  --theme-icon-secondary: var(--color-gray-500);
+  --theme-icon-muted: var(--color-gray-400);
+}
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+
+[data-theme='dark'] {
+  /* Backgrounds */
+  --theme-bg-primary: var(--color-black);
+  --theme-bg-secondary: var(--color-black);
+  --theme-bg-tertiary: var(--color-gray-950);
+  --theme-bg-surface: var(--color-black);
+  --theme-bg-elevated: var(--color-gray-900);
+  --theme-bg-navbar: var(--color-black);
+  --theme-bg-footer: var(--color-black);
+  --theme-bg-input: var(--color-gray-900);
+  --theme-bg-hover: var(--color-gray-800);
+  --theme-bg-active: var(--color-gray-700);
+  
+  /* Text Colors */
+  --theme-text-primary: var(--color-white);
+  --theme-text-secondary: var(--color-gray-300);
+  --theme-text-tertiary: var(--color-gray-400);
+  --theme-text-muted: var(--color-gray-400);
+  --theme-text-inverse: var(--color-black);
+  --theme-text-link: var(--color-white);
+  --theme-text-link-hover: var(--color-gray-100);
+  
+  /* Borders */
+  --theme-border-primary: var(--color-gray-700);
+  --theme-border-secondary: var(--color-gray-600);
+  --theme-border-hover: var(--color-white);
+  --theme-border-focus: var(--color-accent-blue);
+  
+  /* Hero Section */
+  --theme-hero-bg: var(--color-black);
+  --theme-hero-text: var(--color-white);
+  --theme-hero-subtitle: var(--color-gray-400);
+  --theme-hero-border: var(--color-gray-700);
+  
+  /* Buttons - Inverted for dark mode */
+  --theme-btn-primary-bg: transparent;
+  --theme-btn-primary-text: var(--color-white);
+  --theme-btn-primary-border: var(--color-white);
+  --theme-btn-primary-hover-bg: var(--color-white);
+  --theme-btn-primary-hover-text: var(--color-black);
+  --theme-btn-primary-hover-border: var(--color-white);
+  
+  --theme-btn-secondary-bg: var(--color-white);
+  --theme-btn-secondary-text: var(--color-black);
+  --theme-btn-secondary-border: var(--color-white);
+  --theme-btn-secondary-hover-bg: transparent;
+  --theme-btn-secondary-hover-text: var(--color-white);
+  --theme-btn-secondary-hover-border: var(--color-white);
+  
+  /* Cards */
+  --theme-card-bg: var(--color-black);
+  --theme-card-border: var(--color-gray-700);
+  --theme-card-hover-border: var(--color-white);
+  --theme-card-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  --theme-card-hover-shadow: 0 8px 24px rgba(255,255,255,0.1);
+  
+  /* Features */
+  --theme-feature-bg: var(--color-gray-950);
+  --theme-feature-icon-filter: grayscale(100%) opacity(0.6) invert(1);
+  
+  /* Blog */
+  --theme-blog-hero-gradient: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #1a1a1a 100%);
+  --theme-blog-pattern-overlay: radial-gradient(circle at 25% 25%, rgba(255,255,255, 0.1) 0%, transparent 40%);
+  
+  /* Code */
+  --theme-code-bg: var(--color-gray-900);
+  --theme-code-border: var(--color-gray-700);
+  --theme-code-text: #9cdcfe;
+  
+  /* Sidebar */
+  --theme-sidebar-bg: var(--color-black);
+  --theme-sidebar-active-bg: var(--color-accent-blue-dark);
+  --theme-sidebar-active-text: #5290FF;
+  --theme-sidebar-hover-bg: var(--color-gray-800);
+  
+  /* Miscellaneous */
+  --theme-shadow-sm: 0 1px 3px rgba(255, 255, 255, 0.05);
+  --theme-shadow-md: 0 4px 12px rgba(255, 255, 255, 0.1);
+  --theme-shadow-lg: 0 8px 24px rgba(255, 255, 255, 0.15);
+  --theme-focus-ring: 0 0 0 3px rgba(255, 255, 255, 0.1);
+  
+  /* Icon Colors */
+  --theme-icon-primary: var(--color-gray-200);
+  --theme-icon-secondary: var(--color-gray-400);
+  --theme-icon-muted: var(--color-gray-500);
+}
+
+/* ========================================
+   LEGACY VARIABLE MAPPING
+   Map old variables to new theme system
+   ======================================== */
+
+:root {
+  /* Map NeuraLabs variables to new theme system */
+  --neuralabs-bg-primary: var(--theme-bg-primary);
+  --neuralabs-bg-secondary: var(--theme-bg-secondary);
+  --neuralabs-bg-surface: var(--theme-bg-surface);
+  --neuralabs-bg-navbar: var(--theme-bg-navbar);
+  --neuralabs-bg-footer: var(--theme-bg-footer);
+  
+  --neuralabs-text-primary: var(--theme-text-primary);
+  --neuralabs-text-secondary: var(--theme-text-secondary);
+  --neuralabs-text-navbar: var(--theme-text-primary);
+  --neuralabs-text-muted: var(--theme-text-muted);
+  
+  --neuralabs-border-primary: var(--theme-border-primary);
+  --neuralabs-border-hover: var(--theme-border-hover);
+  
+  /* Map Infima variables to new theme system */
+  --ifm-color-primary: var(--color-primary);
+  --ifm-background-color: var(--theme-bg-primary);
+  --ifm-background-surface-color: var(--theme-bg-secondary);
+  --ifm-navbar-background-color: var(--theme-bg-navbar);
+  --ifm-footer-background-color: var(--theme-bg-footer);
+  --ifm-font-color-base: var(--theme-text-primary);
+  --ifm-heading-color: var(--theme-text-secondary);
+  --ifm-navbar-link-color: var(--theme-text-primary);
+  --ifm-toc-border-color: var(--theme-border-primary);
+  --ifm-card-background-color: var(--theme-card-bg);
+}

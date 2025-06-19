@@ -1,0 +1,53 @@
+/* Tab Component Customization */
+
+.tabs {
+  margin: 1.5rem 0;
+}
+
+.tabs-container {
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--ifm-global-radius);
+  overflow: hidden;
+}
+
+.tabs__list {
+  background-color: var(--theme-bg-surface);
+  border-bottom: 1px solid var(--theme-border-default);
+  margin-bottom: 0;
+}
+
+.tabs__item {
+  border-radius: 0;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all var(--ifm-transition-fast) ease;
+}
+
+.tabs__item:hover {
+  background-color: var(--theme-bg-elevated);
+  color: var(--theme-text-primary);
+}
+
+.tabs__item--active {
+  background-color: var(--theme-bg-primary);
+  color: var(--ifm-color-primary);
+  border-bottom: 2px solid var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+.tabs__content {
+  padding: 1.5rem;
+  background-color: var(--theme-bg-primary);
+}
+
+/* Code tabs specific styling */
+.tabs--code .tabs__content {
+  padding: 0;
+}
+
+.tabs--code pre {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+}

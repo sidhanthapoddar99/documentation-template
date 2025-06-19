@@ -1,0 +1,174 @@
+/* Callout Component Styles */
+
+.callout {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  border-left: 4px solid;
+  position: relative;
+  overflow: hidden;
+}
+
+.callout-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.callout-content {
+  color: inherit;
+}
+
+.callout-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Info Callout */
+.callout-info {
+  background-color: var(--theme-callout-info-bg);
+  border-color: var(--theme-callout-info-border);
+  color: var(--theme-callout-info-text);
+}
+
+.callout-info::before {
+  content: "ℹ️";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.callout-info .callout-title,
+.callout-info .callout-content {
+  padding-left: 2rem;
+}
+
+/* Warning Callout */
+.callout-warning {
+  background-color: var(--theme-callout-warning-bg);
+  border-color: var(--theme-callout-warning-border);
+  color: var(--theme-callout-warning-text);
+}
+
+.callout-warning::before {
+  content: "⚠️";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.callout-warning .callout-title,
+.callout-warning .callout-content {
+  padding-left: 2rem;
+}
+
+/* Success Callout */
+.callout-success {
+  background-color: var(--theme-callout-success-bg);
+  border-color: var(--theme-callout-success-border);
+  color: var(--theme-callout-success-text);
+}
+
+.callout-success::before {
+  content: "✅";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.callout-success .callout-title,
+.callout-success .callout-content {
+  padding-left: 2rem;
+}
+
+/* Danger/Error Callout */
+.callout-danger,
+.callout-error {
+  background-color: var(--theme-callout-danger-bg);
+  border-color: var(--theme-callout-danger-border);
+  color: var(--theme-callout-danger-text);
+}
+
+.callout-danger::before,
+.callout-error::before {
+  content: "❌";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.callout-danger .callout-title,
+.callout-danger .callout-content,
+.callout-error .callout-title,
+.callout-error .callout-content {
+  padding-left: 2rem;
+}
+
+/* Tip Callout (alias for success) */
+.callout-tip {
+  background-color: var(--theme-callout-success-bg);
+  border-color: var(--theme-callout-success-border);
+  color: var(--theme-callout-success-text);
+}
+
+.callout-tip::before {
+  content: "💡";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.callout-tip .callout-title,
+.callout-tip .callout-content {
+  padding-left: 2rem;
+}
+
+/* Note Callout (default style) */
+.callout-note {
+  background-color: var(--theme-bg-surface);
+  border-color: var(--theme-border-default);
+  color: var(--theme-text-primary);
+}
+
+.callout-note::before {
+  content: "📝";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.callout-note .callout-title,
+.callout-note .callout-content {
+  padding-left: 2rem;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .callout {
+    padding: 0.875rem 1rem;
+  }
+  
+  .callout::before {
+    font-size: 1rem;
+    top: 0.875rem;
+    left: 0.875rem;
+  }
+  
+  .callout .callout-title,
+  .callout .callout-content {
+    padding-left: 1.75rem;
+  }
+}

@@ -1,0 +1,150 @@
+/* CodeBlock Component Styles */
+
+.collapsible-code-block {
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--theme-code-border);
+  background: var(--theme-bg-surface);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Code Block Header */
+.code-block-header {
+  background: var(--theme-bg-elevated);
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--theme-code-border);
+  transition: all 0.2s ease-in-out;
+}
+
+.code-block-header:hover {
+  background: var(--theme-bg-secondary);
+}
+
+.collapsible-code-block:has(.code-block-content) .code-block-header {
+  border-bottom: 1px solid var(--theme-code-border);
+}
+
+/* Code Block Info */
+.code-block-info {
+  flex: 1;
+  text-align: left;
+  width: 100%;
+}
+
+/* Code Block Meta */
+.code-block-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.code-block-icon {
+  vertical-align: middle;
+  opacity: 0.7;
+  flex-shrink: 0;
+  filter: var(--theme-icon-filter, none);
+}
+
+.code-block-title {
+  margin: 0;
+  color: var(--theme-text-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  flex: 0 1 auto;
+}
+
+.code-block-language {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  background: var(--theme-code-bg);
+  color: var(--theme-text-muted);
+  border-radius: 0.25rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.code-block-description {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+  color: var(--theme-text-secondary);
+  line-height: 1.4;
+  text-align: left;
+  width: 100%;
+}
+
+/* Code Block Toggle */
+.code-block-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease-in-out;
+  margin-left: 0.75rem;
+  opacity: 0.6;
+  flex-shrink: 0;
+  color: var(--theme-text-secondary);
+}
+
+.code-block-toggle.expanded {
+  transform: rotate(180deg);
+}
+
+/* Code Block Content */
+.code-block-content {
+  background: var(--theme-code-bg);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.code-block-content pre {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Inline Code Styles */
+code {
+  background-color: var(--theme-code-bg);
+  color: var(--theme-code-text);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+  border: 1px solid var(--theme-code-border);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .code-block-header {
+    padding: 0.625rem 0.875rem;
+  }
+  
+  .code-block-meta {
+    flex-wrap: wrap;
+  }
+  
+  .code-block-title {
+    font-size: 0.875rem;
+  }
+  
+  .code-block-language {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.25rem;
+  }
+  
+  .code-block-description {
+    font-size: 0.8125rem;
+  }
+}

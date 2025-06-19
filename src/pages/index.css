@@ -1,0 +1,14 @@
+/* HomePage specific styles */
+
+/* Remove any default main element padding that might interfere */
+main {
+  padding: 0;
+  margin: 0;
+}
+
+/* Ensure smooth transitions between sections */
+main > section {
+  transition: background-color 0.3s ease;
+}
+
+/* Add any page-specific overrides here */
