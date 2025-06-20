@@ -200,7 +200,7 @@ const colors = {
     },
     subtle: {
       light: "#f1f5f9",
-      dark: "#1e293b"
+      dark: "#0d1727"
     },
     strong: {
       light: "#cbd5e1",

@@ -1,0 +1,217 @@
+.navbarSecondary {
+  background-color: var(--theme-bg-secondary);
+  border-bottom: 1px solid var(--theme-border-default);
+  position: sticky;
+  top: var(--ifm-navbar-height);
+  z-index: var(--ifm-z-index-fixed);
+  transition: transform 0.2s ease-in-out;
+}
+
+[data-theme='dark'] .navbarSecondary {
+  background-color: var(--theme-bg-primary);
+  border-bottom: 1px solid var(--theme-border-subtle);
+}
+
+.navbarSecondaryHideable {
+  transition: transform 0.2s ease-in-out;
+}
+
+.navbarSecondaryInner {
+  max-width: var(--max-width-7xl);
+  margin: 0 auto;
+  padding: 0 var(--ifm-navbar-padding-horizontal);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+}
+
+/* Desktop Navigation */
+.navbarItemsDesktop {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navbarItem {
+  position: relative;
+}
+
+.navbarLink {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--theme-text-primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  transition: color 0.2s ease;
+}
+
+.navbarLink:hover {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.navbarLinkWithDropdown {
+  cursor: pointer;
+}
+
+.dropdownArrow {
+  font-size: 0.625rem;
+  transition: transform 0.2s ease;
+}
+
+.dropdownArrowOpen {
+  transform: rotate(180deg);
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background-color: var(--theme-bg-elevated);
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--ifm-global-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  z-index: 1000;
+}
+
+[data-theme='dark'] .dropdown {
+  background-color: var(--theme-bg-primary);
+  border: 1px solid var(--theme-border-strong);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dropdownItem {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: var(--theme-text-primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  border-radius: var(--ifm-global-radius);
+  transition: background-color 0.2s ease;
+}
+
+.dropdownItem:hover {
+  background-color: var(--theme-bg-surface);
+  text-decoration: none;
+}
+
+.dropdownItemDisabled {
+  color: var(--theme-text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.dropdownItemDisabled:hover {
+  background-color: transparent;
+}
+
+/* Mobile Styles */
+.mobileMenuButton {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--theme-text-primary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.mobileMenuIcon {
+  display: block;
+}
+
+.mobileMenuBackdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.mobileMenu {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 80%;
+  max-width: 320px;
+  height: 100vh;
+  background-color: var(--theme-bg-primary);
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+[data-theme='dark'] .mobileMenu {
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+}
+
+.mobileMenuClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--theme-text-primary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.mobileMenuItems {
+  padding: 4rem 1.5rem 2rem;
+}
+
+.mobileMenuItems .navbarItem {
+  margin-bottom: 1rem;
+}
+
+.mobileMenuItems .navbarLink {
+  font-size: 1rem;
+  padding: 0.75rem 0;
+}
+
+.dropdownMobile {
+  position: static;
+  margin-top: 0;
+  margin-left: 1rem;
+  box-shadow: none;
+  border: none;
+  background-color: transparent;
+}
+
+/* Responsive */
+@media (max-width: 996px) {
+  .navbarItemsDesktop {
+    display: none;
+  }
+
+  .mobileMenuButton {
+    display: block;
+  }
+
+  .mobileMenuBackdrop {
+    display: block;
+  }
+
+  .mobileMenu {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbarSecondaryInner {
+    padding: 0 1rem;
+  }
+}

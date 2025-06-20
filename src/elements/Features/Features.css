@@ -44,7 +44,6 @@
   justify-content: center;
   background: var(--theme-bg-surface);
   border-radius: 0.5rem;
-  border: 1px solid var(--theme-border-subtle);
 }
 
 .feature-icon img {
