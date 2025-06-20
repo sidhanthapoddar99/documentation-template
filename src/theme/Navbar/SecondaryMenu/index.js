@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
+import { useLocation } from '@docusaurus/router';
 import { useThemeConfig } from '@docusaurus/theme-common';
 import { useHideableNavbar, useNavbarMobileSidebar } from '@docusaurus/theme-common/internal';
 import styles from './styles.module.css';
@@ -15,6 +16,7 @@ const platformDocItems = [
 ];
 
 const navItems = [
+  { label: 'Home', href: '/' },
   { label: 'Overview', href: '/overview' },
   { 
     label: 'Platform Documentation', 
@@ -26,19 +28,27 @@ const navItems = [
   { label: 'Roadmap & Release Notes', href: '/roadmap' },
 ];
 
-function NavbarItem({ item, isMobile, onClose }) {
+function NavbarItem({ item, isMobile, onClose, isActive }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownTimeout, setDropdownTimeout] = useState(null);
   const hasDropdown = item.dropdown && item.dropdown.length > 0;
 
   const handleMouseEnter = () => {
     if (!isMobile && hasDropdown) {
+      if (dropdownTimeout) {
+        clearTimeout(dropdownTimeout);
+        setDropdownTimeout(null);
+      }
       setIsDropdownOpen(true);
     }
   };
 
   const handleMouseLeave = () => {
     if (!isMobile && hasDropdown) {
-      setIsDropdownOpen(false);
+      const timeout = setTimeout(() => {
+        setIsDropdownOpen(false);
+      }, 150); // Small delay to allow moving to dropdown
+      setDropdownTimeout(timeout);
     }
   };
 
@@ -53,6 +63,14 @@ function NavbarItem({ item, isMobile, onClose }) {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (dropdownTimeout) {
+        clearTimeout(dropdownTimeout);
+      }
+    };
+  }, [dropdownTimeout]);
+
   return (
     <div 
       className={styles.navbarItem}
@@ -63,6 +81,7 @@ function NavbarItem({ item, isMobile, onClose }) {
         href={item.href}
         className={clsx(styles.navbarLink, {
           [styles.navbarLinkWithDropdown]: hasDropdown,
+          [styles.navbarLinkActive]: isActive,
         })}
         onClick={handleClick}
       >
@@ -104,11 +123,19 @@ function NavbarItem({ item, isMobile, onClose }) {
 }
 
 export default function NavbarSecondaryMenu() {
+  const location = useLocation();
   const mobileSidebar = useNavbarMobileSidebar();
   const { navbarStyle } = useHideableNavbar();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const shouldHideSecondaryMenu = navbarStyle === 'dark';
+
+  const isItemActive = (item) => {
+    if (item.href === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(item.href);
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -129,9 +156,26 @@ export default function NavbarSecondaryMenu() {
       <div className={styles.navbarSecondaryInner}>
         {/* Desktop Navigation */}
         <div className={styles.navbarItemsDesktop}>
-          {navItems.map((item, idx) => (
-            <NavbarItem key={idx} item={item} isMobile={false} />
-          ))}
+          <div className={styles.navbarItemsLeft}>
+            {navItems.map((item, idx) => (
+              <NavbarItem 
+                key={idx} 
+                item={item} 
+                isMobile={false}
+                isActive={isItemActive(item)}
+              />
+            ))}
+          </div>
+          <div className={styles.navbarItemsRight}>
+            <a 
+              href="https://github.com/neuralabs/neuralabs-sui" 
+              className={styles.navbarLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </a>
+          </div>
         </div>
 
         {/* Mobile Menu Button */}
@@ -162,8 +206,19 @@ export default function NavbarSecondaryMenu() {
                     item={item} 
                     isMobile={true}
                     onClose={closeMobileMenu}
+                    isActive={isItemActive(item)}
                   />
                 ))}
+                <div className={styles.mobileMenuDivider} />
+                <a 
+                  href="https://github.com/neuralabs/neuralabs-sui" 
+                  className={styles.navbarLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={closeMobileMenu}
+                >
+                  GitHub
+                </a>
               </div>
             </div>
           </>

@@ -144,6 +144,31 @@
   font-weight: 600;
 }
 
+/* Mobile sidebar styles */
+.navbar-sidebar {
+  background-color: var(--theme-bg-primary) !important;
+}
+
+[data-theme='dark'] .navbar-sidebar {
+  background-color: var(--theme-bg-primary) !important;
+}
+
+.navbar-sidebar__backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.navbar-sidebar__brand {
+  background-color: var(--theme-bg-primary) !important;
+}
+
+.navbar-sidebar__items {
+  background-color: var(--theme-bg-primary) !important;
+}
+
+.navbar-sidebar__item {
+  color: var(--theme-text-primary) !important;
+}
+
 /* Table of contents */
 .table-of-contents {
   font-size: 0.875rem;
@@ -342,6 +367,29 @@ main > .container {
 
 .markdown tbody tr:hover {
   background-color: var(--theme-bg-surface);
+}
+
+/* Mobile navbar adjustments */
+@media (max-width: 996px) {
+  .navbar {
+    padding: 0.75rem 0;
+  }
+  
+  .navbar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .navbar__brand {
+    flex: 0 1 auto;
+    margin-right: 1rem;
+  }
+  
+  .navbar__toggle {
+    order: -1;
+    margin-right: 0.5rem;
+  }
 }
 
 /* Responsive improvements */

@@ -1,0 +1,75 @@
+/* Desktop Search */
+.searchDesktop {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 600px;
+  margin: 0 2rem;
+}
+
+.searchForm {
+  width: 100%;
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  border: 1px solid var(--theme-border-default);
+  border-radius: 9999px;
+  background-color: var(--theme-bg-surface);
+  color: var(--theme-text-primary);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 2px rgba(30, 99, 234, 0.1);
+}
+
+.searchInput::placeholder {
+  color: var(--theme-text-muted);
+}
+
+.searchButton {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searchIcon {
+  filter: var(--theme-icon-filter);
+}
+
+/* Mobile Search */
+.searchMobile {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--theme-text-primary);
+}
+
+/* Responsive */
+@media (max-width: 996px) {
+  .searchDesktop {
+    display: none;
+  }
+
+  .searchMobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

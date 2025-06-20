@@ -1,0 +1,19 @@
+.navbarWrapper {
+  position: relative;
+}
+
+.searchContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* Mobile adjustments */
+@media (max-width: 996px) {
+  .searchContainer {
+    position: static;
+    transform: none;
+  }
+}
