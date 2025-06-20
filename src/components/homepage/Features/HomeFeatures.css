@@ -1,7 +1,6 @@
 /* HomeFeatures Component Styles */
 
 .home-features-section {
-  background-color: var(--theme-bg-primary);
   padding: 5rem 0;
 }
 
@@ -33,7 +32,6 @@
 /* Override feature card styles for homepage */
 .home-features-grid .feature-card {
   background: var(--theme-bg-elevated);
-  border: 2px solid var(--theme-components-card-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 }

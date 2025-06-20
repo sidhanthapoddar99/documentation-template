@@ -6,6 +6,9 @@
   flex: 1 1 auto;
   max-width: var(--max-width-7xl);
   margin: 0 auto;
+
+    padding: 0 var(--ifm-navbar-padding-horizontal);
+
 }
 
 .navbarContentLeft {

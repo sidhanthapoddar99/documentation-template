@@ -3,7 +3,6 @@
 .hero-banner {
   background-color: var(--theme-bg-primary);
   color: var(--theme-text-primary);
-  border-bottom: 1px solid var(--theme-border-default);
   padding: 4rem 0;
 }
 

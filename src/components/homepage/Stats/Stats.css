@@ -1,10 +1,8 @@
 /* Stats Component Styles */
 
 .stats-section {
-  background-color: var(--theme-bg-secondary);
   padding: 3rem 0;
-  border-top: 1px solid var(--theme-border-default);
-  border-bottom: 1px solid var(--theme-border-default);
+
 }
 
 .stats-grid {

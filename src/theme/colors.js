@@ -9,19 +9,19 @@ const colors = {
   background: {
     primary: {
       light: "#FFFFFF",
-      dark: "#000000"
+      dark: "#09090B"
     },
     secondary: {
       light: "#fafafa",
-      dark: "#000000"
+      dark: "#09090B"
     },
     surface: {
       light: "#f8f9fa",
-      dark: "#000000"
+      dark: "#09090B"
     },
     elevated: {
       light: "#FFFFFF",
-      dark: "#000000"
+      dark: "#09090B"
     }
   },
   
