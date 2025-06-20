@@ -31,6 +31,9 @@
   /* Transitions */
   --ifm-transition-fast: 0.2s;
   --ifm-transition-slow: 0.4s;
+  
+  /* Max width - 7xl (1400px) */
+  --max-width-7xl: 1400px;
 }
 
 /* Dark mode overrides */
@@ -44,6 +47,20 @@
   min-height: 100vh;
 }
 
+/* Container utility */
+.container {
+  max-width: var(--max-width-7xl);
+  margin: 0 auto;
+  padding: 0 var(--ifm-spacing-horizontal);
+}
+
+/* Large screen padding */
+@media (min-width: 1400px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
 /* Navbar styles */
 .navbar {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -51,7 +68,7 @@
 }
 
 .navbar__inner {
-  max-width: 1400px;
+  max-width: var(--max-width-7xl);
   margin: 0 auto;
   padding: 0 var(--ifm-navbar-padding-horizontal);
 }
@@ -148,6 +165,17 @@ pre {
   display: block;
   margin: 0 calc(-1 * var(--ifm-pre-padding));
   padding: 0 var(--ifm-pre-padding);
+}
+
+/* Doc page container */
+.docs-wrapper {
+  max-width: var(--max-width-7xl);
+  margin: 0 auto;
+}
+
+/* Main content area */
+main > .container {
+  max-width: var(--max-width-7xl);
 }
 
 /* Footer styles */

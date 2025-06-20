@@ -33,13 +33,13 @@
 /* Override feature card styles for homepage */
 .home-features-grid .feature-card {
   background: var(--theme-bg-elevated);
-  border: 1px solid var(--theme-border-subtle);
+  border: 2px solid var(--theme-components-card-border);
   box-shadow: 0 2px 4px var(--color-shadow-light);
 }
 
 .home-features-grid .feature-card:hover {
   box-shadow: 0 8px 24px var(--color-shadow-medium);
-  border-color: var(--theme-border-default);
+  border-color: var(--theme-components-card-border);
 }
 
 /* Icon filter - uses theme variable */

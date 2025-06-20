@@ -9,19 +9,19 @@ const colors = {
   background: {
     primary: {
       light: "#FFFFFF",
-      dark: "#1a1a1a"
+      dark: "#000000"
     },
     secondary: {
       light: "#fafafa",
-      dark: "#0a0a0a"
+      dark: "#000000"
     },
     surface: {
       light: "#f8f9fa",
-      dark: "#212529"
+      dark: "#000000"
     },
     elevated: {
       light: "#FFFFFF",
-      dark: "#2d2d2d"
+      dark: "#000000"
     }
   },
   
@@ -85,15 +85,15 @@ const colors = {
     card: {
       background: {
         light: "#FFFFFF",
-        dark: "#1e293b"
+        dark: "#000000"
       },
       border: {
-        light: "#e2e8f0",
-        dark: "#334155"
+        light: "#000000",
+        dark: "#FFFFFF"
       },
       hover: {
         light: "#f8fafc",
-        dark: "#334155"
+        dark: "#000000"
       }
     },
     button: {
@@ -121,7 +121,7 @@ const colors = {
     code: {
       background: {
         light: "#f8f9fa",
-        dark: "#1e293b"
+        dark: "#000000"
       },
       text: {
         light: "#e53e3e",
@@ -129,7 +129,7 @@ const colors = {
       },
       border: {
         light: "#e2e8f0",
-        dark: "#334155"
+        dark: "#FFFFFF"
       }
     },
     callout: {
