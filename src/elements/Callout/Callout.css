@@ -25,15 +25,8 @@
   margin-bottom: 0;
 }
 
-/* Info Callout */
-.callout-info {
-  background-color: var(--theme-callout-info-bg);
-  border-color: var(--theme-callout-info-border);
-  color: var(--theme-callout-info-text);
-}
-
-.callout-info::before {
-  content: "ℹ️";
+/* Callout Types with Emojis */
+.callout::before {
   position: absolute;
   top: 1rem;
   left: 1rem;
@@ -41,10 +34,18 @@
   opacity: 0.8;
 }
 
-.callout-info .callout-title,
-.callout-info .callout-content {
+.callout .callout-title,
+.callout .callout-content {
   padding-left: 2rem;
 }
+
+/* Info Callout */
+.callout-info {
+  background-color: var(--theme-callout-info-bg);
+  border-color: var(--theme-callout-info-border);
+  color: var(--theme-callout-info-text);
+}
+.callout-info::before { content: "ℹ️"; }
 
 /* Warning Callout */
 .callout-warning {
@@ -52,20 +53,7 @@
   border-color: var(--theme-callout-warning-border);
   color: var(--theme-callout-warning-text);
 }
-
-.callout-warning::before {
-  content: "⚠️";
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  font-size: 1.25rem;
-  opacity: 0.8;
-}
-
-.callout-warning .callout-title,
-.callout-warning .callout-content {
-  padding-left: 2rem;
-}
+.callout-warning::before { content: "⚠️"; }
 
 /* Success Callout */
 .callout-success {
@@ -73,20 +61,7 @@
   border-color: var(--theme-callout-success-border);
   color: var(--theme-callout-success-text);
 }
-
-.callout-success::before {
-  content: "✅";
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  font-size: 1.25rem;
-  opacity: 0.8;
-}
-
-.callout-success .callout-title,
-.callout-success .callout-content {
-  padding-left: 2rem;
-}
+.callout-success::before { content: "✅"; }
 
 /* Danger/Error Callout */
 .callout-danger,
@@ -95,67 +70,26 @@
   border-color: var(--theme-callout-danger-border);
   color: var(--theme-callout-danger-text);
 }
-
 .callout-danger::before,
-.callout-error::before {
-  content: "❌";
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  font-size: 1.25rem;
-  opacity: 0.8;
-}
+.callout-error::before { content: "❌"; }
 
-.callout-danger .callout-title,
-.callout-danger .callout-content,
-.callout-error .callout-title,
-.callout-error .callout-content {
-  padding-left: 2rem;
-}
-
-/* Tip Callout (alias for success) */
+/* Tip Callout */
 .callout-tip {
   background-color: var(--theme-callout-success-bg);
   border-color: var(--theme-callout-success-border);
   color: var(--theme-callout-success-text);
 }
+.callout-tip::before { content: "💡"; }
 
-.callout-tip::before {
-  content: "💡";
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  font-size: 1.25rem;
-  opacity: 0.8;
-}
-
-.callout-tip .callout-title,
-.callout-tip .callout-content {
-  padding-left: 2rem;
-}
-
-/* Note Callout (default style) */
+/* Note Callout */
 .callout-note {
   background-color: var(--theme-bg-surface);
   border-color: var(--theme-border-default);
   color: var(--theme-text-primary);
 }
+.callout-note::before { content: "📝"; }
 
-.callout-note::before {
-  content: "📝";
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  font-size: 1.25rem;
-  opacity: 0.8;
-}
-
-.callout-note .callout-title,
-.callout-note .callout-content {
-  padding-left: 2rem;
-}
-
-/* Responsive Styles */
+/* Responsive */
 @media (max-width: 768px) {
   .callout {
     padding: 0.875rem 1rem;

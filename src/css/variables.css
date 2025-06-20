@@ -1,0 +1,36 @@
+/**
+ * Extended CSS Variables for common patterns
+ * These extend the auto-generated color variables
+ */
+
+:root {
+  /* Shadows - using existing color variables */
+  --shadow-xs: 0 1px 3px var(--color-shadow-light);
+  --shadow-sm: 0 2px 8px var(--color-shadow-light);
+  --shadow-md: 0 4px 12px var(--color-shadow-medium);
+  --shadow-lg: 0 8px 24px var(--color-shadow-medium);
+  --shadow-xl: 0 12px 48px var(--color-shadow-dark);
+  
+  /* Card shadows with dark mode support */
+  --card-shadow-default: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions - using Docusaurus variables */
+  --transition-default: all var(--ifm-transition-slow, 0.3s) ease;
+  --transition-fast: all var(--ifm-transition-fast, 0.2s) ease;
+  
+  /* Common hover transforms */
+  --hover-lift: translateY(-4px);
+  --hover-scale: scale(1.05);
+  
+  /* Component patterns */
+  --card-padding: 1.5rem;
+  --card-padding-mobile: 1rem;
+  --component-gap: 1.5rem;
+  --component-gap-mobile: 1rem;
+}
+
+[data-theme='dark'] {
+  --card-shadow-default: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.3);
+}

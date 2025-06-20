@@ -1,15 +1,20 @@
 /* HomeFeatures Component Styles */
+@import '@site/src/css/common.css';
 
+/* Use section utilities from common.css */
 .home-features-section {
+  /* Extends .section from common.css */
   padding: 5rem 0;
 }
 
 .home-features-header {
+  /* Extends .section-header from common.css */
   text-align: center;
   margin-bottom: 3rem;
 }
 
 .home-features-title {
+  /* Extends .section-title from common.css */
   font-size: 2.5rem;
   font-weight: 300;
   color: var(--theme-text-heading);
@@ -18,6 +23,7 @@
 }
 
 .home-features-subtitle {
+  /* Extends .section-subtitle from common.css */
   font-size: 1.1rem;
   color: var(--theme-text-secondary);
   max-width: 600px;
@@ -32,27 +38,21 @@
 /* Override feature card styles for homepage */
 .home-features-grid .feature-card {
   background: var(--theme-bg-elevated);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-default);
 }
 
 [data-theme='dark'] .home-features-grid .feature-card {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .home-features-grid .feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: var(--hover-lift);
+  box-shadow: var(--card-shadow-hover);
   border-color: var(--theme-components-card-border);
 }
 
-[data-theme='dark'] .home-features-grid .feature-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-/* Icon filter - uses theme variable */
-
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 1200px) {
   .home-features-grid {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

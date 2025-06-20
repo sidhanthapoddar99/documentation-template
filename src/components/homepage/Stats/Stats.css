@@ -1,8 +1,8 @@
 /* Stats Component Styles */
 
 .stats-section {
+  /* Use section utility from common.css */
   padding: 3rem 0;
-
 }
 
 .stats-grid {
@@ -26,6 +26,7 @@
 .stat-icon img {
   width: 32px;
   height: 32px;
+  /* Use icon utility from common.css */
   filter: var(--theme-icon-filter);
 }
 
@@ -42,7 +43,7 @@
   margin: 0;
 }
 
-/* Responsive Styles */
+/* Responsive */
 @media (max-width: 768px) {
   .stats-section {
     padding: 2rem 0;

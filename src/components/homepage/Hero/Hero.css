@@ -1,4 +1,5 @@
 /* Hero Component Styles */
+@import '@site/src/css/common.css';
 
 .hero-banner {
   background-color: var(--theme-bg-primary);
@@ -39,32 +40,36 @@
 }
 
 .hero-btn-primary {
+  /* Extends base-button */
   background-color: var(--color-brand-primary);
   color: var(--color-main-light);
   border: 2px solid var(--color-brand-primary);
   padding: 0.75rem 2rem;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: var(--transition-default);
 }
 
 .hero-btn-primary:hover {
   background-color: var(--color-brand-primaryHover);
+  color: var(--theme-text-secondary);
   border-color: var(--color-brand-primaryHover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(30, 99, 234, 0.3);
 }
 
 .hero-btn-secondary {
+  /* Extends base-button */
   background-color: transparent;
   color: var(--theme-text-primary);
   border: 2px solid var(--theme-border-strong);
   padding: 0.75rem 2rem;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: var(--transition-default);
 }
 
 .hero-btn-secondary:hover {
   background-color: var(--theme-bg-surface);
+  color: var(--theme-text-secondary);
   border-color: var(--theme-border-strong);
   transform: translateY(-2px);
 }
@@ -79,28 +84,7 @@
   margin: 0;
 }
 
-/* Dark Mode Adjustments */
-[data-theme='dark'] .hero-btn-primary {
-  background-color: var(--color-brand-primary);
-  border-color: var(--color-brand-primary);
-  color: var(--color-main-light);
-}
-
-[data-theme='dark'] .hero-btn-primary:hover {
-  background-color: var(--color-brand-primaryHover);
-  border-color: var(--color-brand-primaryHover);
-}
-
-[data-theme='dark'] .hero-btn-secondary {
-  color: var(--theme-text-primary);
-  border-color: var(--theme-border-strong);
-}
-
-[data-theme='dark'] .hero-btn-secondary:hover {
-  background-color: var(--theme-bg-surface);
-}
-
-/* Responsive Styles */
+/* Responsive */
 @media (max-width: 768px) {
   .hero-banner {
     padding: 3rem 0;

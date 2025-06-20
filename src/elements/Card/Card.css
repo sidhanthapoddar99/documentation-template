@@ -1,18 +1,20 @@
 /* Card Component Styles */
+@import '@site/src/css/common.css';
 
 .card {
+  /* Extends base-card styles */
   background: var(--theme-card-bg);
-  border-radius: 0.75rem;
+  border-radius: var(--ifm-card-border-radius);
   border: 1px solid var(--theme-card-border);
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px var(--color-shadow-light);
-  transition: all 0.3s ease;
+  padding: var(--card-padding);
+  box-shadow: var(--card-shadow-default);
+  transition: var(--transition-default);
   text-align: left;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px var(--color-shadow-medium);
+  transform: var(--hover-lift);
+  box-shadow: var(--card-shadow-hover);
   border-color: var(--theme-card-hover);
 }
 
@@ -57,7 +59,6 @@
 /* Card Variants */
 .card--primary {
   border-color: var(--color-brand-primary);
-  background: var(--theme-card-bg);
 }
 
 .card--primary:hover {
@@ -72,13 +73,13 @@
 
 .card--elevated {
   background: var(--theme-bg-elevated);
-  box-shadow: 0 4px 12px var(--color-shadow-medium);
+  box-shadow: var(--shadow-md);
 }
 
-/* Responsive Styles */
+/* Responsive */
 @media (max-width: 768px) {
   .card {
-    padding: 1rem;
+    padding: var(--card-padding-mobile);
   }
   
   .card-title {

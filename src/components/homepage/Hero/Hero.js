@@ -24,7 +24,7 @@ function Hero() {
               View on GitHub
             </a>
             <a
-              className="button button--lg button--secondary hero-btn-secondary"
+              className="button button--lg  hero-btn-secondary"
               href="https://neuralabs.org"
               target="_blank"
               rel="noopener noreferrer">

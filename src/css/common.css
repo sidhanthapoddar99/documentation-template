@@ -1,136 +1,100 @@
 /**
- * Common CSS utilities and reusable styles
- * Import this file in component CSS files when needed
+ * Common CSS utilities and component base styles
+ * Import this in component files as needed
  */
 
-/* Import color variables */
 @import './generated-colors.css';
+@import './variables.css';
 
-/* Common transitions */
-.transition-fast {
-  transition: all var(--ifm-transition-fast, 0.2s) ease;
+/* Base Component Styles */
+.base-card {
+  background: var(--theme-card-bg);
+  border: 1px solid var(--theme-card-border);
+  border-radius: var(--ifm-card-border-radius);
+  padding: var(--card-padding);
+  box-shadow: var(--card-shadow-default);
+  transition: var(--transition-default);
 }
 
-.transition-slow {
-  transition: all var(--ifm-transition-slow, 0.4s) ease;
+.base-card:hover {
+  transform: var(--hover-lift);
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--theme-card-hover);
 }
 
-/* Common hover effects */
-.hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px var(--color-shadow-medium);
+/* Icon Utility */
+.icon {
+  filter: var(--theme-icon-filter);
+  transition: var(--transition-fast);
 }
 
-.hover-scale:hover {
-  transform: scale(1.05);
+/* Button Base */
+.base-button {
+  font-weight: 500;
+  transition: var(--transition-default);
+  border-radius: var(--ifm-global-radius);
 }
 
-/* Common shadows */
-.shadow-sm {
-  box-shadow: 0 1px 3px var(--color-shadow-light);
+/* Section Base */
+.section {
+  padding: 3rem 0;
 }
 
-.shadow-md {
-  box-shadow: 0 4px 12px var(--color-shadow-medium);
+.section-header {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
-.shadow-lg {
-  box-shadow: 0 8px 24px var(--color-shadow-medium);
-}
-
-.shadow-xl {
-  box-shadow: 0 12px 48px var(--color-shadow-dark);
-}
-
-/* Common borders */
-.border {
-  border: 1px solid var(--theme-border-default);
-}
-
-.border-subtle {
-  border: 1px solid var(--theme-border-subtle);
-}
-
-.border-strong {
-  border: 1px solid var(--theme-border-strong);
-}
-
-/* Common rounded corners */
-.rounded {
-  border-radius: var(--ifm-global-radius, 0.375rem);
-}
-
-.rounded-lg {
-  border-radius: var(--ifm-card-border-radius, 0.75rem);
-}
-
-.rounded-full {
-  border-radius: 9999px;
-}
-
-/* Common text styles */
-.text-muted {
-  color: var(--theme-text-muted);
-}
-
-.text-secondary {
-  color: var(--theme-text-secondary);
-}
-
-.text-primary {
-  color: var(--theme-text-primary);
-}
-
-.text-heading {
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 300;
   color: var(--theme-text-heading);
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
 }
 
-/* Common background styles */
-.bg-primary {
-  background-color: var(--theme-bg-primary);
+.section-subtitle {
+  font-size: 1.1rem;
+  color: var(--theme-text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
 }
 
-.bg-secondary {
-  background-color: var(--theme-bg-secondary);
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .base-card {
+    padding: var(--card-padding-mobile);
+  }
+  
+  .section {
+    padding: 2rem 0;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .section-subtitle {
+    font-size: 1rem;
+  }
 }
 
-.bg-surface {
-  background-color: var(--theme-bg-surface);
-}
+/* Status Utilities */
+.status-success { color: var(--color-status-success); }
+.status-warning { color: var(--color-status-warning); }
+.status-danger { color: var(--color-status-danger); }
+.status-info { color: var(--color-status-info); }
 
-.bg-elevated {
-  background-color: var(--theme-bg-elevated);
-}
+/* Display Utilities */
+.hidden { display: none !important; }
+.block { display: block !important; }
+.inline-block { display: inline-block !important; }
+.flex { display: flex !important; }
+.grid { display: grid !important; }
 
-/* Status colors */
-.text-success {
-  color: var(--color-status-success);
-}
-
-.text-warning {
-  color: var(--color-status-warning);
-}
-
-.text-danger {
-  color: var(--color-status-danger);
-}
-
-.text-info {
-  color: var(--color-status-info);
-}
-
-.bg-success-light {
-  background-color: var(--theme-callout-success-bg);
-}
-
-.bg-warning-light {
-  background-color: var(--theme-callout-warning-bg);
-}
-
-.bg-danger-light {
-  background-color: var(--theme-callout-danger-bg);
-}
-
-.bg-info-light {
-  background-color: var(--theme-callout-info-bg);
-}
+/* Spacing Utilities */
+.gap-sm { gap: 0.5rem; }
+.gap-md { gap: 1rem; }
+.gap-lg { gap: 1.5rem; }
+.gap-xl { gap: 2rem; }
