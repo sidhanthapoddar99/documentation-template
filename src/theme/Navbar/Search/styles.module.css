@@ -2,9 +2,8 @@
 .searchDesktop {
   display: flex;
   align-items: center;
-  flex: 1;
+  width: 100%;
   max-width: 600px;
-  margin: 0 2rem;
 }
 
 .searchForm {
@@ -53,23 +52,12 @@
 
 /* Mobile Search */
 .searchMobile {
-  display: none;
   background: none;
   border: none;
   padding: 0.5rem;
   cursor: pointer;
   color: var(--theme-text-primary);
-}
-
-/* Responsive */
-@media (max-width: 996px) {
-  .searchDesktop {
-    display: none;
-  }
-
-  .searchMobile {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

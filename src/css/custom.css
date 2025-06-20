@@ -66,6 +66,10 @@
   background-color: var(--theme-bg-primary);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   padding: 0.5rem 0;
+  position: sticky !important;
+  top: 0;
+  z-index: var(--ifm-z-index-fixed);
+  width: 100%;
 }
 
 [data-theme='dark'] .navbar {
@@ -73,10 +77,36 @@
   border-bottom: 1px solid var(--theme-border-subtle);
 }
 
+/* Fix navbar positioning */
+.navbar--fixed-top {
+  position: sticky !important;
+  top: 0;
+}
+
+/* Navbar container wrapper */
+.navbar > .navbar__inner {
+  max-width: 100%;
+  width: 100%;
+}
+
 .navbar__inner {
   max-width: var(--max-width-7xl);
   margin: 0 auto;
   padding: 0 var(--ifm-navbar-padding-horizontal);
+}
+
+/* Ensure navbar content respects max-width */
+.navbar__items {
+  max-width: var(--max-width-7xl);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Add padding on large screens */
+@media (min-width: 1400px) {
+  .navbar__inner {
+    padding: 0 2rem;
+  }
 }
 
 .navbar__title {
@@ -167,6 +197,19 @@
 
 .navbar-sidebar__item {
   color: var(--theme-text-primary) !important;
+}
+
+/* Ensure theme toggle appears in mobile sidebar */
+.navbar-sidebar__close {
+  background-color: transparent !important;
+  color: var(--theme-text-primary) !important;
+}
+
+/* Make hamburger button more visible */
+.clean-btn.navbar__toggle {
+  color: var(--theme-text-primary) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 /* Table of contents */
@@ -383,12 +426,34 @@ main > .container {
   
   .navbar__brand {
     flex: 0 1 auto;
-    margin-right: 1rem;
+    margin: 0 auto;
+    padding: 0 1rem;
   }
   
   .navbar__toggle {
     order: -1;
-    margin-right: 0.5rem;
+    margin-right: 0;
+    flex: 0 0 auto;
+    display: flex !important;
+    align-items: center;
+    padding: 0.5rem;
+  }
+  
+  /* Style the hamburger icon */
+  .navbar__toggle svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--theme-text-primary);
+  }
+  
+  .navbar__items {
+    flex: 0 0 auto;
+  }
+  
+  .navbar__items--right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 }
 

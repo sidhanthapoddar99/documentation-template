@@ -2,8 +2,8 @@
   background-color: var(--theme-bg-secondary);
   border-bottom: 1px solid var(--theme-border-default);
   position: sticky;
-  top: var(--ifm-navbar-height);
-  z-index: var(--ifm-z-index-fixed);
+  top: 60px; /* Approximate navbar height */
+  z-index: calc(var(--ifm-z-index-fixed) - 1);
   transition: transform 0.2s ease-in-out;
 }
 

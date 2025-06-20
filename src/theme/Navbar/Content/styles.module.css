@@ -1,0 +1,54 @@
+.navbarContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  flex: 1 1 auto;
+  max-width: var(--max-width-7xl);
+  margin: 0 auto;
+}
+
+.navbarContentLeft {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 200px;
+}
+
+.navbarContentCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  margin: 0 2rem;
+  max-width: 400px;
+}
+
+.navbarContentRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  gap: 0.5rem;
+  /* min-width: 200px; */
+}
+
+.colorModeToggle {
+  margin-left: 0.5rem;
+}
+
+/* Hide center search on mobile */
+@media (max-width: 996px) {
+  .navbarContentCenter {
+    display: none;
+  }
+  
+  .navbarContentLeft {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  
+  .navbarContentRight {
+    flex: 0 0 auto;
+  }
+}
