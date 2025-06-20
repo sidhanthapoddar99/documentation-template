@@ -1,14 +1,13 @@
-import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from '@theme/Layout';
-import { Hero, HomeFeatures, Stats } from '@site/src/components/HomePage';
+import { Hero, HomeFeatures, Stats } from '@site/src/components/homepage';
+import { HomeLayout } from '@site/src/layouts';
 import './index.css';
 
 export default function Home() {
   const {siteConfig} = useDocusaurusContext();
   
   return (
-    <Layout
+    <HomeLayout
       title={`${siteConfig.title} - Decentralized AI Workflow Platform`}
       description="Build, deploy, and monetize autonomous AI agents on the decentralized SUI blockchain">
       <Hero />
@@ -16,6 +15,6 @@ export default function Home() {
         <HomeFeatures />
         <Stats />
       </main>
-    </Layout>
+    </HomeLayout>
   );
 }

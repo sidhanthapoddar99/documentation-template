@@ -36,16 +36,8 @@ const config = {
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
-        docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/neuralabs/neuralabs-sui/tree/main/documentation/',
-          remarkPlugins: [],
-          rehypePlugins: [],
-        },
-        blog: {
-          showReadingTime: true,
-          editUrl: 'https://github.com/neuralabs/neuralabs-sui/tree/main/documentation/',
-        },
+        docs: false,
+        blog: false,
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
@@ -55,9 +47,9 @@ const config = {
 
   themes: ['@docusaurus/theme-mermaid'],
   
-  plugins: [
-    './src/plugins/auto-numbering-plugin.js',
-  ],
+  // plugins: [
+  //   './src/plugins/auto-numbering-plugin.js',
+  // ],
   
   markdown: {
     mermaid: true,
@@ -76,17 +68,18 @@ const config = {
           srcDark: 'img/logo-dark.svg',
         },
         items: [
-          {
-            type: 'docSidebar',
-            sidebarId: 'docsSidebar',
-            position: 'left',
-            label: 'Documentation',
-          },
-          {
-            to: '/blog', 
-            label: 'Blog', 
-            position: 'left'
-          },
+          // Documentation and Blog temporarily disabled
+          // {
+          //   type: 'docSidebar',
+          //   sidebarId: 'docsSidebar',
+          //   position: 'left',
+          //   label: 'Documentation',
+          // },
+          // {
+          //   to: '/blog', 
+          //   label: 'Blog', 
+          //   position: 'left'
+          // },
           {
             href: 'https://github.com/neuralabs/neuralabs-sui',
             label: 'GitHub',
@@ -97,23 +90,24 @@ const config = {
       footer: {
         style: 'dark',
         links: [
-          {
-            title: 'Docs',
-            items: [
-              {
-                label: 'Introduction',
-                to: '/docs/intro',
-              },
-              {
-                label: 'Getting Started',
-                to: '/docs/theoretical/getting-started',
-              },
-              {
-                label: 'API Reference',
-                to: '/docs/api',
-              },
-            ],
-          },
+          // Docs section temporarily disabled
+          // {
+          //   title: 'Docs',
+          //   items: [
+          //     {
+          //       label: 'Introduction',
+          //       to: '/docs/intro',
+          //     },
+          //     {
+          //       label: 'Getting Started',
+          //       to: '/docs/theoretical/getting-started',
+          //     },
+          //     {
+          //       label: 'API Reference',
+          //       to: '/docs/api',
+          //     },
+          //   ],
+          // },
           {
             title: 'Community',
             items: [
@@ -134,10 +128,10 @@ const config = {
           {
             title: 'More',
             items: [
-              {
-                label: 'Blog',
-                to: '/blog',
-              },
+              // {
+              //   label: 'Blog',
+              //   to: '/blog',
+              // },
               {
                 label: 'GitHub',
                 href: 'https://github.com/neuralabs/neuralabs-sui',
