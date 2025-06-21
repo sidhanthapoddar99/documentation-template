@@ -1,3 +1,4 @@
+/* Original mobile/fallback layout */
 .navbarContent {
   display: flex;
   align-items: center;
@@ -6,16 +7,13 @@
   flex: 1 1 auto;
   max-width: var(--max-width-7xl);
   margin: 0 auto;
-
-    padding: 0 var(--ifm-navbar-padding-horizontal);
-
+  padding: 0 var(--ifm-navbar-padding-horizontal);
 }
 
 .navbarContentLeft {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  /* min-width: 200px; */
 }
 
 .navbarContentCenter {
@@ -33,25 +31,112 @@
   justify-content: flex-end;
   flex: 0 0 auto;
   gap: 0.5rem;
-  /* min-width: 200px; */
+}
+
+/* Two-row layout for desktop */
+.navbarRows {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--max-width-7xl);
+  margin: 0 auto;
+  padding: 0 var(--ifm-navbar-padding-horizontal);
+}
+
+/* First Row */
+.navbarFirstRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  border-bottom: 1px solid var(--theme-border-default);
+}
+
+.navbarFirstRowLeft {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.navbarFirstRowCenter {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.navbarFirstRowRight {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Second Row */
+.navbarSecondRow {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  background-color: var(--theme-bg-secondary);
+}
+
+[data-theme='dark'] .navbarSecondRow {
+  background-color: var(--theme-bg-primary);
+  border-bottom: 1px solid var(--theme-border-subtle);
+}
+
+.navbarSecondRowContent {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+}
+
+/* Navigation items styling */
+.navbarSecondRowContent a {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--theme-text-primary);
+  text-decoration: none;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.navbarSecondRowContent a:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* Active link indicator */
+.navbarSecondRowContent a[aria-current="page"] {
+  color: var(--ifm-color-primary);
+}
+
+/* Dropdown adjustments */
+.navbarSecondRowContent .dropdown__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.navbarSecondRowContent .dropdown__menu {
+  margin-top: 0.5rem;
 }
 
 .colorModeToggle {
   margin-left: 0.5rem;
 }
 
-/* Hide center search on mobile */
-/* @media (max-width: 996px) {
-  .navbarContentCenter {
+/* Mobile styles - hide two-row layout */
+@media (max-width: 996px) {
+  .navbarRows {
     display: none;
   }
   
-  .navbarContentLeft {
-    flex: 1 1 auto;
-    justify-content: center;
+  /* Show original layout on mobile */
+  .navbarContent {
+    display: flex !important;
   }
-  
-  .navbarContentRight {
-    flex: 0 0 auto;
-  }
-} */
+}

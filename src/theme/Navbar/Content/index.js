@@ -22,48 +22,56 @@ function NavbarItems({ items }) {
   );
 }
 
-function NavbarContentLayout({ left, center, right }) {
-  return (
-    <div className={styles.navbarContent}>
-      <div className={styles.navbarContentLeft}>{left}</div>
-      <div className={styles.navbarContentCenter}>{center}</div>
-      <div className={styles.navbarContentRight}>{right}</div>
-    </div>
-  );
-}
-
 export default function NavbarContent() {
   const mobileSidebar = useNavbarMobileSidebar();
   const items = useNavbarItems();
-  const [leftItems, rightItems] = splitNavbarItems(items);
   const windowSize = useWindowSize();
   const isMobile = windowSize === 'mobile' || windowSize === 'ssr';
 
-  return (
-    <NavbarContentLayout
-      left={
-        <>
-          {!mobileSidebar.disabled && <NavbarMobileSidebarToggle />}
+  // Separate nav items from other items
+  const navItems = items.filter(item => item.className?.includes('navbar__item--nav'));
+  const otherItems = items.filter(item => !item.className?.includes('navbar__item--nav'));
 
-         {!isMobile && <NavbarLogo />}
-          {!isMobile && <NavbarItems items={leftItems} />}
-        </>
-      }
-      center={
-        <>
-        {!isMobile && <NavbarSearch />}
-        {isMobile && <NavbarLogo />}
-        {isMobile && <NavbarItems items={leftItems} />}
-        </>       
-      }
-      right={
-        <>
+  // For mobile, show the original layout
+  if (isMobile) {
+    const [leftItems, rightItems] = splitNavbarItems(items);
+    return (
+      <div className={styles.navbarContent}>
+        <div className={styles.navbarContentLeft}>
+          {!mobileSidebar.disabled && <NavbarMobileSidebarToggle />}
+          <NavbarLogo />
+        </div>
+        <div className={styles.navbarContentRight}>
           <NavbarItems items={rightItems} />
-          {isMobile && <NavbarSearch mobile />}
-          {!isMobile && <NavbarColorModeToggle className={styles.colorModeToggle} />}
-        </>
-      }
-    />
+          <NavbarSearch mobile />
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop two-row layout
+  return (
+    <div className={styles.navbarRows}>
+      {/* First Row: Logo, Search, Theme Toggle */}
+      <div className={styles.navbarFirstRow}>
+        <div className={styles.navbarFirstRowLeft}>
+          <NavbarLogo />
+        </div>
+        <div className={styles.navbarFirstRowCenter}>
+          <NavbarSearch />
+        </div>
+        <div className={styles.navbarFirstRowRight}>
+          <NavbarColorModeToggle className={styles.colorModeToggle} />
+        </div>
+      </div>
+      
+      {/* Second Row: Navigation Items */}
+      <div className={styles.navbarSecondRow}>
+        <div className={styles.navbarSecondRowContent}>
+          <NavbarItems items={navItems} />
+        </div>
+      </div>
+    </div>
   );
 }
 

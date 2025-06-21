@@ -1,12 +1,11 @@
 
-
 # Standard Dirs
 
 
 The standard Docusaurus structure includes:
 - `docs/` - Documentation pages
 - `blog/` - Blog posts  
-- `src/pages/` - Custom pages
+- `src/pages/` - Custom pages like  `index.js`-- the homepage or other custom pages like `roadmap.js` -- `/roadmap` route 
 - `src/components/` - React components
 - `src/theme/` - Theme overrides
 - `static/` - Static assets

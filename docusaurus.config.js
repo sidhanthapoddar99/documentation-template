@@ -71,28 +71,25 @@ const config = {
           srcDark: 'img/logo-dark.svg',
         },
         items: [
-          // Main navbar items (hidden on mobile by default)
-          // Documentation and Blog temporarily disabled
-
-          // Add secondary navbar items with position 'left' and className 'navbar__item--mobile'
-          // These will only show in mobile menu
+          // Navigation items - these will be in the second row on desktop
           {
-            label: 'Home',
+            label: 'Welcome',
             to: '/',
             position: 'left',
-            className: 'navbar__item--mobile-only'
+            className: 'navbar__item--nav',
+            activeBaseRegex: '^/$'
           },
           {
             label: 'Overview',
             to: '/overview',
             position: 'left',
-            className: 'navbar__item--mobile-only'
+            className: 'navbar__item--nav'
           },
           {
             label: 'Platform Documentation',
             type: 'dropdown',
             position: 'left',
-            className: 'navbar__item--mobile-only',
+            className: 'navbar__item--nav',
             items: [
               { label: 'Platform', to: '/docs/platform' },
               { label: 'NeuraLock', to: '/docs/neuralock' },
@@ -107,24 +104,25 @@ const config = {
             label: 'Developers Guide',
             to: '/developers',
             position: 'left',
-            className: 'navbar__item--mobile-only'
+            className: 'navbar__item--nav'
           },
           {
             label: 'Blogs',
             to: '/blog',
             position: 'left',
-            className: 'navbar__item--mobile-only'
+            className: 'navbar__item--nav'
           },
           {
             label: 'Roadmap & Release Notes',
             to: '/roadmap',
             position: 'left',
-            className: 'navbar__item--mobile-only'
+            className: 'navbar__item--nav'
           },
           {
             label: 'GitHub',
             href: 'https://github.com/neuralabs/neuralabs-sui',
             position: 'right',
+            className: 'navbar__item--nav'
           },
         ],
       },

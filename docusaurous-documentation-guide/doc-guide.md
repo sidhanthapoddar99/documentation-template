@@ -1,5 +1,4 @@
 
-## Writing Documentation
 
 ### Creating a New Doc
 

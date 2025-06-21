@@ -5,3 +5,17 @@
 .navbarHidden {
   transform: translate3d(0, calc(-100% - 2px), 0);
 }
+
+/* Adjust navbar wrapper height for two-row layout on desktop */
+@media (min-width: 997px) {
+  .navbarHideable {
+    height: 108px; /* 60px (first row) + 48px (second row) */
+  }
+}
+
+/* Keep original height on mobile */
+@media (max-width: 996px) {
+  .navbarHideable {
+    height: var(--ifm-navbar-height);
+  }
+}
