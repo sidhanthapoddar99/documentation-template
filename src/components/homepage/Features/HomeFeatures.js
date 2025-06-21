@@ -1,5 +1,5 @@
 import React from 'react';
-import { Features, Feature } from '@site/src/elements/Features';
+import { Features, Feature } from '@site/src/components/elements/Features';
 import './HomeFeatures.css';
 
 const FeatureList = [

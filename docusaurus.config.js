@@ -1,7 +1,7 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const {themes} = require('prism-react-renderer');
+const { themes } = require('prism-react-renderer');
 const lightCodeTheme = themes.vsLight;
 const darkCodeTheme = themes.vsDark;
 
@@ -46,11 +46,11 @@ const config = {
   ],
 
   themes: ['@docusaurus/theme-mermaid'],
-  
+
   // plugins: [
   //   './src/plugins/auto-numbering-plugin.js',
   // ],
-  
+
   markdown: {
     mermaid: true,
   },
@@ -60,73 +60,74 @@ const config = {
     ({
       // Replace with your project's social card
       image: 'img/neuralabs-social-card.jpg',
-// Update the navbar section in docusaurus.config.js:
 
-navbar: {
-  title: 'NeuraLabs',
-  logo: {
-    alt: 'NeuraLabs Logo',
-    src: 'img/logo-light.svg',
-    srcDark: 'img/logo-dark.svg',
-  },
-  items: [
-    // Main navbar items (hidden on mobile by default)
-    // Documentation and Blog temporarily disabled
-    
-    // Add secondary navbar items with position 'left' and className 'navbar__item--mobile'
-    // These will only show in mobile menu
-    {
-      label: 'Home',
-      to: '/',
-      position: 'left',
-      className: 'navbar__item--mobile-only'
-    },
-    {
-      label: 'Overview',
-      to: '/overview',
-      position: 'left',
-      className: 'navbar__item--mobile-only'
-    },
-    {
-      label: 'Platform Documentation',
-      type: 'dropdown',
-      position: 'left',
-      className: 'navbar__item--mobile-only',
-      items: [
-        { label: 'Platform', to: '/docs/platform' },
-        { label: 'NeuraLock', to: '/docs/neuralock' },
-        { label: 'Neura Execution Engine', to: '/docs/execution-engine' },
-        { label: 'Neura Synthesis', to: '/docs/synthesis' },
-        { label: 'Neura Ledger', to: '/docs/ledger' },
-        { label: 'L1 Blockchain Integration', to: '/docs/blockchain-integration' },
-        { label: 'Neura Synapsis (Coming Soon)', to: '#' },
-      ],
-    },
-    {
-      label: 'Developers Guide',
-      to: '/developers',
-      position: 'left',
-      className: 'navbar__item--mobile-only'
-    },
-    {
-      label: 'Blogs',
-      to: '/blog',
-      position: 'left',
-      className: 'navbar__item--mobile-only'
-    },
-    {
-      label: 'Roadmap & Release Notes',
-      to: '/roadmap',
-      position: 'left',
-      className: 'navbar__item--mobile-only'
-    },
-    {
-      label: 'GitHub',
-      href: 'https://github.com/neuralabs/neuralabs-sui',
-      position: 'right',
-    },
-  ],
-},
+      // Update the navbar section in docusaurus.config.js:
+      navbar:
+      {
+        title: 'NeuraLabs',
+        logo: {
+          alt: 'NeuraLabs Logo',
+          src: 'img/logo-light.svg',
+          srcDark: 'img/logo-dark.svg',
+        },
+        items: [
+          // Main navbar items (hidden on mobile by default)
+          // Documentation and Blog temporarily disabled
+
+          // Add secondary navbar items with position 'left' and className 'navbar__item--mobile'
+          // These will only show in mobile menu
+          {
+            label: 'Home',
+            to: '/',
+            position: 'left',
+            className: 'navbar__item--mobile-only'
+          },
+          {
+            label: 'Overview',
+            to: '/overview',
+            position: 'left',
+            className: 'navbar__item--mobile-only'
+          },
+          {
+            label: 'Platform Documentation',
+            type: 'dropdown',
+            position: 'left',
+            className: 'navbar__item--mobile-only',
+            items: [
+              { label: 'Platform', to: '/docs/platform' },
+              { label: 'NeuraLock', to: '/docs/neuralock' },
+              { label: 'Neura Execution Engine', to: '/docs/execution-engine' },
+              { label: 'Neura Synthesis', to: '/docs/synthesis' },
+              { label: 'Neura Ledger', to: '/docs/ledger' },
+              { label: 'L1 Blockchain Integration', to: '/docs/blockchain-integration' },
+              { label: 'Neura Synapsis (Coming Soon)', to: '#' },
+            ],
+          },
+          {
+            label: 'Developers Guide',
+            to: '/developers',
+            position: 'left',
+            className: 'navbar__item--mobile-only'
+          },
+          {
+            label: 'Blogs',
+            to: '/blog',
+            position: 'left',
+            className: 'navbar__item--mobile-only'
+          },
+          {
+            label: 'Roadmap & Release Notes',
+            to: '/roadmap',
+            position: 'left',
+            className: 'navbar__item--mobile-only'
+          },
+          {
+            label: 'GitHub',
+            href: 'https://github.com/neuralabs/neuralabs-sui',
+            position: 'right',
+          },
+        ],
+      },
       footer: {
         style: 'dark',
         links: [
