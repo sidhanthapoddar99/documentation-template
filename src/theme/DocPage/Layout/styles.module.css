@@ -1,0 +1,19 @@
+/* DocPage Layout styles */
+
+.docLayout {
+  width: 100%;
+  display: flex;
+  flex: 1 1 auto;
+}
+
+/* Ensure proper layout structure */
+:global(.docsWrapper) {
+  width: 100%;
+  display: flex;
+}
+
+/* Main container adjustments */
+:global(.docMainContainer) {
+  flex: 1;
+  min-width: 0;
+}

@@ -52,7 +52,6 @@ const config = {
   themes: ['@docusaurus/theme-mermaid'],
 
   plugins: [
-
     // Overview docs
     [
       '@docusaurus/plugin-content-docs',
@@ -60,7 +59,7 @@ const config = {
         id: 'overview',
         path: 'docs/overview',
         routeBasePath: 'overview',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // Platform Overview
@@ -70,7 +69,7 @@ const config = {
         id: 'platform-overview',
         path: 'docs/platform/platform-overview',
         routeBasePath: 'platform-overview',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // NeuraLock
@@ -80,7 +79,7 @@ const config = {
         id: 'neuralock',
         path: 'docs/platform/neuralock',
         routeBasePath: 'neuralock',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // Execution Engine
@@ -90,7 +89,7 @@ const config = {
         id: 'execution-engine',
         path: 'docs/platform/execution-engine',
         routeBasePath: 'execution-engine',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // Synthesis
@@ -100,7 +99,7 @@ const config = {
         id: 'synthesis',
         path: 'docs/platform/synthesis',
         routeBasePath: 'synthesis',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // Ledger
@@ -110,7 +109,7 @@ const config = {
         id: 'ledger',
         path: 'docs/platform/ledger',
         routeBasePath: 'ledger',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // Blockchain Integration
@@ -120,7 +119,7 @@ const config = {
         id: 'blockchain-integration',
         path: 'docs/platform/blockchain-integration',
         routeBasePath: 'blockchain-integration',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // Synapsis
@@ -130,7 +129,7 @@ const config = {
         id: 'synapsis',
         path: 'docs/platform/synapsis',
         routeBasePath: 'synapsis',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // Component Usage docs
@@ -140,7 +139,7 @@ const config = {
         id: 'component-usage',
         path: 'docs/component-usage',
         routeBasePath: 'component-usage',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // Developers docs
@@ -150,7 +149,7 @@ const config = {
         id: 'developers',
         path: 'docs/developers',
         routeBasePath: 'developers',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
     // Roadmap docs
@@ -160,7 +159,7 @@ const config = {
         id: 'roadmap',
         path: 'docs/roadmap',
         routeBasePath: 'roadmap',
-        sidebarPath: false,
+        sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
   ],
@@ -193,10 +192,10 @@ const config = {
           // Navigation items - these will be in the second row on desktop
           {
             label: 'Welcome',
-            to: '/welcome',
+            to: '/',
             position: 'left',
             className: 'navbar__item--nav',
-            activeBaseRegex: '^/$|^/welcome'
+            activeBaseRegex: '^/$'
           },
           {
             label: 'Component Usage',

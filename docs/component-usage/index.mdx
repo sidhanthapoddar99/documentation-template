@@ -494,3 +494,166 @@ describe('Agent Integration', () => {
 - [Component Examples](https://github.com/neuralabs/component-examples)
 - [Video Tutorials](https://youtube.com/neuralabs)
 - [Community Support](https://discord.gg/neuralabs)
+
+## UI Component Library
+
+This section documents the custom UI components available in `/src/components/elements/`.
+
+### Card Component
+
+A versatile card component for displaying content in a contained format.
+
+```jsx
+import Card from '@site/src/components/elements/Card';
+
+<Card
+  title="Feature Title"
+  description="Brief description of the feature"
+  icon="🚀"
+  link="/docs/feature"
+/>
+```
+
+**Props:**
+- `title` (string): Card title
+- `description` (string): Card description
+- `icon` (string/node): Icon or emoji to display
+- `link` (string): Optional link URL
+- `className` (string): Additional CSS classes
+
+### Callout Component
+
+Highlight important information with styled callout boxes.
+
+```jsx
+import Callout from '@site/src/components/elements/Callout';
+
+<Callout type="info">
+  This is an informational callout.
+</Callout>
+
+<Callout type="warning">
+  This is a warning message.
+</Callout>
+
+<Callout type="danger">
+  This is an error or danger message.
+</Callout>
+
+<Callout type="success">
+  This is a success message.
+</Callout>
+```
+
+**Props:**
+- `type` (string): 'info' | 'warning' | 'danger' | 'success'
+- `title` (string): Optional title for the callout
+- `children` (node): Content to display
+
+### CodeBlock Component
+
+Enhanced code block with syntax highlighting and copy functionality.
+
+```jsx
+import CodeBlock from '@site/src/components/elements/CodeBlock';
+
+<CodeBlock language="javascript" title="example.js">
+{`const greeting = "Hello World";
+console.log(greeting);`}
+</CodeBlock>
+```
+
+**Props:**
+- `language` (string): Programming language for syntax highlighting
+- `title` (string): Optional filename or title
+- `showLineNumbers` (boolean): Show line numbers (default: false)
+- `children` (string): Code content
+
+### Features Component
+
+Display features in a grid layout with icons and descriptions.
+
+```jsx
+import Features from '@site/src/components/elements/Features';
+
+const features = [
+  {
+    title: 'Fast Performance',
+    description: 'Lightning fast execution with optimized algorithms',
+    icon: '⚡'
+  },
+  {
+    title: 'Secure',
+    description: 'Enterprise-grade security with encryption',
+    icon: '🔒'
+  },
+  {
+    title: 'Scalable',
+    description: 'Scales seamlessly with your needs',
+    icon: '📈'
+  }
+];
+
+<Features features={features} columns={3} />
+```
+
+**Props:**
+- `features` (array): Array of feature objects with title, description, and icon
+- `columns` (number): Number of columns (default: 3)
+- `className` (string): Additional CSS classes
+
+### BlogSearch Component
+
+Search functionality for blog posts.
+
+```jsx
+import BlogSearch from '@site/src/components/elements/BlogSearch';
+
+<BlogSearch 
+  placeholder="Search blog posts..."
+  onSearch={(query) => console.log('Searching for:', query)}
+/>
+```
+
+**Props:**
+- `placeholder` (string): Search input placeholder
+- `onSearch` (function): Callback when search is performed
+- `className` (string): Additional CSS classes
+
+## Component Styling
+
+All components use the centralized color theme system. When creating or modifying components:
+
+1. Use CSS variables for colors:
+```css
+.my-component {
+  background: var(--theme-bg-surface);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border-default);
+}
+```
+
+2. Follow the component structure:
+```
+src/components/elements/ComponentName/
+├── ComponentName.js    // Component logic
+├── ComponentName.css   // Component styles
+└── index.js           // Export
+```
+
+3. Import and use in MDX files:
+```mdx
+import MyComponent from '@site/src/components/elements/MyComponent';
+
+<MyComponent prop="value" />
+```
+
+## Adding New Components
+
+When creating new components:
+
+1. Create the component in `/src/components/elements/`
+2. Use theme colors from CSS variables
+3. Export from `index.js`
+4. Document the component here with usage examples
+5. Test in both light and dark modes
