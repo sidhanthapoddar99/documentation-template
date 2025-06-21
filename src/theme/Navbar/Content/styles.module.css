@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  min-width: 200px;
+  /* min-width: 200px; */
 }
 
 .navbarContentCenter {
@@ -41,7 +41,7 @@
 }
 
 /* Hide center search on mobile */
-@media (max-width: 996px) {
+/* @media (max-width: 996px) {
   .navbarContentCenter {
     display: none;
   }
@@ -54,4 +54,4 @@
   .navbarContentRight {
     flex: 0 0 auto;
   }
-}
+} */

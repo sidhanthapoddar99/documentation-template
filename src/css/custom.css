@@ -80,6 +80,10 @@
   color: var(--ifm-color-primary);
 }
 
+
+
+
+
 /* Buttons */
 .button {
   font-weight: 500;
@@ -296,6 +300,13 @@ img[src*="/img/icons/"] {
 @media (max-width: 768px) {
   :root {
     --ifm-spacing-horizontal: 0.75rem;
+  }
+}
+
+/* Mobile-only navbar items */
+@media (min-width: 997px) {
+  .navbar__item--mobile-only {
+    display: none !important;
   }
 }
 

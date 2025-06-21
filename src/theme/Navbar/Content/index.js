@@ -44,11 +44,18 @@ export default function NavbarContent() {
       left={
         <>
           {!mobileSidebar.disabled && <NavbarMobileSidebarToggle />}
-          <NavbarLogo />
-          <NavbarItems items={leftItems} />
+
+         {!isMobile && <NavbarLogo />}
+          {!isMobile && <NavbarItems items={leftItems} />}
         </>
       }
-      center={!isMobile && <NavbarSearch />}
+      center={
+        <>
+        {!isMobile && <NavbarSearch />}
+        {isMobile && <NavbarLogo />}
+        {isMobile && <NavbarItems items={leftItems} />}
+        </>       
+      }
       right={
         <>
           <NavbarItems items={rightItems} />
