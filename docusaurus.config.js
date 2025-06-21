@@ -36,8 +36,12 @@ const config = {
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
-        docs: false,
-        blog: false,
+        docs: false, // Disable default docs plugin as we're using custom instances
+        // blog: {
+        //   showReadingTime: true,
+        //   editUrl: 'https://github.com/neuralabs/neuralabs-documentation/tree/main/',
+        // },
+        blog: false, // Disable blog for now
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
@@ -47,12 +51,127 @@ const config = {
 
   themes: ['@docusaurus/theme-mermaid'],
 
-  // plugins: [
-  //   './src/plugins/auto-numbering-plugin.js',
-  // ],
+  plugins: [
+
+    // Overview docs
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'overview',
+        path: 'docs/overview',
+        routeBasePath: 'overview',
+        sidebarPath: false,
+      },
+    ],
+    // Platform Overview
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'platform-overview',
+        path: 'docs/platform/platform-overview',
+        routeBasePath: 'platform-overview',
+        sidebarPath: false,
+      },
+    ],
+    // NeuraLock
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'neuralock',
+        path: 'docs/platform/neuralock',
+        routeBasePath: 'neuralock',
+        sidebarPath: false,
+      },
+    ],
+    // Execution Engine
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'execution-engine',
+        path: 'docs/platform/execution-engine',
+        routeBasePath: 'execution-engine',
+        sidebarPath: false,
+      },
+    ],
+    // Synthesis
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'synthesis',
+        path: 'docs/platform/synthesis',
+        routeBasePath: 'synthesis',
+        sidebarPath: false,
+      },
+    ],
+    // Ledger
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'ledger',
+        path: 'docs/platform/ledger',
+        routeBasePath: 'ledger',
+        sidebarPath: false,
+      },
+    ],
+    // Blockchain Integration
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'blockchain-integration',
+        path: 'docs/platform/blockchain-integration',
+        routeBasePath: 'blockchain-integration',
+        sidebarPath: false,
+      },
+    ],
+    // Synapsis
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'synapsis',
+        path: 'docs/platform/synapsis',
+        routeBasePath: 'synapsis',
+        sidebarPath: false,
+      },
+    ],
+    // Component Usage docs
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'component-usage',
+        path: 'docs/component-usage',
+        routeBasePath: 'component-usage',
+        sidebarPath: false,
+      },
+    ],
+    // Developers docs
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'developers',
+        path: 'docs/developers',
+        routeBasePath: 'developers',
+        sidebarPath: false,
+      },
+    ],
+    // Roadmap docs
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'roadmap',
+        path: 'docs/roadmap',
+        routeBasePath: 'roadmap',
+        sidebarPath: false,
+      },
+    ],
+  ],
 
   markdown: {
     mermaid: true,
+    mdx1Compat: {
+      comments: true,
+      admonitions: true,
+      headingIds: true,
+    },
   },
 
   themeConfig:
@@ -74,10 +193,10 @@ const config = {
           // Navigation items - these will be in the second row on desktop
           {
             label: 'Welcome',
-            to: '/',
+            to: '/welcome',
             position: 'left',
             className: 'navbar__item--nav',
-            activeBaseRegex: '^/$'
+            activeBaseRegex: '^/$|^/welcome'
           },
           {
             label: 'Component Usage',
@@ -97,13 +216,13 @@ const config = {
             position: 'left',
             className: 'navbar__item--nav',
             items: [
-              { label: 'Platform', to: '/docs/platform' },
-              { label: 'NeuraLock', to: '/docs/neuralock' },
-              { label: 'Neura Execution Engine', to: '/docs/execution-engine' },
-              { label: 'Neura Synthesis', to: '/docs/synthesis' },
-              { label: 'Neura Ledger', to: '/docs/ledger' },
-              { label: 'L1 Blockchain Integration', to: '/docs/blockchain-integration' },
-              { label: 'Neura Synapsis (Coming Soon)', to: '#' },
+              { label: 'Platform', to: '/platform-overview' },
+              { label: 'NeuraLock', to: '/neuralock' },
+              { label: 'Neura Execution Engine', to: '/execution-engine' },
+              { label: 'Neura Synthesis', to: '/synthesis' },
+              { label: 'Neura Ledger', to: '/ledger' },
+              { label: 'L1 Blockchain Integration', to: '/blockchain-integration' },
+              { label: 'Neura Synapsis (Coming Soon)', to: '/synapsis' },
             ],
           },
           {
