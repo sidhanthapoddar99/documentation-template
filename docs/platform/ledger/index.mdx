@@ -1,0 +1,79 @@
+---
+title: Neura Ledger
+description: Distributed ledger system for transaction management
+---
+
+# Neura Ledger
+
+## Introduction
+
+Neura Ledger is the distributed transaction and state management system that ensures consistency and immutability across the NeuraLabs platform.
+
+## Features
+
+### Transaction Management
+- ACID compliance
+- Multi-signature support
+- Batch processing
+- Real-time settlement
+
+### State Management
+- Merkle tree structure
+- State snapshots
+- Efficient querying
+- Historical data access
+
+### Consensus
+- Byzantine fault tolerance
+- Fast finality
+- Low latency
+- High throughput
+
+## Architecture
+
+### Components
+
+1. **Transaction Pool**
+   - Mempool management
+   - Transaction validation
+   - Fee estimation
+   - Priority queuing
+
+2. **Block Producer**
+   - Block assembly
+   - Transaction ordering
+   - Consensus participation
+   - Block propagation
+
+3. **State Database**
+   - Key-value storage
+   - Merkle proofs
+   - State transitions
+   - Pruning strategies
+
+## API Reference
+
+### Submit Transaction
+```javascript
+const tx = await ledger.submitTransaction({
+    from: senderAddress,
+    to: recipientAddress,
+    amount: 100,
+    data: metadata
+});
+```
+
+### Query State
+```javascript
+const state = await ledger.getState({
+    address: contractAddress,
+    key: 'balance'
+});
+```
+
+## Performance Metrics
+
+- TPS: 100,000+
+- Finality: < 1 second
+- Storage: Optimized compression
+- Network: Efficient propagation

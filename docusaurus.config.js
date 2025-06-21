@@ -80,6 +80,12 @@ const config = {
             activeBaseRegex: '^/$'
           },
           {
+            label: 'Component Usage',
+            to: '/component-usage',
+            position: 'left',
+            className: 'navbar__item--nav'
+          },
+          {
             label: 'Overview',
             to: '/overview',
             position: 'left',

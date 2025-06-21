@@ -1,0 +1,72 @@
+---
+title: L1 Blockchain Integration
+description: Integration with Sui blockchain and other L1 networks
+---
+
+# L1 Blockchain Integration
+
+## Overview
+
+NeuraLabs seamlessly integrates with Layer 1 blockchains, starting with Sui Network, to provide decentralized infrastructure for AI agents.
+
+## Sui Integration
+
+### Features
+- Native Move smart contracts
+- Object-centric data model
+- Parallel transaction execution
+- Sub-second finality
+
+### Smart Contract Development
+```move
+module neura::agent {
+    use sui::object::{Self, UID};
+    use sui::tx_context::TxContext;
+    
+    struct Agent has key {
+        id: UID,
+        model_hash: vector<u8>,
+        owner: address,
+        parameters: vector<u8>
+    }
+    
+    public fun create_agent(
+        model_hash: vector<u8>,
+        ctx: &mut TxContext
+    ) {
+        // Agent creation logic
+    }
+}
+```
+
+### SDK Integration
+```javascript
+import { SuiClient } from '@mysten/sui.js';
+import { NeuraLabs } from '@neuralabs/sdk';
+
+const client = new SuiClient();
+const neura = new NeuraLabs({ 
+    blockchain: 'sui',
+    client: client 
+});
+
+// Deploy an agent
+const agent = await neura.deployAgent({
+    model: trainedModel,
+    wallet: userWallet
+});
+```
+
+## Cross-Chain Compatibility
+
+### Supported Networks
+- Sui (Primary)
+- Ethereum (Planned)
+- Solana (Planned)
+- Cosmos (Research)
+
+### Bridge Architecture
+- Asset transfers
+- Message passing
+- State synchronization
+- Unified interfaces

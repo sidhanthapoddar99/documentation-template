@@ -1,13 +1,19 @@
 
-Guide Link: [Docusaurus Documentation Guide](https://docusaurus.io/docs)
+- Guide Link: [Docusaurus Documentation Guide](https://docusaurus.io/docs)
+- Plugin Link: [Docusaurus Plugins](https://docusaurus.io/docs/plugins)
+- page-content-doc plugin: [Docusaurus Content Plugin](https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-docs)
 
 # Complete Docusaurus Usage Guide
 
 - [Complete Docusaurus Usage Guide](#complete-docusaurus-usage-guide)
   - [What is Docusaurus?](#what-is-docusaurus)
 - [Basic Overview Setup](#basic-overview-setup)
-  - [Standard Dirs](#standard-dirs)
-  - [Core Concepts](#core-concepts)
+  - [Docs Config](#docs-config)
+    - [Option 1 Single Doc](#option-1-single-doc)
+    - [Option 2 Multiple Docs](#option-2-multiple-docs)
+  - [Blogs](#blogs)
+  - [General Structure](#general-structure)
+- [Core Concepts](#core-concepts)
     - [1. Static Site Generation (SSG)](#1-static-site-generation-ssg)
     - [2. File-Based Routing](#2-file-based-routing)
     - [3. MDX (Markdown + JSX)](#3-mdx-markdown--jsx)
@@ -78,18 +84,87 @@ Docusaurus is a **static site generator** built on React that specializes in doc
 
 Main Thing to Note - this is dir based routing
 
-in `docuarus.config.js` you can set the `plugins` which are basically individual documentation sections, each with its own sidebar and configuration.
+There are 3 types of pages in docusaurus: `docs`, `blog` and `pages`. we can set them by this way
+
+## Docs Config
+
+### Option 1 Single Doc
+
+in `docuarus.config.js` you can set the `present` which are basically tells what to enable and where.
+
+```javascript
+  presets: [
+    [
+      'classic',
+      /** @type {import('@docusaurus/preset-classic').Options} */
+      ({
+        docs: {
+          sidebarPath: require.resolve('./sidebars.js'),
+          routeBasePath: 'docs',
+          editUrl: 'https://github.com/neuralabs/neuralabs-documentation/tree/main/',
+        },
+        blog: {
+          showReadingTime: true,
+          editUrl: 'https://github.com/neuralabs/neuralabs-documentation/tree/main/',
+        },
+
+        theme: {
+          customCss: require.resolve('./src/css/custom.css'),
+        },
+      }),
+    ],
+  ],
+      
+```
+
+so in this docs and blogs are enabled and the `routeBasePath` is set to `docs` which means that the docs will be available at `/docs`.
+now the routes like `/docs/intro` will be available at `docs/intro.md` and the blog posts will be available at `/blog`.
+
+### Option 2 Multiple Docs
+
+the thign that all the sidebars are now one and there is only one page and routes like `docs/intro` will be a subsection instead of a seperated doc
+
+to have multiple docs and different sidebars you can use the `@docusaurus/plugin-content-docs` plugin and configure it like this:
 
 ```javascript
 plugins: [
   [
     '@docusaurus/plugin-content-docs',
     {
-      id: 'docs',
-      
+      id: '<id>', // Unique ID for this docs section eg `api`, `guides`, etc
+      path: '<path>', // Folder containing docs eg `docs/api`
+      routeBasePath: '<routeBasePath>', // URL path for this docs section eg `/api`
+      sidebarPath: require.resolve('./sidebars.js'), // Sidebar configuration you can also create multiple sidebars
+      editUrl: 'https://<github.com>/<org>/<repo>/tree/main/', // URL to edit docs
+      showLastUpdateTime: true, // Show last update time
+      showLastUpdateAuthor: true, // Show last update author
+      customProps: {
+        // Custom properties accessible in components
+        myCustomProp: 'value',
+      },
+
+  ]    },
+  ],
 ```
 
-## Standard Dirs
+
+## Blogs
+
+To enable blogs, you can use the `@docusaurus/plugin-content-blog` plugin in your `docusaurus.config.js`:
+
+```javascript
+plugins: [
+  [
+       blog: {
+          showReadingTime: true,
+          editUrl: 'https://github.com/neuralabs/neuralabs-documentation/tree/main/',
+        },
+  ]
+]
+```
+
+
+## General Structure
 
 
 The standard Docusaurus structure includes:
@@ -97,14 +172,14 @@ The standard Docusaurus structure includes:
 - `blog/` - Blog posts  
 - `src/pages/` - Custom pages like  `index.js`-- the homepage or other custom pages like `roadmap.js` -- `/roadmap` route 
 - `src/components/` - React components
-- `src/theme/` - Theme overrides
+- `src/theme/` - Theme overrides things like Navbar, Footer, Sidebar, docs layout, blog layout, etc
 - `static/` - Static assets
-- `src/components/elements` - Custom React components
+- `src/components/elements` - Custom React components (my own addition)
 
 
 
 
-## Core Concepts
+# Core Concepts
 
 ### 1. Static Site Generation (SSG)
 - **Build time**: Docusaurus converts your React/Markdown files into static HTML

@@ -1,0 +1,496 @@
+---
+title: Component Usage Guide
+description: Complete guide for using NeuraLabs components and SDK
+---
+
+# Component Usage Guide
+
+## Overview
+
+This guide provides comprehensive documentation on how to use NeuraLabs components to build powerful AI-driven applications on the Sui blockchain.
+
+## Installation
+
+### Prerequisites
+- Node.js 18+ or Python 3.9+
+- Sui wallet configured
+- API key from NeuraLabs dashboard
+
+### Package Installation
+
+```bash
+# Using npm
+npm install @neuralabs/sdk @neuralabs/ui @neuralabs/connectors
+
+# Using yarn
+yarn add @neuralabs/sdk @neuralabs/ui @neuralabs/connectors
+
+# Using pnpm
+pnpm add @neuralabs/sdk @neuralabs/ui @neuralabs/connectors
+```
+
+## Core Components
+
+### 1. NeuraLabs SDK Client
+
+The main client for interacting with NeuraLabs services:
+
+```javascript
+import { NeuraLabs } from '@neuralabs/sdk';
+
+const client = new NeuraLabs({
+  apiKey: 'your-api-key',
+  network: 'mainnet', // or 'testnet', 'devnet'
+  options: {
+    timeout: 30000,
+    retries: 3
+  }
+});
+```
+
+### 2. Agent Component
+
+Create and manage AI agents:
+
+```javascript
+import { Agent } from '@neuralabs/sdk';
+
+// Create a new agent
+const agent = await client.createAgent({
+  name: 'MyAIAgent',
+  type: 'trading', // 'analysis', 'gaming', 'custom'
+  model: 'gpt-4-turbo',
+  config: {
+    // Agent-specific configuration
+  }
+});
+
+// Agent methods
+await agent.start();
+await agent.stop();
+await agent.getStatus();
+await agent.executeAction(action);
+```
+
+### 3. UI Components
+
+Pre-built React components for rapid development:
+
+```jsx
+import { 
+  WalletConnector,
+  AgentDashboard,
+  TransactionHistory,
+  PerformanceChart 
+} from '@neuralabs/ui';
+
+function MyApp() {
+  return (
+    <div>
+      <WalletConnector 
+        onConnect={(wallet) => console.log('Connected:', wallet)}
+        networks={['sui:mainnet', 'sui:testnet']}
+      />
+      
+      <AgentDashboard 
+        agentId={agent.id}
+        showMetrics={true}
+        refreshInterval={5000}
+      />
+      
+      <TransactionHistory 
+        limit={50}
+        filters={{ type: 'trade' }}
+      />
+      
+      <PerformanceChart 
+        agentId={agent.id}
+        timeframe="24h"
+        metrics={['profit', 'trades', 'success_rate']}
+      />
+    </div>
+  );
+}
+```
+
+### 4. Data Connectors
+
+Connect to external data sources:
+
+```javascript
+import { 
+  MarketDataConnector,
+  BlockchainConnector,
+  SocialMediaConnector 
+} from '@neuralabs/connectors';
+
+// Market data
+const marketData = new MarketDataConnector({
+  provider: 'binance',
+  symbols: ['SUIUSDT', 'BTCUSDT']
+});
+
+const prices = await marketData.getPrices();
+const orderbook = await marketData.getOrderbook('SUIUSDT');
+
+// Blockchain data
+const blockchain = new BlockchainConnector({
+  network: 'sui:mainnet'
+});
+
+const txHistory = await blockchain.getTransactions(address);
+const balance = await blockchain.getBalance(address);
+
+// Social media sentiment
+const social = new SocialMediaConnector({
+  platforms: ['twitter', 'reddit']
+});
+
+const sentiment = await social.getSentiment('SUI');
+```
+
+## Advanced Usage
+
+### Custom Agent Development
+
+```javascript
+import { CustomAgent } from '@neuralabs/sdk';
+
+class MyTradingBot extends CustomAgent {
+  constructor(config) {
+    super(config);
+    this.strategy = config.strategy;
+  }
+  
+  async onMarketData(data) {
+    // Implement your trading logic
+    const signal = await this.analyzeMarket(data);
+    
+    if (signal.action === 'buy') {
+      await this.executeTrade({
+        type: 'buy',
+        amount: signal.amount,
+        price: signal.price
+      });
+    }
+  }
+  
+  async analyzeMarket(data) {
+    // Your analysis logic
+    return {
+      action: 'buy',
+      amount: 100,
+      price: data.currentPrice
+    };
+  }
+}
+
+// Deploy custom agent
+const bot = new MyTradingBot({
+  name: 'Custom Trader',
+  strategy: 'momentum'
+});
+
+await bot.deploy();
+```
+
+### Smart Contract Integration
+
+```javascript
+import { SmartContract } from '@neuralabs/sdk';
+
+// Load your Move contract
+const contract = new SmartContract({
+  packageId: '0x...',
+  module: 'trading',
+  network: 'sui:mainnet'
+});
+
+// Call contract functions
+const result = await contract.call('execute_trade', {
+  pair: 'SUI_USDC',
+  amount: 1000,
+  direction: 'buy'
+});
+
+// Listen to events
+contract.on('TradeExecuted', (event) => {
+  console.log('Trade executed:', event);
+});
+```
+
+### State Management
+
+```javascript
+import { StateManager } from '@neuralabs/sdk';
+
+const state = new StateManager({
+  persistence: 'local', // or 'cloud'
+  encryption: true
+});
+
+// Save agent state
+await state.save('agent-123', {
+  position: { sui: 1000, usdc: 5000 },
+  performance: { profit: 0.15, trades: 42 }
+});
+
+// Load agent state
+const agentState = await state.load('agent-123');
+
+// Subscribe to state changes
+state.subscribe('agent-123', (newState) => {
+  console.log('State updated:', newState);
+});
+```
+
+## Component Patterns
+
+### 1. Agent Factory Pattern
+
+```javascript
+class AgentFactory {
+  static async createAgent(type, config) {
+    switch(type) {
+      case 'trading':
+        return new TradingAgent(config);
+      case 'analysis':
+        return new AnalysisAgent(config);
+      case 'gaming':
+        return new GamingAgent(config);
+      default:
+        throw new Error(`Unknown agent type: ${type}`);
+    }
+  }
+}
+
+const agent = await AgentFactory.createAgent('trading', {
+  pairs: ['SUI/USDC'],
+  riskLevel: 'medium'
+});
+```
+
+### 2. Component Composition
+
+```jsx
+function AgentManager({ agents }) {
+  return (
+    <div className="agent-manager">
+      {agents.map(agent => (
+        <div key={agent.id} className="agent-card">
+          <AgentHeader agent={agent} />
+          <AgentMetrics agent={agent} />
+          <AgentControls agent={agent} />
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### 3. Hook Pattern
+
+```javascript
+import { useAgent, useWallet, useMarketData } from '@neuralabs/hooks';
+
+function TradingInterface() {
+  const wallet = useWallet();
+  const { agent, loading, error } = useAgent('agent-123');
+  const marketData = useMarketData(['SUI/USDC'], { interval: 1000 });
+  
+  if (loading) return <div>Loading agent...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  
+  return (
+    <div>
+      <h2>{agent.name}</h2>
+      <p>Current price: ${marketData.SUIUSDC?.price}</p>
+      <button onClick={() => agent.executeTrade()}>
+        Execute Trade
+      </button>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+### 1. Error Handling
+
+```javascript
+try {
+  const agent = await client.createAgent(config);
+  await agent.start();
+} catch (error) {
+  if (error.code === 'INSUFFICIENT_FUNDS') {
+    console.error('Not enough funds to create agent');
+  } else if (error.code === 'RATE_LIMITED') {
+    console.error('Too many requests, please wait');
+  } else {
+    console.error('Unexpected error:', error);
+  }
+}
+```
+
+### 2. Performance Optimization
+
+```javascript
+// Use batch operations
+const results = await client.batchOperation([
+  { method: 'createAgent', params: agentConfig1 },
+  { method: 'createAgent', params: agentConfig2 },
+  { method: 'createAgent', params: agentConfig3 }
+]);
+
+// Implement caching
+import { CacheManager } from '@neuralabs/sdk';
+
+const cache = new CacheManager({
+  ttl: 60000, // 1 minute
+  maxSize: 100
+});
+
+const getCachedData = async (key) => {
+  return cache.get(key) || cache.set(key, await fetchData(key));
+};
+```
+
+### 3. Security Considerations
+
+```javascript
+// Never expose API keys in client-side code
+const client = new NeuraLabs({
+  apiKey: process.env.NEURA_API_KEY,
+  // Use environment variables
+});
+
+// Validate all inputs
+function validateTradeParams(params) {
+  if (!params.amount || params.amount <= 0) {
+    throw new Error('Invalid amount');
+  }
+  if (!['buy', 'sell'].includes(params.action)) {
+    throw new Error('Invalid action');
+  }
+  return true;
+}
+
+// Use secure communication
+client.setSecurityOptions({
+  encryption: true,
+  validateSSL: true,
+  timeout: 30000
+});
+```
+
+## Component Testing
+
+### Unit Testing Components
+
+```javascript
+import { render, screen, fireEvent } from '@testing-library/react';
+import { AgentDashboard } from '@neuralabs/ui';
+
+describe('AgentDashboard', () => {
+  test('displays agent information', () => {
+    const mockAgent = {
+      id: 'agent-123',
+      name: 'Test Agent',
+      status: 'running'
+    };
+    
+    render(<AgentDashboard agent={mockAgent} />);
+    
+    expect(screen.getByText('Test Agent')).toBeInTheDocument();
+    expect(screen.getByText('running')).toBeInTheDocument();
+  });
+  
+  test('handles start/stop actions', async () => {
+    const onAction = jest.fn();
+    render(<AgentDashboard agent={mockAgent} onAction={onAction} />);
+    
+    fireEvent.click(screen.getByText('Stop'));
+    expect(onAction).toHaveBeenCalledWith('stop');
+  });
+});
+```
+
+### Integration Testing
+
+```javascript
+import { NeuraLabs } from '@neuralabs/sdk';
+import { TestEnvironment } from '@neuralabs/testing';
+
+describe('Agent Integration', () => {
+  let env;
+  let client;
+  
+  beforeAll(async () => {
+    env = await TestEnvironment.create();
+    client = new NeuraLabs({ 
+      apiKey: env.apiKey,
+      network: 'testnet' 
+    });
+  });
+  
+  test('complete agent lifecycle', async () => {
+    // Create agent
+    const agent = await client.createAgent({
+      name: 'Integration Test Agent',
+      type: 'trading'
+    });
+    
+    expect(agent.id).toBeDefined();
+    
+    // Start agent
+    await agent.start();
+    expect(agent.status).toBe('running');
+    
+    // Execute action
+    const result = await agent.executeAction({
+      type: 'analyze',
+      data: { symbol: 'SUI/USDC' }
+    });
+    
+    expect(result.success).toBe(true);
+    
+    // Stop and cleanup
+    await agent.stop();
+    await agent.delete();
+  });
+});
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Connection Issues**
+   ```javascript
+   // Check network status
+   const status = await client.getNetworkStatus();
+   console.log('Network status:', status);
+   ```
+
+2. **Component Not Rendering**
+   ```javascript
+   // Enable debug mode
+   import { enableDebugMode } from '@neuralabs/ui';
+   enableDebugMode(true);
+   ```
+
+3. **State Synchronization**
+   ```javascript
+   // Force refresh
+   await agent.refresh();
+   
+   // Check sync status
+   const syncStatus = await state.getSyncStatus();
+   ```
+
+## Resources
+
+- [API Reference](/api)
+- [Component Examples](https://github.com/neuralabs/component-examples)
+- [Video Tutorials](https://youtube.com/neuralabs)
+- [Community Support](https://discord.gg/neuralabs)
