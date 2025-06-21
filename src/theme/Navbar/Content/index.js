@@ -37,8 +37,12 @@ export default function NavbarContent() {
     const [leftItems, rightItems] = splitNavbarItems(items);
     return (
       <div className={styles.navbarContent}>
+
         <div className={styles.navbarContentLeft}>
-          {!mobileSidebar.disabled && <NavbarMobileSidebarToggle />}
+                    {!mobileSidebar.disabled && <NavbarMobileSidebarToggle />}
+      </div>
+
+        <div className={styles.navbarContentLeft}>
           <NavbarLogo />
         </div>
         <div className={styles.navbarContentRight}>

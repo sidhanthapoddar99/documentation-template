@@ -6,6 +6,7 @@ Guide Link: [Docusaurus Documentation Guide](https://docusaurus.io/docs)
 - [Complete Docusaurus Usage Guide](#complete-docusaurus-usage-guide)
   - [What is Docusaurus?](#what-is-docusaurus)
 - [Basic Overview Setup](#basic-overview-setup)
+  - [Standard Dirs](#standard-dirs)
   - [Core Concepts](#core-concepts)
     - [1. Static Site Generation (SSG)](#1-static-site-generation-ssg)
     - [2. File-Based Routing](#2-file-based-routing)
@@ -87,6 +88,18 @@ plugins: [
       id: 'docs',
       
 ```
+
+## Standard Dirs
+
+
+The standard Docusaurus structure includes:
+- `docs/` - Documentation pages
+- `blog/` - Blog posts  
+- `src/pages/` - Custom pages like  `index.js`-- the homepage or other custom pages like `roadmap.js` -- `/roadmap` route 
+- `src/components/` - React components
+- `src/theme/` - Theme overrides
+- `static/` - Static assets
+- `src/components/elements` - Custom React components
 
 
 

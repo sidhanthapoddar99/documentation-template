@@ -81,47 +81,8 @@ Create a `_category_.json` file in any folder to configure the category:
 ```
 
 
-## Configuration
 
-### docusaurus.config.js
-
-Key configurations to update:
-
-```javascript
-module.exports = {
-  title: 'NeuraLabs Documentation',
-  tagline: 'Decentralized AI Workflow Platform',
-  url: 'https://your-documentation-url.com',
-  baseUrl: '/',
-  projectName: 'neuralabs-docs',
-  organizationName: 'neuralabs',
-  
-  themeConfig: {
-    navbar: {
-      title: 'NeuraLabs',
-      logo: {
-        alt: 'NeuraLabs Logo',
-        src: 'img/logo.svg',
-      },
-      items: [
-        {
-          type: 'doc',
-          docId: 'intro',
-          position: 'left',
-          label: 'Documentation',
-        },
-        {
-          href: 'https://github.com/your-repo',
-          label: 'GitHub',
-          position: 'right',
-        },
-      ],
-    },
-  },
-};
-```
-
-### sidebars.js
+## sidebars.js
 
 Configure the sidebar structure:
 

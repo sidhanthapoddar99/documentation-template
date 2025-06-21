@@ -126,7 +126,10 @@ const config = {
           },
         ],
       },
-      footer: {
+
+
+      footer: 
+      {
         style: 'dark',
         links: [
           // Docs section temporarily disabled
@@ -184,12 +187,17 @@ const config = {
         ],
         copyright: `Copyright © ${new Date().getFullYear()} NeuraLabs. Built with Docusaurus.`,
       },
-      prism: {
+
+      prism: 
+      {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
         additionalLanguages: ['rust', 'bash', 'yaml', 'toml'],
       },
-      colorMode: {
+
+
+      colorMode: 
+      {
         defaultMode: 'dark',
         disableSwitch: false,
         respectPrefersColorScheme: false,
