@@ -38,6 +38,13 @@
 .main-wrapper {
   background-color: var(--theme-bg-primary);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure proper spacing for all layouts (previously from BaseLayout) */
+.main-wrapper main {
+  flex: 1;
 }
 
 .container {

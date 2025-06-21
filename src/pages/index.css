@@ -1,5 +1,30 @@
 /* HomePage specific styles */
 
+/* Home page wrapper styles (previously from HomeLayout) */
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-page main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* Remove default padding for homepage */
+}
+
+.home-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Ensure sections can be full width */
+.home-page-wrapper > * {
+  width: 100%;
+}
+
 /* Remove any default main element padding that might interfere */
 main {
   padding: 0;
