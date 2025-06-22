@@ -2,8 +2,7 @@
   "label": "Theme Components",
   "position": 5,
   "link": {
-    "type": "generated-index",
-    "title": "Docusaurus Theme Components",
-    "description": "Built-in Docusaurus theme components for enhanced content presentation"
+    "type": "doc",
+    "id": "theme-components/tabs"
   }
 }

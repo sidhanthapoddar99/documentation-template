@@ -1,9 +1,10 @@
 {
   "label": "Cards & Containers",
   "position": 1,
+  "className": "sidebar-header",
+  "collapsible": false,
   "link": {
-    "type": "generated-index",
-    "title": "Cards & Container Components",
-    "description": "Components for displaying content in card formats and highlighted containers"
+    "type": "doc",
+    "id": "cards-containers/card"
   }
 }

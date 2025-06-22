@@ -5,6 +5,7 @@
 /* Import color system */
 @import './generated-colors.css';
 @import './variables.css';
+@import './custom-sidebar.css';
 
 /* Docusaurus variable overrides */
 :root {

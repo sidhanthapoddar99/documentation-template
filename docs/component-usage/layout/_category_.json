@@ -2,8 +2,7 @@
   "label": "Layout Components",
   "position": 3,
   "link": {
-    "type": "generated-index",
-    "title": "Layout Components",
-    "description": "Components for page layout, feature grids, and structural elements"
+    "type": "doc",
+    "id": "layout/features"
   }
 }

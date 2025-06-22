@@ -67,18 +67,48 @@ Place images in `static/img/` and reference them:
 
 ### Creating Categories
 
-Create a `_category_.json` file in any folder to configure the category:
+Create a `_category_.json` file in any folder to configure the category.
 
-```json
-{
-  "label": "Category Name",
-  "position": 1,
-  "link": {
-    "type": "generated-index",
-    "description": "Category description"
-  }
-}
-```
+**IMPORTANT: Sidebar UX Pattern**
+
+The documentation follows a specific sidebar hierarchy pattern:
+
+1. **Base Directory Level** (Plugin paths from `docusaurus.config.js`):
+   - Base directories like `docs/overview`, `docs/platform/platform-overview`, etc.
+   - These do NOT have `_category_.json` files
+   - They are configured as separate plugins in `docusaurus.config.js`
+
+2. **Level 1 - Category Headers** (Direct children of base directories):
+   - Non-clickable, bold category labels
+   - Use `className: "sidebar-header"`
+   - Set `collapsible: false`
+   - Example:
+   ```json
+   {
+     "label": "GETTING STARTED",
+     "position": 1,
+     "className": "sidebar-header",
+     "collapsible": false
+   }
+   ```
+
+3. **Level 2+ - Navigable Items**:
+   - Standard categories that link to their first document
+   - No special className needed
+   - **Important**: Doc IDs must be relative to the plugin's base path
+   - Example:
+   ```json
+   {
+     "label": "Configuration",
+     "position": 2,
+     "link": {
+       "type": "doc",
+       "id": "configuration/basic"  // Relative to plugin base, not docs/
+     }
+   }
+   ```
+
+**Note**: Check `docusaurus.config.js` plugins section to see all base directories. Each plugin path represents a separate documentation section with its own sidebar.
 
 
 
