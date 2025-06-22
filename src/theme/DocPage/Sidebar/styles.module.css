@@ -1,0 +1,136 @@
+/* DocPage Sidebar - Left navigation styles */
+
+/* Sidebar container - inherits positioning from Container styles */
+.sidebarContainer {
+  border-right: 1px solid var(--theme-border-subtle);
+  background-color: var(--theme-bg-surface);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Sidebar inner wrapper */
+.sidebarInner {
+  padding: 1.5rem 1rem;
+}
+
+/* Sidebar menu styling */
+.sidebarMenu {
+  font-size: 0.875rem;
+}
+
+/* Menu items */
+.menuItem {
+  margin-bottom: 0.25rem;
+}
+
+/* Menu links */
+.menuLink {
+  display: block;
+  padding: 0.5rem 1rem;
+  border-radius: var(--ifm-global-radius);
+  color: var(--theme-text-secondary);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.menuLink:hover {
+  background-color: var(--theme-bg-primary);
+  color: var(--theme-text-primary);
+  text-decoration: none;
+}
+
+/* Active menu link */
+.menuLinkActive {
+  background-color: var(--color-brand-primary);
+  color: white;
+}
+
+.menuLinkActive:hover {
+  background-color: var(--color-brand-primaryHover);
+  color: white;
+}
+
+/* Category styling */
+.menuCategory {
+  margin-bottom: 0.5rem;
+}
+
+.menuCategoryLabel {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  color: var(--theme-text-heading);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Scrollbar styling */
+:global(.theme-doc-sidebar-container)::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+:global(.theme-doc-sidebar-container)::-webkit-scrollbar-track {
+  background-color: var(--theme-bg-surface);
+}
+
+:global(.theme-doc-sidebar-container)::-webkit-scrollbar-thumb {
+  background-color: var(--theme-border-default);
+  border-radius: 0.25rem;
+}
+
+:global(.theme-doc-sidebar-container)::-webkit-scrollbar-thumb:hover {
+  background-color: var(--theme-text-secondary);
+}
+
+/* Apply styles to Docusaurus sidebar elements */
+:global(.theme-doc-sidebar-menu) {
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+:global(.menu__link) {
+  color: var(--theme-text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: var(--ifm-global-radius);
+  transition: all var(--transition-fast);
+  font-weight: 500;
+}
+
+:global(.menu__link:hover) {
+  background-color: var(--theme-bg-primary);
+  color: var(--theme-text-primary);
+  text-decoration: none;
+}
+
+:global(.menu__link--active) {
+  background-color: var(--color-brand-primary);
+  color: white;
+}
+
+:global(.menu__link--active:hover) {
+  background-color: var(--color-brand-primaryHover);
+  color: white;
+}
+
+/* Mobile sidebar backdrop */
+@media (max-width: 996px) {
+  .sidebarBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: calc(var(--ifm-z-index-overlay) - 1);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--ifm-transition-fast);
+  }
+  
+  .sidebarBackdropVisible {
+    opacity: 1;
+    visibility: visible;
+  }
+}

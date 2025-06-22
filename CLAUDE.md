@@ -83,7 +83,14 @@ docs
     │   └── index.js
     ├── DocPage
     │   ├── index.js
-    │   ├── styles.module.css
+    │   ├── Container
+    │   │   └── styles.module.css
+    │   ├── Sidebar
+    │   │   └── styles.module.css
+    │   ├── Content
+    │   │   └── styles.module.css
+    │   ├── TOC
+    │   │   └── styles.module.css
     │   └── Layout
     │       ├── index.js
     │       └── styles.module.css
