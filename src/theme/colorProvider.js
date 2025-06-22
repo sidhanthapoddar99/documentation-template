@@ -78,6 +78,26 @@ function generateThemeCSS() {
   --theme-callout-danger-text: var(--color-components-callout-danger-text-light);
   
   --theme-icon-filter: var(--color-iconFilter-light);
+  
+  /* Prose/content typography theme variables */
+  --theme-prose-body: var(--color-prose-body-light);
+  --theme-prose-headings: var(--color-prose-headings-light);
+  --theme-prose-lead: var(--color-prose-lead-light);
+  --theme-prose-links: var(--color-prose-links-light);
+  --theme-prose-bold: var(--color-prose-bold-light);
+  --theme-prose-counters: var(--color-prose-counters-light);
+  --theme-prose-bullets: var(--color-prose-bullets-light);
+  --theme-prose-hr: var(--color-prose-hr-light);
+  --theme-prose-quotes: var(--color-prose-quotes-light);
+  --theme-prose-quoteBorders: var(--color-prose-quoteBorders-light);
+  --theme-prose-captions: var(--color-prose-captions-light);
+  --theme-prose-kbd: var(--color-prose-kbd-light);
+  --theme-prose-kbdShadows: var(--color-prose-kbdShadows-light);
+  --theme-prose-code: var(--color-prose-code-light);
+  --theme-prose-preCode: var(--color-prose-preCode-light);
+  --theme-prose-preBg: var(--color-prose-preBg-light);
+  --theme-prose-thBorders: var(--color-prose-thBorders-light);
+  --theme-prose-tdBorders: var(--color-prose-tdBorders-light);
 `;
 
   const darkSemanticVars = `
@@ -125,6 +145,26 @@ function generateThemeCSS() {
   --theme-callout-danger-text: var(--color-components-callout-danger-text-dark);
   
   --theme-icon-filter: var(--color-iconFilter-dark);
+  
+  /* Prose/content typography theme variables */
+  --theme-prose-body: var(--color-prose-body-dark);
+  --theme-prose-headings: var(--color-prose-headings-dark);
+  --theme-prose-lead: var(--color-prose-lead-dark);
+  --theme-prose-links: var(--color-prose-links-dark);
+  --theme-prose-bold: var(--color-prose-bold-dark);
+  --theme-prose-counters: var(--color-prose-counters-dark);
+  --theme-prose-bullets: var(--color-prose-bullets-dark);
+  --theme-prose-hr: var(--color-prose-hr-dark);
+  --theme-prose-quotes: var(--color-prose-quotes-dark);
+  --theme-prose-quoteBorders: var(--color-prose-quoteBorders-dark);
+  --theme-prose-captions: var(--color-prose-captions-dark);
+  --theme-prose-kbd: var(--color-prose-kbd-dark);
+  --theme-prose-kbdShadows: var(--color-prose-kbdShadows-dark);
+  --theme-prose-code: var(--color-prose-code-dark);
+  --theme-prose-preCode: var(--color-prose-preCode-dark);
+  --theme-prose-preBg: var(--color-prose-preBg-dark);
+  --theme-prose-thBorders: var(--color-prose-thBorders-dark);
+  --theme-prose-tdBorders: var(--color-prose-tdBorders-dark);
 `;
 
   return `

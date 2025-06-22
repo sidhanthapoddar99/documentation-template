@@ -219,6 +219,82 @@ const colors = {
   iconFilter: {
     light: "none",        // Keep black icons in light mode
     dark: "invert(1)"     // Invert to white in dark mode
+  },
+  
+  // Prose/content typography colors
+  prose: {
+    body: {
+      light: "#374151",
+      dark: "#d1d5db"
+    },
+    headings: {
+      light: "#111827",
+      dark: "#fff"
+    },
+    lead: {
+      light: "#4b5563",
+      dark: "#9ca3af"
+    },
+    links: {
+      light: "#111827",
+      dark: "#fff"
+    },
+    bold: {
+      light: "#111827",
+      dark: "#fff"
+    },
+    counters: {
+      light: "#6b7280",
+      dark: "#9ca3af"
+    },
+    bullets: {
+      light: "#d1d5db",
+      dark: "#4b5563"
+    },
+    hr: {
+      light: "#e5e7eb",
+      dark: "#374151"
+    },
+    quotes: {
+      light: "#111827",
+      dark: "#f3f4f6"
+    },
+    quoteBorders: {
+      light: "#e5e7eb",
+      dark: "#374151"
+    },
+    captions: {
+      light: "#6b7280",
+      dark: "#9ca3af"
+    },
+    kbd: {
+      light: "#111827",
+      dark: "#fff"
+    },
+    kbdShadows: {
+      light: "17 24 39",
+      dark: "255 255 255"
+    },
+    code: {
+      light: "#111827",
+      dark: "#fff"
+    },
+    preCode: {
+      light: "#e5e7eb",
+      dark: "#d1d5db"
+    },
+    preBg: {
+      light: "#1f2937",
+      dark: "rgba(0,0,0,.5)"
+    },
+    thBorders: {
+      light: "#d1d5db",
+      dark: "#4b5563"
+    },
+    tdBorders: {
+      light: "#e5e7eb",
+      dark: "#374151"
+    }
   }
 };
 
