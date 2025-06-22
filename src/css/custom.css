@@ -5,6 +5,7 @@
 /* Import generated color variables and extended variables */
 @import './generated-colors.css';
 @import './variables.css';
+@import './docs-override.css';
 
 /* Docusaurus Variable Overrides */
 :root {
@@ -30,7 +31,7 @@
   --max-width-7xl: 1400px;
   
   /* DocPage layout dimensions */
-  --doc-sidebar-width: 300px;
+  --doc-sidebar-width: 240px;
   --doc-toc-width: 200px;
   --doc-content-max-width: 860px;
   --doc-navbar-height: 108px;
@@ -51,6 +52,7 @@
 /* Ensure proper spacing for all layouts (previously from BaseLayout) */
 .main-wrapper main {
   flex: 1;
+  overflow: visible; /* Allow individual sections to handle their own scroll */
 }
 
 .container {
@@ -339,4 +341,35 @@ img[src*="/img/icons/"] {
   .pagination-nav {
     display: none;
   }
+}
+
+/* Ensure docs pages are properly contained - using attribute selectors */
+[class*="docsWrapper"],
+[class*="docRoot"] {
+  max-width: var(--max-width-7xl) !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  padding: 0 var(--ifm-spacing-horizontal) !important;
+}
+
+/* Fix any floating sidebar issues and force width */
+.theme-doc-sidebar-container {
+  position: sticky !important;
+  left: auto !important;
+  margin-left: 0 !important;
+  width: 240px !important;
+  min-width: 240px !important;
+  max-width: 240px !important;
+}
+
+/* Ensure main content area is properly constrained */
+[class*="docMainContainer"] {
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Fix the main wrapper on docs pages */
+body:has([class*="docsWrapper"]) .main-wrapper {
+  max-width: 100% !important;
+  overflow-x: hidden;
 }
