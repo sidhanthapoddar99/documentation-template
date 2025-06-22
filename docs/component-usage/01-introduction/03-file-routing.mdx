@@ -47,7 +47,7 @@ docs/
 
 ### The Role of Document ID
 
-The `id` in front matter takes precedence over the filename:
+The `id` in `front matter` takes precedence over the filename:
 
 <CodeBlock language="yaml" title="getting-started.mdx">
 {`---
@@ -80,7 +80,7 @@ docs/
 │   ├── tutorial.mdx      # Available at /docs/guides/tutorial
 │   └── reference.mdx     # Available at /docs/guides/reference
 └── api/
-    ├── api.mdx           # Available at /docs/api/api
+    ├── api-index.mdx           # Available at /docs/api/api
     └── endpoints.mdx     # Available at /docs/api/endpoints
 ```
 
@@ -89,7 +89,7 @@ docs/
 
 - `/docs/guides` → Shows content from `guides/index.mdx`
 - `/docs/api` → 404 (no index file)
-- `/docs/api/api` → Shows content from `api/api.mdx`
+- `/docs/api/api-index` → Shows content from `api/api.mdx`
 
 </TabItem>
 </Tabs>
@@ -156,6 +156,12 @@ docs/
 
 <Callout type="info">
 The folder-name approach creates `/docs/guides/guides` (duplicated segment), while `index.mdx` creates the cleaner `/docs/guides`.
+</Callout>
+
+<Callout type="warning">
+Note this the default routing only works for the file name convention not the `id` inside the front matter. If you use `id: guides` instead if `id : index` , it will still create `/docs/guides` regardless of the file name. 
+
+The `frontmatter` `id` does not affect the `default` routing behavior, it only affects the URL.
 </Callout>
 
 ## Routing Examples
@@ -336,6 +342,21 @@ sidebar_exclude: true
 
 </TabItem>
 </Tabs>
+
+## Good File Nameing Practices
+- Add a numeric index to the file name to make it more undersadable (e.g., `01-introduction.mdx`)
+- Use **kebab-case** for file names (e.g., `my-document.mdx`)
+- Avoid spaces and special characters
+- Keep names **descriptive** but concise
+- Use **consistent naming conventions** across your documentation
+- Use **index.mdx** for landing pages or redirects
+- Use **slug** in front matter for custom URLs when needed
+- Use **id** in front matter to control URL segments
+- Use **_category_.json** for organizing sidebar categories
+
+<Callout type="info">
+Note that if not adding `id` in front matter, the numeric index will not affect the URL structure or sidebar name. It may just effect the order of the files in the sidebar. 
+</Callout>
 
 ## Summary
 
