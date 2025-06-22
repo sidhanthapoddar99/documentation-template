@@ -22,4 +22,4 @@ export { BlogSearch } from './BlogSearch';
 export { Footer } from './Footer';
 
 // Visualization components
-export { CustomMermaid, FileMermaid, GraphViz, FileGraphViz } from './visualizations';
+export { CustomMermaid, FileMermaid, MermaidDiagram, GraphViz, FileGraphViz, GraphVizDiagram } from './visualizations';

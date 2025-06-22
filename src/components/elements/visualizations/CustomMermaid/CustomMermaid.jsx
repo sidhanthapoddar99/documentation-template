@@ -16,23 +16,34 @@ const CustomMermaid = ({ value, title, description }) => {
 
   const destroyPanzoom = useCallback(() => {
     if (panzoomRef.current) {
-      panzoomRef.current.destroy();
+      try {
+        panzoomRef.current.destroy();
+      } catch (error) {
+        console.warn('Error destroying panzoom:', error);
+      }
       panzoomRef.current = null;
     }
   }, []);
 
   const calculateFitScale = useCallback((svgElement, container) => {
-    const svgRect = svgElement.getBBox();
-    const containerRect = container.getBoundingClientRect();
+    if (!svgElement || !container) return 1;
     
-    // Account for padding
-    const containerWidth = containerRect.width - 40;
-    const containerHeight = containerRect.height - 40;
-    
-    const scaleX = containerWidth / svgRect.width;
-    const scaleY = containerHeight / svgRect.height;
-    
-    return Math.min(scaleX, scaleY) * 0.95; // 95% of fit scale for some breathing room
+    try {
+      const svgRect = svgElement.getBBox();
+      const containerRect = container.getBoundingClientRect();
+      
+      // Account for padding
+      const containerWidth = containerRect.width - 40;
+      const containerHeight = containerRect.height - 40;
+      
+      const scaleX = containerWidth / svgRect.width;
+      const scaleY = containerHeight / svgRect.height;
+      
+      return Math.min(scaleX, scaleY) * 0.95; // 95% of fit scale for some breathing room
+    } catch (error) {
+      console.warn('Error calculating fit scale:', error);
+      return 1;
+    }
   }, []);
 
   const initializePanzoom = useCallback(() => {
@@ -46,15 +57,17 @@ const CustomMermaid = ({ value, title, description }) => {
     // Remove overflow hidden from all Mermaid containers
     const mermaidContainers = wrapperRef.current.querySelectorAll('[style*="overflow"], .docusaurus-mermaid-container, .mermaid');
     mermaidContainers.forEach((container) => {
-      container.style.overflow = 'visible';
-      if (container.classList.contains('docusaurus-mermaid-container')) {
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.maxWidth = '100%';
-        container.style.maxHeight = '100%';
-        container.style.display = 'flex';
-        container.style.alignItems = 'center';
-        container.style.justifyContent = 'center';
+      if (container && container.style) {
+        container.style.overflow = 'visible';
+        if (container.classList && container.classList.contains('docusaurus-mermaid-container')) {
+          container.style.width = '100%';
+          container.style.height = '100%';
+          container.style.maxWidth = '100%';
+          container.style.maxHeight = '100%';
+          container.style.display = 'flex';
+          container.style.alignItems = 'center';
+          container.style.justifyContent = 'center';
+        }
       }
     });
 
@@ -114,13 +127,14 @@ const CustomMermaid = ({ value, title, description }) => {
         }
       };
 
-      if (containerRef.current) {
-        containerRef.current.addEventListener('wheel', handleWheel, { passive: false });
+      const currentContainer = containerRef.current;
+      if (currentContainer) {
+        currentContainer.addEventListener('wheel', handleWheel, { passive: false });
       }
 
       return () => {
-        if (containerRef.current) {
-          containerRef.current.removeEventListener('wheel', handleWheel);
+        if (currentContainer) {
+          currentContainer.removeEventListener('wheel', handleWheel);
         }
       };
     } catch (error) {
@@ -130,9 +144,10 @@ const CustomMermaid = ({ value, title, description }) => {
 
   // Wait for Mermaid to render
   useEffect(() => {
+    setIsReady(false);
     const timer = setTimeout(() => {
       setIsReady(true);
-    }, 500);
+    }, 800); // Increased delay to ensure Mermaid finishes rendering
 
     return () => clearTimeout(timer);
   }, [value]);
@@ -141,9 +156,12 @@ const CustomMermaid = ({ value, title, description }) => {
   useEffect(() => {
     if (isReady) {
       const cleanup = initializePanzoom();
-      return cleanup;
+      return () => {
+        destroyPanzoom();
+        if (cleanup) cleanup();
+      };
     }
-  }, [isReady, initializePanzoom, isFullScreen]);
+  }, [isReady, initializePanzoom, destroyPanzoom, isFullScreen]);
 
   // Fullscreen handling
   useEffect(() => {
@@ -237,11 +255,10 @@ const CustomMermaid = ({ value, title, description }) => {
   // Clean up on unmount
   useEffect(() => {
     return () => {
-      if (zoomIntervalRef.current) {
-        clearInterval(zoomIntervalRef.current);
-      }
+      stopSmoothZoom();
+      destroyPanzoom();
     };
-  }, []);
+  }, [stopSmoothZoom, destroyPanzoom]);
 
   return (
     <div className={styles.diagramWrapper}>
@@ -304,7 +321,7 @@ const CustomMermaid = ({ value, title, description }) => {
         </div>
         
         <div ref={wrapperRef} className={styles.mermaidWrapper}>
-          <Mermaid value={value} />
+          <Mermaid key={value} value={value} />
         </div>
         
         {!isFullScreen && (

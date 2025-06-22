@@ -1,0 +1,21 @@
+graph TD
+    Start[User Visits Site] --> CheckAuth{Is Authenticated?}
+    CheckAuth -->|No| ShowLogin[Show Login Page]
+    CheckAuth -->|Yes| ShowDashboard[Show Dashboard]
+    
+    ShowLogin --> Login[User Logs In]
+    Login --> Validate{Valid Credentials?}
+    Validate -->|No| ShowError[Show Error Message]
+    Validate -->|Yes| SetSession[Create Session]
+    ShowError --> ShowLogin
+    SetSession --> ShowDashboard
+    
+    ShowDashboard --> UserAction{User Action}
+    UserAction -->|View Profile| ShowProfile[Display Profile]
+    UserAction -->|Edit Settings| ShowSettings[Settings Page]
+    UserAction -->|Logout| EndSession[End Session]
+    
+    ShowProfile --> ShowDashboard
+    ShowSettings --> SaveSettings[Save Changes]
+    SaveSettings --> ShowDashboard
+    EndSession --> ShowLogin

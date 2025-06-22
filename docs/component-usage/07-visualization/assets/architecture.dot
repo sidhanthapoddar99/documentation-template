@@ -1,0 +1,58 @@
+digraph Architecture {
+    rankdir=TB;
+    node [shape=box, style="filled,rounded"];
+    edge [color="#666666"];
+    
+    // Frontend Layer
+    subgraph cluster_frontend {
+        label="Frontend Layer";
+        style=filled;
+        fillcolor="#e8f4f8";
+        
+        WebApp [label="React Web App", fillcolor="#b3e0ff"];
+        MobileApp [label="Mobile App", fillcolor="#b3e0ff"];
+        AdminPortal [label="Admin Portal", fillcolor="#b3e0ff"];
+    }
+    
+    // API Gateway
+    Gateway [label="API Gateway\n(Kong/Nginx)", fillcolor="#ffcc99", shape=box3d];
+    
+    // Services Layer
+    subgraph cluster_services {
+        label="Microservices";
+        style=filled;
+        fillcolor="#f0f8e8";
+        
+        AuthService [label="Auth Service", fillcolor="#c3e88d"];
+        UserService [label="User Service", fillcolor="#c3e88d"];
+        DataService [label="Data Service", fillcolor="#c3e88d"];
+        NotificationService [label="Notification Service", fillcolor="#c3e88d"];
+    }
+    
+    // Data Layer
+    subgraph cluster_data {
+        label="Data Storage";
+        style=filled;
+        fillcolor="#ffe8e8";
+        
+        PostgreSQL [label="PostgreSQL\n(Primary DB)", fillcolor="#ffb3b3", shape=cylinder];
+        Redis [label="Redis\n(Cache)", fillcolor="#ffb3b3", shape=cylinder];
+        S3 [label="S3 Storage\n(Files)", fillcolor="#ffb3b3", shape=cylinder];
+    }
+    
+    // Connections
+    WebApp -> Gateway;
+    MobileApp -> Gateway;
+    AdminPortal -> Gateway;
+    
+    Gateway -> AuthService;
+    Gateway -> UserService;
+    Gateway -> DataService;
+    Gateway -> NotificationService;
+    
+    AuthService -> Redis;
+    UserService -> PostgreSQL;
+    DataService -> PostgreSQL;
+    DataService -> S3;
+    NotificationService -> Redis;
+}

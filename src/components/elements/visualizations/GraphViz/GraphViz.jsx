@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import Viz from '@viz-js/viz';
+import { instance } from '@viz-js/viz';
 import styles from '../CustomMermaid/CustomMermaid.module.css';
 import Panzoom from '@panzoom/panzoom';
 
@@ -21,7 +21,7 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
     const initViz = async () => {
       try {
         if (!vizInstanceRef.current) {
-          vizInstanceRef.current = await Viz.instance();
+          vizInstanceRef.current = await instance();
         }
         
         if (wrapperRef.current && value) {
@@ -30,11 +30,15 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
             format: 'svg'
           });
           
-          // Clear previous content
-          wrapperRef.current.innerHTML = '';
+          // Clear previous content safely
+          while (wrapperRef.current.firstChild) {
+            wrapperRef.current.removeChild(wrapperRef.current.firstChild);
+          }
           
-          // Insert the SVG
-          wrapperRef.current.insertAdjacentHTML('beforeend', svg);
+          // Create a new div to hold the SVG
+          const svgContainer = document.createElement('div');
+          svgContainer.innerHTML = svg;
+          wrapperRef.current.appendChild(svgContainer.firstChild);
           
           // Apply theme-aware styling
           const svgElement = wrapperRef.current.querySelector('svg');
@@ -133,22 +137,33 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
   // All the pan/zoom functionality from CustomMermaid
   const destroyPanzoom = () => {
     if (panzoomRef.current) {
-      panzoomRef.current.destroy();
+      try {
+        panzoomRef.current.destroy();
+      } catch (error) {
+        console.warn('Error destroying panzoom:', error);
+      }
       panzoomRef.current = null;
     }
   };
 
   const calculateFitScale = (svgElement, container) => {
-    const svgRect = svgElement.getBBox();
-    const containerRect = container.getBoundingClientRect();
+    if (!svgElement || !container) return 1;
     
-    const containerWidth = containerRect.width - 40;
-    const containerHeight = containerRect.height - 40;
-    
-    const scaleX = containerWidth / svgRect.width;
-    const scaleY = containerHeight / svgRect.height;
-    
-    return Math.min(scaleX, scaleY) * 0.95;
+    try {
+      const svgRect = svgElement.getBBox();
+      const containerRect = container.getBoundingClientRect();
+      
+      const containerWidth = containerRect.width - 40;
+      const containerHeight = containerRect.height - 40;
+      
+      const scaleX = containerWidth / svgRect.width;
+      const scaleY = containerHeight / svgRect.height;
+      
+      return Math.min(scaleX, scaleY) * 0.95;
+    } catch (error) {
+      console.warn('Error calculating fit scale:', error);
+      return 1;
+    }
   };
 
   const initializePanzoom = () => {
@@ -211,13 +226,14 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
         }
       };
 
-      if (containerRef.current) {
-        containerRef.current.addEventListener('wheel', handleWheel, { passive: false });
+      const currentContainer = containerRef.current;
+      if (currentContainer) {
+        currentContainer.addEventListener('wheel', handleWheel, { passive: false });
       }
 
       return () => {
-        if (containerRef.current) {
-          containerRef.current.removeEventListener('wheel', handleWheel);
+        if (currentContainer) {
+          currentContainer.removeEventListener('wheel', handleWheel);
         }
       };
     } catch (error) {
@@ -228,7 +244,10 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
   useEffect(() => {
     if (isReady) {
       const cleanup = initializePanzoom();
-      return cleanup;
+      return () => {
+        destroyPanzoom();
+        if (cleanup) cleanup();
+      };
     }
   }, [isReady, isFullScreen]);
 
@@ -295,9 +314,8 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
 
   useEffect(() => {
     return () => {
-      if (zoomIntervalRef.current) {
-        clearInterval(zoomIntervalRef.current);
-      }
+      stopSmoothZoom();
+      destroyPanzoom();
     };
   }, []);
 
