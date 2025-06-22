@@ -157,27 +157,26 @@ const agent = await client.createAgent({
 
 ## File-Based Code Display
 
-Both components now support loading code from external files. See the [File-Based CodeBlock](/component-usage/code-display/file-based-codeblock) documentation for details.
+For displaying code from external files, use the specialized File-Based CodeBlock components. See the [File-Based CodeBlock](/component-usage/code-display/file-based-codeblock) documentation for details.
 
 ### Quick Example
 
-<CollapsibleCodeBlock 
-  filePath="./assets/example-agent.js"
-  description="Load and display code from an external file"
-/>
-
 ```jsx
-<CollapsibleCodeBlock 
-  filePath="./assets/example-agent.js"
-  description="Load and display code from an external file"
+import ExampleSource from '!!raw-loader!./assets/example-agent.js';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
+
+<FileCollapsibleCodeBlock 
+  content={ExampleSource}
+  filename="example-agent.js"
+  description="Complete trading agent implementation"
 />
 ```
 
 Features:
-- Automatic language detection from file extension
-- Lazy loading with loading states
-- Error handling for missing files
-- Same styling as inline code
+- Load code from files at build time using `raw-loader`
+- Automatic language detection from filename
+- Manual language override option
+- Same styling as inline code blocks
 
 ## Props Reference
 
@@ -188,8 +187,7 @@ Features:
 | `title` | `string` | - | Title displayed in the header |
 | `description` | `string` | - | Optional description below the title |
 | `language` | `string` | `'bash'` | Programming language for syntax highlighting |
-| `children` | `string` | - | Code content to display (for inline code) |
-| `filePath` | `string` | - | Path to external file (for file-based code) |
+| `children` | `string` | - | Code content to display |
 | `defaultCollapsed` | `boolean` | `true` | Initial collapsed state |
 
 ### InlineCodeCard Props
@@ -199,8 +197,7 @@ Features:
 | `title` | `string` | - | Title displayed in the header |
 | `description` | `string` | - | Optional description below the title |
 | `language` | `string` | - | Programming language for syntax highlighting |
-| `code` | `string` | - | Code content to display (for inline code) |
-| `filePath` | `string` | - | Path to external file (for file-based code) |
+| `code` | `string` | - | Code content to display |
 | `defaultExpanded` | `boolean` | `false` | Initial expanded state |
 
 ## Supported Languages
