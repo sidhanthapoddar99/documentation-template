@@ -143,7 +143,7 @@ import FlowchartSource from '!!raw-loader!./assets/flowchart.mermaid';
     E --> F`}
 />
 
-```mermaid
+```text
 flowchart LR
     A[Start] -->|Process| B(Round Box)
     B --> C{Decision}
@@ -166,7 +166,7 @@ flowchart LR
     E --> F`}
 />
 
-```mermaid
+```text
 flowchart TD
     A[Start] -->|Process| B(Round Box)
     B --> C{Decision}
@@ -573,7 +573,7 @@ docs/
 <Callout type="success" title="Do's">
 
 1. **Use meaningful node IDs** for better readability
-   ```mermaid
+   ```text
    graph TD
        UserLogin[User Login] --> AuthCheck{Authentication}
        AuthCheck -->|Success| Dashboard[Show Dashboard]
@@ -634,7 +634,7 @@ While the component handles most styling, you can add custom classes:
     classDef errorClass fill:#ffebee,stroke:#c62828,stroke-width:2px`}
 />
 
-```mermaid
+```text
 graph TD
     A[Start]:::startClass --> B{Decision}
     B -->|Yes| C[Success]:::successClass

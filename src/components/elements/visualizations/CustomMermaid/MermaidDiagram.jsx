@@ -1,10 +1,6 @@
 import React from 'react';
 import CustomMermaid from './CustomMermaid';
 
-// Helper component to make file-based diagrams easier to use
-// This component expects the diagram content to be passed as a prop
-// The actual file importing should be done in the MDX file using raw-loader
-
 export function MermaidDiagram({ 
   content,
   filename,
