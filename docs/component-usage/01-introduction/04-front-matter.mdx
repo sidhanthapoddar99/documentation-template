@@ -1,0 +1,351 @@
+---
+id: front-matter
+title: Front Matter Reference
+description: Complete guide to all Docusaurus front matter properties
+sidebar_position: 4
+---
+
+import { Callout } from '@site/src/components/elements/Callout';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Front Matter Reference
+
+Front matter is the metadata at the top of your MDX/MD files that controls how Docusaurus processes and displays your documents.
+
+## Basic Structure
+
+<CodeBlock language="yaml" title="example.mdx">
+{`---
+id: unique-id
+title: Page Title
+description: SEO description
+---
+
+# Your content starts here`}
+</CodeBlock>
+
+## Core Properties
+
+### Document Identification
+
+<CodeBlock language="yaml">
+{`---
+id: unique-doc-id           # Unique identifier (required)
+title: Document Title       # Page title shown in browser tab
+description: Page description for SEO  # Meta description
+---`}
+</CodeBlock>
+
+<Callout type="info">
+The `id` is crucial - it determines the URL path and is used for linking between documents.
+</Callout>
+
+### Sidebar Configuration
+
+<CodeBlock language="yaml">
+{`---
+sidebar_position: 1         # Order in sidebar (lower numbers first)
+sidebar_label: Short Name   # Override title in sidebar
+sidebar_class_name: custom-class  # Add CSS class to sidebar item
+sidebar_custom_props:       # Custom properties for sidebar
+  badge: New
+  featured: true
+---`}
+</CodeBlock>
+
+## Visibility Control
+
+### Hiding from Sidebar
+
+<CodeBlock language="yaml">
+{`---
+# Modern approach (recommended)
+unlisted: true              # Hide from sidebar but keep accessible
+
+# Alternative approaches
+draft: true                 # Hide in production, show in development
+sidebar_exclude: true       # Deprecated - use unlisted instead
+---`}
+</CodeBlock>
+
+<Callout type="warning">
+`unlisted: true` is the recommended way to hide documents from the sidebar in modern Docusaurus.
+
+`sidebar_position: 0` remove this from variable as it can interfere with the `unlisted` property.
+</Callout>
+
+### Display Options
+
+<CodeBlock language="yaml">
+{`---
+hide_title: true            # Hide the H1 title
+hide_table_of_contents: true  # Hide the table of contents
+toc_min_heading_level: 2    # Minimum heading level for TOC
+toc_max_heading_level: 4    # Maximum heading level for TOC
+---`}
+</CodeBlock>
+
+## URL Control
+
+### Custom URLs
+
+<CodeBlock language="yaml">
+{`---
+slug: /custom-url           # Override auto-generated URL
+# Result: /docs/custom-url instead of /docs/folder/filename
+
+slug: custom-relative       # Relative to current location
+# Result: /docs/folder/custom-relative
+
+permalink: /absolute-url    # Absolute URL (less common)
+---`}
+</CodeBlock>
+
+### Examples of URL Control
+
+<Tabs>
+<TabItem value="absolute" label="Absolute Slug">
+
+<CodeBlock language="yaml">
+{`---
+id: installation
+slug: /install  # Starts with /
+---`}
+</CodeBlock>
+
+Result: `/docs/install`
+
+</TabItem>
+<TabItem value="relative" label="Relative Slug">
+
+<CodeBlock language="yaml">
+{`---
+id: api-reference
+slug: api  # No leading slash
+---`}
+</CodeBlock>
+
+Result: `/docs/current-folder/api`
+
+</TabItem>
+</Tabs>
+
+## SEO Properties
+
+<CodeBlock language="yaml">
+{`---
+keywords:                   # SEO keywords
+  - documentation
+  - tutorial
+  - guide
+image: ./social-card.png    # Social media preview image
+---`}
+</CodeBlock>
+
+## Navigation Control
+
+### Pagination
+
+<CodeBlock language="yaml">
+{`---
+pagination_next: guides/advanced   # Override next page
+pagination_prev: guides/intro      # Override previous page
+pagination_label: Custom Label     # Custom pagination link text
+---`}
+</CodeBlock>
+
+### Disable Pagination
+
+<CodeBlock language="yaml">
+{`---
+pagination_next: null       # Disable "Next" link
+pagination_prev: null       # Disable "Previous" link
+---`}
+</CodeBlock>
+
+## Tags System
+
+<CodeBlock language="yaml">
+{`---
+tags:
+  - tutorial
+  - beginner
+  - api
+# Tags can be used for categorization and filtering
+---`}
+</CodeBlock>
+
+## Custom Properties
+
+You can add any custom properties for use in your components:
+
+<CodeBlock language="yaml">
+{`---
+# Standard properties
+title: My Document
+
+# Custom properties
+author: John Doe
+last_updated: 2024-01-15
+difficulty: intermediate
+estimated_time: 15 min
+custom_component_props:
+  theme: dark
+  showCode: true
+---`}
+</CodeBlock>
+
+Access in MDX:
+
+<CodeBlock language="jsx">
+{`export const Highlight = ({children}) => (
+  <span style={{color: 'red'}}>{children}</span>
+);
+
+# {frontMatter.title}
+
+Written by: {frontMatter.author}`}
+</CodeBlock>
+
+## Advanced Properties
+
+### Versioning
+
+<CodeBlock language="yaml">
+{`---
+last_update:
+  date: 2024-01-15
+  author: Jane Smith
+---`}
+</CodeBlock>
+
+### Edit URL
+
+<CodeBlock language="yaml">
+{`---
+custom_edit_url: https://github.com/org/repo/edit/main/docs/page.mdx
+# Or disable edit link:
+custom_edit_url: null
+---`}
+</CodeBlock>
+
+## Complete Example
+
+Here's a fully-featured front matter example:
+
+<CodeBlock language="yaml" title="complete-example.mdx">
+{`---
+id: complete-guide
+title: Complete Guide to Feature X
+description: Learn everything about Feature X with examples
+sidebar_label: Feature X Guide
+sidebar_position: 10
+slug: /guides/feature-x
+keywords: [feature-x, tutorial, guide]
+image: ./assets/feature-x-banner.png
+tags: [tutorial, advanced]
+hide_table_of_contents: false
+toc_min_heading_level: 2
+toc_max_heading_level: 3
+pagination_next: guides/feature-y
+pagination_prev: guides/overview
+draft: false
+unlisted: false
+custom_edit_url: https://github.com/org/repo/edit/main/docs/guide.mdx
+last_update:
+  date: 2024-01-15
+  author: Documentation Team
+# Custom properties
+author: John Doe
+difficulty: intermediate
+estimated_time: 20 min
+---`}
+</CodeBlock>
+
+## Property Priority
+
+Understanding which properties override others:
+
+1. **URL Generation**: `slug` > `id` > filename
+2. **Sidebar Display**: `sidebar_label` > `title`
+3. **Visibility**: `unlisted` or `draft` will hide regardless of other settings
+
+## Common Patterns
+
+### Landing Page Pattern
+
+<CodeBlock language="yaml" title="index.mdx">
+{`---
+id: index
+title: Section Overview
+# index.mdx files are hidden from sidebar by default
+---
+
+import { Redirect } from '@docusaurus/router';
+
+<Redirect to="/docs/section/introduction" />`}
+</CodeBlock>
+
+### Hidden Utility Page
+
+<CodeBlock language="yaml">
+{`---
+id: internal-utils
+title: Internal Utilities
+unlisted: true  # Hidden from sidebar but accessible via direct link
+---`}
+</CodeBlock>
+
+### Draft Documentation
+
+<CodeBlock language="yaml">
+{`---
+id: upcoming-feature
+title: Upcoming Feature (Draft)
+draft: true  # Visible in development, hidden in production
+---`}
+</CodeBlock>
+
+## Troubleshooting
+
+<Callout type="warning" title="Common Issues">
+
+1. **Document not appearing**: Check if `unlisted: true` or `draft: true`
+2. **Wrong URL**: Check `slug` property and file location
+3. **Sidebar order wrong**: Use `sidebar_position` with numbers
+4. **Title too long in sidebar**: Use `sidebar_label` for shorter version
+
+</Callout>
+
+## Best Practices
+
+1. **Always include `id`** - Makes linking predictable
+2. **Use `description`** - Improves SEO
+3. **Number with `sidebar_position`** - Explicit ordering
+4. **Use `sidebar_label`** - When title is too long for sidebar
+5. **Add `keywords`** - For better search indexing
+6. **Use `unlisted`** - For hidden pages instead of `sidebar_exclude`
+
+## Reference Table
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `id` | string | filename | Unique document identifier |
+| `title` | string | First H1 | Document title |
+| `description` | string | - | Meta description for SEO |
+| `sidebar_position` | number | - | Order in sidebar |
+| `sidebar_label` | string | title | Override sidebar text |
+| `unlisted` | boolean | false | Hide from sidebar |
+| `draft` | boolean | false | Hide in production |
+| `slug` | string | - | Custom URL path |
+| `hide_title` | boolean | false | Hide H1 title |
+| `hide_table_of_contents` | boolean | false | Hide TOC |
+| `tags` | array | - | Document tags |
+| `keywords` | array | - | SEO keywords |
+| `image` | string | - | Social media image |
+| `pagination_next` | string/null | auto | Next page link |
+| `pagination_prev` | string/null | auto | Previous page link |
+
+This reference covers the most commonly used front matter properties in Docusaurus. Custom properties can be added as needed for your specific use cases.
