@@ -1,0 +1,307 @@
+---
+id: file-based-codeblock
+title: File-Based CodeBlock
+description: Display code from external files with automatic language detection
+sidebar_position: 2
+---
+
+import { CollapsibleCodeBlock, InlineCodeCard } from '@site/src/components/elements/CodeBlock';
+import { Callout } from '@site/src/components/elements/Callout';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# File-Based CodeBlock
+
+The CodeBlock components support loading code directly from files, with automatic language detection based on file extensions.
+
+## Features
+
+- 📁 Load code from external files
+- 🔍 Automatic language detection
+- 📍 Support for relative and absolute paths
+- ⚡ Lazy loading with loading states
+- 🚨 Error handling for missing files
+- 🎨 Same styling as inline code blocks
+
+## Basic Usage
+
+### CollapsibleCodeBlock with File
+
+<CollapsibleCodeBlock 
+  filePath="./assets/example-agent.js"
+  description="Complete trading agent implementation"
+/>
+
+```jsx
+<CollapsibleCodeBlock 
+  filePath="./assets/example-agent.js"
+  description="Complete trading agent implementation"
+/>
+```
+
+### InlineCodeCard with File
+
+<InlineCodeCard
+  filePath="./assets/neural_processor.py"
+  description="Neural network processor for AI inference"
+  defaultExpanded={true}
+/>
+
+```jsx
+<InlineCodeCard
+  filePath="./assets/neural_processor.py"
+  description="Neural network processor for AI inference"
+  defaultExpanded={true}
+/>
+```
+
+## File Path Options
+
+### Relative Paths
+
+Paths are relative to the MDX file location:
+
+<Tabs>
+<TabItem value="same-dir" label="Same Directory">
+
+```jsx
+<CollapsibleCodeBlock filePath="./config.js" />
+```
+
+</TabItem>
+<TabItem value="parent-dir" label="Parent Directory">
+
+```jsx
+<CollapsibleCodeBlock filePath="../shared/utils.js" />
+```
+
+</TabItem>
+<TabItem value="nested" label="Nested Directory">
+
+```jsx
+<CollapsibleCodeBlock filePath="./assets/examples/demo.py" />
+```
+
+</TabItem>
+</Tabs>
+
+### Custom Title and Description
+
+Override the automatic filename display:
+
+<CollapsibleCodeBlock 
+  filePath="./assets/README.txt"
+  title="Documentation Example"
+  description="This README file demonstrates markdown rendering"
+  defaultCollapsed={false}
+/>
+
+```jsx
+<CollapsibleCodeBlock 
+  filePath="./assets/README.txt"
+  title="Documentation Example"
+  description="This README file demonstrates markdown rendering"
+  defaultCollapsed={false}
+/>
+```
+
+## Language Detection
+
+The component automatically detects languages based on file extensions:
+
+| Extension | Language | Example |
+|-----------|----------|---------|
+| `.js`, `.jsx` | JavaScript | `example.js` |
+| `.ts`, `.tsx` | TypeScript | `component.tsx` |
+| `.py` | Python | `script.py` |
+| `.rs` | Rust | `lib.rs` |
+| `.md`, `.mdx` | Markdown | `README.md` |
+| `.json` | JSON | `config.json` |
+| `.yaml`, `.yml` | YAML | `docker-compose.yaml` |
+| `.css`, `.scss` | CSS | `styles.css` |
+| `.sh`, `.bash` | Bash | `install.sh` |
+| `.move` | Move/Rust | `module.move` |
+
+### Override Language Detection
+
+You can still specify the language explicitly:
+
+```jsx
+<CollapsibleCodeBlock 
+  filePath="./assets/config"  // No extension
+  language="javascript"       // Explicit language
+/>
+```
+
+## Props Reference
+
+### Updated Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `filePath` | `string` | - | Path to the file to load (relative to MDX file) |
+| `title` | `string` | filename | Title (auto-extracted from filePath if not provided) |
+| `description` | `string` | `Source: {filePath}` | Description text |
+| `language` | `string` | auto-detected | Override automatic language detection |
+
+All other props remain the same as the standard CodeBlock components.
+
+## Error Handling
+
+The component gracefully handles errors:
+
+<CollapsibleCodeBlock 
+  filePath="./non-existent-file.js"
+  description="This demonstrates error handling"
+/>
+
+Common error scenarios:
+- File not found
+- Permission issues
+- Invalid file path
+- Network errors (for remote files)
+
+## Loading States
+
+While files are being loaded, a loading indicator is shown:
+
+```jsx
+// Component automatically shows:
+// "Loading..." in the description area
+```
+
+## Best Practices
+
+<Callout type="success" title="Do's">
+
+1. **Use relative paths** for portability
+   ```jsx
+   filePath="./examples/demo.js"  ✅
+   filePath="/absolute/path.js"   ❌
+   ```
+
+2. **Keep example files organized**
+   ```
+   docs/my-feature/
+   ├── index.mdx
+   └── assets/
+       ├── example.js
+       └── config.json
+   ```
+
+3. **Add descriptions** for context
+   ```jsx
+   description="Production configuration example"
+   ```
+
+</Callout>
+
+<Callout type="warning" title="Don'ts">
+
+1. **Don't use files outside the docs directory** - Security restriction
+2. **Avoid very large files** - They can slow down page load
+3. **Don't rely on external URLs** - Use local files for reliability
+
+</Callout>
+
+## Use Cases
+
+### 1. Example Code Files
+
+Keep examples in separate files for better maintainability:
+
+<CollapsibleCodeBlock 
+  filePath="./assets/example-agent.js"
+  title="Trading Agent Example"
+  description="Full implementation with error handling and logging"
+/>
+
+### 2. Configuration Examples
+
+Show real configuration files:
+
+```jsx
+<InlineCodeCard
+  filePath="./assets/docusaurus.config.js"
+  title="Docusaurus Configuration"
+  description="Complete configuration with all plugins"
+/>
+```
+
+### 3. Multi-Language Examples
+
+Show the same concept in different languages:
+
+<Tabs>
+<TabItem value="js" label="JavaScript">
+
+<CollapsibleCodeBlock 
+  filePath="./assets/example-agent.js"
+  defaultCollapsed={false}
+/>
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+<CollapsibleCodeBlock 
+  filePath="./assets/neural_processor.py"
+  defaultCollapsed={false}
+/>
+
+</TabItem>
+</Tabs>
+
+## Implementation Notes
+
+<Callout type="info">
+The file reading functionality uses the `window.fs.readFile` API available in the Docusaurus environment. This is a browser-based API that can only read files within the documentation directory for security reasons.
+</Callout>
+
+### File System API
+
+The component uses:
+```javascript
+window.fs.readFile(filePath, { encoding: 'utf8' })
+```
+
+This returns a promise that resolves with the file content as a string.
+
+## Migration Guide
+
+To migrate existing inline code blocks to file-based:
+
+1. **Extract code to a file**
+   ```bash
+   # Create assets directory
+   mkdir -p docs/your-section/assets
+   
+   # Move code to file
+   echo "your code" > docs/your-section/assets/example.js
+   ```
+
+2. **Update MDX file**
+   ```diff
+   - <CollapsibleCodeBlock language="javascript">
+   - {`const example = "inline code";`}
+   - </CollapsibleCodeBlock>
+   + <CollapsibleCodeBlock filePath="./assets/example.js" />
+   ```
+
+3. **Add description if needed**
+   ```jsx
+   <CollapsibleCodeBlock 
+     filePath="./assets/example.js"
+     description="Extracted from inline example"
+   />
+   ```
+
+## Summary
+
+File-based CodeBlocks provide:
+- Cleaner MDX files
+- Reusable code examples
+- Better version control for code
+- Automatic language detection
+- Consistent styling with inline blocks
+
+Use them whenever you have substantial code examples or want to maintain code separately from documentation.

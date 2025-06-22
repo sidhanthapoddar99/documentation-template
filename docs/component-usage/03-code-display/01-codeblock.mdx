@@ -155,6 +155,30 @@ const agent = await client.createAgent({
 });`}
 />
 
+## File-Based Code Display
+
+Both components now support loading code from external files. See the [File-Based CodeBlock](/component-usage/code-display/file-based-codeblock) documentation for details.
+
+### Quick Example
+
+<CollapsibleCodeBlock 
+  filePath="./assets/example-agent.js"
+  description="Load and display code from an external file"
+/>
+
+```jsx
+<CollapsibleCodeBlock 
+  filePath="./assets/example-agent.js"
+  description="Load and display code from an external file"
+/>
+```
+
+Features:
+- Automatic language detection from file extension
+- Lazy loading with loading states
+- Error handling for missing files
+- Same styling as inline code
+
 ## Props Reference
 
 ### CollapsibleCodeBlock Props
@@ -164,7 +188,8 @@ const agent = await client.createAgent({
 | `title` | `string` | - | Title displayed in the header |
 | `description` | `string` | - | Optional description below the title |
 | `language` | `string` | `'bash'` | Programming language for syntax highlighting |
-| `children` | `string` | - | Code content to display |
+| `children` | `string` | - | Code content to display (for inline code) |
+| `filePath` | `string` | - | Path to external file (for file-based code) |
 | `defaultCollapsed` | `boolean` | `true` | Initial collapsed state |
 
 ### InlineCodeCard Props
@@ -174,7 +199,8 @@ const agent = await client.createAgent({
 | `title` | `string` | - | Title displayed in the header |
 | `description` | `string` | - | Optional description below the title |
 | `language` | `string` | - | Programming language for syntax highlighting |
-| `code` | `string` | - | Code content to display |
+| `code` | `string` | - | Code content to display (for inline code) |
+| `filePath` | `string` | - | Path to external file (for file-based code) |
 | `defaultExpanded` | `boolean` | `false` | Initial expanded state |
 
 ## Supported Languages
