@@ -1,0 +1,61 @@
+/* Global 7xl wrapper - THE ONLY max-width in the entire app */
+.globalWrapper {
+  max-width: var(--max-width-7xl);
+  margin: 0 auto;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Reset body/html to prevent conflicts */
+:global(html),
+:global(body) {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent body scroll */
+  height: 100vh;
+}
+
+:global(#__docusaurus) {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+    background-color: var(--theme-bg-primary);
+
+}
+
+/* Ensure main wrapper takes full height */
+:global(.main-wrapper) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Reset any existing max-width constraints on nested elements */
+:global(.container),
+:global(.navbar__inner),
+:global([class*="docsWrapper"]),
+:global([class*="docRoot"]) {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 996px) {
+  /* Allow body scroll on mobile */
+  :global(html),
+  :global(body),
+  :global(#__docusaurus) {
+    overflow: auto;
+    height: auto;
+  }
+  
+  .globalWrapper {
+    min-height: 100vh;
+    height: auto;
+  }
+}

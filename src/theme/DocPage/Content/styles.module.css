@@ -1,0 +1,92 @@
+.docContent {
+  display: flex;
+  width: 100%;
+  position: relative;
+  height: 100%;
+}
+
+.contentWrapper {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  padding: 0;
+}
+
+/* Let the original theme handle article constraints */
+.contentWrapper :global(article) {
+  max-width: var(--doc-content-max-width);
+  margin: 0 auto;
+  padding: 2rem 3rem;
+}
+
+/* Custom scrollbar */
+.contentWrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.contentWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.contentWrapper::-webkit-scrollbar-thumb {
+  background: var(--theme-border-default);
+  border-radius: 3px;
+}
+
+.contentWrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-text-secondary);
+}
+
+/* Typography enhancements */
+.markdown h1:first-child {
+  margin-top: 0;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.markdown p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.markdown ul,
+.markdown ol {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.markdown li {
+  margin-bottom: 0.5rem;
+}
+
+.markdown pre {
+  margin-bottom: 1rem;
+}
+
+.markdown blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--theme-border-strong);
+  background: var(--theme-bg-surface);
+}
+
+/* Mobile adjustments */
+@media (max-width: 996px) {
+  .contentWrapper {
+    padding: 1.5rem;
+  }
+  
+  .markdown {
+    min-height: auto;
+  }
+}

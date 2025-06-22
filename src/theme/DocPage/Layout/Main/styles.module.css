@@ -1,0 +1,17 @@
+.docMainContainer {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  position: relative;
+}
+
+.docMainContainerEnhanced {
+  max-width: 100%;
+}
+
+/* Mobile adjustments */
+@media (max-width: 996px) {
+  .docMainContainer {
+    width: 100%;
+  }
+}

@@ -1,5 +1,6 @@
 /* HomeFeatures Component Styles */
-@import '@site/src/css/common.css';
+@import '@site/src/css/generated-colors.css';
+@import '@site/src/css/variables.css';
 
 /* Use section utilities from common.css */
 .home-features-section {
