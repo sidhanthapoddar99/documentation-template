@@ -29,7 +29,6 @@
   align-items: center;
   justify-content: center;
   background: var(--theme-bg-surface);
-  border-right: 1px solid var(--theme-border-subtle);
   cursor: pointer;
   transition: background-color var(--ifm-transition-fast);
 }

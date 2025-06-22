@@ -3,7 +3,6 @@
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--theme-bg-surface);
-  border-right: 1px solid var(--theme-border-subtle);
   padding: 1rem;
 }
 
@@ -74,7 +73,6 @@
 .sidebar :global(.menu__list .menu__list) {
   padding-left: 0.75rem;
   margin-left: 0.5rem;
-  border-left: 1px solid var(--theme-border-subtle);
 }
 
 /* Back to top button */
