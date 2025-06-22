@@ -8,11 +8,19 @@ const CustomMermaid = ({ value, title, description }) => {
   const wrapperRef = useRef(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasPanzoomError, setHasPanzoomError] = useState(false);
   const panzoomRef = useRef(null);
+  const observerRef = useRef(null);
+  const retryCountRef = useRef(0);
+  const initTimeoutRef = useRef(null);
   
   // Press and hold functionality for smooth zoom
   const zoomIntervalRef = useRef(null);
   const isHoldingRef = useRef(false);
+  
+  // Track if component is mounted
+  const isMountedRef = useRef(true);
 
   const destroyPanzoom = useCallback(() => {
     if (panzoomRef.current) {
@@ -46,10 +54,20 @@ const CustomMermaid = ({ value, title, description }) => {
     }
   }, []);
 
+  // Debounced initialization
+  const debouncedInitRef = useRef(null);
+  
   const initializePanzoom = useCallback(() => {
     if (!wrapperRef.current || !isReady) return;
-
-    destroyPanzoom();
+    
+    // Clear any pending initialization
+    if (debouncedInitRef.current) {
+      clearTimeout(debouncedInitRef.current);
+    }
+    
+    // Debounce initialization to prevent rapid re-init
+    debouncedInitRef.current = setTimeout(() => {
+      destroyPanzoom();
 
     const svgElement = wrapperRef.current.querySelector('svg');
     if (!svgElement) return;
@@ -70,6 +88,9 @@ const CustomMermaid = ({ value, title, description }) => {
         }
       }
     });
+    
+    // Ensure the SVG is properly positioned
+    svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
     // Reset SVG styles
     svgElement.style.maxWidth = 'none';
@@ -139,18 +160,144 @@ const CustomMermaid = ({ value, title, description }) => {
       };
     } catch (error) {
       console.warn('Failed to initialize panzoom:', error);
+      setHasPanzoomError(true);
     }
+    }, 50); // 50ms debounce
   }, [isReady, destroyPanzoom, calculateFitScale]);
 
-  // Wait for Mermaid to render
-  useEffect(() => {
+  // Wait for Mermaid to render using MutationObserver
+  const waitForMermaidRender = useCallback(() => {
+    if (!wrapperRef.current) return;
+    
+    setIsLoading(true);
     setIsReady(false);
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 800); // Increased delay to ensure Mermaid finishes rendering
-
-    return () => clearTimeout(timer);
-  }, [value]);
+    retryCountRef.current = 0;
+    
+    // Clear any existing observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    
+    // Clear any existing timeout
+    if (initTimeoutRef.current) {
+      clearTimeout(initTimeoutRef.current);
+    }
+    
+    const checkForSvg = () => {
+      // Look for both the SVG element and the Mermaid container
+      const container = wrapperRef.current?.querySelector('.docusaurus-mermaid-container');
+      const svgElement = wrapperRef.current?.querySelector('svg');
+      
+      // Check for error messages from Mermaid
+      const errorElement = wrapperRef.current?.querySelector('.error-icon');
+      if (errorElement) {
+        console.error('Mermaid rendering error detected');
+        setIsLoading(false);
+        setIsReady(false);
+        if (observerRef.current) {
+          observerRef.current.disconnect();
+        }
+        return true; // Stop retrying if there's an error
+      }
+      
+      // If container exists but no SVG yet, Mermaid is still processing
+      if (container && !svgElement) {
+        return false;
+      }
+      
+      if (svgElement) {
+        try {
+          // For Mermaid diagrams, just check if the SVG exists and has a viewBox
+          // Mermaid sets viewBox when rendering is complete
+          const hasViewBox = svgElement.hasAttribute('viewBox');
+          const hasChildren = svgElement.children.length > 0;
+          
+          // Also check if it's an inline SVG (not an error message)
+          const isValidSvg = svgElement.tagName.toLowerCase() === 'svg' && 
+                            !svgElement.classList.contains('error');
+          
+          if ((hasViewBox || hasChildren) && isValidSvg) {
+            if (isMountedRef.current) {
+              setIsLoading(false);
+              setIsReady(true);
+            }
+            if (observerRef.current) {
+              observerRef.current.disconnect();
+            }
+            return true;
+          }
+        } catch (error) {
+          // Ignore errors during checks
+          console.debug('SVG check error (will retry):', error);
+        }
+      }
+      
+      return false;
+    };
+    
+    // Try immediately
+    if (checkForSvg()) return;
+    
+    // Set up MutationObserver to watch for SVG
+    observerRef.current = new MutationObserver((mutations) => {
+      // Check if any nodes were added
+      const hasAddedNodes = mutations.some(mutation => 
+        mutation.type === 'childList' && mutation.addedNodes.length > 0
+      );
+      
+      if (hasAddedNodes || mutations.length > 0) {
+        if (checkForSvg()) {
+          observerRef.current.disconnect();
+        }
+      }
+    });
+    
+    observerRef.current.observe(wrapperRef.current, {
+      childList: true,
+      subtree: true,
+      attributes: false  // Don't watch attributes to reduce noise
+    });
+    
+    // Fallback timeout with retry logic
+    const retryWithBackoff = () => {
+      if (retryCountRef.current >= 20) { // Increased from 10 to 20
+        console.warn('Mermaid diagram failed to render after maximum retries');
+        if (isMountedRef.current) {
+          setIsLoading(false);
+          setIsReady(false);
+        }
+        if (observerRef.current) {
+          observerRef.current.disconnect();
+        }
+        return;
+      }
+      
+      if (!checkForSvg()) {
+        retryCountRef.current++;
+        // Slower backoff for Mermaid
+        const delay = Math.min(200 * Math.pow(1.2, retryCountRef.current), 5000);
+        initTimeoutRef.current = setTimeout(retryWithBackoff, delay);
+      }
+    };
+    
+    // Start retry timer with longer initial delay
+    initTimeoutRef.current = setTimeout(retryWithBackoff, 300);
+  }, []);
+  
+  // Trigger render wait when value changes
+  useEffect(() => {
+    setHasPanzoomError(false); // Reset error state
+    waitForMermaidRender();
+    
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
+    };
+  }, [value, waitForMermaidRender]);
 
   // Initialize panzoom when ready
   useEffect(() => {
@@ -255,8 +402,18 @@ const CustomMermaid = ({ value, title, description }) => {
   // Clean up on unmount
   useEffect(() => {
     return () => {
+      isMountedRef.current = false;
       stopSmoothZoom();
       destroyPanzoom();
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
+      if (debouncedInitRef.current) {
+        clearTimeout(debouncedInitRef.current);
+      }
     };
   }, [stopSmoothZoom, destroyPanzoom]);
 
@@ -272,8 +429,9 @@ const CustomMermaid = ({ value, title, description }) => {
         ref={containerRef}
         className={`${styles.diagramContainer} ${isFullScreen ? styles.fullScreen : ''}`}
       >
-        <div className={styles.controls}>
-          <button className={styles.controlButton} onClick={handleMaxZoomOut} title="Maximum Zoom Out (Bird's Eye View)">
+        {!hasPanzoomError && (
+          <div className={styles.controls}>
+            <button className={styles.controlButton} onClick={handleMaxZoomOut} title="Maximum Zoom Out (Bird's Eye View)">
             <img src="/img/viz-icons/zoom-out-max.svg" alt="Zoom Out Max" />
           </button>
           
@@ -318,10 +476,16 @@ const CustomMermaid = ({ value, title, description }) => {
           <button className={styles.controlButton} onClick={toggleFullScreen} title={isFullScreen ? 'Exit Full Screen' : 'Full Screen'}>
             <img src={isFullScreen ? "/img/viz-icons/exit-fullscreen.svg" : "/img/viz-icons/fullscreen.svg"} alt={isFullScreen ? 'Exit Full Screen' : 'Full Screen'} />
           </button>
-        </div>
+          </div>
+        )}
         
         <div ref={wrapperRef} className={styles.mermaidWrapper}>
-          <Mermaid key={value} value={value} />
+          {isLoading && (
+            <div className={styles.loadingOverlay}>
+              <div className={styles.loadingSpinner}>Loading diagram...</div>
+            </div>
+          )}
+          <Mermaid value={value} />
         </div>
         
         {!isFullScreen && (

@@ -5,11 +5,13 @@ description: Interactive GraphViz diagrams with multiple layout engines
 sidebar_position: 2
 ---
 
-import { GraphViz, FileGraphViz } from '@site/src/components/elements';
+import { GraphViz, GraphVizDiagram } from '@site/src/components/elements';
 import CodeBlock from '@theme/CodeBlock';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { Callout } from '@site/src/components/elements/Callout';
+
+import ArchitectureSource from '!!raw-loader!./assets/architecture.dot';
 
 # GraphViz Diagrams
 
@@ -26,7 +28,7 @@ The GraphViz component provides interactive viewing for DOT language graphs with
 ## Import
 
 ```javascript
-import { GraphViz, FileGraphViz } from '@site/src/components/elements';
+import { GraphViz, GraphVizDiagram } from '@site/src/components/elements';
 ```
 
 ## Embedded Graphs
@@ -225,19 +227,23 @@ Best for: Tree-like structures
 
 ## File-Based Graphs
 
-Load graphs from external `.dot` or `.gv` files:
+Load graphs from external `.dot` or `.gv` files using raw-loader:
 
-<FileGraphViz 
-  filePath="/diagrams/example-graph.dot"
-  title="Example Graph"
-  description="Loaded from external DOT file"
+<GraphVizDiagram 
+  content={ArchitectureSource}
+  filename="architecture.dot"
+  title="System Architecture"
+  description="Complete system architecture with all components"
 />
 
 ```jsx
-<FileGraphViz 
-  filePath="/diagrams/example-graph.dot"
-  title="Example Graph"
-  description="Loaded from external DOT file"
+import ArchitectureSource from '!!raw-loader!./assets/architecture.dot';
+
+<GraphVizDiagram 
+  content={ArchitectureSource}
+  filename="architecture.dot"
+  title="System Architecture"
+  description="Complete system architecture with all components"
   engine="dot"  // optional, defaults to "dot"
 />
 ```
@@ -456,13 +462,14 @@ static/
 | `description` | `string` | - | Optional description below title |
 | `engine` | `string` | `'dot'` | Layout engine to use |
 
-### FileGraphViz Props
+### GraphVizDiagram Props
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `filePath` | `string` | - | **Required.** Path to .dot/.gv file |
-| `title` | `string` | - | Optional title (defaults to filename) |
-| `description` | `string` | - | Optional description |
+| `content` | `string` | - | **Required.** DOT content from raw-loader |
+| `filename` | `string` | - | Filename for display purposes |
+| `title` | `string` | filename | Title displayed above diagram |
+| `description` | `string` | `Source: {filename}` | Description below title |
 | `engine` | `string` | `'dot'` | Layout engine to use |
 
 ### Available Engines

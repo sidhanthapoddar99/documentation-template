@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { instance } from '@viz-js/viz';
 import styles from '../CustomMermaid/CustomMermaid.module.css';
 import Panzoom from '@panzoom/panzoom';
@@ -30,18 +30,21 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
             format: 'svg'
           });
           
-          // Clear previous content safely
-          while (wrapperRef.current.firstChild) {
-            wrapperRef.current.removeChild(wrapperRef.current.firstChild);
+          // Create a new container to avoid direct DOM manipulation conflicts
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = svg;
+          const newSvgElement = tempDiv.firstChild;
+          
+          // Clear and append in a React-friendly way
+          if (wrapperRef.current) {
+            wrapperRef.current.innerHTML = '';
+            if (newSvgElement) {
+              wrapperRef.current.appendChild(newSvgElement);
+            }
           }
           
-          // Create a new div to hold the SVG
-          const svgContainer = document.createElement('div');
-          svgContainer.innerHTML = svg;
-          wrapperRef.current.appendChild(svgContainer.firstChild);
-          
           // Apply theme-aware styling
-          const svgElement = wrapperRef.current.querySelector('svg');
+          const svgElement = wrapperRef.current?.querySelector('svg');
           if (svgElement) {
             // Remove default background
             svgElement.style.background = 'transparent';
@@ -135,7 +138,7 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
   }, [isReady]);
 
   // All the pan/zoom functionality from CustomMermaid
-  const destroyPanzoom = () => {
+  const destroyPanzoom = useCallback(() => {
     if (panzoomRef.current) {
       try {
         panzoomRef.current.destroy();
@@ -144,9 +147,9 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
       }
       panzoomRef.current = null;
     }
-  };
+  }, []);
 
-  const calculateFitScale = (svgElement, container) => {
+  const calculateFitScale = useCallback((svgElement, container) => {
     if (!svgElement || !container) return 1;
     
     try {
@@ -164,9 +167,9 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
       console.warn('Error calculating fit scale:', error);
       return 1;
     }
-  };
+  }, []);
 
-  const initializePanzoom = () => {
+  const initializePanzoom = useCallback(() => {
     if (!wrapperRef.current || !isReady) return;
 
     destroyPanzoom();
@@ -239,7 +242,7 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
     } catch (error) {
       console.warn('Failed to initialize panzoom:', error);
     }
-  };
+  }, [isReady, destroyPanzoom, calculateFitScale]);
 
   useEffect(() => {
     if (isReady) {
@@ -249,7 +252,7 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
         if (cleanup) cleanup();
       };
     }
-  }, [isReady, isFullScreen]);
+  }, [isReady, isFullScreen, initializePanzoom, destroyPanzoom]);
 
   useEffect(() => {
     if (isFullScreen) {
@@ -262,7 +265,7 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
     } else {
       document.body.style.overflow = '';
     }
-  }, [isFullScreen]);
+  }, [isFullScreen, initializePanzoom]);
 
   // Control handlers
   const toggleFullScreen = () => setIsFullScreen(!isFullScreen);
@@ -283,7 +286,7 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
     }
   };
 
-  const startSmoothZoom = (direction) => {
+  const startSmoothZoom = useCallback((direction) => {
     if (!panzoomRef.current || isHoldingRef.current) return;
     
     isHoldingRef.current = true;
@@ -302,22 +305,22 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
     
     zoomStep();
     zoomIntervalRef.current = setInterval(zoomStep, 16);
-  };
+  }, []);
 
-  const stopSmoothZoom = () => {
+  const stopSmoothZoom = useCallback(() => {
     isHoldingRef.current = false;
     if (zoomIntervalRef.current) {
       clearInterval(zoomIntervalRef.current);
       zoomIntervalRef.current = null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     return () => {
       stopSmoothZoom();
       destroyPanzoom();
     };
-  }, []);
+  }, [stopSmoothZoom, destroyPanzoom]);
 
   if (error) {
     return (
@@ -392,7 +395,7 @@ const GraphViz = ({ value, title, description, engine = 'dot' }) => {
           </button>
         </div>
         
-        <div ref={wrapperRef} className={styles.mermaidWrapper}>
+        <div key={value} ref={wrapperRef} className={styles.mermaidWrapper}>
           {!isReady && (
             <div style={{ padding: '2rem', textAlign: 'center' }}>
               <p>Rendering graph...</p>
