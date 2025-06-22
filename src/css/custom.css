@@ -28,6 +28,12 @@
   --ifm-transition-fast: 0.2s;
   --ifm-transition-slow: 0.3s;
   --max-width-7xl: 1400px;
+  
+  /* DocPage layout dimensions */
+  --doc-sidebar-width: 300px;
+  --doc-toc-width: 200px;
+  --doc-content-max-width: 860px;
+  --doc-navbar-height: 108px;
 }
 
 [data-theme='dark'] {
@@ -83,6 +89,10 @@
 
 /* Keep original height on mobile */
 @media (max-width: 996px) {
+  :root {
+    --doc-navbar-height: var(--ifm-navbar-height);
+  }
+  
   .navbar {
     padding: 0.5rem 0;
     height: var(--ifm-navbar-height);

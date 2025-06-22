@@ -1,14 +1,15 @@
 import React from 'react';
 import DocPage from '@theme-original/DocPage';
-import containerStyles from './Container/styles.module.css';
+import './styles.module.css'; // Import for side effects
 
 export default function DocPageWrapper(props) {
-  return (
-    
-    <div className={containerStyles.docPageContainer}>
-      <div className={containerStyles.docPageInner}>
-        <DocPage {...props} />
-      </div>
-    </div>
-  );
+  // Apply global class to body when docs page is active
+  React.useEffect(() => {
+    document.body.classList.add('docs-page-active');
+    return () => {
+      document.body.classList.remove('docs-page-active');
+    };
+  }, []);
+
+  return <DocPage {...props} />;
 }
