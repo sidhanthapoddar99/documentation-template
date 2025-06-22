@@ -1,0 +1,364 @@
+---
+id: mermaid-diagram
+title: Mermaid Diagrams
+description: Interactive Mermaid diagrams with pan, zoom, and fullscreen capabilities
+sidebar_position: 1
+---
+
+import { CustomMermaid, FileMermaid } from '@site/src/components/elements';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { Callout } from '@site/src/components/elements/Callout';
+
+# Mermaid Diagrams
+
+The Mermaid diagram component provides interactive viewing capabilities for complex diagrams with pan, zoom, and fullscreen features.
+
+## Features
+
+- 🔍 **Multi-level Zoom**: From bird's eye view (0.01x) to detailed inspection (10x)
+- 🖱️ **Pan & Drag**: Click and drag to navigate large diagrams
+- 📱 **Touch Support**: Pinch to zoom on mobile devices
+- 🖼️ **Fullscreen Mode**: Maximize diagrams for better visibility
+- 🎯 **Smart Controls**: Fit to container, reset view, smooth zoom
+- 🌓 **Theme Aware**: Automatically adapts to light/dark mode
+
+## Import
+
+```javascript
+import { CustomMermaid, FileMermaid } from '@site/src/components/elements';
+```
+
+## Embedded Diagrams
+
+### Basic Usage
+
+<CustomMermaid 
+  value={`graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Process 1]
+    B -->|No| D[Process 2]
+    C --> E[End]
+    D --> E`}
+/>
+
+```jsx
+<CustomMermaid 
+  value={`graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Process 1]
+    B -->|No| D[Process 2]
+    C --> E[End]
+    D --> E`}
+/>
+```
+
+### With Title and Description
+
+<CustomMermaid 
+  title="User Authentication Flow"
+  description="Shows the complete authentication process including 2FA"
+  value={`sequenceDiagram
+    participant U as User
+    participant C as Client
+    participant S as Server
+    participant DB as Database
+    
+    U->>C: Enter credentials
+    C->>S: POST /auth/login
+    S->>DB: Verify credentials
+    DB-->>S: User found
+    S->>S: Generate 2FA code
+    S-->>C: Request 2FA
+    C-->>U: Show 2FA prompt
+    U->>C: Enter 2FA code
+    C->>S: POST /auth/verify
+    S-->>C: JWT token
+    C-->>U: Login successful`}
+/>
+
+### Complex Architecture Diagram
+
+<CustomMermaid 
+  title="NeuraLabs Platform Architecture"
+  description="Complete system architecture with all components"
+  value={`graph TB
+    subgraph "Frontend Layer"
+        UI[Web UI]
+        Mobile[Mobile App]
+        SDK[SDK/CLI]
+    end
+    
+    subgraph "API Gateway"
+        GW[API Gateway]
+        Auth[Auth Service]
+        RL[Rate Limiter]
+    end
+    
+    subgraph "Core Services"
+        Agent[Agent Service]
+        Work[Workflow Engine]
+        Exec[Execution Engine]
+        ML[ML Service]
+    end
+    
+    subgraph "Blockchain Layer"
+        SC[Smart Contracts]
+        NFT[NFT Registry]
+        Token[Token Service]
+    end
+    
+    subgraph "Storage Layer"
+        DB[(PostgreSQL)]
+        Redis[(Redis Cache)]
+        S3[Object Storage]
+        IPFS[IPFS/Walrus]
+    end
+    
+    UI --> GW
+    Mobile --> GW
+    SDK --> GW
+    
+    GW --> Auth
+    GW --> RL
+    Auth --> Redis
+    
+    GW --> Agent
+    GW --> Work
+    Agent --> ML
+    Work --> Exec
+    
+    Agent --> SC
+    Work --> NFT
+    Exec --> Token
+    
+    Agent --> DB
+    Work --> DB
+    ML --> S3
+    SC --> IPFS`}
+/>
+
+## File-Based Diagrams
+
+Load diagrams from external `.mermaid` files:
+
+<FileMermaid 
+  filePath="/diagrams/example-flow.mermaid"
+  title="Example Flow Diagram"
+  description="Loaded from external file"
+/>
+
+```jsx
+<FileMermaid 
+  filePath="/diagrams/example-flow.mermaid"
+  title="Example Flow Diagram"
+  description="Loaded from external file"
+/>
+```
+
+## Controls Guide
+
+### Zoom Controls
+
+| Control | Action | Description |
+|---------|--------|-------------|
+| <img src="/img/viz-icons/zoom-out-max.svg" width="20" /> | Max Zoom Out | Bird's eye view (0.01x) |
+| <img src="/img/viz-icons/zoom-out.svg" width="20" /> | Zoom Out | Decrease zoom (hold for smooth) |
+| <img src="/img/viz-icons/zoom-in.svg" width="20" /> | Zoom In | Increase zoom (hold for smooth) |
+| <img src="/img/viz-icons/zoom-in-max.svg" width="20" /> | Max Zoom In | Detail view (5x) |
+
+### View Controls
+
+| Control | Action | Description |
+|---------|--------|-------------|
+| <img src="/img/viz-icons/fit-to-container.svg" width="20" /> | Fit to Container | Auto-scale to fit |
+| <img src="/img/viz-icons/reset.svg" width="20" /> | Reset View | Return to default |
+| <img src="/img/viz-icons/fullscreen.svg" width="20" /> | Fullscreen | Maximize diagram |
+
+### Interaction Methods
+
+- **Mouse Wheel**: Hold `Ctrl/Cmd` + scroll to zoom
+- **Drag**: Click and drag to pan around
+- **Touch**: Pinch to zoom, drag to pan
+- **Smooth Zoom**: Hold zoom buttons for continuous zoom
+
+## Diagram Types
+
+<Tabs>
+<TabItem value="flowchart" label="Flowchart">
+
+<CustomMermaid 
+  value={`flowchart LR
+    A[Hard edge] -->|Link text| B(Round edge)
+    B --> C{Decision}
+    C -->|One| D[Result one]
+    C -->|Two| E[Result two]`}
+/>
+
+</TabItem>
+<TabItem value="sequence" label="Sequence">
+
+<CustomMermaid 
+  value={`sequenceDiagram
+    Alice->>John: Hello John, how are you?
+    John-->>Alice: Great!
+    Alice-)John: See you later!`}
+/>
+
+</TabItem>
+<TabItem value="gantt" label="Gantt">
+
+<CustomMermaid 
+  value={`gantt
+    title A Gantt Diagram
+    dateFormat YYYY-MM-DD
+    section Section
+    A task          :a1, 2024-01-01, 30d
+    Another task    :after a1, 20d
+    section Another
+    Task in Another :2024-01-12, 12d
+    another task    :24d`}
+/>
+
+</TabItem>
+<TabItem value="pie" label="Pie Chart">
+
+<CustomMermaid 
+  value={`pie title Pets adopted by volunteers
+    "Dogs" : 386
+    "Cats" : 85
+    "Rats" : 15`}
+/>
+
+</TabItem>
+</Tabs>
+
+## Advanced Features
+
+### Theme Adaptation
+
+The diagram automatically adapts to the current theme:
+
+<Callout type="info">
+Mermaid diagrams automatically switch between light and dark themes based on your site theme preference.
+</Callout>
+
+### Performance Optimization
+
+<Callout type="tip" title="Performance Tips">
+- For large diagrams, start with zoom-out for overview
+- Use fullscreen mode for complex architectures
+- Hold zoom buttons for smooth navigation
+- The viewer uses CSS transforms for smooth 60fps performance
+</Callout>
+
+### Container Sizing
+
+The diagram container uses flexible sizing:
+
+```css
+/* Responsive height calculation */
+min-height: 400px;
+height: 70vh;
+max-height: 900px;
+```
+
+This ensures:
+- Minimum usable space on small screens
+- Proportional sizing on regular screens
+- Maximum height limit for very tall screens
+
+## File Organization
+
+Organize your diagram files:
+
+```
+static/
+└── diagrams/
+    ├── architecture/
+    │   ├── system-overview.mermaid
+    │   └── microservices.mermaid
+    ├── flows/
+    │   ├── auth-flow.mermaid
+    │   └── payment-flow.mermaid
+    └── examples/
+        └── sample.mermaid
+```
+
+## Troubleshooting
+
+<Callout type="warning" title="Common Issues">
+
+**Diagram not rendering:**
+- Check Mermaid syntax is valid
+- Ensure the diagram type is supported
+- Look for console errors
+
+**File not loading:**
+- Verify file path starts with `/`
+- Check file exists in `static` directory
+- Ensure `.mermaid` extension is correct
+
+**Performance issues:**
+- Simplify very complex diagrams
+- Break into smaller sub-diagrams
+- Use zoom-out for initial view
+
+</Callout>
+
+## Best Practices
+
+1. **Start Simple**: Begin with zoom-fit view
+2. **Use Titles**: Always provide context
+3. **Organize Files**: Use meaningful file names
+4. **Test Themes**: Check both light and dark modes
+5. **Mobile First**: Ensure touch controls work
+6. **Documentation**: Comment complex diagrams
+
+## Complete Example
+
+<CustomMermaid 
+  title="Complete E-commerce Order Flow"
+  description="End-to-end order processing with all decision points"
+  value={`graph TD
+    Start([Customer Visit]) --> Browse[Browse Products]
+    Browse --> Add{Add to Cart?}
+    Add -->|Yes| Cart[Shopping Cart]
+    Add -->|No| Browse
+    
+    Cart --> Checkout[Proceed to Checkout]
+    Checkout --> Auth{Authenticated?}
+    
+    Auth -->|No| Login[Login/Register]
+    Auth -->|Yes| Ship[Shipping Info]
+    Login --> Ship
+    
+    Ship --> Pay[Payment Method]
+    Pay --> Process{Process Payment}
+    
+    Process -->|Success| Order[Create Order]
+    Process -->|Failed| Pay
+    
+    Order --> Email[Send Confirmation]
+    Email --> Fulfill[Fulfillment]
+    
+    Fulfill --> Pack[Pack Items]
+    Pack --> Dispatch[Dispatch]
+    Dispatch --> Track[Tracking Info]
+    Track --> Deliver[Delivery]
+    
+    Deliver --> Complete{Delivered?}
+    Complete -->|Yes| End([Order Complete])
+    Complete -->|No| Support[Customer Support]
+    Support --> Resolve[Resolve Issue]
+    Resolve --> Deliver`}
+/>
+
+This comprehensive flow diagram demonstrates:
+- Multiple decision points
+- Process branches
+- Error handling
+- Complete user journey
+
+The pan and zoom features allow exploring different sections in detail while maintaining context of the overall flow.

@@ -31,6 +31,10 @@ const config = {
     locales: ['en'],
   },
 
+  markdown: {
+    mermaid: true,
+  },
+
   presets: [
     [
       'classic',
@@ -267,6 +271,26 @@ const config = {
         defaultMode: 'dark',
         disableSwitch: false,
         respectPrefersColorScheme: false,
+      },
+
+      mermaid: {
+        theme: {light: 'neutral', dark: 'dark'},
+        options: {
+          maxTextSize: 100000,
+          maxEdges: 1000,
+          htmlLabels: true,
+          curve: 'basis',
+          securityLevel: 'loose',
+          startOnLoad: true,
+          flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true,
+            rankSpacing: 80,
+            nodeSpacing: 40,
+            padding: 15,
+            curve: 'basis',
+          },
+        },
       },
     }),
 };

@@ -1,0 +1,586 @@
+---
+id: graphviz-diagram
+title: GraphViz Diagrams
+description: Interactive GraphViz diagrams with multiple layout engines
+sidebar_position: 2
+---
+
+import { GraphViz, FileGraphViz } from '@site/src/components/elements';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { Callout } from '@site/src/components/elements/Callout';
+
+# GraphViz Diagrams
+
+The GraphViz component provides interactive viewing for DOT language graphs with multiple layout engines and full pan/zoom capabilities.
+
+## Features
+
+- 🎨 **Multiple Layout Engines**: dot, neato, fdp, circo, twopi, osage, patchwork
+- 🌓 **Theme Aware**: Automatic color adaptation for light/dark modes
+- 🔍 **Full Zoom Control**: Same powerful controls as Mermaid
+- 📐 **Precise Layouts**: Mathematical graph layout algorithms
+- 🚀 **WebAssembly Performance**: Fast rendering via Viz.js
+
+## Import
+
+```javascript
+import { GraphViz, FileGraphViz } from '@site/src/components/elements';
+```
+
+## Embedded Graphs
+
+### Basic Usage
+
+<GraphViz 
+  value={`digraph G {
+    rankdir=LR;
+    A -> B -> C -> D;
+    D -> A;
+  }`}
+/>
+
+```jsx
+<GraphViz 
+  value={`digraph G {
+    rankdir=LR;
+    A -> B -> C -> D;
+    D -> A;
+  }`}
+/>
+```
+
+### With Title and Description
+
+<GraphViz 
+  title="State Machine Diagram"
+  description="Simple finite state machine with transitions"
+  value={`digraph FSM {
+    rankdir=LR;
+    node [shape=circle];
+    
+    Start [shape=doublecircle];
+    End [shape=doublecircle];
+    
+    Start -> State1 [label="init"];
+    State1 -> State2 [label="event1"];
+    State2 -> State3 [label="event2"];
+    State3 -> End [label="complete"];
+    State2 -> State1 [label="reset"];
+  }`}
+/>
+
+### Complex Network Graph
+
+<GraphViz 
+  title="Microservices Architecture"
+  description="Service dependencies and data flow"
+  value={`digraph Architecture {
+    compound=true;
+    rankdir=TB;
+    node [shape=box, style=filled, fillcolor=lightblue];
+    edge [color=gray];
+    
+    subgraph cluster_frontend {
+      label="Frontend";
+      style=filled;
+      fillcolor=lightgray;
+      
+      UI [label="React UI"];
+      Mobile [label="Mobile App"];
+    }
+    
+    subgraph cluster_gateway {
+      label="API Gateway";
+      style=filled;
+      fillcolor=lightgreen;
+      
+      Gateway [label="Kong/Nginx"];
+      Auth [label="Auth Service"];
+    }
+    
+    subgraph cluster_services {
+      label="Microservices";
+      style=filled;
+      fillcolor=lightyellow;
+      
+      User [label="User Service"];
+      Order [label="Order Service"];
+      Payment [label="Payment Service"];
+      Inventory [label="Inventory Service"];
+    }
+    
+    subgraph cluster_data {
+      label="Data Layer";
+      style=filled;
+      fillcolor=lightcoral;
+      
+      UserDB [label="User DB", shape=cylinder];
+      OrderDB [label="Order DB", shape=cylinder];
+      Cache [label="Redis Cache", shape=cylinder];
+    }
+    
+    UI -> Gateway;
+    Mobile -> Gateway;
+    Gateway -> Auth;
+    
+    Gateway -> User;
+    Gateway -> Order;
+    Order -> Payment;
+    Order -> Inventory;
+    
+    User -> UserDB;
+    Order -> OrderDB;
+    User -> Cache;
+    Order -> Cache;
+  }`}
+/>
+
+## Layout Engines
+
+GraphViz supports multiple layout algorithms:
+
+<Tabs>
+<TabItem value="dot" label="dot (hierarchical)">
+
+<GraphViz 
+  engine="dot"
+  value={`digraph G {
+    A -> B -> C;
+    B -> D;
+    A -> D;
+  }`}
+/>
+
+Best for: Hierarchical structures, flowcharts
+
+</TabItem>
+<TabItem value="neato" label="neato (spring)">
+
+<GraphViz 
+  engine="neato"
+  value={`graph G {
+    A -- B -- C;
+    B -- D;
+    A -- D;
+    C -- D;
+  }`}
+/>
+
+Best for: Undirected graphs, networks
+
+</TabItem>
+<TabItem value="fdp" label="fdp (force-directed)">
+
+<GraphViz 
+  engine="fdp"
+  value={`graph G {
+    A -- B -- C;
+    B -- D;
+    A -- D;
+    C -- D;
+  }`}
+/>
+
+Best for: Larger undirected graphs
+
+</TabItem>
+<TabItem value="circo" label="circo (circular)">
+
+<GraphViz 
+  engine="circo"
+  value={`digraph G {
+    A -> B -> C -> D -> E -> F -> A;
+    A -> D;
+    B -> E;
+    C -> F;
+  }`}
+/>
+
+Best for: Circular dependencies
+
+</TabItem>
+<TabItem value="twopi" label="twopi (radial)">
+
+<GraphViz 
+  engine="twopi"
+  value={`digraph G {
+    Root -> A;
+    Root -> B;
+    Root -> C;
+    A -> D;
+    A -> E;
+    B -> F;
+    B -> G;
+    C -> H;
+    C -> I;
+  }`}
+/>
+
+Best for: Tree-like structures
+
+</TabItem>
+</Tabs>
+
+## File-Based Graphs
+
+Load graphs from external `.dot` or `.gv` files:
+
+<FileGraphViz 
+  filePath="/diagrams/example-graph.dot"
+  title="Example Graph"
+  description="Loaded from external DOT file"
+/>
+
+```jsx
+<FileGraphViz 
+  filePath="/diagrams/example-graph.dot"
+  title="Example Graph"
+  description="Loaded from external DOT file"
+  engine="dot"  // optional, defaults to "dot"
+/>
+```
+
+## Advanced Examples
+
+### Finite State Machine
+
+<GraphViz 
+  title="TCP Connection State Machine"
+  description="Complete TCP connection lifecycle"
+  value={`digraph TCP {
+    rankdir=LR;
+    node [shape=ellipse, style=filled, fillcolor=lightblue];
+    edge [fontsize=10];
+    
+    CLOSED [fillcolor=lightgray];
+    LISTEN [fillcolor=lightgreen];
+    ESTABLISHED [fillcolor=green, fontcolor=white];
+    
+    CLOSED -> LISTEN [label="passive open"];
+    CLOSED -> SYN_SENT [label="active open"];
+    LISTEN -> SYN_RCVD [label="rcv SYN"];
+    SYN_SENT -> SYN_RCVD [label="rcv SYN"];
+    SYN_SENT -> ESTABLISHED [label="rcv SYN,ACK"];
+    SYN_RCVD -> ESTABLISHED [label="rcv ACK"];
+    SYN_RCVD -> FIN_WAIT_1 [label="close"];
+    ESTABLISHED -> FIN_WAIT_1 [label="close"];
+    ESTABLISHED -> CLOSE_WAIT [label="rcv FIN"];
+    FIN_WAIT_1 -> FIN_WAIT_2 [label="rcv ACK"];
+    FIN_WAIT_1 -> CLOSING [label="rcv FIN"];
+    FIN_WAIT_2 -> TIME_WAIT [label="rcv FIN"];
+    CLOSING -> TIME_WAIT [label="rcv ACK"];
+    CLOSE_WAIT -> LAST_ACK [label="close"];
+    LAST_ACK -> CLOSED [label="rcv ACK"];
+    TIME_WAIT -> CLOSED [label="timeout"];
+  }`}
+/>
+
+### Organizational Chart
+
+<GraphViz 
+  title="Company Structure"
+  engine="dot"
+  value={`digraph OrgChart {
+    rankdir=TB;
+    node [shape=box, style="filled,rounded", fillcolor=lightblue];
+    edge [color=gray];
+    
+    CEO [fillcolor=darkblue, fontcolor=white, label="CEO\nJohn Smith"];
+    
+    CTO [fillcolor=blue, fontcolor=white, label="CTO\nJane Doe"];
+    CFO [fillcolor=blue, fontcolor=white, label="CFO\nBob Johnson"];
+    COO [fillcolor=blue, fontcolor=white, label="COO\nAlice Brown"];
+    
+    CEO -> {CTO CFO COO};
+    
+    EngLead [label="VP Engineering\nDavid Lee"];
+    DevLead [label="Dev Lead\nSarah Wilson"];
+    QALead [label="QA Lead\nMike Davis"];
+    
+    CTO -> EngLead;
+    EngLead -> {DevLead QALead};
+    
+    FinLead [label="Finance Director\nEmily Chen"];
+    AccLead [label="Accounting Lead\nChris Martin"];
+    
+    CFO -> FinLead;
+    FinLead -> AccLead;
+    
+    OpsLead [label="Operations Director\nJessica Taylor"];
+    HRLead [label="HR Lead\nKevin White"];
+    
+    COO -> OpsLead;
+    OpsLead -> HRLead;
+  }`}
+/>
+
+### Network Topology
+
+<GraphViz 
+  title="Network Infrastructure"
+  engine="neato"
+  value={`graph Network {
+    node [shape=box, style=filled];
+    edge [color=gray, penwidth=2];
+    
+    // Internet
+    Internet [shape=cloud, fillcolor=lightgray, label="Internet"];
+    
+    // Firewalls
+    FW1 [fillcolor=red, fontcolor=white, label="Firewall 1"];
+    FW2 [fillcolor=red, fontcolor=white, label="Firewall 2"];
+    
+    // Load Balancers
+    LB1 [fillcolor=orange, label="Load Balancer 1"];
+    LB2 [fillcolor=orange, label="Load Balancer 2"];
+    
+    // Web Servers
+    Web1 [fillcolor=lightblue, label="Web Server 1"];
+    Web2 [fillcolor=lightblue, label="Web Server 2"];
+    Web3 [fillcolor=lightblue, label="Web Server 3"];
+    
+    // Application Servers
+    App1 [fillcolor=lightgreen, label="App Server 1"];
+    App2 [fillcolor=lightgreen, label="App Server 2"];
+    
+    // Database
+    DB [shape=cylinder, fillcolor=yellow, label="Database\nCluster"];
+    
+    // Connections
+    Internet -- FW1;
+    Internet -- FW2;
+    FW1 -- LB1;
+    FW2 -- LB2;
+    LB1 -- {Web1 Web2};
+    LB2 -- {Web2 Web3};
+    Web1 -- {App1 App2};
+    Web2 -- {App1 App2};
+    Web3 -- {App1 App2};
+    App1 -- DB;
+    App2 -- DB;
+  }`}
+/>
+
+## DOT Language Features
+
+### Node Attributes
+
+```dot
+node [
+  shape=box|ellipse|circle|diamond|...
+  style=filled|rounded|dashed|...
+  fillcolor="color"
+  fontcolor="color"
+  label="text"
+]
+```
+
+### Edge Attributes
+
+```dot
+edge [
+  style=solid|dashed|dotted|bold
+  color="color"
+  penwidth=number
+  label="text"
+  arrowhead=normal|dot|inv|...
+]
+```
+
+### Subgraphs
+
+```dot
+subgraph cluster_name {
+  label="Cluster Label";
+  style=filled;
+  fillcolor=lightgray;
+  
+  // nodes in cluster
+}
+```
+
+## Theme Adaptation
+
+<Callout type="info" title="Automatic Theme Support">
+GraphViz diagrams automatically adapt colors for light and dark themes:
+- Black elements become white in dark mode
+- White backgrounds become transparent
+- Text colors automatically invert
+</Callout>
+
+## Performance Tips
+
+<Callout type="tip" title="Optimization Strategies">
+
+1. **Large Graphs**: Use appropriate layout engine
+   - `sfdp` for very large graphs
+   - `neato` for medium undirected graphs
+   - `dot` for hierarchical structures
+
+2. **Rendering Speed**: 
+   - Simplify node shapes
+   - Reduce edge labels
+   - Use subgraphs to organize
+
+3. **Interaction**:
+   - Start zoomed out for overview
+   - Use fullscreen for details
+   - Leverage smooth zoom for navigation
+
+</Callout>
+
+## File Organization
+
+```
+static/
+└── diagrams/
+    ├── graphs/
+    │   ├── network-topology.dot
+    │   ├── state-machine.gv
+    │   └── dependencies.dot
+    └── architecture/
+        ├── microservices.dot
+        └── deployment.gv
+```
+
+## Props Reference
+
+### GraphViz Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `value` | `string` | - | **Required.** DOT language graph definition |
+| `title` | `string` | - | Optional title above the diagram |
+| `description` | `string` | - | Optional description below title |
+| `engine` | `string` | `'dot'` | Layout engine to use |
+
+### FileGraphViz Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `filePath` | `string` | - | **Required.** Path to .dot/.gv file |
+| `title` | `string` | - | Optional title (defaults to filename) |
+| `description` | `string` | - | Optional description |
+| `engine` | `string` | `'dot'` | Layout engine to use |
+
+### Available Engines
+
+- `dot` - Hierarchical layouts
+- `neato` - Spring model layouts
+- `fdp` - Force-directed layouts
+- `circo` - Circular layouts
+- `twopi` - Radial layouts
+- `osage` - Array-based layouts
+- `patchwork` - Squarified tree maps
+
+## Error Handling
+
+The component provides clear error messages:
+
+<GraphViz 
+  value={`digraph G {
+    Invalid syntax here
+  }`}
+/>
+
+## Best Practices
+
+1. **Choose Right Engine**: Match layout to graph type
+2. **Use Subgraphs**: Organize complex graphs
+3. **Label Clearly**: Use descriptive node/edge labels
+4. **Test Themes**: Verify in both light and dark modes
+5. **Optimize Size**: Balance detail vs. performance
+6. **Document Structure**: Comment complex graphs
+
+## Complete Example
+
+<GraphViz 
+  title="CI/CD Pipeline"
+  description="Complete continuous integration and deployment workflow"
+  engine="dot"
+  value={`digraph CICD {
+    rankdir=LR;
+    node [shape=box, style="filled,rounded", fontname="Arial"];
+    edge [fontname="Arial", fontsize=10];
+    
+    // Development
+    subgraph cluster_dev {
+      label="Development";
+      style=filled;
+      fillcolor=lightblue;
+      
+      Code [label="Write Code", fillcolor=white];
+      Commit [label="Git Commit", fillcolor=white];
+      Push [label="Git Push", fillcolor=white];
+      
+      Code -> Commit -> Push;
+    }
+    
+    // CI Pipeline
+    subgraph cluster_ci {
+      label="Continuous Integration";
+      style=filled;
+      fillcolor=lightgreen;
+      
+      Trigger [label="CI Trigger", fillcolor=white];
+      Build [label="Build", fillcolor=white];
+      Test [label="Run Tests", fillcolor=white];
+      Lint [label="Code Quality", fillcolor=white];
+      Security [label="Security Scan", fillcolor=white];
+      
+      Trigger -> Build -> Test;
+      Build -> Lint;
+      Build -> Security;
+    }
+    
+    // CD Pipeline
+    subgraph cluster_cd {
+      label="Continuous Deployment";
+      style=filled;
+      fillcolor=lightyellow;
+      
+      Package [label="Package", fillcolor=white];
+      Stage [label="Deploy Staging", fillcolor=white];
+      IntTest [label="Integration Tests", fillcolor=white];
+      Approve [label="Manual Approval", fillcolor=yellow];
+      Prod [label="Deploy Production", fillcolor=white];
+      
+      Package -> Stage -> IntTest -> Approve -> Prod;
+    }
+    
+    // Monitoring
+    subgraph cluster_monitor {
+      label="Monitoring";
+      style=filled;
+      fillcolor=lightcoral;
+      
+      Monitor [label="Monitor", fillcolor=white];
+      Alert [label="Alerts", fillcolor=white];
+      Rollback [label="Rollback", fillcolor=red, fontcolor=white];
+      
+      Monitor -> Alert -> Rollback;
+    }
+    
+    // Main flow
+    Push -> Trigger;
+    Test -> Package [label="Tests Pass"];
+    Lint -> Package [label="Quality Pass"];
+    Security -> Package [label="Security Pass"];
+    
+    Test -> Code [label="Tests Fail", style=dashed, color=red];
+    
+    Prod -> Monitor;
+    Rollback -> Stage [label="Revert", style=dashed, color=red];
+  }`}
+/>
+
+This example demonstrates:
+- Multiple subgraphs for logical grouping
+- Different node colors for different stages
+- Conditional flows with labeled edges
+- Error paths with dashed lines
+- Complete workflow visualization
+
+The interactive controls allow detailed inspection of each stage while maintaining the overall pipeline context.

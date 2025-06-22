@@ -1,0 +1,9 @@
+digraph G {
+    rankdir=LR;
+    node [shape=box];
+    
+    Start -> Process;
+    Process -> Decision;
+    Decision -> End [label="Yes"];
+    Decision -> Process [label="No"];
+}

@@ -19,6 +19,8 @@
     "@docusaurus/preset-classic": "^3.0.0",
     "@docusaurus/theme-mermaid": "^3.0.0",
     "@mdx-js/react": "^3.0.0",
+    "@panzoom/panzoom": "^4.6.0",
+    "@viz-js/viz": "^3.14.0",
     "clsx": "^1.2.1",
     "prism-react-renderer": "^2.3.0",
     "react": "^18.0.0",

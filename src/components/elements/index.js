@@ -20,3 +20,6 @@ export { BlogSearch } from './BlogSearch';
 
 // Footer component
 export { Footer } from './Footer';
+
+// Visualization components
+export { CustomMermaid, FileMermaid, GraphViz, FileGraphViz } from './visualizations';
