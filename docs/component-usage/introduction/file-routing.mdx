@@ -1,0 +1,348 @@
+---
+id: file-routing
+title: File Routing & URL Structure
+description: Understanding how file names and structure affect routing in Docusaurus
+sidebar_position: 3
+---
+
+import { Callout } from '@site/src/components/elements/Callout';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# File Routing & URL Structure
+
+This guide explains how Docusaurus converts your file structure into URLs and how to control routing behavior.
+
+## How File Names Become URLs
+
+Docusaurus automatically generates routes based on your file structure. Here's how it works:
+
+### Basic File-to-URL Mapping
+
+<Tabs>
+<TabItem value="structure" label="File Structure">
+
+```
+docs/
+├── introduction.mdx
+├── getting-started.mdx
+└── guides/
+    ├── basic-usage.mdx
+    └── advanced-usage.mdx
+```
+
+</TabItem>
+<TabItem value="urls" label="Generated URLs">
+
+```
+/docs/introduction
+/docs/getting-started
+/docs/guides/basic-usage
+/docs/guides/advanced-usage
+```
+
+</TabItem>
+</Tabs>
+
+### The Role of Document ID
+
+The `id` in front matter takes precedence over the filename:
+
+<CodeBlock language="yaml" title="getting-started.mdx">
+{`---
+id: quick-start  # This becomes the URL segment
+title: Getting Started
+---`}
+</CodeBlock>
+
+Result: `/docs/quick-start` (not `/docs/getting-started`)
+
+## Index Files: Special Routing Behavior
+
+### What Makes index.mdx Special
+
+Files named `index.mdx` or `index.md` have special behavior:
+
+1. **They represent the default route for a folder**
+2. **They don't appear in the sidebar by default**
+3. **They can be used for redirects**
+
+### Example: Folder Default Routes
+
+<Tabs>
+<TabItem value="structure" label="File Structure">
+
+```
+docs/
+├── guides/
+│   ├── index.mdx         # Available at /docs/guides
+│   ├── tutorial.mdx      # Available at /docs/guides/tutorial
+│   └── reference.mdx     # Available at /docs/guides/reference
+└── api/
+    ├── api.mdx           # Available at /docs/api/api
+    └── endpoints.mdx     # Available at /docs/api/endpoints
+```
+
+</TabItem>
+<TabItem value="behavior" label="URL Behavior">
+
+- `/docs/guides` → Shows content from `guides/index.mdx`
+- `/docs/api` → 404 (no index file)
+- `/docs/api/api` → Shows content from `api/api.mdx`
+
+</TabItem>
+</Tabs>
+
+<Callout type="important">
+Without an index file, accessing a folder URL directly (like `/docs/api`) will result in a 404 error.
+</Callout>
+
+## Using index.mdx for Redirects
+
+### Redirect Pattern
+
+This is exactly how the component-usage section works:
+
+<CodeBlock language="jsx" title="docs/component-usage/index.mdx">
+{`---
+id: index
+title: Component Usage
+sidebar_position: 0
+---
+
+import { Redirect } from '@docusaurus/router';
+
+<Redirect to="/component-usage/introduction" />`}
+</CodeBlock>
+
+**Result:**
+- URL `/component-usage` redirects to `/component-usage/introduction`
+- The index.mdx file doesn't appear in the sidebar
+- Provides a clean entry point for the section
+
+### Why Use Redirects?
+
+1. **Clean URLs**: Users can access `/component-usage` instead of getting a 404
+2. **Logical Navigation**: Automatically send users to the most relevant starting page
+3. **No Sidebar Clutter**: Index files don't appear in the sidebar
+
+## Alternative: Folder Name as File Name
+
+Instead of using `index.mdx`, you can name a file after its parent folder:
+
+<Tabs>
+<TabItem value="option1" label="Using index.mdx">
+
+```
+docs/
+└── guides/
+    ├── index.mdx        # URL: /docs/guides
+    └── tutorial.mdx     # URL: /docs/guides/tutorial
+```
+
+</TabItem>
+<TabItem value="option2" label="Using folder name">
+
+```
+docs/
+└── guides/
+    ├── guides.mdx       # URL: /docs/guides/guides
+    └── tutorial.mdx     # URL: /docs/guides/tutorial
+```
+
+</TabItem>
+</Tabs>
+
+<Callout type="info">
+The folder-name approach creates `/docs/guides/guides` (duplicated segment), while `index.mdx` creates the cleaner `/docs/guides`.
+</Callout>
+
+## Routing Examples
+
+### Example 1: Multi-level Documentation
+
+<CodeBlock language="text" title="File Structure">
+{`docs/
+├── index.mdx                    # /docs (redirects to /docs/overview)
+├── overview/
+│   ├── index.mdx               # /docs/overview (redirects to introduction)
+│   ├── introduction.mdx        # /docs/overview/introduction
+│   └── architecture.mdx        # /docs/overview/architecture
+└── api/
+    ├── index.mdx               # /docs/api (shows API landing page)
+    ├── rest/
+    │   ├── index.mdx          # /docs/api/rest (redirects to endpoints)
+    │   └── endpoints.mdx      # /docs/api/rest/endpoints
+    └── graphql/
+        └── schema.mdx         # /docs/api/graphql/schema`}
+</CodeBlock>
+
+### Example 2: Plugin-based Routing
+
+When using multiple doc plugins (like in this project):
+
+<CodeBlock language="javascript" title="docusaurus.config.js">
+{`plugins: [
+  [
+    '@docusaurus/plugin-content-docs',
+    {
+      id: 'component-usage',
+      path: 'docs/component-usage',
+      routeBasePath: 'component-usage',  // Base URL segment
+    },
+  ],
+]`}
+</CodeBlock>
+
+Result: Files in `docs/component-usage/` are available at `/component-usage/*`
+
+## Controlling Sidebar Visibility
+
+### Files That Don't Appear in Sidebar
+
+1. **index.mdx/index.md files** - Hidden by default
+2. **Files with `sidebar_exclude: true`** in front matter
+3. **Files outside the docs directory**
+
+### Making index.mdx Visible
+
+If you want an index file to appear in the sidebar:
+
+<CodeBlock language="yaml" title="index.mdx">
+{`---
+id: overview-index
+title: Overview
+sidebar_label: Overview Home
+displayed_sidebar: true  # Forces display in sidebar
+---`}
+</CodeBlock>
+
+## Custom URL Paths
+
+### Using the slug Property
+
+Override the auto-generated URL with a custom path:
+
+<CodeBlock language="yaml" title="my-long-document-name.mdx">
+{`---
+id: my-doc
+title: My Document
+slug: /short-url  # Custom URL path
+---`}
+</CodeBlock>
+
+Result: `/docs/short-url` (instead of `/docs/my-long-document-name`)
+
+### Absolute vs Relative Slugs
+
+- **Absolute slug** (starts with `/`): `/my-custom-path`
+- **Relative slug**: `custom-path` (relative to doc's location)
+
+## Best Practices
+
+<Callout type="success" title="Do's">
+
+1. **Use index.mdx for section landing pages or redirects**
+   ```jsx
+   // Redirect to first meaningful doc
+   <Redirect to="/section/introduction" />
+   ```
+
+2. **Keep file names consistent with content**
+   ```
+   ✅ getting-started.mdx
+   ✅ api-reference.mdx
+   ❌ doc1.mdx
+   ❌ page.mdx
+   ```
+
+3. **Use descriptive IDs in front matter**
+   ```yaml
+   id: installation-guide  # Clear and descriptive
+   ```
+
+</Callout>
+
+<Callout type="warning" title="Don'ts">
+
+1. **Don't create empty index files** - Use redirects instead
+2. **Avoid special characters in filenames** - Stick to alphanumeric and hyphens
+3. **Don't rely on filename if using custom ID** - The ID takes precedence
+
+</Callout>
+
+## Real Example: This Documentation
+
+Let's examine how this component-usage documentation is structured:
+
+<CodeBlock language="text" title="Actual Structure">
+{`docs/component-usage/
+├── index.mdx                    # Redirects to /component-usage/introduction
+├── introduction/
+│   ├── _category_.json         # Non-clickable header
+│   ├── introduction.mdx        # /component-usage/introduction
+│   ├── file-routing.mdx        # /component-usage/introduction/file-routing (this file!)
+│   └── sidebar-categories.mdx  # /component-usage/introduction/sidebar-categories
+└── cards-containers/
+    ├── _category_.json         # Non-clickable header
+    ├── card.mdx               # /component-usage/cards-containers/card
+    └── callout.mdx            # /component-usage/cards-containers/callout`}
+</CodeBlock>
+
+**Key Points:**
+- The root `index.mdx` redirects users to a meaningful starting point
+- Category folders organize related content
+- Individual MDX files have descriptive names matching their content
+- No index files appear in the sidebar
+
+## Debugging Routes
+
+### Check Generated Routes
+
+1. **Look at the browser URL** - It shows the actual route
+2. **Check the build output** - Docusaurus logs all generated routes
+3. **Inspect front matter** - The `id` field determines the URL segment
+
+### Common Issues
+
+<Tabs>
+<TabItem value="issue1" label="404 on Folder URL">
+
+**Problem**: Accessing `/docs/guides` returns 404
+
+**Solution**: Add an `index.mdx` file:
+```jsx
+// docs/guides/index.mdx
+<Redirect to="/docs/guides/introduction" />
+```
+
+</TabItem>
+<TabItem value="issue2" label="Duplicate URL Segments">
+
+**Problem**: URL shows `/docs/guides/guides`
+
+**Solution**: Use `index.mdx` instead of `guides.mdx` in the guides folder
+
+</TabItem>
+<TabItem value="issue3" label="Index File in Sidebar">
+
+**Problem**: index.mdx appears in sidebar
+
+**Solution**: This is usually intentional, but you can hide it with:
+```yaml
+sidebar_exclude: true
+```
+
+</TabItem>
+</Tabs>
+
+## Summary
+
+Understanding file routing in Docusaurus helps you:
+- Create clean, predictable URLs
+- Use index files effectively for redirects
+- Control what appears in the sidebar
+- Structure your documentation logically
+
+The key is remembering that **file structure = URL structure**, with special handling for index files and the ability to override with front matter properties.
