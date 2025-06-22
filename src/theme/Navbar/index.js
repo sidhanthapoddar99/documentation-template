@@ -1,6 +1,12 @@
 import React from 'react';
-import OriginalNavbar from '@theme-original/Navbar';
+import NavbarContent from '@theme/Navbar/Content';
+import NavbarLayout from '@theme/Navbar/Layout';
+import './custom-navbar.css'; // Your custom styles
 
-export default function Navbar(props) {
-  return <OriginalNavbar {...props} />;
+export default function Navbar() {
+  return (
+    <NavbarLayout>
+      <NavbarContent />
+    </NavbarLayout>
+  );
 }

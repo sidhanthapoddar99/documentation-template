@@ -1,0 +1,38 @@
+/* Complete navbar style override */
+/* This file loads after Docusaurus defaults in the component */
+
+/* Reset all navbar styles */
+.navbar {
+  all: unset !important; /* Nuclear option - removes ALL styles */
+  
+  /* Then add back only what you want */
+  display: flex !important;
+  background-color: var(--theme-bg-primary) !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: var(--ifm-z-index-fixed) !important;
+  width: 100% !important;
+  min-height: 108px ; 
+  height: auto;
+}
+
+/* Override navbar inner */
+.navbar__inner {
+  all: unset !important;
+  display: flex !important;
+  width: 100% !important;
+  max-width: var(--max-width-7xl) !important;
+  margin: 0 auto !important;
+}
+
+/* Remove default padding */
+.navbar__inner > * {
+  padding: 0 !important;
+}
+
+/* Dark mode navbar */
+[data-theme='dark'] .navbar {
+  border-bottom: 1px solid var(--theme-border-subtle) !important;
+  box-shadow: none !important;
+}

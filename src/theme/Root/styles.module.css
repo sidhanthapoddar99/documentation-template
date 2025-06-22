@@ -7,6 +7,8 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  padding: 0 var(--ifm-spacing-horizontal);
+
 }
 
 /* Allow normal scrolling */
