@@ -1,0 +1,235 @@
+---
+title: Footer Component
+description: Customizable footer component with links and branding
+sidebar_position: 2
+---
+
+import CodeBlock from '@theme/CodeBlock';
+
+# Footer Component
+
+The Footer component provides a customizable site footer with branding, navigation links, and legal information.
+
+## Import
+
+```javascript
+import { Footer } from '@site/src/components/elements/Footer';
+```
+
+## Basic Usage
+
+The Footer component is typically used in the main layout:
+
+```jsx
+import { Footer } from '@site/src/components/elements/Footer';
+
+export default function Layout({ children }) {
+  return (
+    <div className="layout">
+      <main>{children}</main>
+      <Footer />
+    </div>
+  );
+}
+```
+
+## Structure
+
+The footer is divided into several sections:
+
+1. **Brand Section**: Logo and description
+2. **Link Sections**: Community, Resources, Legal
+3. **Bottom Bar**: Copyright and credits
+
+## Customization
+
+### Modifying Links
+
+The footer links are defined in the component. To customize, edit the `footerLinks` object:
+
+```javascript
+const footerLinks = {
+  community: [
+    { label: 'Discord', href: 'https://discord.gg/neuralabs' },
+    { label: 'Twitter', href: 'https://twitter.com/neuralabs' },
+    { label: 'Forum', href: 'https://forum.neuralabs.org' },
+  ],
+  resources: [
+    { label: 'GitHub', href: 'https://github.com/neuralabs/neuralabs-sui' },
+    { label: 'Website', href: 'https://neuralabs.org' },
+    { label: 'Documentation', to: '/overview' },
+  ],
+  legal: [
+    { label: 'Privacy Policy', to: '/privacy' },
+    { label: 'Terms of Service', to: '/terms' },
+  ],
+};
+```
+
+### Link Types
+
+The footer supports two types of links:
+
+1. **External links** (using `href`):
+```javascript
+{ label: 'GitHub', href: 'https://github.com/neuralabs' }
+```
+
+2. **Internal links** (using `to`):
+```javascript
+{ label: 'Documentation', to: '/overview' }
+```
+
+## Styling
+
+### CSS Variables
+
+The Footer component uses theme CSS variables:
+
+- `--theme-bg-surface`: Background color
+- `--theme-border-subtle`: Border color
+- `--theme-text-primary`: Primary text color
+- `--theme-text-secondary`: Secondary text color
+- `--theme-text-muted`: Muted text color
+- `--theme-text-heading`: Section title color
+
+### Dark Mode
+
+The footer automatically adapts to dark mode:
+
+```css
+[data-theme='dark'] .custom-footer {
+  background: var(--color-gray-900);
+  border-top-color: var(--color-gray-800);
+}
+```
+
+## Responsive Design
+
+The footer is fully responsive with breakpoints:
+
+- **Desktop** (&gt;1024px): 4-column grid
+- **Tablet** (768px-1024px): 2-column grid with brand section spanning full width
+- **Mobile** (&lt;768px): Single column layout
+
+## Features
+
+### Logo Adaptation
+
+The logo automatically inverts in dark mode using the CSS filter:
+
+```css
+.footer-logo img {
+  filter: var(--theme-icon-filter);
+}
+```
+
+### Animated Heart
+
+The footer includes a subtle heart animation:
+
+```css
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+```
+
+## Complete Example
+
+Here's how the footer is structured in the component:
+
+```jsx
+<footer className="custom-footer">
+  <div className="footer-content">
+    <div className="footer-grid">
+      {/* Brand Section */}
+      <div className="footer-section footer-brand">
+        <div className="footer-logo">
+          <img src="/img/logo-light.svg" alt="NeuraLabs" />
+        </div>
+        <p className="footer-description">
+          Democratizing AI ownership through decentralized workflows on the SUI blockchain.
+        </p>
+      </div>
+
+      {/* Community Links */}
+      <div className="footer-section">
+        <h3 className="footer-section-title">Community</h3>
+        <ul className="footer-links">
+          {/* Links rendered here */}
+        </ul>
+      </div>
+
+      {/* Resources Links */}
+      <div className="footer-section">
+        <h3 className="footer-section-title">Resources</h3>
+        <ul className="footer-links">
+          {/* Links rendered here */}
+        </ul>
+      </div>
+
+      {/* Legal Links */}
+      <div className="footer-section">
+        <h3 className="footer-section-title">Legal</h3>
+        <ul className="footer-links">
+          {/* Links rendered here */}
+        </ul>
+      </div>
+    </div>
+
+    {/* Bottom Bar */}
+    <div className="footer-bottom">
+      <div className="footer-bottom-content">
+        <p className="footer-copyright">
+          © 2024 NeuraLabs. All rights reserved.
+        </p>
+        <p className="footer-built-with">
+          Built with ❤️ using Docusaurus
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+```
+
+## Integration Notes
+
+### With Docusaurus
+
+The custom footer is integrated with Docusaurus by:
+
+1. Disabling the default footer in `docusaurus.config.js`
+2. Adding the custom footer to the layout
+3. Using it selectively on pages
+
+### Page-Specific Usage
+
+To use the footer only on specific pages:
+
+```jsx
+import Layout from '@theme/Layout';
+import { Footer } from '@site/src/components/elements/Footer';
+
+export default function HomePage() {
+  return (
+    <Layout noFooter={true}>
+      <main>
+        {/* Page content */}
+      </main>
+      <Footer />
+    </Layout>
+  );
+}
+```
+
+## Best Practices
+
+1. **Keep links updated**: Regularly review and update footer links
+2. **Maintain consistency**: Use the same footer across all pages
+3. **Test responsiveness**: Verify footer looks good on all devices
+4. **Accessibility**: Ensure all links have descriptive labels
+5. **Performance**: Optimize logo images for fast loading

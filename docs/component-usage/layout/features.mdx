@@ -1,0 +1,233 @@
+---
+title: Features Component
+description: Display features in a responsive grid layout with icons
+sidebar_position: 1
+---
+
+import { Features, Feature } from '@site/src/components/elements/Features';
+
+# Features Component
+
+The Features component creates a responsive grid of feature cards with icons, titles, and descriptions.
+
+## Import
+
+```javascript
+import { Features, Feature } from '@site/src/components/elements/Features';
+```
+
+## Basic Usage
+
+<Features>
+  <Feature 
+    icon="🚀" 
+    title="Fast Performance" 
+    description="Optimized for speed with minimal overhead"
+  />
+  <Feature 
+    icon="🔒" 
+    title="Secure by Default" 
+    description="Enterprise-grade security built-in"
+  />
+  <Feature 
+    icon="📈" 
+    title="Scalable" 
+    description="Grows with your needs"
+  />
+</Features>
+
+```jsx
+<Features>
+  <Feature 
+    icon="🚀" 
+    title="Fast Performance" 
+    description="Optimized for speed with minimal overhead"
+  />
+  <Feature 
+    icon="🔒" 
+    title="Secure by Default" 
+    description="Enterprise-grade security built-in"
+  />
+  <Feature 
+    icon="📈" 
+    title="Scalable" 
+    description="Grows with your needs"
+  />
+</Features>
+```
+
+## Using Image Icons
+
+<Features>
+  <Feature 
+    icon="/img/icons/ai-workflow.svg" 
+    title="AI Workflows" 
+    description="Create complex AI workflows with ease"
+  />
+  <Feature 
+    icon="/img/icons/blockchain.svg" 
+    title="Blockchain Native" 
+    description="Built on Sui blockchain technology"
+  />
+  <Feature 
+    icon="/img/icons/network.svg" 
+    title="Distributed Network" 
+    description="Decentralized execution across the globe"
+  />
+</Features>
+
+```jsx
+<Features>
+  <Feature 
+    icon="/img/icons/ai-workflow.svg" 
+    title="AI Workflows" 
+    description="Create complex AI workflows with ease"
+  />
+  <Feature 
+    icon="/img/icons/blockchain.svg" 
+    title="Blockchain Native" 
+    description="Built on Sui blockchain technology"
+  />
+  <Feature 
+    icon="/img/icons/network.svg" 
+    title="Distributed Network" 
+    description="Decentralized execution across the globe"
+  />
+</Features>
+```
+
+## Grid Variants
+
+### Large Features (2 columns)
+
+<Features className="features--large features--cols-2">
+  <Feature 
+    icon="🎯" 
+    title="Precision Targeting" 
+    description="Advanced algorithms ensure your AI agents execute with precision, minimizing errors and maximizing efficiency in every operation."
+  />
+  <Feature 
+    icon="⚡" 
+    title="Lightning Fast" 
+    description="Experience blazing-fast execution speeds with our optimized infrastructure, designed for high-frequency operations and real-time responses."
+  />
+</Features>
+
+```jsx
+<Features className="features--large features--cols-2">
+  <Feature 
+    icon="🎯" 
+    title="Precision Targeting" 
+    description="Advanced algorithms ensure your AI agents execute with precision..."
+  />
+  <Feature 
+    icon="⚡" 
+    title="Lightning Fast" 
+    description="Experience blazing-fast execution speeds with our optimized infrastructure..."
+  />
+</Features>
+```
+
+### Compact Features (4 columns)
+
+<Features className="features--compact features--cols-4">
+  <Feature icon="📊" title="Analytics" description="Real-time insights" />
+  <Feature icon="🔧" title="Customizable" description="Fully configurable" />
+  <Feature icon="🌐" title="Global" description="Worldwide access" />
+  <Feature icon="💡" title="Smart" description="AI-powered" />
+</Features>
+
+```jsx
+<Features className="features--compact features--cols-4">
+  <Feature icon="📊" title="Analytics" description="Real-time insights" />
+  <Feature icon="🔧" title="Customizable" description="Fully configurable" />
+  <Feature icon="🌐" title="Global" description="Worldwide access" />
+  <Feature icon="💡" title="Smart" description="AI-powered" />
+</Features>
+```
+
+## Props Reference
+
+### Features Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | - | Feature components to display |
+| `className` | `string` | - | Additional CSS classes for styling variants |
+
+### Feature Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `icon` | `string` | - | Emoji or image path for the icon |
+| `title` | `string` | - | Feature title |
+| `description` | `string` | - | Feature description |
+
+## Available CSS Classes
+
+### Grid Modifiers
+- `features--cols-2`: 2 column grid
+- `features--cols-4`: 4 column grid
+
+### Size Modifiers
+- `features--large`: Larger padding and icons
+- `features--compact`: Smaller padding for dense layouts
+
+## Complete Example
+
+<Features className="features--large">
+  <Feature 
+    icon="/img/icons/ai-workflow.svg" 
+    title="Autonomous AI Agents" 
+    description="Create AI agents that can discover capabilities, negotiate costs, and compose workflows autonomously. Build the future of self-organizing AI systems without centralized control."
+  />
+  <Feature 
+    icon="/img/icons/blockchain.svg" 
+    title="Blockchain-Native Infrastructure" 
+    description="Built on SUI blockchain with NFT-based access control, zkLogin authentication, and Walrus decentralized storage. Your AI agents are truly owned by you."
+  />
+  <Feature 
+    icon="/img/icons/security.svg" 
+    title="Privacy-Preserving Cryptography" 
+    description="Advanced cryptographic primitives including threshold encryption, zero-knowledge proofs, and verifiable randomness. Secure by design."
+  />
+  <Feature 
+    icon="/img/icons/network.svg" 
+    title="Decentralized Execution Network" 
+    description="Distributed HPC execution nodes with support for multiple AI providers. Scale your workflows globally with automatic load balancing."
+  />
+  <Feature 
+    icon="/img/icons/settings.svg" 
+    title="Creator Economy" 
+    description="Monetize your AI workflows and sub-agents through automatic micropayments. Get paid instantly when others use your capabilities."
+  />
+  <Feature 
+    icon="/img/icons/code.svg" 
+    title="Developer-First Platform" 
+    description="Comprehensive SDKs, APIs, and visual workflow builder. Build however you want with full blockchain integration."
+  />
+</Features>
+
+## Styling
+
+The Features component uses CSS Grid with automatic responsive behavior:
+
+- Default: `minmax(300px, 1fr)` columns
+- Automatically adjusts to screen size
+- Consistent gap between items
+- Hover effects on feature cards
+
+### Theme Variables Used
+
+- `--theme-card-bg`: Card background
+- `--theme-card-border`: Card border
+- `--theme-card-hover`: Hover border color
+- `--theme-icon-filter`: Icon color filter for dark mode
+
+## Best Practices
+
+1. **Consistent icons**: Use either all emojis or all image icons
+2. **Concise descriptions**: Keep descriptions brief and impactful
+3. **Logical grouping**: Group related features together
+4. **Responsive testing**: Test on mobile to ensure readability
+5. **Icon size**: Emojis work best at 1.5rem, images at 32x32px

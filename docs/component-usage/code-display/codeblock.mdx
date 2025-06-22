@@ -1,0 +1,274 @@
+---
+title: CodeBlock Component
+description: Enhanced code display with syntax highlighting and interactive features
+sidebar_position: 1
+---
+
+import { CollapsibleCodeBlock, InlineCodeCard } from '@site/src/components/elements/CodeBlock';
+import CodeBlock from '@theme/CodeBlock';
+
+# CodeBlock Components
+
+The CodeBlock components provide enhanced code display capabilities with collapsible sections and inline code cards.
+
+## Import
+
+```javascript
+import { CollapsibleCodeBlock, InlineCodeCard } from '@site/src/components/elements/CodeBlock';
+```
+
+## CollapsibleCodeBlock
+
+A code block that can be collapsed/expanded to save space.
+
+### Basic Usage
+
+<CollapsibleCodeBlock 
+  title="Example Configuration" 
+  language="javascript"
+  description="Sample configuration for the NeuraLabs client"
+>
+{`const config = {
+  apiKey: process.env.NEURA_API_KEY,
+  network: 'mainnet',
+  options: {
+    timeout: 30000,
+    retries: 3
+  }
+};
+
+const client = new NeuraLabs(config);`}
+</CollapsibleCodeBlock>
+
+```jsx
+<CollapsibleCodeBlock 
+  title="Example Configuration" 
+  language="javascript"
+  description="Sample configuration for the NeuraLabs client"
+>
+{`const config = {
+  apiKey: process.env.NEURA_API_KEY,
+  network: 'mainnet',
+  options: {
+    timeout: 30000,
+    retries: 3
+  }
+};
+
+const client = new NeuraLabs(config);`}
+</CollapsibleCodeBlock>
+```
+
+### Default Expanded
+
+<CollapsibleCodeBlock 
+  title="Quick Start" 
+  language="bash"
+  description="Get started with a single command"
+  defaultCollapsed={false}
+>
+{`npm install @neuralabs/sdk
+npm run setup
+npm start`}
+</CollapsibleCodeBlock>
+
+```jsx
+<CollapsibleCodeBlock 
+  title="Quick Start" 
+  language="bash"
+  description="Get started with a single command"
+  defaultCollapsed={false}
+>
+{`npm install @neuralabs/sdk
+npm run setup
+npm start`}
+</CollapsibleCodeBlock>
+```
+
+### Different Languages
+
+<CollapsibleCodeBlock 
+  title="Smart Contract" 
+  language="rust"
+  description="Example Move module for trading"
+>
+{`module trading::swap {
+    use sui::coin::{Self, Coin};
+    use sui::balance::{Self, Balance};
+    
+    public entry fun swap_exact_input<X, Y>(
+        pool: &mut Pool<X, Y>,
+        coin_x: Coin<X>,
+        min_y_out: u64,
+        ctx: &mut TxContext
+    ) {
+        // Implementation here
+    }
+}`}
+</CollapsibleCodeBlock>
+
+## InlineCodeCard
+
+A compact code display component with expand/collapse functionality.
+
+### Basic Usage
+
+<InlineCodeCard
+  title="Environment Variables"
+  description="Required environment variables for production"
+  language="bash"
+  code={`NEURA_API_KEY=your-api-key-here
+NEURA_NETWORK=mainnet
+NEURA_WEBHOOK_URL=https://your-webhook-url.com
+DATABASE_URL=postgresql://user:pass@localhost:5432/db`}
+/>
+
+```jsx
+<InlineCodeCard
+  title="Environment Variables"
+  description="Required environment variables for production"
+  language="bash"
+  code={`NEURA_API_KEY=your-api-key-here
+NEURA_NETWORK=mainnet
+NEURA_WEBHOOK_URL=https://your-webhook-url.com
+DATABASE_URL=postgresql://user:pass@localhost:5432/db`}
+/>
+```
+
+### Default Expanded
+
+<InlineCodeCard
+  title="Import Example"
+  description="How to import and use the SDK"
+  language="javascript"
+  defaultExpanded={true}
+  code={`import { NeuraLabs, Agent, MarketData } from '@neuralabs/sdk';
+
+// Initialize client
+const client = new NeuraLabs({ apiKey: 'your-key' });
+
+// Create agent
+const agent = await client.createAgent({
+  name: 'My Trading Bot',
+  type: 'trading'
+});`}
+/>
+
+## Props Reference
+
+### CollapsibleCodeBlock Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | - | Title displayed in the header |
+| `description` | `string` | - | Optional description below the title |
+| `language` | `string` | `'bash'` | Programming language for syntax highlighting |
+| `children` | `string` | - | Code content to display |
+| `defaultCollapsed` | `boolean` | `true` | Initial collapsed state |
+
+### InlineCodeCard Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | - | Title displayed in the header |
+| `description` | `string` | - | Optional description below the title |
+| `language` | `string` | - | Programming language for syntax highlighting |
+| `code` | `string` | - | Code content to display |
+| `defaultExpanded` | `boolean` | `false` | Initial expanded state |
+
+## Supported Languages
+
+Both components support all languages available in Prism.js:
+
+- `javascript` / `js`
+- `typescript` / `ts`
+- `python`
+- `rust`
+- `bash` / `shell`
+- `json`
+- `yaml`
+- `markdown`
+- `jsx` / `tsx`
+- `css` / `scss`
+- And many more...
+
+## Complex Examples
+
+### Multi-file Example
+
+<CollapsibleCodeBlock 
+  title="agent.config.js" 
+  language="javascript"
+  description="Agent configuration file"
+>
+{`export default {
+  name: 'Advanced Trading Bot',
+  version: '2.0.0',
+  strategies: ['momentum', 'arbitrage', 'market-making'],
+  
+  settings: {
+    riskLevel: 'medium',
+    maxPositionSize: 10000,
+    stopLoss: 0.05,
+    takeProfit: 0.10
+  },
+  
+  markets: ['SUI/USDC', 'SUI/USDT', 'ETH/USDC'],
+  
+  callbacks: {
+    onTrade: 'https://webhook.example.com/trade',
+    onError: 'https://webhook.example.com/error'
+  }
+};`}
+</CollapsibleCodeBlock>
+
+<CollapsibleCodeBlock 
+  title="agent.implementation.js" 
+  language="javascript"
+  description="Agent implementation using the config"
+>
+{`import config from './agent.config.js';
+import { TradingAgent } from '@neuralabs/sdk';
+
+class AdvancedTradingBot extends TradingAgent {
+  constructor() {
+    super(config);
+    this.initializeStrategies();
+  }
+  
+  async executeStrategy(marketData) {
+    const signals = await this.analyzeMarket(marketData);
+    
+    if (signals.confidence > 0.8) {
+      return this.executeTrade({
+        action: signals.action,
+        amount: this.calculatePositionSize(signals),
+        stopLoss: config.settings.stopLoss,
+        takeProfit: config.settings.takeProfit
+      });
+    }
+  }
+}
+
+export default AdvancedTradingBot;`}
+</CollapsibleCodeBlock>
+
+## Styling
+
+The CodeBlock components use theme CSS variables:
+
+- `--theme-code-bg`: Background color
+- `--theme-code-text`: Text color
+- `--theme-code-border`: Border color
+- `--theme-bg-elevated`: Header background
+- `--theme-text-heading`: Title color
+- `--theme-text-secondary`: Description color
+
+## Best Practices
+
+1. **Use descriptive titles**: Help users understand what the code does
+2. **Add descriptions**: Provide context for complex code snippets
+3. **Choose appropriate language**: Ensure correct syntax highlighting
+4. **Consider default state**: Collapse long code by default, expand short snippets
+5. **Group related code**: Use multiple blocks for multi-file examples
+6. **Keep code readable**: Format and indent properly

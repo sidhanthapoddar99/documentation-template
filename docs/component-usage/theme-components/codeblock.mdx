@@ -1,0 +1,460 @@
+---
+title: Theme CodeBlock Component
+description: Docusaurus built-in CodeBlock component for syntax highlighting
+sidebar_position: 2
+---
+
+import CodeBlock from '@theme/CodeBlock';
+
+# Theme CodeBlock Component
+
+The Docusaurus theme CodeBlock component provides advanced syntax highlighting with language support, line numbers, and other features. This is different from the custom CodeBlock components in our elements library.
+
+## Import
+
+```javascript
+import CodeBlock from '@theme/CodeBlock';
+```
+
+## Basic Usage
+
+<CodeBlock language="javascript">
+{`const greeting = "Hello, NeuraLabs!";
+console.log(greeting);`}
+</CodeBlock>
+
+```jsx
+import CodeBlock from '@theme/CodeBlock';
+
+<CodeBlock language="javascript">
+{`const greeting = "Hello, NeuraLabs!";
+console.log(greeting);`}
+</CodeBlock>
+```
+
+## With Title
+
+<CodeBlock language="javascript" title="example.js">
+{`function calculateSum(a, b) {
+  return a + b;
+}
+
+const result = calculateSum(5, 3);
+console.log(result); // 8`}
+</CodeBlock>
+
+```jsx
+<CodeBlock language="javascript" title="example.js">
+{`function calculateSum(a, b) {
+  return a + b;
+}
+
+const result = calculateSum(5, 3);
+console.log(result); // 8`}
+</CodeBlock>
+```
+
+## Line Numbers
+
+<CodeBlock language="javascript" showLineNumbers>
+{`// Initialize the NeuraLabs client
+import { NeuraLabs } from '@neuralabs/sdk';
+
+const client = new NeuraLabs({
+  apiKey: process.env.NEURA_API_KEY,
+  network: 'mainnet'
+});
+
+// Create an agent
+const agent = await client.createAgent({
+  name: 'Trading Bot',
+  type: 'trading'
+});`}
+</CodeBlock>
+
+```jsx
+<CodeBlock language="javascript" showLineNumbers>
+{`// Your code here`}
+</CodeBlock>
+```
+
+## Line Highlighting
+
+Highlight specific lines using comments:
+
+<CodeBlock language="javascript" showLineNumbers>
+{`function processTransaction(tx) {
+  // highlight-start
+  // Validate transaction
+  if (!tx.isValid()) {
+    throw new Error('Invalid transaction');
+  }
+  // highlight-end
+  
+  // Process the transaction
+  const result = tx.execute();
+  
+  // highlight-next-line
+  return result.hash;
+}`}
+</CodeBlock>
+
+```jsx
+<CodeBlock language="javascript" showLineNumbers>
+{`function processTransaction(tx) {
+  // highlight-start
+  // Validate transaction
+  if (!tx.isValid()) {
+    throw new Error('Invalid transaction');
+  }
+  // highlight-end
+  
+  // Process the transaction
+  const result = tx.execute();
+  
+  // highlight-next-line
+  return result.hash;
+}`}
+</CodeBlock>
+```
+
+## Supported Languages
+
+The theme CodeBlock supports a wide variety of languages:
+
+### Web Languages
+
+<CodeBlock language="html" title="index.html">
+{`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>NeuraLabs App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script src="app.js"></script>
+</body>
+</html>`}
+</CodeBlock>
+
+<CodeBlock language="css" title="styles.css">
+{`.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.button {
+  background: var(--color-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+}`}
+</CodeBlock>
+
+### Backend Languages
+
+<CodeBlock language="python" title="agent.py">
+{`from neuralabs import NeuraLabs, Agent
+
+# Initialize client
+client = NeuraLabs(
+    api_key=os.environ['NEURA_API_KEY'],
+    network='mainnet'
+)
+
+# Create agent
+agent = Agent(
+    name='Analysis Bot',
+    model='gpt-4-turbo',
+    config={
+        'temperature': 0.7,
+        'max_tokens': 1000
+    }
+)
+
+# Deploy agent
+await agent.deploy(client)`}
+</CodeBlock>
+
+<CodeBlock language="rust" title="lib.rs">
+{`use neuralabs::{Client, Agent, Network};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create client
+    let client = Client::new(
+        env::var("NEURA_API_KEY")?,
+        Network::Mainnet
+    );
+    
+    // Create agent
+    let agent = Agent::builder()
+        .name("Rust Agent")
+        .agent_type(AgentType::Trading)
+        .build()?;
+    
+    // Start agent
+    agent.start(&client).await?;
+    
+    Ok(())
+}`}
+</CodeBlock>
+
+### Configuration Files
+
+<CodeBlock language="yaml" title="docker-compose.yml">
+{`version: '3.8'
+
+services:
+  api:
+    image: neuralabs/api:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://user:pass@db:5432/neuralabs
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=neuralabs
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:`}
+</CodeBlock>
+
+<CodeBlock language="json" title="package.json">
+{`{
+  "name": "@neuralabs/sdk",
+  "version": "1.0.0",
+  "description": "NeuraLabs SDK for building AI agents",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts"
+  },
+  "dependencies": {
+    "@mysten/sui.js": "^0.50.0",
+    "ethers": "^6.0.0"
+  }
+}`}
+</CodeBlock>
+
+## Props Reference
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `string` | - | **Required.** The code content to display |
+| `language` | `string` | `text` | Programming language for syntax highlighting |
+| `title` | `string` | - | Filename or title to display above the code |
+| `showLineNumbers` | `boolean` | `false` | Display line numbers |
+| `metastring` | `string` | - | Additional metadata for the code block |
+| `className` | `string` | - | Additional CSS classes |
+
+## Highlighting Options
+
+### Line Highlighting Comments
+
+- `// highlight-next-line` - Highlight the next line
+- `// highlight-start` and `// highlight-end` - Highlight a range
+- `// highlight-line` - Highlight the current line
+
+### Using Metastring
+
+<CodeBlock 
+  language="javascript" 
+  metastring="{1-3,5}" 
+  showLineNumbers
+  title="metastring-example.js"
+>
+{`import { NeuraLabs } from '@neuralabs/sdk';
+
+const client = new NeuraLabs(config);
+
+const agent = await client.createAgent({
+  name: 'My Agent'
+});`}
+</CodeBlock>
+
+```jsx
+<CodeBlock 
+  language="javascript" 
+  metastring="{1-3,5}" 
+  showLineNumbers
+>
+{`// Your code`}
+</CodeBlock>
+```
+
+## MDX Code Blocks
+
+In MDX files, you can also use markdown code blocks which are automatically transformed:
+
+````mdx
+```javascript title="inline-example.js" showLineNumbers
+const example = "This is rendered as a CodeBlock automatically";
+console.log(example);
+```
+````
+
+Results in:
+
+```javascript title="inline-example.js" showLineNumbers
+const example = "This is rendered as a CodeBlock automatically";
+console.log(example);
+```
+
+## Live Code Editor
+
+For interactive code examples, combine with `@docusaurus/theme-live-codeblock`:
+
+```jsx live
+function Example() {
+  const [count, setCount] = useState(0);
+  
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+    </div>
+  );
+}
+```
+
+## Advanced Examples
+
+### Multi-Language Example
+
+<CodeBlock language="bash" title="Terminal">
+{`# Clone the repository
+git clone https://github.com/neuralabs/sdk.git
+
+# Install dependencies
+cd sdk
+npm install
+
+# Run tests
+npm test
+
+# Build the project
+npm run build`}
+</CodeBlock>
+
+### Smart Contract Example
+
+<CodeBlock language="rust" title="trading_pool.move" showLineNumbers>
+{`module trading::pool {
+    use sui::object::{Self, UID};
+    use sui::coin::{Self, Coin};
+    use sui::balance::{Self, Balance};
+    use sui::tx_context::{Self, TxContext};
+    
+    // highlight-start
+    struct Pool<phantom X, phantom Y> has key {
+        id: UID,
+        balance_x: Balance<X>,
+        balance_y: Balance<Y>,
+        lp_supply: u64,
+    }
+    // highlight-end
+    
+    public entry fun create_pool<X, Y>(
+        coin_x: Coin<X>,
+        coin_y: Coin<Y>,
+        ctx: &mut TxContext
+    ) {
+        let pool = Pool {
+            id: object::new(ctx),
+            balance_x: coin::into_balance(coin_x),
+            balance_y: coin::into_balance(coin_y),
+            lp_supply: 0,
+        };
+        
+        // highlight-next-line
+        transfer::share_object(pool);
+    }
+}`}
+</CodeBlock>
+
+### Configuration with Comments
+
+<CodeBlock language="javascript" title=".neuralabs.config.js" showLineNumbers>
+{`export default {
+  // Network configuration
+  network: 'mainnet', // 'mainnet' | 'testnet' | 'devnet'
+  
+  // API configuration
+  api: {
+    endpoint: 'https://api.neuralabs.org',
+    // highlight-start
+    timeout: 30000, // 30 seconds
+    retries: 3,
+    // highlight-end
+  },
+  
+  // Agent defaults
+  agents: {
+    defaultModel: 'gpt-4-turbo',
+    maxConcurrent: 5,
+    // highlight-next-line
+    autoRestart: true, // Automatically restart failed agents
+  },
+  
+  // Security settings
+  security: {
+    encryption: true,
+    // highlight-next-line
+    privateKeyPath: process.env.PRIVATE_KEY_PATH,
+  }
+};`}
+</CodeBlock>
+
+## Best Practices
+
+1. **Language specification**: Always specify the language for proper syntax highlighting
+2. **Meaningful titles**: Use descriptive filenames in the title prop
+3. **Line numbers**: Enable for longer code blocks or when referencing specific lines
+4. **Highlighting**: Use sparingly to draw attention to important parts
+5. **Code formatting**: Ensure proper indentation and formatting before displaying
+6. **String escaping**: Use template literals with curly braces for JSX content
+
+## Differences from Custom CodeBlock
+
+| Feature | Theme CodeBlock | Custom CodeBlock (Elements) |
+|---------|----------------|---------------------------|
+| Import | `@theme/CodeBlock` | `@site/src/components/elements/CodeBlock` |
+| Syntax Highlighting | Built-in Prism.js | Built-in Prism.js |
+| Collapsible | No | Yes (CollapsibleCodeBlock) |
+| Inline Card | No | Yes (InlineCodeCard) |
+| Line Highlighting | Yes | No |
+| Line Numbers | Yes | Limited |
+| Title | Yes | Yes |
+| Live Editor | With plugin | No |
+
+Choose the theme CodeBlock for:
+- Standard documentation code examples
+- Line highlighting needs
+- Line number display
+- MDX automatic transformation
+
+Choose custom CodeBlock components for:
+- Collapsible code sections
+- Inline expandable code cards
+- Custom styling needs

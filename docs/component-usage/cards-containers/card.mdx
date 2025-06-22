@@ -1,0 +1,184 @@
+---
+title: Card Component
+description: Versatile card component for displaying content in a contained format
+sidebar_position: 1
+---
+
+import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/elements/Card';
+import CodeBlock from '@theme/CodeBlock';
+
+# Card Component
+
+The Card component provides a flexible container for displaying content with optional headers, titles, and descriptions.
+
+## Import
+
+```javascript
+import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/elements/Card';
+```
+
+## Basic Usage
+
+<Card>
+  This is a basic card with content inside.
+</Card>
+
+```jsx
+<Card>
+  This is a basic card with content inside.
+</Card>
+```
+
+## Card with Header
+
+<Card>
+  <CardHeader>
+    <CardTitle>Card Title</CardTitle>
+    <CardDescription>This is a card description that provides more context.</CardDescription>
+  </CardHeader>
+  <p>Card body content goes here.</p>
+</Card>
+
+```jsx
+<Card>
+  <CardHeader>
+    <CardTitle>Card Title</CardTitle>
+    <CardDescription>This is a card description that provides more context.</CardDescription>
+  </CardHeader>
+  <p>Card body content goes here.</p>
+</Card>
+```
+
+## Variants
+
+### Primary Card
+
+<Card className="card--primary">
+  <CardHeader>
+    <CardTitle>Primary Card</CardTitle>
+    <CardDescription>This card uses the primary color scheme.</CardDescription>
+  </CardHeader>
+</Card>
+
+```jsx
+<Card className="card--primary">
+  <CardHeader>
+    <CardTitle>Primary Card</CardTitle>
+    <CardDescription>This card uses the primary color scheme.</CardDescription>
+  </CardHeader>
+</Card>
+```
+
+### Elevated Card
+
+<Card className="card--elevated">
+  <CardHeader>
+    <CardTitle>Elevated Card</CardTitle>
+    <CardDescription>This card has enhanced shadow for elevation effect.</CardDescription>
+  </CardHeader>
+</Card>
+
+```jsx
+<Card className="card--elevated">
+  <CardHeader>
+    <CardTitle>Elevated Card</CardTitle>
+    <CardDescription>This card has enhanced shadow for elevation effect.</CardDescription>
+  </CardHeader>
+</Card>
+```
+
+## Props Reference
+
+### Card Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | - | Content to display inside the card |
+| `className` | `string` | - | Additional CSS classes |
+
+### CardHeader Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | - | Header content (typically CardTitle and CardDescription) |
+| `className` | `string` | - | Additional CSS classes |
+
+### CardTitle Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | - | Title text |
+| `className` | `string` | - | Additional CSS classes |
+
+### CardDescription Props
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | - | Description text |
+| `className` | `string` | - | Additional CSS classes |
+
+## Styling
+
+The Card component uses CSS variables from the theme system:
+
+- `--theme-card-bg`: Background color
+- `--theme-card-border`: Border color
+- `--theme-card-hover`: Hover state border color
+- `--card-padding`: Internal padding
+- `--card-shadow-default`: Default shadow
+- `--card-shadow-hover`: Hover shadow
+
+## Examples
+
+### Feature Card
+
+<Card>
+  <CardHeader>
+    <CardTitle>🚀 Fast Performance</CardTitle>
+    <CardDescription>
+      Optimized for speed with minimal overhead and efficient rendering.
+    </CardDescription>
+  </CardHeader>
+  <ul>
+    <li>Lazy loading support</li>
+    <li>Optimized bundle size</li>
+    <li>Efficient re-renders</li>
+  </ul>
+</Card>
+
+```jsx
+<Card>
+  <CardHeader>
+    <CardTitle>🚀 Fast Performance</CardTitle>
+    <CardDescription>
+      Optimized for speed with minimal overhead and efficient rendering.
+    </CardDescription>
+  </CardHeader>
+  <ul>
+    <li>Lazy loading support</li>
+    <li>Optimized bundle size</li>
+    <li>Efficient re-renders</li>
+  </ul>
+</Card>
+```
+
+### Nested Cards
+
+<Card>
+  <CardHeader>
+    <CardTitle>Parent Card</CardTitle>
+  </CardHeader>
+  <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+    <Card className="card--secondary">
+      <CardTitle>Nested Card 1</CardTitle>
+      <p>First nested card content</p>
+    </Card>
+    <Card className="card--secondary">
+      <CardTitle>Nested Card 2</CardTitle>
+      <p>Second nested card content</p>
+    </Card>
+  </div>
+</Card>
+
+## Best Practices
+
+1. **Use semantic structure**: Always use CardHeader for title and description
+2. **Keep content concise**: Cards work best with focused content
+3. **Consistent styling**: Use predefined variants instead of custom styles
+4. **Accessibility**: Ensure proper heading hierarchy when using CardTitle

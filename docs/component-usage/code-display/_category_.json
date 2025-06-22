@@ -1,0 +1,9 @@
+{
+  "label": "Code Display",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "title": "Code Display Components",
+    "description": "Components for displaying code snippets with syntax highlighting and interactive features"
+  }
+}

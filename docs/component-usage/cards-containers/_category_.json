@@ -1,0 +1,9 @@
+{
+  "label": "Cards & Containers",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "title": "Cards & Container Components",
+    "description": "Components for displaying content in card formats and highlighted containers"
+  }
+}

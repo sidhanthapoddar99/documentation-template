@@ -1,0 +1,262 @@
+---
+title: BlogSearch Component
+description: Real-time search functionality for blog posts
+sidebar_position: 1
+---
+
+import CodeBlock from '@theme/CodeBlock';
+
+# BlogSearch Component
+
+The BlogSearch component provides real-time search functionality for blog posts with highlighting and filtering capabilities.
+
+## Import
+
+```javascript
+import { BlogSearch } from '@site/src/components/elements/BlogSearch';
+```
+
+## Basic Usage
+
+```jsx
+import { BlogSearch } from '@site/src/components/elements/BlogSearch';
+
+function BlogPage() {
+  return (
+    <div className="blog-header">
+      <h1>Blog</h1>
+      <BlogSearch />
+    </div>
+  );
+}
+```
+
+## Features
+
+### Real-time Search
+- Searches as you type (after 3 characters)
+- No need to press Enter
+- Instant results display
+
+### Search Scope
+The component searches across:
+- Post titles
+- Post descriptions
+- Post tags
+
+### Results Display
+- Shows up to 8 results
+- Displays post title, description preview, date, and tags
+- Highlights matching text
+- Click to navigate to post
+
+### Search Highlighting
+Matching terms are highlighted in the results:
+
+```jsx
+<mark className="search-highlight">matched text</mark>
+```
+
+## Component Structure
+
+### Search Input
+```jsx
+<div className="blog-search-input-wrapper">
+  <svg className="blog-search-icon">
+    {/* Search icon */}
+  </svg>
+  <input
+    type="text"
+    placeholder="Search blog posts..."
+    className="blog-search-input"
+  />
+  <button className="blog-search-clear">
+    {/* Clear button */}
+  </button>
+</div>
+```
+
+### Results Display
+```jsx
+<div className="blog-search-results">
+  <div className="blog-search-results-header">
+    <span className="blog-search-results-count">
+      {filteredPosts.length} results
+    </span>
+  </div>
+  <div className="blog-search-results-list">
+    {/* Result items */}
+  </div>
+</div>
+```
+
+## Behavior
+
+### Search Trigger
+- Minimum 3 characters to trigger search
+- Debounced to avoid excessive filtering
+
+### Navigation
+- Click on result to navigate to post
+- Search box clears after navigation
+- Results dropdown closes
+
+### No Results
+When no posts match the search:
+```jsx
+<div className="blog-search-no-results">
+  <p>No blog posts found for "{searchTerm}"</p>
+  <small>Try different keywords or check your spelling</small>
+</div>
+```
+
+## Styling
+
+### Input States
+
+**Default State**:
+- Gray border
+- Search icon on left
+- Clear button appears when text is entered
+
+**Focused State**:
+- Blue border
+- Subtle shadow
+- Increased contrast
+
+### Results Dropdown
+- Positioned absolutely below input
+- Max height with scroll
+- Shadow for elevation
+- Smooth animations
+
+### Responsive Design
+- Full width on mobile
+- Smaller font sizes
+- Adjusted padding
+- Touch-friendly tap targets
+
+## Implementation Details
+
+### Using Docusaurus Hooks
+```javascript
+import { useBlogPosts } from '@docusaurus/theme-common/internal';
+
+const blogPosts = useBlogPosts();
+```
+
+### Filtering Logic
+```javascript
+const filtered = blogPosts.filter(post => {
+  const title = post.metadata.title.toLowerCase();
+  const description = post.metadata.description?.toLowerCase() || '';
+  const tags = post.metadata.tags.map(tag => tag.label.toLowerCase()).join(' ');
+  const searchLower = searchTerm.toLowerCase();
+  
+  return title.includes(searchLower) || 
+         description.includes(searchLower) || 
+         tags.includes(searchLower);
+});
+```
+
+### Text Highlighting
+```javascript
+const highlightText = (text, term) => {
+  if (!term) return text;
+  const regex = new RegExp(`(${term})`, 'gi');
+  const parts = text.split(regex);
+  return parts.map((part, index) => 
+    regex.test(part) ? <mark key={index} className="search-highlight">{part}</mark> : part
+  );
+};
+```
+
+## CSS Classes
+
+### Container
+- `.blog-search-container`: Main wrapper
+- `.blog-search-form`: Form element
+
+### Input
+- `.blog-search-input-wrapper`: Input container
+- `.blog-search-icon`: Search icon
+- `.blog-search-input`: Text input
+- `.blog-search-clear`: Clear button
+
+### Results
+- `.blog-search-results`: Results container
+- `.blog-search-results-header`: Results count
+- `.blog-search-results-list`: Scrollable list
+- `.blog-search-result-item`: Individual result
+- `.blog-search-result-title`: Post title
+- `.blog-search-result-description`: Post preview
+- `.blog-search-result-meta`: Date and tags
+
+### States
+- `.blog-search-no-results`: No results message
+- `.search-highlight`: Highlighted text
+
+## Customization
+
+### Placeholder Text
+```jsx
+<BlogSearch placeholder="Find articles..." />
+```
+
+### Results Limit
+Modify the slice value to change max results:
+```javascript
+setFilteredPosts(filtered.slice(0, 10)); // Show 10 results
+```
+
+### Search Threshold
+Change minimum characters for search:
+```javascript
+if (searchTerm.length > 1) { // Search after 2 characters
+  // perform search
+}
+```
+
+## Performance Considerations
+
+1. **Debouncing**: Consider adding debounce for large blog collections
+2. **Memoization**: Cache filtered results if performance is an issue
+3. **Lazy Loading**: Load blog metadata on demand for very large sites
+
+## Integration with Blog Layout
+
+```jsx
+import Layout from '@theme/Layout';
+import { BlogSearch } from '@site/src/components/elements/BlogSearch';
+
+export default function BlogLayout({ children }) {
+  return (
+    <Layout>
+      <div className="container margin-vert--lg">
+        <div className="row">
+          <div className="col col--12">
+            <BlogSearch />
+          </div>
+        </div>
+        {children}
+      </div>
+    </Layout>
+  );
+}
+```
+
+## Accessibility
+
+- Proper ARIA labels
+- Keyboard navigation support
+- Screen reader friendly
+- Focus management
+- Clear button for easy clearing
+
+## Best Practices
+
+1. **Position prominently**: Place where users expect search
+2. **Clear placeholder**: Use descriptive placeholder text
+3. **Fast response**: Ensure search feels instant
+4. **Mobile-first**: Test thoroughly on mobile devices
+5. **Fallback**: Provide alternative navigation if search fails

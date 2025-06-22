@@ -1,0 +1,9 @@
+{
+  "label": "Search & Navigation",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "title": "Search & Navigation Components",
+    "description": "Components for search functionality and navigation elements"
+  }
+}

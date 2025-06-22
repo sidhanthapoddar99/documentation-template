@@ -1,0 +1,210 @@
+---
+title: Callout Component
+description: Highlight important information with styled callout boxes
+sidebar_position: 2
+---
+
+import { Callout } from '@site/src/components/elements/Callout';
+import CodeBlock from '@theme/CodeBlock';
+
+# Callout Component
+
+The Callout component is used to highlight important information, warnings, tips, or notes with distinctive styling and icons.
+
+## Import
+
+```javascript
+import { Callout } from '@site/src/components/elements/Callout';
+```
+
+## Basic Usage
+
+<Callout>
+  This is a default callout with important information.
+</Callout>
+
+```jsx
+<Callout>
+  This is a default callout with important information.
+</Callout>
+```
+
+## Callout Types
+
+### Info Callout
+
+<Callout type="info">
+  This is an informational callout providing additional context or details.
+</Callout>
+
+```jsx
+<Callout type="info">
+  This is an informational callout providing additional context or details.
+</Callout>
+```
+
+### Warning Callout
+
+<Callout type="warning">
+  This is a warning message that requires user attention.
+</Callout>
+
+```jsx
+<Callout type="warning">
+  This is a warning message that requires user attention.
+</Callout>
+```
+
+### Success Callout
+
+<Callout type="success">
+  Operation completed successfully! All systems are functioning normally.
+</Callout>
+
+```jsx
+<Callout type="success">
+  Operation completed successfully! All systems are functioning normally.
+</Callout>
+```
+
+### Danger/Error Callout
+
+<Callout type="danger">
+  Critical error: Please review your configuration before proceeding.
+</Callout>
+
+```jsx
+<Callout type="danger">
+  Critical error: Please review your configuration before proceeding.
+</Callout>
+```
+
+### Tip Callout
+
+<Callout type="tip">
+  Pro tip: You can use keyboard shortcuts to speed up your workflow.
+</Callout>
+
+```jsx
+<Callout type="tip">
+  Pro tip: You can use keyboard shortcuts to speed up your workflow.
+</Callout>
+```
+
+### Note Callout
+
+<Callout type="note">
+  Note: This feature is available in version 2.0 and above.
+</Callout>
+
+```jsx
+<Callout type="note">
+  Note: This feature is available in version 2.0 and above.
+</Callout>
+```
+
+## With Titles
+
+<Callout type="info" title="Did you know?">
+  You can add custom titles to callouts for better context.
+</Callout>
+
+```jsx
+<Callout type="info" title="Did you know?">
+  You can add custom titles to callouts for better context.
+</Callout>
+```
+
+<Callout type="warning" title="Deprecation Notice">
+  This API will be deprecated in the next major version. Please migrate to the new API.
+</Callout>
+
+```jsx
+<Callout type="warning" title="Deprecation Notice">
+  This API will be deprecated in the next major version. Please migrate to the new API.
+</Callout>
+```
+
+## Props Reference
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `'info' \| 'warning' \| 'success' \| 'danger' \| 'tip' \| 'note'` | `'info'` | The type of callout which determines styling and icon |
+| `title` | `string` | - | Optional title displayed at the top of the callout |
+| `children` | `ReactNode` | - | Content to display inside the callout |
+| `className` | `string` | - | Additional CSS classes |
+
+## Icon Reference
+
+Each callout type has an associated emoji icon:
+
+- **Info**: ℹ️
+- **Warning**: ⚠️
+- **Success**: ✅
+- **Danger/Error**: ❌
+- **Tip**: 💡
+- **Note**: 📝
+
+## Complex Content
+
+Callouts can contain complex content including lists, code, and other elements:
+
+<Callout type="info" title="Installation Steps">
+  <div>
+    <p>Follow these steps to install the package:</p>
+    
+    <ol>
+      <li>
+        <p>Install dependencies:</p>
+        <pre><code className="language-bash">npm install @neuralabs/sdk</code></pre>
+      </li>
+      <li>
+        <p>Configure your environment:</p>
+        <pre><code className="language-javascript">{`const config = {
+  apiKey: 'your-api-key',
+  network: 'mainnet'
+};`}</code></pre>
+      </li>
+      <li>Initialize the client and start building!</li>
+    </ol>
+  </div>
+</Callout>
+
+```jsx
+<Callout type="info" title="Installation Steps">
+  <div>
+    <p>Follow these steps to install the package:</p>
+    
+    <ol>
+      <li>
+        <p>Install dependencies:</p>
+        <pre><code className="language-bash">npm install @neuralabs/sdk</code></pre>
+      </li>
+      <li>
+        <p>Configure your environment:</p>
+        <pre><code className="language-javascript">{`const config = {
+  apiKey: 'your-api-key',
+  network: 'mainnet'
+};`}</code></pre>
+      </li>
+      <li>Initialize the client and start building!</li>
+    </ol>
+  </div>
+</Callout>
+```
+
+## Styling
+
+The Callout component uses theme-aware CSS variables:
+
+- `--theme-callout-{type}-bg`: Background color for each type
+- `--theme-callout-{type}-border`: Border color for each type
+- `--theme-callout-{type}-text`: Text color for each type
+
+## Best Practices
+
+1. **Choose appropriate types**: Use the correct callout type for the message
+2. **Keep it concise**: Callouts should highlight key information
+3. **Use titles sparingly**: Only add titles when they provide additional context
+4. **Don't overuse**: Too many callouts can reduce their effectiveness
+5. **Accessibility**: The icons are decorative; the type and content convey meaning

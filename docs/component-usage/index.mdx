@@ -1,630 +1,112 @@
 ---
 title: Component Usage Guide
-description: Complete guide for using NeuraLabs components and SDK
+description: Complete guide for using NeuraLabs UI components
+sidebar_position: 0
 ---
 
 # Component Usage Guide
 
-## Overview
+Welcome to the NeuraLabs component documentation. This guide provides comprehensive documentation for all UI components available in the NeuraLabs documentation system.
 
-This guide provides comprehensive documentation on how to use NeuraLabs components to build powerful AI-driven applications on the Sui blockchain.
+## Component Categories
 
-## Installation
+### 🎴 [Cards & Containers](/component-usage/cards-containers)
+Components for displaying content in card formats and highlighted containers:
+- **[Card Component](/component-usage/cards-containers/card)** - Versatile content containers
+- **[Callout Component](/component-usage/cards-containers/callout)** - Highlighted information boxes
 
-### Prerequisites
-- Node.js 18+ or Python 3.9+
-- Sui wallet configured
-- API key from NeuraLabs dashboard
+### 💻 [Code Display](/component-usage/code-display)
+Components for displaying code with syntax highlighting:
+- **[CodeBlock Components](/component-usage/code-display/codeblock)** - Enhanced code display with collapsible sections
 
-### Package Installation
+### 📐 [Layout Components](/component-usage/layout)
+Components for page structure and content organization:
+- **[Features Component](/component-usage/layout/features)** - Feature grid displays
+- **[Footer Component](/component-usage/layout/footer)** - Site footer with links
 
-```bash
-# Using npm
-npm install @neuralabs/sdk @neuralabs/ui @neuralabs/connectors
+### 🔍 [Search & Navigation](/component-usage/search-navigation)
+Components for search and navigation functionality:
+- **[BlogSearch Component](/component-usage/search-navigation/blogsearch)** - Real-time blog post search
 
-# Using yarn
-yarn add @neuralabs/sdk @neuralabs/ui @neuralabs/connectors
+### 📑 [Theme Components](/component-usage/theme-components)
+Built-in Docusaurus theme components for enhanced content:
+- **[Tabs Component](/component-usage/theme-components/tabs)** - Organize content into tabbed interfaces
+- **[Theme CodeBlock](/component-usage/theme-components/codeblock)** - Advanced syntax highlighting with line numbers
 
-# Using pnpm
-pnpm add @neuralabs/sdk @neuralabs/ui @neuralabs/connectors
-```
+## Quick Start
 
-## Core Components
+### Installation
 
-### 1. NeuraLabs SDK Client
+All components are pre-installed in the documentation system. To use them in your MDX files:
 
-The main client for interacting with NeuraLabs services:
-
+**Custom Components:**
 ```javascript
-import { NeuraLabs } from '@neuralabs/sdk';
-
-const client = new NeuraLabs({
-  apiKey: 'your-api-key',
-  network: 'mainnet', // or 'testnet', 'devnet'
-  options: {
-    timeout: 30000,
-    retries: 3
-  }
-});
+import { ComponentName } from '@site/src/components/elements/ComponentName';
 ```
 
-### 2. Agent Component
-
-Create and manage AI agents:
-
+**Theme Components:**
 ```javascript
-import { Agent } from '@neuralabs/sdk';
-
-// Create a new agent
-const agent = await client.createAgent({
-  name: 'MyAIAgent',
-  type: 'trading', // 'analysis', 'gaming', 'custom'
-  model: 'gpt-4-turbo',
-  config: {
-    // Agent-specific configuration
-  }
-});
-
-// Agent methods
-await agent.start();
-await agent.stop();
-await agent.getStatus();
-await agent.executeAction(action);
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock';
 ```
 
-### 3. UI Components
-
-Pre-built React components for rapid development:
-
-```jsx
-import { 
-  WalletConnector,
-  AgentDashboard,
-  TransactionHistory,
-  PerformanceChart 
-} from '@neuralabs/ui';
-
-function MyApp() {
-  return (
-    <div>
-      <WalletConnector 
-        onConnect={(wallet) => console.log('Connected:', wallet)}
-        networks={['sui:mainnet', 'sui:testnet']}
-      />
-      
-      <AgentDashboard 
-        agentId={agent.id}
-        showMetrics={true}
-        refreshInterval={5000}
-      />
-      
-      <TransactionHistory 
-        limit={50}
-        filters={{ type: 'trade' }}
-      />
-      
-      <PerformanceChart 
-        agentId={agent.id}
-        timeframe="24h"
-        metrics={['profit', 'trades', 'success_rate']}
-      />
-    </div>
-  );
-}
-```
-
-### 4. Data Connectors
-
-Connect to external data sources:
-
-```javascript
-import { 
-  MarketDataConnector,
-  BlockchainConnector,
-  SocialMediaConnector 
-} from '@neuralabs/connectors';
-
-// Market data
-const marketData = new MarketDataConnector({
-  provider: 'binance',
-  symbols: ['SUIUSDT', 'BTCUSDT']
-});
-
-const prices = await marketData.getPrices();
-const orderbook = await marketData.getOrderbook('SUIUSDT');
-
-// Blockchain data
-const blockchain = new BlockchainConnector({
-  network: 'sui:mainnet'
-});
-
-const txHistory = await blockchain.getTransactions(address);
-const balance = await blockchain.getBalance(address);
-
-// Social media sentiment
-const social = new SocialMediaConnector({
-  platforms: ['twitter', 'reddit']
-});
-
-const sentiment = await social.getSentiment('SUI');
-```
-
-## Advanced Usage
-
-### Custom Agent Development
-
-```javascript
-import { CustomAgent } from '@neuralabs/sdk';
-
-class MyTradingBot extends CustomAgent {
-  constructor(config) {
-    super(config);
-    this.strategy = config.strategy;
-  }
-  
-  async onMarketData(data) {
-    // Implement your trading logic
-    const signal = await this.analyzeMarket(data);
-    
-    if (signal.action === 'buy') {
-      await this.executeTrade({
-        type: 'buy',
-        amount: signal.amount,
-        price: signal.price
-      });
-    }
-  }
-  
-  async analyzeMarket(data) {
-    // Your analysis logic
-    return {
-      action: 'buy',
-      amount: 100,
-      price: data.currentPrice
-    };
-  }
-}
-
-// Deploy custom agent
-const bot = new MyTradingBot({
-  name: 'Custom Trader',
-  strategy: 'momentum'
-});
-
-await bot.deploy();
-```
-
-### Smart Contract Integration
-
-```javascript
-import { SmartContract } from '@neuralabs/sdk';
-
-// Load your Move contract
-const contract = new SmartContract({
-  packageId: '0x...',
-  module: 'trading',
-  network: 'sui:mainnet'
-});
-
-// Call contract functions
-const result = await contract.call('execute_trade', {
-  pair: 'SUI_USDC',
-  amount: 1000,
-  direction: 'buy'
-});
-
-// Listen to events
-contract.on('TradeExecuted', (event) => {
-  console.log('Trade executed:', event);
-});
-```
-
-### State Management
-
-```javascript
-import { StateManager } from '@neuralabs/sdk';
-
-const state = new StateManager({
-  persistence: 'local', // or 'cloud'
-  encryption: true
-});
-
-// Save agent state
-await state.save('agent-123', {
-  position: { sui: 1000, usdc: 5000 },
-  performance: { profit: 0.15, trades: 42 }
-});
-
-// Load agent state
-const agentState = await state.load('agent-123');
-
-// Subscribe to state changes
-state.subscribe('agent-123', (newState) => {
-  console.log('State updated:', newState);
-});
-```
-
-## Component Patterns
-
-### 1. Agent Factory Pattern
-
-```javascript
-class AgentFactory {
-  static async createAgent(type, config) {
-    switch(type) {
-      case 'trading':
-        return new TradingAgent(config);
-      case 'analysis':
-        return new AnalysisAgent(config);
-      case 'gaming':
-        return new GamingAgent(config);
-      default:
-        throw new Error(`Unknown agent type: ${type}`);
-    }
-  }
-}
-
-const agent = await AgentFactory.createAgent('trading', {
-  pairs: ['SUI/USDC'],
-  riskLevel: 'medium'
-});
-```
-
-### 2. Component Composition
-
-```jsx
-function AgentManager({ agents }) {
-  return (
-    <div className="agent-manager">
-      {agents.map(agent => (
-        <div key={agent.id} className="agent-card">
-          <AgentHeader agent={agent} />
-          <AgentMetrics agent={agent} />
-          <AgentControls agent={agent} />
-        </div>
-      ))}
-    </div>
-  );
-}
-```
-
-### 3. Hook Pattern
-
-```javascript
-import { useAgent, useWallet, useMarketData } from '@neuralabs/hooks';
-
-function TradingInterface() {
-  const wallet = useWallet();
-  const { agent, loading, error } = useAgent('agent-123');
-  const marketData = useMarketData(['SUI/USDC'], { interval: 1000 });
-  
-  if (loading) return <div>Loading agent...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-  
-  return (
-    <div>
-      <h2>{agent.name}</h2>
-      <p>Current price: ${marketData.SUIUSDC?.price}</p>
-      <button onClick={() => agent.executeTrade()}>
-        Execute Trade
-      </button>
-    </div>
-  );
-}
-```
-
-## Best Practices
-
-### 1. Error Handling
-
-```javascript
-try {
-  const agent = await client.createAgent(config);
-  await agent.start();
-} catch (error) {
-  if (error.code === 'INSUFFICIENT_FUNDS') {
-    console.error('Not enough funds to create agent');
-  } else if (error.code === 'RATE_LIMITED') {
-    console.error('Too many requests, please wait');
-  } else {
-    console.error('Unexpected error:', error);
-  }
-}
-```
-
-### 2. Performance Optimization
-
-```javascript
-// Use batch operations
-const results = await client.batchOperation([
-  { method: 'createAgent', params: agentConfig1 },
-  { method: 'createAgent', params: agentConfig2 },
-  { method: 'createAgent', params: agentConfig3 }
-]);
-
-// Implement caching
-import { CacheManager } from '@neuralabs/sdk';
-
-const cache = new CacheManager({
-  ttl: 60000, // 1 minute
-  maxSize: 100
-});
-
-const getCachedData = async (key) => {
-  return cache.get(key) || cache.set(key, await fetchData(key));
-};
-```
-
-### 3. Security Considerations
-
-```javascript
-// Never expose API keys in client-side code
-const client = new NeuraLabs({
-  apiKey: process.env.NEURA_API_KEY,
-  // Use environment variables
-});
-
-// Validate all inputs
-function validateTradeParams(params) {
-  if (!params.amount || params.amount <= 0) {
-    throw new Error('Invalid amount');
-  }
-  if (!['buy', 'sell'].includes(params.action)) {
-    throw new Error('Invalid action');
-  }
-  return true;
-}
-
-// Use secure communication
-client.setSecurityOptions({
-  encryption: true,
-  validateSSL: true,
-  timeout: 30000
-});
-```
-
-## Component Testing
-
-### Unit Testing Components
-
-```javascript
-import { render, screen, fireEvent } from '@testing-library/react';
-import { AgentDashboard } from '@neuralabs/ui';
-
-describe('AgentDashboard', () => {
-  test('displays agent information', () => {
-    const mockAgent = {
-      id: 'agent-123',
-      name: 'Test Agent',
-      status: 'running'
-    };
-    
-    render(<AgentDashboard agent={mockAgent} />);
-    
-    expect(screen.getByText('Test Agent')).toBeInTheDocument();
-    expect(screen.getByText('running')).toBeInTheDocument();
-  });
-  
-  test('handles start/stop actions', async () => {
-    const onAction = jest.fn();
-    render(<AgentDashboard agent={mockAgent} onAction={onAction} />);
-    
-    fireEvent.click(screen.getByText('Stop'));
-    expect(onAction).toHaveBeenCalledWith('stop');
-  });
-});
-```
-
-### Integration Testing
-
-```javascript
-import { NeuraLabs } from '@neuralabs/sdk';
-import { TestEnvironment } from '@neuralabs/testing';
-
-describe('Agent Integration', () => {
-  let env;
-  let client;
-  
-  beforeAll(async () => {
-    env = await TestEnvironment.create();
-    client = new NeuraLabs({ 
-      apiKey: env.apiKey,
-      network: 'testnet' 
-    });
-  });
-  
-  test('complete agent lifecycle', async () => {
-    // Create agent
-    const agent = await client.createAgent({
-      name: 'Integration Test Agent',
-      type: 'trading'
-    });
-    
-    expect(agent.id).toBeDefined();
-    
-    // Start agent
-    await agent.start();
-    expect(agent.status).toBe('running');
-    
-    // Execute action
-    const result = await agent.executeAction({
-      type: 'analyze',
-      data: { symbol: 'SUI/USDC' }
-    });
-    
-    expect(result.success).toBe(true);
-    
-    // Stop and cleanup
-    await agent.stop();
-    await agent.delete();
-  });
-});
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Connection Issues**
-   ```javascript
-   // Check network status
-   const status = await client.getNetworkStatus();
-   console.log('Network status:', status);
-   ```
-
-2. **Component Not Rendering**
-   ```javascript
-   // Enable debug mode
-   import { enableDebugMode } from '@neuralabs/ui';
-   enableDebugMode(true);
-   ```
-
-3. **State Synchronization**
-   ```javascript
-   // Force refresh
-   await agent.refresh();
-   
-   // Check sync status
-   const syncStatus = await state.getSyncStatus();
-   ```
-
-## Resources
-
-- [API Reference](/api)
-- [Component Examples](https://github.com/neuralabs/component-examples)
-- [Video Tutorials](https://youtube.com/neuralabs)
-- [Community Support](https://discord.gg/neuralabs)
-
-## UI Component Library
-
-This section documents the custom UI components available in `/src/components/elements/`.
-
-### Card Component
-
-A versatile card component for displaying content in a contained format.
-
-```jsx
-import Card from '@site/src/components/elements/Card';
-
-<Card
-  title="Feature Title"
-  description="Brief description of the feature"
-  icon="🚀"
-  link="/docs/feature"
-/>
-```
-
-**Props:**
-- `title` (string): Card title
-- `description` (string): Card description
-- `icon` (string/node): Icon or emoji to display
-- `link` (string): Optional link URL
-- `className` (string): Additional CSS classes
-
-### Callout Component
-
-Highlight important information with styled callout boxes.
-
-```jsx
-import Callout from '@site/src/components/elements/Callout';
+### Basic Usage Example
+
+```mdx
+---
+title: My Documentation Page
+---
+
+import { Card, CardHeader, CardTitle } from '@site/src/components/elements/Card';
+import { Callout } from '@site/src/components/elements/Callout';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock';
+
+# My Page
+
+<Card>
+  <CardHeader>
+    <CardTitle>Welcome</CardTitle>
+  </CardHeader>
+  <p>This is a card component.</p>
+</Card>
 
 <Callout type="info">
   This is an informational callout.
 </Callout>
 
-<Callout type="warning">
-  This is a warning message.
-</Callout>
-
-<Callout type="danger">
-  This is an error or danger message.
-</Callout>
-
-<Callout type="success">
-  This is a success message.
-</Callout>
+<Tabs>
+  <TabItem value="js" label="JavaScript">
+    <CodeBlock language="javascript">
+      {`const greeting = "Hello World";`}
+    </CodeBlock>
+  </TabItem>
+  <TabItem value="py" label="Python">
+    <CodeBlock language="python">
+      {`greeting = "Hello World"`}
+    </CodeBlock>
+  </TabItem>
+</Tabs>
 ```
 
-**Props:**
-- `type` (string): 'info' | 'warning' | 'danger' | 'success'
-- `title` (string): Optional title for the callout
-- `children` (node): Content to display
+## Component Development
 
-### CodeBlock Component
+### File Structure
 
-Enhanced code block with syntax highlighting and copy functionality.
-
-```jsx
-import CodeBlock from '@site/src/components/elements/CodeBlock';
-
-<CodeBlock language="javascript" title="example.js">
-{`const greeting = "Hello World";
-console.log(greeting);`}
-</CodeBlock>
+Each component follows this structure:
+```
+src/components/elements/ComponentName/
+├── ComponentName.js     # Component logic
+├── ComponentName.css    # Component styles  
+└── index.js            # Export file
 ```
 
-**Props:**
-- `language` (string): Programming language for syntax highlighting
-- `title` (string): Optional filename or title
-- `showLineNumbers` (boolean): Show line numbers (default: false)
-- `children` (string): Code content
+### Using Theme Colors
 
-### Features Component
+All components use the centralized color theme system:
 
-Display features in a grid layout with icons and descriptions.
-
-```jsx
-import Features from '@site/src/components/elements/Features';
-
-const features = [
-  {
-    title: 'Fast Performance',
-    description: 'Lightning fast execution with optimized algorithms',
-    icon: '⚡'
-  },
-  {
-    title: 'Secure',
-    description: 'Enterprise-grade security with encryption',
-    icon: '🔒'
-  },
-  {
-    title: 'Scalable',
-    description: 'Scales seamlessly with your needs',
-    icon: '📈'
-  }
-];
-
-<Features features={features} columns={3} />
-```
-
-**Props:**
-- `features` (array): Array of feature objects with title, description, and icon
-- `columns` (number): Number of columns (default: 3)
-- `className` (string): Additional CSS classes
-
-### BlogSearch Component
-
-Search functionality for blog posts.
-
-```jsx
-import BlogSearch from '@site/src/components/elements/BlogSearch';
-
-<BlogSearch 
-  placeholder="Search blog posts..."
-  onSearch={(query) => console.log('Searching for:', query)}
-/>
-```
-
-**Props:**
-- `placeholder` (string): Search input placeholder
-- `onSearch` (function): Callback when search is performed
-- `className` (string): Additional CSS classes
-
-## Component Styling
-
-All components use the centralized color theme system. When creating or modifying components:
-
-1. Use CSS variables for colors:
 ```css
 .my-component {
   background: var(--theme-bg-surface);
@@ -633,27 +115,48 @@ All components use the centralized color theme system. When creating or modifyin
 }
 ```
 
-2. Follow the component structure:
-```
-src/components/elements/ComponentName/
-├── ComponentName.js    // Component logic
-├── ComponentName.css   // Component styles
-└── index.js           // Export
-```
+### Adding New Components
 
-3. Import and use in MDX files:
-```mdx
-import MyComponent from '@site/src/components/elements/MyComponent';
-
-<MyComponent prop="value" />
-```
-
-## Adding New Components
-
-When creating new components:
-
-1. Create the component in `/src/components/elements/`
-2. Use theme colors from CSS variables
-3. Export from `index.js`
-4. Document the component here with usage examples
+1. Create component in `/src/components/elements/`
+2. Use theme CSS variables for styling
+3. Export from index.js
+4. Document in this guide
 5. Test in both light and dark modes
+
+## Best Practices
+
+### 1. Consistent Styling
+- Always use theme CSS variables
+- Follow existing component patterns
+- Maintain consistent spacing
+
+### 2. Accessibility
+- Use semantic HTML
+- Include ARIA labels where needed
+- Ensure keyboard navigation works
+
+### 3. Performance
+- Lazy load heavy components
+- Optimize images and icons
+- Minimize CSS bundle size
+
+### 4. Documentation
+- Provide clear examples
+- Document all props
+- Include common use cases
+
+## Resources
+
+- [Component Source Code](https://github.com/neuralabs/documentation/tree/main/src/components/elements)
+- [Theme Colors Documentation](/theme/colors)
+- [MDX Documentation](https://mdxjs.com/)
+- [Docusaurus Components](https://docusaurus.io/docs/markdown-features)
+
+## Need Help?
+
+If you encounter issues or need assistance:
+
+1. Check the individual component documentation
+2. Review the examples in this guide
+3. Ask in our [Discord community](https://discord.gg/neuralabs)
+4. Open an issue on [GitHub](https://github.com/neuralabs/documentation/issues)

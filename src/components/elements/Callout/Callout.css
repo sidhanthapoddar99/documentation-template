@@ -28,9 +28,9 @@
 /* Callout Types with Emojis */
 .callout::before {
   position: absolute;
-  top: 1rem;
+  top: 0.65rem;
   left: 1rem;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   opacity: 0.8;
 }
 

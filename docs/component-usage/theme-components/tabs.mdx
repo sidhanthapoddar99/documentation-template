@@ -1,0 +1,513 @@
+---
+title: Tabs Component
+description: Create tabbed interfaces for organizing content
+sidebar_position: 1
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Tabs Component
+
+The Tabs component allows you to organize content into multiple tabs, perfect for showing different code examples, platform-specific instructions, or organizing related content.
+
+## Import
+
+```javascript
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+```
+
+## Basic Usage
+
+<Tabs>
+  <TabItem value="js" label="JavaScript">
+    ```javascript
+    function greet(name) {
+      return `Hello, ${name}!`;
+    }
+    ```
+  </TabItem>
+  <TabItem value="py" label="Python">
+    ```python
+    def greet(name):
+        return f"Hello, {name}!"
+    ```
+  </TabItem>
+  <TabItem value="java" label="Java">
+    ```java
+    public String greet(String name) {
+        return "Hello, " + name + "!";
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+````mdx
+<Tabs>
+  <TabItem value="js" label="JavaScript">
+    ```javascript
+    function greet(name) {
+      return `Hello, ${name}!`;
+    }
+    ```
+  </TabItem>
+  <TabItem value="py" label="Python">
+    ```python
+    def greet(name):
+        return f"Hello, {name}!"
+    ```
+  </TabItem>
+  <TabItem value="java" label="Java">
+    ```java
+    public String greet(String name) {
+        return "Hello, " + name + "!";
+    }
+    ```
+  </TabItem>
+</Tabs>
+````
+
+## Default Tab
+
+Set a default tab using the `defaultValue` prop:
+
+<Tabs defaultValue="npm">
+  <TabItem value="npm" label="npm">
+    ```bash
+    npm install @neuralabs/sdk
+    ```
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+    ```bash
+    yarn add @neuralabs/sdk
+    ```
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+    ```bash
+    pnpm add @neuralabs/sdk
+    ```
+  </TabItem>
+</Tabs>
+
+````mdx
+<Tabs defaultValue="npm">
+  <TabItem value="npm" label="npm">
+    ```bash
+    npm install @neuralabs/sdk
+    ```
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+    ```bash
+    yarn add @neuralabs/sdk
+    ```
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+    ```bash
+    pnpm add @neuralabs/sdk
+    ```
+  </TabItem>
+</Tabs>
+````
+
+## Synced Tabs
+
+Use `groupId` to sync tab selection across multiple tab groups:
+
+<Tabs groupId="operating-systems">
+  <TabItem value="win" label="Windows">
+    Use `dir` command to list files
+  </TabItem>
+  <TabItem value="mac" label="macOS">
+    Use `ls` command to list files
+  </TabItem>
+  <TabItem value="linux" label="Linux">
+    Use `ls` command to list files
+  </TabItem>
+</Tabs>
+
+Installation instructions:
+
+<Tabs groupId="operating-systems">
+  <TabItem value="win" label="Windows">
+    ```bash
+    choco install neuralabs
+    ```
+  </TabItem>
+  <TabItem value="mac" label="macOS">
+    ```bash
+    brew install neuralabs
+    ```
+  </TabItem>
+  <TabItem value="linux" label="Linux">
+    ```bash
+    apt-get install neuralabs
+    ```
+  </TabItem>
+</Tabs>
+
+````mdx
+<Tabs groupId="operating-systems">
+  <TabItem value="win" label="Windows">
+    Use `dir` command to list files
+  </TabItem>
+  <TabItem value="mac" label="macOS">
+    Use `ls` command to list files
+  </TabItem>
+  <TabItem value="linux" label="Linux">
+    Use `ls` command to list files
+  </TabItem>
+</Tabs>
+
+Installation instructions:
+
+<Tabs groupId="operating-systems">
+  <TabItem value="win" label="Windows">
+    ```bash
+    choco install neuralabs
+    ```
+  </TabItem>
+  <TabItem value="mac" label="macOS">
+    ```bash
+    brew install neuralabs
+    ```
+  </TabItem>
+  <TabItem value="linux" label="Linux">
+    ```bash
+    apt-get install neuralabs
+    ```
+  </TabItem>
+</Tabs>
+````
+
+## Platform-Specific Content
+
+<Tabs>
+  <TabItem value="web" label="Web" default>
+    <h3>Web Development</h3>
+    <p>For web applications, you'll need:</p>
+    <ul>
+      <li>Modern browser with Web3 support</li>
+      <li>MetaMask or similar wallet extension</li>
+      <li>Node.js 18+ for development</li>
+    </ul>
+    
+    ```javascript
+    import { NeuraLabs } from '@neuralabs/sdk-web';
+    
+    const client = new NeuraLabs({
+      provider: window.ethereum,
+      network: 'mainnet'
+    });
+    ```
+  </TabItem>
+  
+  <TabItem value="mobile" label="Mobile">
+    <h3>Mobile Development</h3>
+    <p>For mobile applications:</p>
+    <ul>
+      <li>React Native 0.70+</li>
+      <li>Expo SDK 47+ (optional)</li>
+      <li>Mobile wallet integration</li>
+    </ul>
+    
+    ```javascript
+    import { NeuraLabs } from '@neuralabs/sdk-mobile';
+    
+    const client = new NeuraLabs({
+      walletConnect: true,
+      network: 'mainnet'
+    });
+    ```
+  </TabItem>
+  
+  <TabItem value="backend" label="Backend">
+    <h3>Backend Development</h3>
+    <p>For server-side applications:</p>
+    <ul>
+      <li>Node.js 18+ or Python 3.9+</li>
+      <li>Private key management</li>
+      <li>Rate limiting configuration</li>
+    </ul>
+    
+    ```javascript
+    import { NeuraLabs } from '@neuralabs/sdk-node';
+    
+    const client = new NeuraLabs({
+      privateKey: process.env.PRIVATE_KEY,
+      network: 'mainnet',
+      rateLimit: {
+        requests: 100,
+        period: '1m'
+      }
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+## Query String Parameters
+
+Tabs can be controlled via URL query parameters:
+
+<Tabs queryString="config-type">
+  <TabItem value="basic" label="Basic Config">
+    ```javascript
+    const config = {
+      apiKey: 'your-key',
+      network: 'mainnet'
+    };
+    ```
+  </TabItem>
+  <TabItem value="advanced" label="Advanced Config">
+    ```javascript
+    const config = {
+      apiKey: 'your-key',
+      network: 'mainnet',
+      timeout: 30000,
+      retries: 3,
+      cache: {
+        enabled: true,
+        ttl: 60000
+      },
+      logging: {
+        level: 'debug',
+        format: 'json'
+      }
+    };
+    ```
+  </TabItem>
+</Tabs>
+
+```mdx
+<Tabs queryString="config-type">
+  <TabItem value="basic" label="Basic Config">
+    // Basic configuration
+  </TabItem>
+  <TabItem value="advanced" label="Advanced Config">
+    // Advanced configuration
+  </TabItem>
+</Tabs>
+```
+
+Now users can link directly to a specific tab: `?config-type=advanced`
+
+## Props Reference
+
+### Tabs Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `defaultValue` | `string` | First tab | The default tab to display |
+| `values` | `Array` | - | Array of tab values (auto-detected from children) |
+| `groupId` | `string` | - | Synchronize tab selection between tab groups |
+| `className` | `string` | - | Additional CSS classes |
+| `queryString` | `string \| boolean` | `false` | Enable URL query string support |
+| `lazy` | `boolean` | `false` | Lazy load tab content |
+
+### TabItem Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `value` | `string` | - | **Required.** The tab identifier |
+| `label` | `string` | - | Tab button label |
+| `default` | `boolean` | `false` | Mark as default tab |
+| `hidden` | `boolean` | `false` | Hide this tab |
+| `className` | `string` | - | Additional CSS classes |
+| `attributes` | `object` | - | Additional HTML attributes |
+
+## Advanced Examples
+
+### Configuration Examples
+
+<Tabs>
+  <TabItem value="client" label="Client Configuration">
+    ```javascript
+    // Client-side configuration
+    export const clientConfig = {
+      apiEndpoint: 'https://api.neuralabs.org/v1',
+      wsEndpoint: 'wss://ws.neuralabs.org',
+      auth: {
+        type: 'wallet',
+        provider: 'metamask'
+      },
+      features: {
+        trading: true,
+        staking: true,
+        governance: false
+      }
+    };
+    ```
+  </TabItem>
+  <TabItem value="server" label="Server Configuration">
+    ```javascript
+    // Server-side configuration
+    export const serverConfig = {
+      apiEndpoint: process.env.API_ENDPOINT,
+      database: {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        name: process.env.DB_NAME
+      },
+      redis: {
+        url: process.env.REDIS_URL,
+        ttl: 3600
+      },
+      security: {
+        rateLimit: '100/hour',
+        cors: ['https://app.neuralabs.org']
+      }
+    };
+    ```
+  </TabItem>
+  <TabItem value="docker" label="Docker Configuration">
+    ```yaml
+    # docker-compose.yml
+    version: '3.8'
+    services:
+      api:
+        image: neuralabs/api:latest
+        environment:
+          - NODE_ENV=production
+          - API_KEY=${API_KEY}
+          - DATABASE_URL=${DATABASE_URL}
+        ports:
+          - "3000:3000"
+      
+      worker:
+        image: neuralabs/worker:latest
+        environment:
+          - WORKER_THREADS=4
+          - QUEUE_URL=${QUEUE_URL}
+        depends_on:
+          - api
+    ```
+  </TabItem>
+</Tabs>
+
+### Framework Integration
+
+<Tabs groupId="framework">
+  <TabItem value="react" label="React">
+    ```jsx
+    import { NeuraLabsProvider, useNeuraLabs } from '@neuralabs/react';
+    
+    function App() {
+      return (
+        <NeuraLabsProvider config={config}>
+          <Dashboard />
+        </NeuraLabsProvider>
+      );
+    }
+    
+    function Dashboard() {
+      const { agents, createAgent } = useNeuraLabs();
+      
+      return (
+        <div>
+          {agents.map(agent => (
+            <AgentCard key={agent.id} agent={agent} />
+          ))}
+        </div>
+      );
+    }
+    ```
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+    ```vue
+    <template>
+      <div>
+        <agent-card 
+          v-for="agent in agents" 
+          :key="agent.id"
+          :agent="agent"
+        />
+      </div>
+    </template>
+    
+    <script>
+    import { useNeuraLabs } from '@neuralabs/vue';
+    
+    export default {
+      setup() {
+        const { agents, createAgent } = useNeuraLabs();
+        
+        return {
+          agents,
+          createAgent
+        };
+      }
+    };
+    </script>
+    ```
+  </TabItem>
+  <TabItem value="angular" label="Angular">
+    ```typescript
+    import { Component } from '@angular/core';
+    import { NeuraLabsService } from '@neuralabs/angular';
+    
+    @Component({
+      selector: 'app-dashboard',
+      template: `
+        <div *ngFor="let agent of agents$ | async">
+          <agent-card [agent]="agent"></agent-card>
+        </div>
+      `
+    })
+    export class DashboardComponent {
+      agents$ = this.neuralabs.getAgents();
+      
+      constructor(private neuralabs: NeuraLabsService) {}
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## Styling
+
+Tabs come with default Docusaurus styling, but you can customize them:
+
+```css
+/* Custom tab styling */
+.tabs-container {
+  margin: 2rem 0;
+}
+
+.tabs__item {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+.tabs__item--active {
+  border-bottom: 2px solid var(--ifm-color-primary);
+}
+
+.tabs__content {
+  padding: 1rem 0;
+}
+```
+
+## Best Practices
+
+1. **Use meaningful values**: Tab values should be descriptive and URL-friendly
+2. **Consistent grouping**: Use `groupId` for related tab groups
+3. **Default selection**: Always specify a sensible default tab
+4. **Mobile consideration**: Test tab behavior on mobile devices
+5. **Content organization**: Keep tab content focused and concise
+6. **Accessibility**: Tabs are keyboard navigable by default
+
+## Common Use Cases
+
+### Installation Instructions
+Show different installation methods for various package managers
+
+### API Examples  
+Display the same API call in different programming languages
+
+### Platform-Specific Docs
+Separate instructions for web, mobile, and desktop platforms
+
+### Configuration Options
+Show basic vs advanced configuration examples
+
+### Framework Examples
+Compare implementations across different frameworks
