@@ -1,6 +1,6 @@
 {
-  "label": "CODE DISPLAY",
-  "position": 3,
+  "label": "INTRODUCTION",
+  "position": 1,
   "className": "sidebar-header",
   "collapsible": false
 }

@@ -1,8 +1,6 @@
 {
-  "label": "Search & Navigation",
-  "position": 4,
-  "link": {
-    "type": "doc",
-    "id": "search-navigation/blogsearch"
-  }
+  "label": "SEARCH & NAVIGATION",
+  "position": 5,
+  "className": "sidebar-header",
+  "collapsible": false
 }

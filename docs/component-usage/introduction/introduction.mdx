@@ -1,0 +1,168 @@
+---
+id: introductionx
+title: Component Usage Guide
+description: Complete guide for using NeuraLabs UI components
+sidebar_position: 1
+---
+
+# Component Usage Guide
+
+Welcome to the NeuraLabs component documentation. This guide provides comprehensive documentation for all UI components available in the NeuraLabs documentation system.
+
+## Component Categories
+
+### 🎴 Cards & Containers
+Components for displaying content in card formats and highlighted containers:
+- **[Card Component](/component-usage/cards-containers/card)** - Versatile content containers
+- **[Callout Component](/component-usage/cards-containers/callout)** - Highlighted information boxes
+
+### 💻 Code Display
+Components for displaying code with syntax highlighting:
+- **[CodeBlock Components](/component-usage/code-display/codeblock)** - Enhanced code display with collapsible sections
+
+### 📐 Layout Components
+Components for page structure and content organization:
+- **[Features Component](/component-usage/layout-components/features)** - Feature grid displays
+- **[Footer Component](/component-usage/layout-components/footer)** - Site footer with links
+
+### 🔍 Search & Navigation
+Components for search and navigation functionality:
+- **[BlogSearch Component](/component-usage/search-navigation/blogsearch)** - Real-time blog post search
+
+### 📑 Theme Components
+Built-in Docusaurus theme components for enhanced content:
+- **[Tabs Component](/component-usage/theme-components/tabs)** - Organize content into tabbed interfaces
+- **[Theme CodeBlock](/component-usage/theme-components/theme-codeblock)** - Advanced syntax highlighting with line numbers
+
+## Documentation Structure
+
+Learn how to organize and structure your documentation:
+- **[Sidebar Categories & Doc Structure](/component-usage/introduction/sidebar-categories)** - Understanding category types and documentation organization
+
+## Quick Start
+
+### Installation
+
+All components are pre-installed in the documentation system. To use them in your MDX files:
+
+**Custom Components:**
+```javascript
+import { ComponentName } from '@site/src/components/elements/ComponentName';
+```
+
+**Theme Components:**
+```javascript
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock';
+```
+
+### Basic Usage Example
+
+```mdx
+---
+title: My Documentation Page
+---
+
+import { Card, CardHeader, CardTitle } from '@site/src/components/elements/Card';
+import { Callout } from '@site/src/components/elements/Callout';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock';
+
+# My Page
+
+<Card>
+  <CardHeader>
+    <CardTitle>Welcome</CardTitle>
+  </CardHeader>
+  <p>This is a card component.</p>
+</Card>
+
+<Callout type="info">
+  This is an informational callout.
+</Callout>
+
+<Tabs>
+  <TabItem value="js" label="JavaScript">
+    <CodeBlock language="javascript">
+      {`const greeting = "Hello World";`}
+    </CodeBlock>
+  </TabItem>
+  <TabItem value="py" label="Python">
+    <CodeBlock language="python">
+      {`greeting = "Hello World"`}
+    </CodeBlock>
+  </TabItem>
+</Tabs>
+```
+
+## Component Development
+
+### File Structure
+
+Each component follows this structure:
+```
+src/components/elements/ComponentName/
+├── ComponentName.js     # Component logic
+├── ComponentName.css    # Component styles  
+└── index.js            # Export file
+```
+
+### Using Theme Colors
+
+All components use the centralized color theme system:
+
+```css
+.my-component {
+  background: var(--theme-bg-surface);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border-default);
+}
+```
+
+### Adding New Components
+
+1. Create component in `/src/components/elements/`
+2. Use theme CSS variables for styling
+3. Export from index.js
+4. Document in this guide
+5. Test in both light and dark modes
+
+## Best Practices
+
+### 1. Consistent Styling
+- Always use theme CSS variables
+- Follow existing component patterns
+- Maintain consistent spacing
+
+### 2. Accessibility
+- Use semantic HTML
+- Include ARIA labels where needed
+- Ensure keyboard navigation works
+
+### 3. Performance
+- Lazy load heavy components
+- Optimize images and icons
+- Minimize CSS bundle size
+
+### 4. Documentation
+- Provide clear examples
+- Document all props
+- Include common use cases
+
+## Resources
+
+- [Component Source Code](https://github.com/neuralabs/documentation/tree/main/src/components/elements)
+- [Theme Colors Documentation](/theme/colors)
+- [MDX Documentation](https://mdxjs.com/)
+- [Docusaurus Components](https://docusaurus.io/docs/markdown-features)
+
+## Need Help?
+
+If you encounter issues or need assistance:
+
+1. Check the individual component documentation
+2. Review the examples in this guide
+3. Ask in our [Discord community](https://discord.gg/neuralabs)
+4. Open an issue on [GitHub](https://github.com/neuralabs/documentation/issues)

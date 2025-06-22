@@ -1,0 +1,292 @@
+---
+id: sidebar-categories
+title: Sidebar Categories & Doc Structure
+description: Understanding different types of category definitions and documentation structure in Docusaurus
+sidebar_position: 2
+---
+
+import { Callout } from '@site/src/components/elements/Callout';
+import CodeBlock from '@theme/CodeBlock';
+
+# Sidebar Categories & Documentation Structure
+
+This guide explains how to structure documentation and configure sidebar categories in Docusaurus.
+
+## Documentation Structure
+
+### Basic Folder Structure
+
+```
+docs/
+├── _category_.json          # Root category configuration
+├── index.mdx               # Landing page (optional)
+├── introduction/           # Category folder
+│   ├── _category_.json     # Category configuration
+│   ├── getting-started.mdx # Document
+│   └── overview.mdx        # Document
+└── advanced/               # Another category
+    ├── _category_.json
+    └── configuration.mdx
+```
+
+### File Naming Conventions
+
+- Use kebab-case for file names: `getting-started.mdx`
+- Use `.mdx` extension for Markdown files with JSX support
+- Use `.md` extension for pure Markdown files
+- Category folders should have descriptive names
+
+## Category Types
+
+### 1. Non-Clickable Headers (Label Only)
+
+Used for section headers that organize content but aren't clickable.
+
+<CodeBlock language="json" title="_category_.json">
+{`{
+  "label": "SECTION HEADER",
+  "position": 1,
+  "className": "sidebar-header",
+  "collapsible": false
+}`}
+</CodeBlock>
+
+<Callout type="info">
+This is the pattern used in this documentation for headers like "CARDS & CONTAINERS".
+</Callout>
+
+### 2. Clickable Category with Link to First Doc
+
+Category that navigates to a specific document when clicked.
+
+<CodeBlock language="json" title="_category_.json">
+{`{
+  "label": "Getting Started",
+  "position": 1,
+  "link": {
+    "type": "doc",
+    "id": "introduction/getting-started"
+  }
+}`}
+</CodeBlock>
+
+### 3. Generated Index Page
+
+Creates an auto-generated index page listing all items in the category.
+
+<CodeBlock language="json" title="_category_.json">
+{`{
+  "label": "Components",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "title": "Component Library",
+    "description": "All available components",
+    "slug": "/components",
+    "keywords": ["components", "ui"]
+  }
+}`}
+</CodeBlock>
+
+### 4. External Link Category
+
+Category that links to an external URL.
+
+<CodeBlock language="json" title="_category_.json">
+{`{
+  "label": "API Reference",
+  "position": 3,
+  "link": {
+    "type": "url",
+    "href": "https://api.example.com"
+  }
+}`}
+</CodeBlock>
+
+### 5. Collapsible Category
+
+Standard collapsible category without a link.
+
+<CodeBlock language="json" title="_category_.json">
+{`{
+  "label": "Advanced Topics",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true
+}`}
+</CodeBlock>
+
+## Category Configuration Options
+
+### All Available Properties
+
+<CodeBlock language="json" title="_category_.json">
+{`{
+  "label": "Category Name",           // Display name in sidebar
+  "position": 1,                      // Order in sidebar (optional)
+  "className": "custom-class",        // Custom CSS class
+  "collapsible": true,                // Can be collapsed (default: true)
+  "collapsed": false,                 // Initial collapsed state
+  "link": {                          // Optional link configuration
+    "type": "doc" | "generated-index" | "url",
+    "id": "doc-id",                  // For type: "doc"
+    "href": "https://...",           // For type: "url"
+    "title": "Page Title",           // For type: "generated-index"
+    "description": "Description",     // For type: "generated-index"
+    "slug": "/custom-slug"           // For type: "generated-index"
+  },
+  "customProps": {                    // Custom properties
+    "featured": true,
+    "icon": "🚀"
+  }
+}`}
+</CodeBlock>
+
+## Document Front Matter
+
+### Basic Document Configuration
+
+<CodeBlock language="yaml" title="document.mdx">
+{`---
+id: unique-doc-id          # Required: unique identifier
+title: Document Title      # Page title
+description: SEO description
+sidebar_position: 1        # Position in sidebar
+sidebar_label: Short Title # Optional: different sidebar text
+slug: /custom-url         # Optional: custom URL path
+tags: [tutorial, basic]   # Optional: document tags
+---`}
+</CodeBlock>
+
+### Advanced Front Matter Options
+
+<CodeBlock language="yaml" title="advanced-doc.mdx">
+{`---
+id: advanced-doc
+title: Advanced Configuration
+hide_title: false          # Hide the title
+hide_table_of_contents: false  # Hide TOC
+sidebar_class_name: custom-item # Custom sidebar CSS
+pagination_label: Custom Label  # Custom pagination text
+custom_edit_url: https://github.com/... # Custom edit URL
+keywords: [seo, keywords]      # SEO keywords
+image: ./thumbnail.png         # Social media image
+---`}
+</CodeBlock>
+
+## Sidebar Patterns
+
+### Pattern 1: Flat Structure
+
+Best for simple documentation with few pages.
+
+```
+docs/
+├── intro.mdx
+├── installation.mdx
+├── configuration.mdx
+└── troubleshooting.mdx
+```
+
+### Pattern 2: Categorized Structure
+
+Best for organized, multi-topic documentation.
+
+```
+docs/
+├── getting-started/
+│   ├── _category_.json
+│   ├── introduction.mdx
+│   └── installation.mdx
+├── guides/
+│   ├── _category_.json
+│   ├── basic-usage.mdx
+│   └── advanced-usage.mdx
+└── api/
+    ├── _category_.json
+    └── reference.mdx
+```
+
+### Pattern 3: Hierarchical Structure
+
+Best for large documentation with sub-categories.
+
+```
+docs/
+├── platform/
+│   ├── _category_.json
+│   ├── overview/
+│   │   ├── _category_.json
+│   │   └── introduction.mdx
+│   └── components/
+│       ├── _category_.json
+│       ├── frontend/
+│       │   ├── _category_.json
+│       │   └── react.mdx
+│       └── backend/
+│           ├── _category_.json
+│           └── nodejs.mdx
+```
+
+## Custom Styling
+
+### Non-Clickable Headers CSS
+
+The CSS for non-clickable category headers used in this documentation:
+
+<CodeBlock language="css" title="custom-sidebar.css">
+{`/* Non-clickable category headers */
+.sidebar-header > .menu__link {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  color: var(--theme-text-muted);
+  opacity: 0.8;
+  letter-spacing: 0.05em;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+/* Remove hover effects */
+.sidebar-header > .menu__link:hover {
+  background: transparent !important;
+  color: var(--theme-text-muted) !important;
+}`}
+</CodeBlock>
+
+## Best Practices
+
+<Callout type="success" title="Do's">
+- Use consistent naming conventions
+- Keep category names concise and descriptive
+- Organize related content together
+- Use `sidebar_position` for explicit ordering
+- Add descriptions to generated index pages
+</Callout>
+
+<Callout type="warning" title="Don'ts">
+- Avoid deeply nested structures (>3 levels)
+- Don't use special characters in file names
+- Avoid duplicate IDs across documents
+- Don't mix different organizational patterns
+</Callout>
+
+## Example: This Documentation's Structure
+
+This component-usage documentation uses:
+
+1. **Non-clickable category headers** for main sections
+2. **Flat document structure** within each category
+3. **Custom CSS styling** for visual hierarchy
+4. **Consistent naming** conventions
+
+<CodeBlock language="json" title="Example: cards-containers/_category_.json">
+{`{
+  "label": "CARDS & CONTAINERS",
+  "position": 2,
+  "className": "sidebar-header",
+  "collapsible": false
+}`}
+</CodeBlock>
+
+This creates a clean, scannable sidebar where section headers are clearly distinguished from navigable documents.

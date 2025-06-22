@@ -1,10 +1,6 @@
 {
-  "label": "Cards & Containers",
-  "position": 1,
+  "label": "CARDS & CONTAINERS",
+  "position": 2,
   "className": "sidebar-header",
-  "collapsible": false,
-  "link": {
-    "type": "doc",
-    "id": "cards-containers/card"
-  }
+  "collapsible": false
 }

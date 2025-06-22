@@ -1,8 +1,6 @@
 {
-  "label": "Theme Components",
-  "position": 5,
-  "link": {
-    "type": "doc",
-    "id": "theme-components/tabs"
-  }
+  "label": "THEME COMPONENTS",
+  "position": 6,
+  "className": "sidebar-header",
+  "collapsible": false
 }
