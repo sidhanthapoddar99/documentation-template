@@ -40,15 +40,15 @@
   width: 100%;
   max-width: var(--max-width-7xl);
   margin: 0 auto;
-  padding: 0 var(--ifm-navbar-padding-horizontal);
 }
 
-/* First Row */
+/* First Row - Change from fixed height to min-height */
 .navbarFirstRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 60px;
+  min-height: 60px; /* Changed from height: 60px */
+  padding: 0.75rem 0; /* Add padding for breathing room */
 }
 
 .navbarFirstRowLeft {
@@ -73,11 +73,12 @@
   gap: 0.5rem;
 }
 
-/* Second Row */
+/* Second Row - Change from fixed height to min-height */
 .navbarSecondRow {
   display: flex;
   align-items: center;
-  height: 48px;
+  min-height: 48px; /* Changed from height: 48px */
+  padding: 0.5rem 0; /* Add padding */
   background-color: var(--theme-bg-secondary);
 }
 
@@ -86,11 +87,13 @@
   border-bottom: 1px solid var(--theme-border-subtle);
 }
 
+/* Allow nav items to wrap if needed */
 .navbarSecondRowContent {
   display: flex;
   align-items: center;
   gap: 2rem;
   width: 100%;
+  flex-wrap: wrap; /* Add this line */
 }
 
 /* Navigation items styling */

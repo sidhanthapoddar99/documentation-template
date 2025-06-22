@@ -252,65 +252,7 @@ const config = {
       },
 
 
-      footer: 
-      {
-        style: 'dark',
-        links: [
-          // Docs section temporarily disabled
-          // {
-          //   title: 'Docs',
-          //   items: [
-          //     {
-          //       label: 'Introduction',
-          //       to: '/docs/intro',
-          //     },
-          //     {
-          //       label: 'Getting Started',
-          //       to: '/docs/theoretical/getting-started',
-          //     },
-          //     {
-          //       label: 'API Reference',
-          //       to: '/docs/api',
-          //     },
-          //   ],
-          // },
-          {
-            title: 'Community',
-            items: [
-              {
-                label: 'Discord',
-                href: 'https://discord.gg/neuralabs',
-              },
-              {
-                label: 'Twitter',
-                href: 'https://twitter.com/neuralabs',
-              },
-              {
-                label: 'Forum',
-                href: 'https://forum.neuralabs.org',
-              },
-            ],
-          },
-          {
-            title: 'More',
-            items: [
-              // {
-              //   label: 'Blog',
-              //   to: '/blog',
-              // },
-              {
-                label: 'GitHub',
-                href: 'https://github.com/neuralabs/neuralabs-sui',
-              },
-              {
-                label: 'Website',
-                href: 'https://neuralabs.org',
-              },
-            ],
-          },
-        ],
-        copyright: `Copyright © ${new Date().getFullYear()} NeuraLabs. Built with Docusaurus.`,
-      },
+      // footer: false, // Disable default footer - we're using a custom one
 
       prism: 
       {

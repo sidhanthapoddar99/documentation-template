@@ -5,7 +5,7 @@
 /* Update navbar height for desktop two-row layout */
 @media (min-width: 997px) {
   .navbarWrapper {
-    height: 108px; /* 60px (first row) + 48px (second row) */
+    height: auto; /* Changed from height: 108px */
   }
 }
 

@@ -17,3 +17,6 @@ export { CollapsibleCodeBlock, InlineCodeCard } from './CodeBlock';
 
 // BlogSearch component
 export { BlogSearch } from './BlogSearch';
+
+// Footer component
+export { Footer } from './Footer';

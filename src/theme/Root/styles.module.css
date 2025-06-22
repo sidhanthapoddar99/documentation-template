@@ -9,30 +9,30 @@
   position: relative;
 }
 
-/* Reset body/html to prevent conflicts */
+/* Allow normal scrolling */
 :global(html),
 :global(body) {
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Prevent body scroll */
-  height: 100vh;
+  /* Remove overflow: hidden to allow scrolling */
+  height: auto;
+  min-height: 100vh;
 }
 
 :global(#__docusaurus) {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  /* Remove overflow: hidden */
   display: flex;
   flex-direction: column;
-    background-color: var(--theme-bg-primary);
-
+  background-color: var(--theme-bg-primary);
 }
 
-/* Ensure main wrapper takes full height */
+/* Ensure main wrapper takes available space */
 :global(.main-wrapper) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: calc(100vh - var(--ifm-navbar-height));
 }
 
 /* Reset any existing max-width constraints on nested elements */

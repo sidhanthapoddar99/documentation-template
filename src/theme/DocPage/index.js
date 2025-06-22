@@ -43,6 +43,7 @@ export default function DocPage(props) {
         className={clsx(
           'docs-page',
           `docs-page-${versionMetadata.version}`,
+          'docs-no-footer', // Add this class to identify doc pages
         )}>
         <DocsVersionProvider version={versionMetadata}>
           <DocsSidebarProvider sidebar={sidebarItems} name={sidebarName}>

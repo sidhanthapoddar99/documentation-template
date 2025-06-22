@@ -2,20 +2,22 @@
   flex: 1;
   display: flex;
   width: 100%;
-  overflow: hidden;
+  /* Remove overflow: hidden to allow natural scrolling */
 }
 
 .docLayout {
   display: flex;
   width: 100%;
-  height: calc(100vh - var(--ifm-navbar-height));
+  /* Use min-height instead of fixed height */
+  min-height: calc(100vh - var(--ifm-navbar-height));
   position: relative;
 }
 
-/* Mobile responsive - navbar height adjustment */
+/* Mobile responsive */
 @media (min-width: 997px) {
   .docLayout {
-    height: calc(100vh - var(--doc-navbar-height));
+    /* Adjust for dynamic navbar height */
+    min-height: calc(100vh - var(--ifm-navbar-height));
   }
 }
 

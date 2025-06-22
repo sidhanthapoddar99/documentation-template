@@ -6,16 +6,17 @@
   transform: translate3d(0, calc(-100% - 2px), 0);
 }
 
-/* Adjust navbar wrapper height for two-row layout on desktop */
+/* Remove fixed height constraints - let navbar size itself */
 @media (min-width: 997px) {
   .navbarHideable {
-    height: 108px; /* 60px (first row) + 48px (second row) */
+    /* Remove fixed height - let it be auto based on content */
+    height: auto;
   }
 }
 
-/* Keep original height on mobile */
+/* Keep original behavior on mobile */
 @media (max-width: 996px) {
   .navbarHideable {
-    height: var(--ifm-navbar-height);
+    height: auto;
   }
 }

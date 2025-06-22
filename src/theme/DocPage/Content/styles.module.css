@@ -2,15 +2,15 @@
   display: flex;
   width: 100%;
   position: relative;
-  height: 100%;
+  /* Remove fixed height - let content flow naturally */
+  min-height: calc(100vh - var(--ifm-navbar-height));
 }
 
 .contentWrapper {
   flex: 1;
   min-width: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: 100%;
+  /* Allow natural scrolling instead of overflow */
+  height: auto;
   padding: 0;
 }
 
@@ -19,25 +19,10 @@
   max-width: var(--doc-content-max-width);
   margin: 0 auto;
   padding: 2rem 3rem;
+  min-height: calc(100vh - var(--ifm-navbar-height) - 4rem); /* Account for padding */
 }
 
-/* Custom scrollbar */
-.contentWrapper::-webkit-scrollbar {
-  width: 6px;
-}
-
-.contentWrapper::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.contentWrapper::-webkit-scrollbar-thumb {
-  background: var(--theme-border-default);
-  border-radius: 3px;
-}
-
-.contentWrapper::-webkit-scrollbar-thumb:hover {
-  background: var(--theme-text-secondary);
-}
+/* Remove the custom scrollbar section since we're using natural scrolling */
 
 /* Typography enhancements */
 .markdown h1:first-child {
