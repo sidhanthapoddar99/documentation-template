@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Panzoom from '@panzoom/panzoom';
 import styles from '../CustomMermaid/CustomMermaid.module.css';
+import graphvizStyles from './GraphViz.module.css';
 
 const GraphViz = ({ value, title, description, options = {}, engine }) => {
   const containerRef = useRef(null);
@@ -148,40 +149,84 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
     // Make background transparent
     svgElement.style.background = 'transparent';
     
+    // Remove any existing filters first
+    svgElement.style.filter = 'none';
+    
     if (isDark) {
-      // Apply invert filter for dark mode
-      svgElement.style.filter = 'invert(1)';
+      // Manually invert colors for dark mode
       
-      // But keep the brand colors by inverting specific elements back
-      svgElement.querySelectorAll('[fill*="#"], [stroke*="#"]').forEach(el => {
+      // 1. Handle background polygons/rects
+      svgElement.querySelectorAll('polygon, rect').forEach(el => {
         const fill = el.getAttribute('fill');
-        const stroke = el.getAttribute('stroke');
-        
-        // Skip if it's a standard black/white color
-        if (fill && fill !== '#000000' && fill !== '#ffffff' && fill !== 'black' && fill !== 'white') {
-          el.style.filter = 'invert(1)';
-        }
-        if (stroke && stroke !== '#000000' && stroke !== '#ffffff' && stroke !== 'black' && stroke !== 'white') {
-          el.style.filter = 'invert(1)';
+        if (fill === 'white' || fill === '#ffffff') {
+          // Check if it's a large background element
+          try {
+            const bbox = el.getBBox();
+            if (bbox.width > 100 && bbox.height > 100) {
+              el.setAttribute('fill', 'transparent');
+            } else {
+              el.setAttribute('fill', '#1a1a1a');
+            }
+          } catch {
+            el.setAttribute('fill', '#1a1a1a');
+          }
+        } else if (fill === 'lightgray' || fill === '#d3d3d3') {
+          el.setAttribute('fill', '#444444');
+        } else if (fill === 'black' || fill === '#000000') {
+          el.setAttribute('fill', '#888888');
         }
       });
+      
+      // 2. Handle text elements
+      svgElement.querySelectorAll('text').forEach(text => {
+        const fill = text.getAttribute('fill');
+        if (!fill || fill === 'black' || fill === '#000000') {
+          text.setAttribute('fill', '#e0e0e0');
+        }
+      });
+      
+      // 3. Handle strokes (edges, borders)
+      svgElement.querySelectorAll('[stroke]').forEach(el => {
+        const stroke = el.getAttribute('stroke');
+        if (stroke === 'black' || stroke === '#000000') {
+          el.setAttribute('stroke', '#888888');
+        } else if (stroke === 'white' || stroke === '#ffffff') {
+          el.setAttribute('stroke', '#1a1a1a');
+        }
+      });
+      
+      // 4. Handle arrows (polygon markers)
+      svgElement.querySelectorAll('polygon').forEach(polygon => {
+        const fill = polygon.getAttribute('fill');
+        const stroke = polygon.getAttribute('stroke');
+        
+        if (fill === 'black' || fill === '#000000') {
+          polygon.setAttribute('fill', '#888888');
+        }
+        if (stroke === 'black' || stroke === '#000000') {
+          polygon.setAttribute('stroke', '#888888');
+        }
+      });
+      
+      // 5. Handle node fills
+      svgElement.querySelectorAll('g.node ellipse, g.node rect, g.node circle').forEach(shape => {
+        const fill = shape.getAttribute('fill');
+        if (!fill || fill === 'none') {
+          shape.setAttribute('fill', '#2a2a2a');
+        } else if (fill === 'lightgray' || fill === '#d3d3d3') {
+          shape.setAttribute('fill', '#444444');
+        }
+      });
+      
     } else {
-      // Remove any filters in light mode
-      svgElement.style.filter = 'none';
+      // Light mode - ensure we don't have lingering dark mode changes
+      // The CSS will handle this, but we can help by removing inline styles
       svgElement.querySelectorAll('*').forEach(el => {
-        el.style.filter = 'none';
+        if (el.style.filter) {
+          el.style.filter = '';
+        }
       });
     }
-
-    // Remove white background polygons
-    const bgElements = svgElement.querySelectorAll('polygon[fill="white"], rect[fill="white"]');
-    bgElements.forEach(el => {
-      // Check if it's likely a background element (usually the first large polygon)
-      const bbox = el.getBBox ? el.getBBox() : null;
-      if (bbox && bbox.width > 100 && bbox.height > 100) {
-        el.setAttribute('fill', 'transparent');
-      }
-    });
   }, []);
 
   // Initialize everything when GraphViz renders
@@ -410,12 +455,11 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
           </button>
         </div>
         
-        <div ref={wrapperRef} className={styles.mermaidWrapper} style={{ position: 'relative', overflow: 'visible' }}>
+        <div ref={wrapperRef} className={`${styles.mermaidWrapper} ${graphvizStyles.graphvizWrapper}`}>
           <GraphvizComponent 
             dot={value} 
             options={mergedOptions}
             className="graphviz-react-container"
-            style={{ overflow: 'visible' }}
           />
         </div>
         

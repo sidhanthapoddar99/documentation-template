@@ -1,0 +1,76 @@
+/* Override graphviz-react-container styles */
+.graphvizWrapper :global(.graphviz-react-container) {
+  overflow: visible !important;
+}
+
+.graphvizWrapper :global(.graphviz-react-container) > div {
+  overflow: visible !important;
+}
+
+/* Ensure SVG is visible */
+.graphvizWrapper svg {
+  overflow: visible !important;
+}
+
+/* Dark mode SVG handling */
+[data-theme='dark'] .graphvizWrapper svg {
+  /* Background elements */
+  & polygon[fill="white"],
+  & rect[fill="white"] {
+    fill: transparent !important;
+  }
+  
+  /* Text elements */
+  & text {
+    fill: #e0e0e0 !important;
+  }
+  
+  /* Black strokes and fills */
+  & path[stroke="black"],
+  & path[stroke="#000000"],
+  & polygon[stroke="black"],
+  & polygon[stroke="#000000"],
+  & ellipse[stroke="black"],
+  & ellipse[stroke="#000000"],
+  & rect[stroke="black"],
+  & rect[stroke="#000000"],
+  & circle[stroke="black"],
+  & circle[stroke="#000000"] {
+    stroke: #888888 !important;
+  }
+  
+  & path[fill="black"],
+  & path[fill="#000000"],
+  & polygon[fill="black"],
+  & polygon[fill="#000000"] {
+    fill: #888888 !important;
+  }
+  
+  /* Node fills - typically lightgray or similar */
+  & ellipse[fill="lightgray"],
+  & ellipse[fill="#d3d3d3"],
+  & rect[fill="lightgray"],
+  & rect[fill="#d3d3d3"],
+  & circle[fill="lightgray"],
+  & circle[fill="#d3d3d3"] {
+    fill: #444444 !important;
+  }
+  
+  /* Invert any remaining black on white */
+  & g.node ellipse,
+  & g.node rect,
+  & g.node circle {
+    &[fill="none"] {
+      fill: #2a2a2a !important;
+    }
+  }
+}
+
+/* Light mode - ensure original colors */
+[data-theme='light'] .graphvizWrapper svg {
+  filter: none !important;
+  
+  & * {
+    filter: none !important;
+  }
+}
