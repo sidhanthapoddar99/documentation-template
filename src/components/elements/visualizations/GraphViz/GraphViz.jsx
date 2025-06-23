@@ -51,8 +51,6 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
 
     // Wait a bit for graphviz-react to render
     setTimeout(() => {
-      // Find the container div created by graphviz-react
-      const graphContainer = wrapperRef.current.querySelector('.graphviz-react-container');
       const svgElement = wrapperRef.current.querySelector('svg');
       
       if (!svgElement) {
@@ -61,6 +59,30 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
       }
 
       console.log('Found SVG element:', svgElement);
+
+      // Get the actual SVG dimensions
+      const svgViewBox = svgElement.getAttribute('viewBox');
+      let svgWidth, svgHeight;
+      
+      if (svgViewBox) {
+        const [, , width, height] = svgViewBox.split(' ').map(Number);
+        svgWidth = width;
+        svgHeight = height;
+      } else {
+        // Fallback to getBBox
+        const bbox = svgElement.getBBox();
+        svgWidth = bbox.width;
+        svgHeight = bbox.height;
+      }
+
+      // Calculate fit scale based on container size
+      const containerRect = wrapperRef.current.getBoundingClientRect();
+      const containerWidth = containerRect.width;
+      const containerHeight = containerRect.height;
+      
+      const scaleX = containerWidth / svgWidth;
+      const scaleY = containerHeight / svgHeight;
+      const fitScale = Math.min(scaleX, scaleY) * 0.9; // 90% to add some padding
 
       // Apply to the SVG element directly
       try {
@@ -74,10 +96,19 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
           panOnlyWhenZoomed: false,
           animate: true,
           duration: 200,
-          easing: 'ease-in-out'
+          easing: 'ease-in-out',
+          startScale: fitScale
         });
 
-        console.log('Panzoom initialized successfully');
+        // Center the SVG after initializing with proper scale
+        const scaledWidth = svgWidth * fitScale;
+        const scaledHeight = svgHeight * fitScale;
+        const x = (containerWidth - scaledWidth) / 2;
+        const y = (containerHeight - scaledHeight) / 2;
+        
+        panzoomRef.current.pan(x, y);
+
+        console.log('Panzoom initialized successfully with scale:', fitScale);
 
         // Add wheel zoom handler
         const handleWheel = (event) => {
@@ -117,34 +148,37 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
     // Make background transparent
     svgElement.style.background = 'transparent';
     
-    // Update all black elements to theme colors
-    const elements = svgElement.querySelectorAll('*');
-    elements.forEach(el => {
-      // Text elements
-      if (el.tagName === 'text') {
-        if (el.getAttribute('fill') === 'black' || !el.getAttribute('fill')) {
-          el.setAttribute('fill', isDark ? '#e0e0e0' : '#333333');
-        }
-      }
+    if (isDark) {
+      // Apply invert filter for dark mode
+      svgElement.style.filter = 'invert(1)';
       
-      // Paths and shapes
-      if (['path', 'polygon', 'ellipse', 'rect', 'circle'].includes(el.tagName)) {
-        const stroke = el.getAttribute('stroke');
+      // But keep the brand colors by inverting specific elements back
+      svgElement.querySelectorAll('[fill*="#"], [stroke*="#"]').forEach(el => {
         const fill = el.getAttribute('fill');
+        const stroke = el.getAttribute('stroke');
         
-        if (stroke === 'black' || stroke === '#000000') {
-          el.setAttribute('stroke', isDark ? '#888888' : '#555555');
+        // Skip if it's a standard black/white color
+        if (fill && fill !== '#000000' && fill !== '#ffffff' && fill !== 'black' && fill !== 'white') {
+          el.style.filter = 'invert(1)';
         }
-        if (fill === 'black' || fill === '#000000') {
-          el.setAttribute('fill', isDark ? '#666666' : '#666666');
+        if (stroke && stroke !== '#000000' && stroke !== '#ffffff' && stroke !== 'black' && stroke !== 'white') {
+          el.style.filter = 'invert(1)';
         }
-      }
-    });
+      });
+    } else {
+      // Remove any filters in light mode
+      svgElement.style.filter = 'none';
+      svgElement.querySelectorAll('*').forEach(el => {
+        el.style.filter = 'none';
+      });
+    }
 
-    // Remove white background
-    const bgElements = svgElement.querySelectorAll('[fill="white"]');
+    // Remove white background polygons
+    const bgElements = svgElement.querySelectorAll('polygon[fill="white"], rect[fill="white"]');
     bgElements.forEach(el => {
-      if (el.tagName === 'polygon' || el.tagName === 'rect') {
+      // Check if it's likely a background element (usually the first large polygon)
+      const bbox = el.getBBox ? el.getBBox() : null;
+      if (bbox && bbox.width > 100 && bbox.height > 100) {
         el.setAttribute('fill', 'transparent');
       }
     });
@@ -229,8 +263,42 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
   const handleMaxZoomIn = () => panzoomRef.current?.zoom(5, { animate: true });
   
   const handleFitToContainer = () => {
-    if (panzoomRef.current) {
-      panzoomRef.current.reset();
+    if (panzoomRef.current && wrapperRef.current) {
+      const svgElement = wrapperRef.current.querySelector('svg');
+      if (!svgElement) return;
+
+      // Get the actual SVG dimensions
+      const svgViewBox = svgElement.getAttribute('viewBox');
+      let svgWidth, svgHeight;
+      
+      if (svgViewBox) {
+        const [, , width, height] = svgViewBox.split(' ').map(Number);
+        svgWidth = width;
+        svgHeight = height;
+      } else {
+        const bbox = svgElement.getBBox();
+        svgWidth = bbox.width;
+        svgHeight = bbox.height;
+      }
+
+      // Calculate fit scale based on container size
+      const containerRect = wrapperRef.current.getBoundingClientRect();
+      const containerWidth = containerRect.width;
+      const containerHeight = containerRect.height;
+      
+      const scaleX = containerWidth / svgWidth;
+      const scaleY = containerHeight / svgHeight;
+      const fitScale = Math.min(scaleX, scaleY) * 0.9;
+
+      // Apply scale and center
+      panzoomRef.current.zoom(fitScale, { animate: true });
+      
+      const scaledWidth = svgWidth * fitScale;
+      const scaledHeight = svgHeight * fitScale;
+      const x = (containerWidth - scaledWidth) / 2;
+      const y = (containerHeight - scaledHeight) / 2;
+      
+      panzoomRef.current.pan(x, y, { animate: true });
     }
   };
 
@@ -342,11 +410,12 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
           </button>
         </div>
         
-        <div ref={wrapperRef} className={styles.mermaidWrapper} style={{ position: 'relative', overflow: 'hidden' }}>
+        <div ref={wrapperRef} className={styles.mermaidWrapper} style={{ position: 'relative', overflow: 'visible' }}>
           <GraphvizComponent 
             dot={value} 
             options={mergedOptions}
             className="graphviz-react-container"
+            style={{ overflow: 'visible' }}
           />
         </div>
         
