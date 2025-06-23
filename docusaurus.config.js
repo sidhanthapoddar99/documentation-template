@@ -162,6 +162,33 @@ const config = {
         sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
+    // Webpack configuration for WASM
+    function (context, options) {
+      return {
+        name: 'webpack-config-plugin',
+        configureWebpack(config, isServer, utils) {
+          return {
+            module: {
+              rules: [
+                {
+                  test: /\.wasm$/,
+                  type: 'webassembly/async',
+                },
+              ],
+            },
+            experiments: {
+              asyncWebAssembly: true,
+            },
+            resolve: {
+              fallback: {
+                fs: false,
+                path: false,
+              },
+            },
+          };
+        },
+      };
+    },
   ],
 
   markdown: {

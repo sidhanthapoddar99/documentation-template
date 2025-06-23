@@ -12,8 +12,10 @@ export function GraphVizDiagram({
   description,
   engine = 'dot'
 }) {
-  const displayTitle = title || (filename ? `Graph: ${filename}` : 'GraphViz Diagram');
-  const displayDescription = description || (filename ? `Source: ${filename}` : null);
+  // Extract filename without path if present
+  const baseFilename = filename ? filename.split('/').pop() : null;
+  const displayTitle = title || (baseFilename ? `Graph: ${baseFilename}` : 'GraphViz Diagram');
+  const displayDescription = description || (baseFilename ? `Source: ${baseFilename}` : null);
 
   return (
     <GraphViz
