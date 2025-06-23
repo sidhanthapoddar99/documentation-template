@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Panzoom from '@panzoom/panzoom';
 import styles from '../CustomMermaid/CustomMermaid.module.css';
 import graphvizStyles from './GraphViz.module.css';
-import { SVGInverter } from './darkReader/svg-inverter';
 
 const GraphViz = ({ value, title, description, options = {}, engine }) => {
   const containerRef = useRef(null);
@@ -11,20 +10,10 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
   const [GraphvizComponent, setGraphvizComponent] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const panzoomRef = useRef(null);
-  const svgInverterRef = useRef(null);
   
   // Smooth zoom refs
   const zoomIntervalRef = useRef(null);
   const isHoldingRef = useRef(false);
-
-  // Dark Reader theme configuration
-  const darkTheme = {
-    mode: 1,
-    brightness: 105,
-    contrast: 95,
-    grayscale: 0,
-    sepia: 10
-  };
 
   // Load Graphviz component dynamically to avoid SSR issues
   useEffect(() => {
@@ -148,45 +137,17 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
     }, 500); // Give graphviz-react time to render
   }, [destroyPanzoom]);
 
-  // Apply theme colors using Dark Reader approach
-  const applyThemeColors = useCallback(() => {
-    if (!wrapperRef.current) return;
-
-    const svgElement = wrapperRef.current.querySelector('svg');
-    if (!svgElement) return;
-
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    
-    // Make background transparent
-    svgElement.style.background = 'transparent';
-    
-    if (isDark) {
-      // Create or reuse SVG inverter
-      if (!svgInverterRef.current) {
-        svgInverterRef.current = new SVGInverter(darkTheme);
-      }
-      
-      // Apply Dark Reader-style inversion
-      svgInverterRef.current.invertSVG(svgElement);
-    } else {
-      // Remove dark mode filters
-      if (svgInverterRef.current) {
-        svgInverterRef.current.removeSVG(svgElement);
-      }
-    }
-  }, [darkTheme]);
 
   // Initialize everything when GraphViz renders
   useEffect(() => {
     if (!GraphvizComponent || !wrapperRef.current) return;
 
     // Use MutationObserver to detect when SVG is added
-    const observer = new MutationObserver((mutations) => {
+    const observer = new MutationObserver(() => {
       const svg = wrapperRef.current?.querySelector('svg');
       if (svg && !isReady) {
         console.log('SVG detected by MutationObserver');
         setIsReady(true);
-        applyThemeColors();
         initializePanzoom();
         observer.disconnect();
       }
@@ -202,7 +163,6 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
     if (svg) {
       console.log('SVG already present');
       setIsReady(true);
-      applyThemeColors();
       initializePanzoom();
       observer.disconnect();
     }
@@ -211,32 +171,13 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
       observer.disconnect();
       destroyPanzoom();
     };
-  }, [GraphvizComponent, applyThemeColors, initializePanzoom, destroyPanzoom]);
+  }, [GraphvizComponent, initializePanzoom, destroyPanzoom]);
 
-  // Re-apply theme colors when theme changes
-  useEffect(() => {
-    if (!isReady) return;
-
-    const observer = new MutationObserver(() => {
-      applyThemeColors();
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme']
-    });
-
-    return () => observer.disconnect();
-  }, [isReady, applyThemeColors]);
 
   // Fullscreen handling
   useEffect(() => {
     if (isFullScreen) {
       document.body.style.overflow = 'hidden';
-      // Re-initialize panzoom after fullscreen change
-      setTimeout(() => {
-        initializePanzoom();
-      }, 100);
     } else {
       document.body.style.overflow = '';
     }
@@ -244,7 +185,7 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isFullScreen, initializePanzoom]);
+  }, [isFullScreen]);
 
   // Control handlers
   const toggleFullScreen = () => setIsFullScreen(!isFullScreen);
@@ -329,10 +270,6 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
     return () => {
       stopSmoothZoom();
       destroyPanzoom();
-      if (svgInverterRef.current) {
-        svgInverterRef.current.destroy();
-        svgInverterRef.current = null;
-      }
     };
   }, [stopSmoothZoom, destroyPanzoom]);
 

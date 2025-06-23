@@ -12,8 +12,25 @@
   overflow: visible !important;
 }
 
-/* Dark mode is now handled by Dark Reader-style JavaScript inversion */
-/* These styles are kept as fallback or for specific overrides */
+/* Dark mode handling with CSS filters */
+[data-theme='dark'] .graphvizWrapper {
+  /* Apply filter to the wrapper, not the SVG directly */
+  filter: invert(1) hue-rotate(180deg);
+  
+  /* Ensure background stays dark */
+  background-color: transparent;
+}
+
+/* Double-invert images and specific elements to restore original colors */
+[data-theme='dark'] .graphvizWrapper image,
+[data-theme='dark'] .graphvizWrapper img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Smooth transitions */
+.graphvizWrapper {
+  transition: filter 0.3s ease;
+}
 
 /* Ensure filter elements don't affect layout */
 .graphvizWrapper svg[width="0"][height="0"] {
