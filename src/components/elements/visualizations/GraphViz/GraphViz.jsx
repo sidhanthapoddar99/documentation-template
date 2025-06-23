@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Panzoom from '@panzoom/panzoom';
 import styles from '../CustomMermaid/CustomMermaid.module.css';
 import graphvizStyles from './GraphViz.module.css';
+import { SVGInverter } from './darkReader/svg-inverter';
 
 const GraphViz = ({ value, title, description, options = {}, engine }) => {
   const containerRef = useRef(null);
@@ -10,10 +11,20 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
   const [GraphvizComponent, setGraphvizComponent] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const panzoomRef = useRef(null);
+  const svgInverterRef = useRef(null);
   
   // Smooth zoom refs
   const zoomIntervalRef = useRef(null);
   const isHoldingRef = useRef(false);
+
+  // Dark Reader theme configuration
+  const darkTheme = {
+    mode: 1,
+    brightness: 105,
+    contrast: 95,
+    grayscale: 0,
+    sepia: 10
+  };
 
   // Load Graphviz component dynamically to avoid SSR issues
   useEffect(() => {
@@ -137,7 +148,7 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
     }, 500); // Give graphviz-react time to render
   }, [destroyPanzoom]);
 
-  // Apply theme colors
+  // Apply theme colors using Dark Reader approach
   const applyThemeColors = useCallback(() => {
     if (!wrapperRef.current) return;
 
@@ -149,85 +160,21 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
     // Make background transparent
     svgElement.style.background = 'transparent';
     
-    // Remove any existing filters first
-    svgElement.style.filter = 'none';
-    
     if (isDark) {
-      // Manually invert colors for dark mode
+      // Create or reuse SVG inverter
+      if (!svgInverterRef.current) {
+        svgInverterRef.current = new SVGInverter(darkTheme);
+      }
       
-      // 1. Handle background polygons/rects
-      svgElement.querySelectorAll('polygon, rect').forEach(el => {
-        const fill = el.getAttribute('fill');
-        if (fill === 'white' || fill === '#ffffff') {
-          // Check if it's a large background element
-          try {
-            const bbox = el.getBBox();
-            if (bbox.width > 100 && bbox.height > 100) {
-              el.setAttribute('fill', 'transparent');
-            } else {
-              el.setAttribute('fill', '#1a1a1a');
-            }
-          } catch {
-            el.setAttribute('fill', '#1a1a1a');
-          }
-        } else if (fill === 'lightgray' || fill === '#d3d3d3') {
-          el.setAttribute('fill', '#444444');
-        } else if (fill === 'black' || fill === '#000000') {
-          el.setAttribute('fill', '#888888');
-        }
-      });
-      
-      // 2. Handle text elements
-      svgElement.querySelectorAll('text').forEach(text => {
-        const fill = text.getAttribute('fill');
-        if (!fill || fill === 'black' || fill === '#000000') {
-          text.setAttribute('fill', '#e0e0e0');
-        }
-      });
-      
-      // 3. Handle strokes (edges, borders)
-      svgElement.querySelectorAll('[stroke]').forEach(el => {
-        const stroke = el.getAttribute('stroke');
-        if (stroke === 'black' || stroke === '#000000') {
-          el.setAttribute('stroke', '#888888');
-        } else if (stroke === 'white' || stroke === '#ffffff') {
-          el.setAttribute('stroke', '#1a1a1a');
-        }
-      });
-      
-      // 4. Handle arrows (polygon markers)
-      svgElement.querySelectorAll('polygon').forEach(polygon => {
-        const fill = polygon.getAttribute('fill');
-        const stroke = polygon.getAttribute('stroke');
-        
-        if (fill === 'black' || fill === '#000000') {
-          polygon.setAttribute('fill', '#888888');
-        }
-        if (stroke === 'black' || stroke === '#000000') {
-          polygon.setAttribute('stroke', '#888888');
-        }
-      });
-      
-      // 5. Handle node fills
-      svgElement.querySelectorAll('g.node ellipse, g.node rect, g.node circle').forEach(shape => {
-        const fill = shape.getAttribute('fill');
-        if (!fill || fill === 'none') {
-          shape.setAttribute('fill', '#2a2a2a');
-        } else if (fill === 'lightgray' || fill === '#d3d3d3') {
-          shape.setAttribute('fill', '#444444');
-        }
-      });
-      
+      // Apply Dark Reader-style inversion
+      svgInverterRef.current.invertSVG(svgElement);
     } else {
-      // Light mode - ensure we don't have lingering dark mode changes
-      // The CSS will handle this, but we can help by removing inline styles
-      svgElement.querySelectorAll('*').forEach(el => {
-        if (el.style.filter) {
-          el.style.filter = '';
-        }
-      });
+      // Remove dark mode filters
+      if (svgInverterRef.current) {
+        svgInverterRef.current.removeSVG(svgElement);
+      }
     }
-  }, []);
+  }, [darkTheme]);
 
   // Initialize everything when GraphViz renders
   useEffect(() => {
@@ -382,6 +329,10 @@ const GraphViz = ({ value, title, description, options = {}, engine }) => {
     return () => {
       stopSmoothZoom();
       destroyPanzoom();
+      if (svgInverterRef.current) {
+        svgInverterRef.current.destroy();
+        svgInverterRef.current = null;
+      }
     };
   }, [stopSmoothZoom, destroyPanzoom]);
 
