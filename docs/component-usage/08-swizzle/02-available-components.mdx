@@ -1,0 +1,128 @@
+---
+title: Available Components
+description: List of swizzleable Docusaurus components
+sidebar_position: 2
+---
+
+# Available Swizzle Components
+
+This page lists all the components currently swizzled in our documentation and commonly swizzled Docusaurus components.
+
+## Currently Swizzled Components
+
+### 1. DocSidebar
+**Location**: `/src/theme/DocSidebar/`
+
+Customizes the documentation sidebar behavior and styling.
+
+**Files**:
+- `index.js` - Component wrapper
+- `styles.module.css` - Component styles (if using CSS modules)
+
+**Global CSS**: `/src/css/sidebar-overrides.css`
+
+### 2. Navbar
+**Location**: `/src/theme/Navbar/`
+
+Customizes the navigation bar with custom layout and search functionality.
+
+**Structure**:
+```
+Navbar/
+├── Content/
+├── Layout/
+├── MobileSidebar/
+├── Search/
+├── index.js
+└── styles.module.css
+```
+
+### 3. DocPage
+**Location**: `/src/theme/DocPage/`
+
+Customizes the documentation page layout and components.
+
+**Structure**:
+```
+DocPage/
+├── Content/
+├── Layout/
+│   ├── Main/
+│   └── Sidebar/
+├── TOC/
+└── index.js
+```
+
+### 4. Root
+**Location**: `/src/theme/Root/`
+
+Wraps the entire application, useful for:
+- Global providers
+- Analytics
+- Custom fonts
+- Global styles
+
+### 5. BlogListPage & BlogPostPage
+**Location**: `/src/theme/BlogListPage/` and `/src/theme/BlogPostPage/`
+
+Customizes blog layout and functionality.
+
+## Commonly Swizzled Components
+
+### Footer
+```bash
+npm run swizzle @docusaurus/theme-classic Footer -- --wrap
+```
+
+### CodeBlock
+For custom code highlighting or additional features:
+```bash
+npm run swizzle @docusaurus/theme-classic CodeBlock -- --wrap
+```
+
+### MDXComponents
+To add custom MDX components globally:
+```bash
+npm run swizzle @docusaurus/theme-classic MDXComponents -- --wrap
+```
+
+### SearchBar
+For custom search implementation:
+```bash
+npm run swizzle @docusaurus/theme-classic SearchBar -- --eject
+```
+
+## Swizzling Commands
+
+### List all available components
+```bash
+npm run swizzle @docusaurus/theme-classic -- --list
+```
+
+### Wrap a component (safer)
+```bash
+npm run swizzle @docusaurus/theme-classic [ComponentName] -- --wrap
+```
+
+### Eject a component (full control)
+```bash
+npm run swizzle @docusaurus/theme-classic [ComponentName] -- --eject
+```
+
+### TypeScript support
+```bash
+npm run swizzle @docusaurus/theme-classic [ComponentName] -- --typescript
+```
+
+## Component Safety Levels
+
+Docusaurus categorizes components by safety:
+
+- **Safe** ✅ - Stable API, safe to swizzle
+- **Unsafe** ⚠️ - May break between versions
+- **Forbidden** ❌ - Internal components, do not swizzle
+
+Always check the safety level before swizzling:
+```bash
+npm run swizzle @docusaurus/theme-classic -- --list
+```

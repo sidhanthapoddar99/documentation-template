@@ -1,0 +1,85 @@
+---
+title: Swizzling Overview
+description: Understanding Docusaurus component swizzling
+sidebar_position: 1
+---
+
+# Swizzling Overview
+
+Swizzling is Docusaurus's mechanism for customizing theme components. It allows you to override default theme components with your own implementations.
+
+## What is Swizzling?
+
+Swizzling lets you:
+- **Override** default theme components with custom implementations
+- **Wrap** existing components to extend their functionality
+- **Customize** the look and behavior of your documentation site
+
+## Swizzling Approaches
+
+### 1. Safe Swizzling (Wrapping)
+Wrap the original component to add extra functionality while preserving the original behavior.
+
+```jsx
+// src/theme/DocSidebar/index.js
+import React from 'react';
+import DocSidebar from '@theme-original/DocSidebar';
+
+export default function DocSidebarWrapper(props) {
+  return (
+    <>
+      <div className="custom-sidebar-header">My Custom Header</div>
+      <DocSidebar {...props} />
+    </>
+  );
+}
+```
+
+### 2. Unsafe Swizzling (Ejecting)
+Completely replace the component with your own implementation. This gives full control but may break with Docusaurus updates.
+
+## Directory Structure
+
+Swizzled components must follow Docusaurus's theme structure:
+
+```
+src/theme/
+├── DocSidebar/          # Sidebar component
+│   ├── index.js
+│   └── styles.module.css
+├── Navbar/              # Navigation bar
+│   ├── index.js
+│   └── styles.module.css
+├── Footer/              # Footer component
+│   └── index.js
+└── Root/                # Root wrapper component
+    └── index.js
+```
+
+## CSS Approaches
+
+### CSS Modules
+```jsx
+import styles from './styles.module.css';
+
+export default function MyComponent() {
+  return <div className={styles.myClass}>Content</div>;
+}
+```
+
+### Global CSS
+For complex selectors or when CSS modules aren't working:
+```css
+/* src/css/custom-overrides.css */
+.menu__link--active {
+  background: var(--color-brand-primary);
+}
+```
+
+## Best Practices
+
+1. **Prefer wrapping over ejecting** - Safer for updates
+2. **Use TypeScript** - Better IDE support and type safety
+3. **Document your swizzles** - Track what you've customized
+4. **Test after updates** - Swizzled components may break
+5. **Use global CSS sparingly** - Prefer CSS modules when possible

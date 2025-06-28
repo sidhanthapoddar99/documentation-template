@@ -1,0 +1,161 @@
+---
+title: Sidebar Customization
+description: How to customize the Docusaurus sidebar
+sidebar_position: 3
+---
+
+# Sidebar Customization
+
+This guide explains how we've customized the sidebar in our documentation.
+
+## Current Implementation
+
+### Component Location
+- **Swizzled Component**: `/src/theme/DocSidebar/index.js`
+- **Global Styles**: `/src/css/sidebar-overrides.css`
+- **Layout Styles**: `/src/theme/DocPage/Layout/Sidebar/styles.module.css`
+
+### Why Global CSS?
+
+We use global CSS (`sidebar-overrides.css`) because:
+1. Docusaurus's component hierarchy makes CSS modules complex
+2. Global CSS ensures styles are always applied
+3. Easier to maintain and debug
+4. Better specificity control
+
+## Sidebar Patterns
+
+### 1. Collapsible Sections
+Standard expandable/collapsible categories with chevron indicators.
+
+```json
+{
+  "label": "My Section",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": true
+}
+```
+
+### 2. Non-Collapsible Headers
+Section headers that act as visual separators with no interaction.
+
+```json
+{
+  "label": "SECTION HEADER",
+  "position": 2,
+  "className": "sidebar-header",
+  "collapsible": false
+}
+```
+
+**Key Features**:
+- Bold, uppercase text
+- No hover effects
+- No chevron indicator
+- Items below have same indentation as header
+
+## CSS Structure
+
+### Active Item Styling
+```css
+.menu__link--active {
+  background: var(--color-brand-primary) !important;
+  color: white !important;
+}
+
+/* Left border indicator */
+.menu__link--active:not(.menu__link--sublist)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 3px;
+  background: var(--color-brand-primary);
+}
+```
+
+### Non-Collapsible Header Styling
+```css
+.sidebar-header > .menu__link {
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 0.8125rem !important;
+  color: var(--theme-text-muted) !important;
+  opacity: 0.8 !important;
+  letter-spacing: 0.05em !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+```
+
+### Same-Level Indentation
+```css
+/* Items under sidebar-header have same indentation */
+.sidebar-header > .menu__list .menu__link {
+  padding-left: 0.75rem !important;
+}
+
+/* Remove container indentation */
+.sidebar-header > .menu__list {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+```
+
+## Troubleshooting
+
+### Styles Not Applying
+
+1. **Clear Docusaurus cache**:
+   ```bash
+   npm run clear
+   npm run start
+   ```
+
+2. **Check import order** in `custom.css`:
+   ```css
+   @import './generated-colors.css';
+   @import './variables.css';
+   @import './sidebar-overrides.css';
+   ```
+
+3. **Verify component location**:
+   - Must be at `/src/theme/DocSidebar/`
+   - Not under `/src/theme/DocPage/`
+
+### CSS Specificity Issues
+
+Use `!important` sparingly but necessary for:
+- Overriding Docusaurus defaults
+- Ensuring consistent behavior
+- Critical visual elements
+
+## Future Improvements
+
+### Option 1: Move to CSS Modules
+```jsx
+// src/theme/DocSidebar/index.js
+import styles from './styles.module.css';
+
+export default function DocSidebarWrapper(props) {
+  return (
+    <div className={styles.customSidebar}>
+      <DocSidebar {...props} />
+    </div>
+  );
+}
+```
+
+### Option 2: Styled Components
+```jsx
+import styled from 'styled-components';
+
+const StyledSidebar = styled.div`
+  .menu__link--active {
+    background: var(--color-brand-primary);
+  }
+`;
+```
+
+### Option 3: CSS-in-JS
+Using emotion or other CSS-in-JS solutions for dynamic styling.
