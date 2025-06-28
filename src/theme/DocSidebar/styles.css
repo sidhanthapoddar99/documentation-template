@@ -1,0 +1,257 @@
+/**
+ * DocSidebar Component Styles
+ * All sidebar customizations in one place
+ */
+
+/* ==================== Base Sidebar Styles ==================== */
+
+/* Active link styles */
+.menu__link--active {
+  background: var(--color-brand-primary) !important;
+  color: white !important;
+}
+
+.menu__link--active:hover {
+  background: var(--color-brand-primaryHover) !important;
+  color: white !important;
+}
+
+/* ==================== Custom Sidebar UX Pattern ==================== */
+
+/* Level 1 - Category Headers (non-collapsible with sidebar-header class) */
+.sidebar-header > .menu__link,
+.menu__list-item.sidebar-header > .menu__link {
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 0.8125rem !important;
+  color: var(--theme-text-muted) !important;
+  opacity: 0.8 !important;
+  letter-spacing: 0.05em !important;
+  padding: 0.5rem 0.75rem !important;
+  margin-top: 1rem !important;
+  cursor: default !important;
+  pointer-events: none !important;
+  text-decoration: none !important;
+}
+
+/* Remove hover effects for category headers */
+.sidebar-header > .menu__link:hover,
+.menu__list-item.sidebar-header > .menu__link:hover {
+  background: transparent !important;
+  color: var(--theme-text-muted) !important;
+  text-decoration: none !important;
+}
+
+/* Items under non-collapsible categories (sidebar-header) have same indentation */
+.sidebar-header > .menu__list .menu__link {
+  padding-left: 0.75rem !important; /* Same as category */
+  font-weight: 400;
+  font-size: 0.9rem;
+  color: var(--theme-text-secondary);
+}
+
+/* Nested items under sidebar-header maintain relative indentation */
+.sidebar-header > .menu__list .menu__list .menu__link {
+  padding-left: 1.5rem !important;
+}
+
+.sidebar-header > .menu__list .menu__list .menu__list .menu__link {
+  padding-left: 2.25rem !important;
+}
+
+/* Remove indentation for the list container under sidebar-header */
+.sidebar-header > .menu__list {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Active state - subtle highlight with left border */
+.menu__link--active:not(.menu__link--sublist) {
+  font-weight: 500;
+  color: var(--theme-text-primary);
+  background: transparent;
+  position: relative;
+}
+
+/* Active indicator - left border */
+.menu__link--active:not(.menu__link--sublist)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-brand-primary) !important;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Adjust padding for active items to account for border */
+.menu__link--active:not(.menu__link--sublist) {
+  padding-left: calc(0.75rem - 3px) !important;
+}
+
+/* Active items under sidebar-header maintain same indentation */
+.sidebar-header > .menu__list .menu__link--active:not(.menu__link--sublist) {
+  padding-left: calc(0.75rem - 3px) !important;
+}
+
+.sidebar-header > .menu__list .menu__list .menu__link--active:not(.menu__link--sublist) {
+  padding-left: calc(1.5rem - 3px) !important;
+}
+
+/* Hide chevron for sidebar-header categories */
+.sidebar-header > .menu__link--sublist-caret::after,
+.sidebar-header > .menu__list-item-collapsible > .menu__link::after {
+  display: none !important;
+}
+
+/* Minimal chevron for regular collapsible items */
+.menu__link--sublist-caret:not(.sidebar-header > .menu__link)::after {
+  content: '›';
+  font-size: 0.75rem;
+  opacity: 0.4;
+  margin-left: auto;
+  margin-right: 0;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+  font-weight: 400;
+}
+
+.menu__link--sublist-caret[aria-expanded='true']:not(.sidebar-header > .menu__link)::after {
+  transform: rotate(90deg);
+  opacity: 0.6;
+}
+
+/* Hide default Docusaurus chevron/caret */
+.menu__caret {
+  display: none;
+}
+
+/* Ensure proper spacing between sidebar sections */
+.theme-doc-sidebar-menu > .menu__list > .menu__list-item + .menu__list-item {
+  margin-top: 0.5rem;
+}
+
+/* Sidebar container adjustments */
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--theme-border-subtle);
+}
+
+/* Sidebar scrollbar styling */
+.theme-doc-sidebar-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.theme-doc-sidebar-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.theme-doc-sidebar-container::-webkit-scrollbar-thumb {
+  background: var(--theme-border-default);
+  border-radius: 3px;
+}
+
+.theme-doc-sidebar-container::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-border-strong);
+}
+
+/* Always show the nested list for sidebar headers */
+.sidebar-header > .menu__list {
+  max-height: none !important;
+  overflow: visible !important;
+  /* Remove additional spacing for non-collapsible headers */
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Ensure categories stay expanded when they should */
+.sidebar-header.menu__list-item--collapsed .menu__list,
+.sidebar-header .menu__list {
+  display: block !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Remove collapsible behavior from sidebar headers */
+.sidebar-header.menu__list-item-collapsible {
+  transition: none !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 996px) {
+  .sidebar-header > .menu__link,
+  .menu__list-item.sidebar-header > .menu__link {
+    font-size: 0.875rem;
+    padding: 0.625rem 1rem;
+  }
+  
+  .menu__list .menu__list .menu__link {
+    font-size: 0.9375rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .menu__list .menu__list .menu__list .menu__link {
+    padding-left: 2rem;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .sidebar-header > .menu__link,
+[data-theme='dark'] .menu__list-item.sidebar-header > .menu__link {
+  color: var(--theme-text-muted);
+}
+
+[data-theme='dark'] .menu__list .menu__list .menu__link {
+  color: var(--theme-text-secondary);
+}
+
+[data-theme='dark'] .menu__list .menu__list .menu__link:hover {
+  color: var(--theme-text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Smooth transitions */
+.menu__link {
+  transition: color 0.2s ease, background-color 0.2s ease, padding 0.2s ease;
+}
+
+/* Focus styles for accessibility */
+.menu__link:focus {
+  outline: 2px solid var(--ifm-color-primary-light);
+  outline-offset: -2px;
+}
+
+/* Remove focus outline for non-interactive headers */
+.sidebar-header > .menu__link:focus {
+  outline: none;
+}
+
+/* First category should not have top margin */
+.menu__list > .menu__list-item:first-child .sidebar-header > .menu__link {
+  margin-top: 0;
+}
+
+/* HTML sidebar dividers (for manual sidebars) */
+.sidebar-divider {
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar-divider .sidebar-header {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  color: var(--theme-text-muted);
+  opacity: 0.8;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.75rem;
+  margin-top: 1rem;
+  display: block;
+  cursor: default;
+  user-select: none;
+}
+
+/* First divider should not have top margin */
+.menu__list > .menu__list-item:first-child + .sidebar-divider .sidebar-header {
+  margin-top: 0;
+}
