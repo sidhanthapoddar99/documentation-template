@@ -142,6 +142,14 @@ Standard collapsible category without a link.
 }`}
 </CodeBlock>
 
+<Callout type="info" title={"Class"}>
+The `className` property allows you to apply custom CSS styles to the while category section not only the header. 
+
+1. To `modify header` we need to user something like `.classname > .menu__link` in CSS.
+2. To `modify the group under the header` we can use `.classname > .menu__list` or `.classname > ul`.
+3. To `modify the items` we can use `.classname > .menu__list > li`  or `.classname > .menu_list > .menu__list-item`. 
+</Callout>
+
 ## Document Front Matter
 
 ### Basic Document Configuration
