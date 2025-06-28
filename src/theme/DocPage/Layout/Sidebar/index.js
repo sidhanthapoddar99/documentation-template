@@ -1,7 +1,7 @@
 import React from 'react';
 import {DocSidebarItemsExpandedStateProvider} from '@docusaurus/theme-common/internal';
 import DocSidebar from '@theme/DocSidebar';
-import styles from './styles.module.css';
+import styles from '../../Sidebar/styles.module.css';
 import clsx from 'clsx';
 
 export default function DocPageLayoutSidebar({sidebar, isMobile}) {
