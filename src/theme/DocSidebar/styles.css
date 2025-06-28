@@ -11,15 +11,22 @@
 /* Active state for nested items */
  .menu__link--active {
   background: var(--color-brand-primary) !important;
+  border-radius: 7.5px;
   color: white ;
 }
 
  .menu__link--active:hover {
-  background: var(--color-brand-primaryHover) !important;
+  background: var(--color-brand-primaryHover);
   color: white ;
 }
 
 
+.menu__list-item-collapsible > .menu__link--active,
+.menu__list-item-collapsible > .menu__link--active 
+{
+  background: transparent ;
+  color: inherit ;
+}
 
 
 
@@ -35,7 +42,7 @@
 .sidebar-header > .menu__list-item-collapsible > .menu__link--active:hover 
 {
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   /* text-transform: uppercase; */
   letter-spacing: 0.05em;
   background: transparent !important;
@@ -128,7 +135,7 @@
 /* ==================== Scrollbar Styling ==================== */
 
 .theme-doc-sidebar-container {
-  border-right: 1px solid var(--theme-border-subtle);
+  border-right: 0px !important;
 }
 
 .theme-doc-sidebar-container::-webkit-scrollbar {
