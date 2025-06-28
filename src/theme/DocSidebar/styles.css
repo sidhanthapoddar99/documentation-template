@@ -19,7 +19,6 @@
 /* ==================== Custom Sidebar UX Pattern ==================== */
 
 /* Level 1 - Category Headers (non-collapsible with sidebar-header class) */
-.sidebar-header > .menu__link,
 .menu__list-item.sidebar-header > .menu__link {
   font-weight: 700 !important;
   text-transform: uppercase !important;
@@ -35,7 +34,6 @@
 }
 
 /* Remove hover effects for category headers */
-.sidebar-header > .menu__link:hover,
 .menu__list-item.sidebar-header > .menu__link:hover {
   background: transparent !important;
   color: var(--theme-text-muted) !important;
@@ -100,13 +98,13 @@
 }
 
 /* Hide chevron for sidebar-header categories */
-.sidebar-header > .menu__link--sublist-caret::after,
-.sidebar-header > .menu__list-item-collapsible > .menu__link::after {
+.menu__list-item.sidebar-header > .menu__link--sublist-caret::after,
+.menu__list-item.sidebar-header.menu__list-item-collapsible > .menu__link::after {
   display: none !important;
 }
 
 /* Minimal chevron for regular collapsible items */
-.menu__link--sublist-caret:not(.sidebar-header > .menu__link)::after {
+.menu__link--sublist-caret::after {
   content: '›';
   font-size: 0.75rem;
   opacity: 0.4;
@@ -117,7 +115,7 @@
   font-weight: 400;
 }
 
-.menu__link--sublist-caret[aria-expanded='true']:not(.sidebar-header > .menu__link)::after {
+.menu__link--sublist-caret[aria-expanded='true']::after {
   transform: rotate(90deg);
   opacity: 0.6;
 }
@@ -156,7 +154,7 @@
 }
 
 /* Always show the nested list for sidebar headers */
-.sidebar-header > .menu__list {
+.menu__list-item.sidebar-header > .menu__list {
   max-height: none !important;
   overflow: visible !important;
   /* Remove additional spacing for non-collapsible headers */
@@ -164,22 +162,21 @@
   margin-bottom: 0.5rem;
 }
 
-/* Ensure categories stay expanded when they should */
-.sidebar-header.menu__list-item--collapsed .menu__list,
-.sidebar-header .menu__list {
+/* Ensure sidebar-header categories stay expanded */
+.menu__list-item.sidebar-header.menu__list-item--collapsed > .menu__list,
+.menu__list-item.sidebar-header > .menu__list {
   display: block !important;
   height: auto !important;
   overflow: visible !important;
 }
 
 /* Remove collapsible behavior from sidebar headers */
-.sidebar-header.menu__list-item-collapsible {
+.menu__list-item.sidebar-header.menu__list-item-collapsible {
   transition: none !important;
 }
 
 /* Mobile adjustments */
 @media (max-width: 996px) {
-  .sidebar-header > .menu__link,
   .menu__list-item.sidebar-header > .menu__link {
     font-size: 0.875rem;
     padding: 0.625rem 1rem;
@@ -196,7 +193,6 @@
 }
 
 /* Dark mode adjustments */
-[data-theme='dark'] .sidebar-header > .menu__link,
 [data-theme='dark'] .menu__list-item.sidebar-header > .menu__link {
   color: var(--theme-text-muted);
 }
@@ -222,7 +218,7 @@
 }
 
 /* Remove focus outline for non-interactive headers */
-.sidebar-header > .menu__link:focus {
+.menu__list-item.sidebar-header > .menu__link:focus {
   outline: none;
 }
 
