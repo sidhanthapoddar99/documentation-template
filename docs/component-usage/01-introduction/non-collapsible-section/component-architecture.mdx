@@ -1,0 +1,39 @@
+---
+title: Component Architecture
+description: How components are structured in NeuraLabs
+sidebar_position: 2
+---
+
+# Component Architecture
+
+Learn about the component structure and organization principles.
+
+## Directory Structure
+
+```
+src/components/
+├── elements/          # Reusable UI components
+│   ├── Button/
+│   ├── Card/
+│   └── Grid/
+├── homepage/         # Page-specific components
+└── roadmap/          # Feature-specific components
+```
+
+## Component Pattern
+
+Each component follows this structure:
+
+```
+ComponentName/
+├── ComponentName.js    # Main component logic
+├── ComponentName.css   # Component styles
+└── index.js           # Export file
+```
+
+## Best Practices
+
+1. **Single Responsibility**: Each component should do one thing well
+2. **Props Interface**: Define clear prop types
+3. **Composition**: Build complex UIs from simple components
+4. **Performance**: Use React.memo for expensive components
