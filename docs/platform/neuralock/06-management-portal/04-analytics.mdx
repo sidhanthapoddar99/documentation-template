@@ -1,0 +1,379 @@
+---
+id: analytics
+title: Analytics Dashboard
+description: Comprehensive monitoring and insights for the Neuralock network
+sidebar_position: 4
+---
+
+import { Card, CardHeader, CardTitle } from "@site/src/components/elements";
+import { Callout } from "@site/src/components/elements";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@theme/Tabs';
+import { MermaidDiagram } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
+import CodeBlock from '@theme/CodeBlock';
+
+import AnalyticsArchitecture from '!!raw-loader!./assets/analytics-architecture.mermaid';
+import MetricsCollection from '!!raw-loader!./assets/metrics-collection.mermaid';
+import DashboardComponent from '!!raw-loader!./assets/analytics-dashboard-component.tsx';
+import MetricsService from '!!raw-loader!./assets/metrics-service.ts';
+import ChartImplementations from '!!raw-loader!./assets/chart-implementations.tsx';
+
+# Analytics Dashboard
+
+The Analytics Dashboard provides real-time insights into the Neuralock network's performance, usage patterns, and health metrics. It enables administrators to monitor system behavior, identify trends, and make data-driven decisions.
+
+## Analytics Architecture
+
+<MermaidDiagram content={AnalyticsArchitecture} filename="analytics-architecture.mermaid" />
+
+## Key Metrics Categories
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>🌐 Network Overview</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Total encryption/decryption operations</li>
+        <li>Active servers and their distribution</li>
+        <li>Network availability percentage</li>
+        <li>Average response times</li>
+      </ul>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>⚡ Performance Metrics</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Request throughput (ops/second)</li>
+        <li>Latency percentiles (p50, p95, p99)</li>
+        <li>Success/failure rates</li>
+        <li>Resource utilization</li>
+      </ul>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>📊 Usage Analytics</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Operations by type</li>
+        <li>User activity patterns</li>
+        <li>Application integration stats</li>
+        <li>Geographic distribution</li>
+      </ul>
+    </div>
+  </Card>
+</div>
+
+## Dashboard Views
+
+### System Overview
+
+The main dashboard provides a high-level view of system health:
+
+<Tabs defaultValue="realtime">
+  <TabItem value="realtime">
+    <Card>
+      <CardHeader>
+        <CardTitle>Real-Time Metrics</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <p><strong>Live Data Streams:</strong></p>
+        <ul>
+          <li>Current operations per second</li>
+          <li>Active session count</li>
+          <li>Server health status</li>
+          <li>Error rate monitoring</li>
+          <li>Network latency map</li>
+        </ul>
+      </div>
+    </Card>
+  </TabItem>
+  
+  <TabItem value="historical">
+    <Card>
+      <CardHeader>
+        <CardTitle>Historical Analysis</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <p><strong>Time-Series Data:</strong></p>
+        <ul>
+          <li>Usage trends over time</li>
+          <li>Performance comparisons</li>
+          <li>Growth metrics</li>
+          <li>Incident history</li>
+          <li>Seasonal patterns</li>
+        </ul>
+      </div>
+    </Card>
+  </TabItem>
+  
+  <TabItem value="predictive">
+    <Card>
+      <CardHeader>
+        <CardTitle>Predictive Analytics</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <p><strong>Forecasting Models:</strong></p>
+        <ul>
+          <li>Capacity planning projections</li>
+          <li>Performance degradation alerts</li>
+          <li>Usage growth predictions</li>
+          <li>Anomaly detection</li>
+          <li>Resource requirement forecasts</li>
+        </ul>
+      </div>
+    </Card>
+  </TabItem>
+</Tabs>
+
+## Metrics Collection Flow
+
+<MermaidDiagram content={MetricsCollection} filename="metrics-collection.mermaid" />
+
+## Dashboard Implementation
+
+<FileCollapsibleCodeBlock content={DashboardComponent} filename="analytics-dashboard-component.tsx" />
+
+## Metrics Service
+
+The metrics service handles data collection, aggregation, and storage:
+
+<FileCollapsibleCodeBlock content={MetricsService} filename="metrics-service.ts" />
+
+## Chart Components
+
+### Performance Charts
+
+<FileCollapsibleCodeBlock content={ChartImplementations} filename="chart-implementations.tsx" />
+
+## Key Performance Indicators (KPIs)
+
+### Network Health Score
+
+The overall health score is calculated using weighted factors:
+
+```typescript
+interface HealthScore {
+  overall: number;        // 0-100
+  factors: {
+    availability: number; // Weight: 30%
+    performance: number;  // Weight: 25%
+    errorRate: number;    // Weight: 20%
+    capacity: number;     // Weight: 15%
+    compliance: number;   // Weight: 10%
+  };
+}
+```
+
+### Threshold Definitions
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>🟢 Healthy</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Availability > 99.5%</li>
+        <li>Response time < 100ms</li>
+        <li>Error rate < 0.1%</li>
+        <li>Capacity usage < 70%</li>
+      </ul>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🟡 Warning</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Availability 95-99.5%</li>
+        <li>Response time 100-500ms</li>
+        <li>Error rate 0.1-1%</li>
+        <li>Capacity usage 70-85%</li>
+      </ul>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🔴 Critical</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Availability < 95%</li>
+        <li>Response time > 500ms</li>
+        <li>Error rate > 1%</li>
+        <li>Capacity usage > 85%</li>
+      </ul>
+    </div>
+  </Card>
+</div>
+
+## Analytics Reports
+
+### Automated Reports
+
+The system generates scheduled reports:
+
+1. **Daily Summary**
+   - Key metrics overview
+   - Significant events
+   - Performance highlights
+   - Action items
+
+2. **Weekly Analysis**
+   - Trend comparisons
+   - Server performance rankings
+   - Usage patterns
+   - Capacity projections
+
+3. **Monthly Deep Dive**
+   - Comprehensive metrics
+   - Growth analysis
+   - Cost optimization opportunities
+   - Strategic recommendations
+
+### Custom Reports
+
+Users can create custom reports with:
+
+- Flexible date ranges
+- Metric selection
+- Grouping options
+- Export formats (PDF, CSV, JSON)
+
+## Data Visualization Types
+
+### Time Series Charts
+- Line charts for trends
+- Area charts for cumulative metrics
+- Candlestick charts for ranges
+
+### Distribution Charts
+- Histograms for response times
+- Pie charts for operation types
+- Heatmaps for geographic data
+
+### Comparison Charts
+- Bar charts for server comparisons
+- Radar charts for multi-dimensional analysis
+- Scatter plots for correlations
+
+### Network Visualizations
+- Node graphs for server relationships
+- Sankey diagrams for data flow
+- Chord diagrams for interactions
+
+## Alert Configuration
+
+<Callout type="info">
+  <strong>Alert Types:</strong>
+  <ul>
+    <li><strong>Threshold Alerts:</strong> Triggered when metrics exceed defined limits</li>
+    <li><strong>Anomaly Alerts:</strong> Machine learning detects unusual patterns</li>
+    <li><strong>Trend Alerts:</strong> Significant changes in trends</li>
+    <li><strong>Composite Alerts:</strong> Multiple conditions combined</li>
+  </ul>
+</Callout>
+
+### Alert Rules
+
+```typescript
+interface AlertRule {
+  name: string;
+  description: string;
+  condition: {
+    metric: string;
+    operator: '>' | '<' | '==' | '!=' | 'anomaly';
+    threshold: number;
+    duration?: number; // seconds
+  };
+  severity: 'info' | 'warning' | 'error' | 'critical';
+  notifications: {
+    email?: string[];
+    webhook?: string[];
+    slack?: string[];
+  };
+  cooldown: number; // Prevent alert spam
+}
+```
+
+## Data Retention Policies
+
+### Storage Tiers
+
+1. **Hot Storage (0-7 days)**
+   - Full resolution data
+   - Real-time queries
+   - In-memory caching
+
+2. **Warm Storage (7-30 days)**
+   - 1-minute aggregations
+   - Standard queries
+   - SSD storage
+
+3. **Cold Storage (30+ days)**
+   - Hourly aggregations
+   - Historical analysis
+   - Object storage
+
+## Integration Points
+
+### Data Sources
+
+- **Neuralock Servers**: Direct metrics API
+- **Blockchain**: On-chain events and transactions
+- **Application Logs**: Via log aggregation
+- **External Monitoring**: Prometheus, Grafana
+- **Custom Metrics**: API endpoints
+
+### Export Options
+
+- **Grafana**: Pre-built dashboards
+- **DataDog**: Metric forwarding
+- **Elasticsearch**: Log indexing
+- **BigQuery**: Data warehouse
+- **S3/GCS**: Raw data export
+
+## Best Practices
+
+<Callout type="tip">
+  <strong>Analytics Guidelines:</strong>
+  <ul>
+    <li>Set up alerts for critical metrics early</li>
+    <li>Use percentiles instead of averages for latency</li>
+    <li>Monitor trends, not just absolute values</li>
+    <li>Correlate metrics to identify root causes</li>
+    <li>Regular review and adjustment of thresholds</li>
+  </ul>
+</Callout>
+
+## Performance Optimization
+
+### Query Optimization
+- Pre-aggregated materialized views
+- Efficient time-series indexing
+- Query result caching
+- Parallel query execution
+
+### Dashboard Performance
+- Lazy loading of charts
+- Progressive data loading
+- Client-side caching
+- WebSocket for real-time updates
+
+## Next Steps
+
+- [Security Model →](../07-security/01-security-model)
+- [Server Setup →](../05-server-setup)
+- [Advanced Analytics →](../08-advanced)

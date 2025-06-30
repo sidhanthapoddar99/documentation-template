@@ -1,0 +1,64 @@
+graph TB
+    subgraph "Header"
+        Logo[Logo/Brand]
+        Search[Search Bar]
+        Notifications[Notifications]
+        Profile[User Profile]
+    end
+    
+    subgraph "Sidebar"
+        Nav[Navigation Menu]
+        Dashboard[Dashboard]
+        Servers[Servers]
+        Roles[Roles]
+        Verification[Verification]
+        Analytics[Analytics]
+        Settings[Settings]
+    end
+    
+    subgraph "Main Content"
+        subgraph "Metrics Row"
+            ServerCount[Server Metrics]
+            UserCount[User Metrics]
+            NetworkHealth[Network Status]
+            Alerts[Active Alerts]
+        end
+        
+        subgraph "Charts Section"
+            Activity[Activity Chart]
+            Performance[Performance Graph]
+        end
+        
+        subgraph "Tables Section"
+            Recent[Recent Activity]
+            Pending[Pending Actions]
+        end
+    end
+    
+    subgraph "Footer"
+        Status[System Status]
+        Version[Version Info]
+        Links[Documentation Links]
+    end
+    
+    Header --> Sidebar
+    Header --> Main Content
+    Sidebar --> Main Content
+    Main Content --> Footer
+    
+    Nav --> Dashboard
+    Nav --> Servers
+    Nav --> Roles
+    Nav --> Verification
+    Nav --> Analytics
+    Nav --> Settings
+    
+    classDef header fill:#e3f2fd,stroke:#1565c0
+    classDef sidebar fill:#f3e5f5,stroke:#6a1b9a
+    classDef content fill:#e8f5e9,stroke:#2e7d32
+    classDef footer fill:#fafafa,stroke:#616161
+    
+    class Logo,Search,Notifications,Profile header
+    class Nav,Dashboard,Servers,Roles,Verification,Analytics,Settings sidebar
+    class ServerCount,UserCount,NetworkHealth,Alerts,Activity,Performance,Recent,Pending content
+    class Status,Version,Links footer

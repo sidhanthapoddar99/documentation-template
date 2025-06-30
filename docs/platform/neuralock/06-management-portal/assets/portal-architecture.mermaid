@@ -1,0 +1,60 @@
+graph TB
+    subgraph "Frontend Layer"
+        UI[React UI]
+        Redux[Redux Store]
+        SDK[Web3 SDK]
+    end
+    
+    subgraph "Authentication"
+        Wallet[Web3 Wallet]
+        Auth[Auth Service]
+        Session[Session Manager]
+    end
+    
+    subgraph "API Layer"
+        REST[REST API]
+        WS[WebSocket Server]
+        Cache[Redis Cache]
+    end
+    
+    subgraph "Blockchain"
+        Registry[Registry Contract]
+        Apps[Application Contracts]
+    end
+    
+    subgraph "Services"
+        Analytics[Analytics Service]
+        Monitor[Health Monitor]
+        Notif[Notification Service]
+    end
+    
+    UI --> Redux
+    UI --> SDK
+    SDK --> Wallet
+    Wallet --> Auth
+    Auth --> Session
+    
+    Redux --> REST
+    Redux --> WS
+    
+    REST --> Cache
+    REST --> Registry
+    REST --> Apps
+    
+    WS --> Monitor
+    WS --> Notif
+    
+    Monitor --> Analytics
+    Registry --> Analytics
+    
+    classDef frontend fill:#e1f5fe,stroke:#01579b
+    classDef auth fill:#f3e5f5,stroke:#4a148c
+    classDef api fill:#e8f5e9,stroke:#1b5e20
+    classDef blockchain fill:#fff3e0,stroke:#e65100
+    classDef service fill:#fce4ec,stroke:#880e4f
+    
+    class UI,Redux,SDK frontend
+    class Wallet,Auth,Session auth
+    class REST,WS,Cache api
+    class Registry,Apps blockchain
+    class Analytics,Monitor,Notif service

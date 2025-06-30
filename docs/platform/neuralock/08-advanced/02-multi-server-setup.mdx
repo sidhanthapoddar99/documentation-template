@@ -1,0 +1,428 @@
+---
+title: Multi-Server Setup
+description: Complete guide to deploying and managing Neuralock servers across multiple regions and environments
+sidebar_position: 2
+---
+
+import { Card as InfoCard } from '@site/src/components/elements';
+import { Card as WarningCard } from '@site/src/components/elements';
+import { Card as TipCard } from '@site/src/components/elements';
+import { CollapsibleCodeBlock as CodePreview } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { MermaidDiagram } from '@site/src/components/elements';
+import DeploymentArchitectureSource from '!!raw-loader!./assets/multi-server-deployment-architecture.mermaid';
+import NetworkTopologySource from '!!raw-loader!./assets/network-topology.mermaid';
+import DockerComposeSource from '!!raw-loader!./assets/docker-compose-multi-server.yml';
+import KubernetesDeploymentSource from '!!raw-loader!./assets/kubernetes-deployment.yaml';
+import TerraformConfigSource from '!!raw-loader!./assets/terraform-multi-region.tf';
+import AnsiblePlaybookSource from '!!raw-loader!./assets/ansible-deployment.yml';
+import ServerSyncSource from '!!raw-loader!./assets/server-synchronization.ts';
+import HealthMonitoringSource from '!!raw-loader!./assets/multi-server-health-monitoring.ts';
+import LoadBalancerConfigSource from '!!raw-loader!./assets/load-balancer-config.yaml';
+
+# Multi-Server Setup
+
+This guide covers the deployment and management of Neuralock servers across multiple regions, data centers, and cloud providers to achieve high availability and fault tolerance.
+
+<Card type="info">
+<strong>Deployment Complexity:</strong> Multi-server deployments require careful planning of network architecture, security policies, and operational procedures. Review your requirements thoroughly before proceeding.
+</Card>
+
+## Architecture Overview
+
+A production multi-server deployment typically includes servers distributed across regions with different roles and responsibilities.
+
+<MermaidDiagram content={DeploymentArchitectureSource} filename="multi-server-deployment-architecture.mermaid" />
+
+## Network Topology
+
+Understanding the network topology is crucial for optimal server placement and communication patterns.
+
+<MermaidDiagram content={NetworkTopologySource} filename="network-topology.mermaid" />
+
+## Deployment Options
+
+### 1. Docker Compose (Development/Testing)
+
+For development and testing environments with multiple servers on a single host.
+
+<FileCollapsibleCodeBlock content={DockerComposeSource} filename="docker-compose-multi-server.yml" />
+
+<Card type="tip">
+<strong>Quick Start:</strong> Use <code>docker-compose up -d</code> to start all servers. Access the admin panel at <code>http://localhost:8001/admin</code>.
+</Card>
+
+### 2. Kubernetes (Production)
+
+Enterprise-grade deployment using Kubernetes for orchestration and scaling.
+
+<FileCollapsibleCodeBlock content={KubernetesDeploymentSource} filename="kubernetes-deployment.yaml" />
+
+#### Deployment Steps
+
+```bash
+# Create namespace
+kubectl create namespace neuralock
+
+# Apply configurations
+kubectl apply -f kubernetes-deployment.yaml
+
+# Check deployment status
+kubectl get pods -n neuralock
+
+# Scale servers
+kubectl scale deployment neuralock-server --replicas=9 -n neuralock
+```
+
+### 3. Terraform (Multi-Cloud)
+
+Infrastructure as Code approach for multi-region, multi-cloud deployments.
+
+<FileCollapsibleCodeBlock content={TerraformConfigSource} filename="terraform-multi-region.tf" />
+
+### 4. Ansible Automation
+
+Automated deployment and configuration management using Ansible.
+
+<FileCollapsibleCodeBlock content={AnsiblePlaybookSource} filename="ansible-deployment.yml" />
+
+## Server Synchronization
+
+Implementing efficient synchronization between servers is critical for data consistency.
+
+<FileCollapsibleCodeBlock content={ServerSyncSource} filename="server-synchronization.ts" />
+
+## Load Balancing
+
+Configure load balancers for optimal request distribution across servers.
+
+<FileCollapsibleCodeBlock content={LoadBalancerConfigSource} filename="load-balancer-config.yaml" />
+
+### Load Balancing Strategies
+
+| Strategy | Use Case | Pros | Cons |
+|----------|----------|------|------|
+| Round Robin | Equal server capacity | Simple, fair distribution | Ignores server load |
+| Least Connections | Variable request duration | Balances active load | Requires connection tracking |
+| Weighted Round Robin | Different server capacities | Accounts for server power | Static weights |
+| Geographic | Global deployment | Low latency | Complex configuration |
+| Resource Based | Dynamic workloads | Optimal resource usage | Requires monitoring |
+
+## Health Monitoring
+
+Comprehensive health monitoring for multi-server deployments.
+
+<FileCollapsibleCodeBlock content={HealthMonitoringSource} filename="multi-server-health-monitoring.ts" />
+
+## Security Considerations
+
+### Network Security
+
+1. **Private Networks**
+   - Use VPC/VNet for server communication
+   - Implement network segmentation
+   - Configure security groups/firewalls
+
+2. **TLS Configuration**
+   ```yaml
+   tls:
+     internal:
+       cert: /etc/neuralock/certs/internal.crt
+       key: /etc/neuralock/certs/internal.key
+       ca: /etc/neuralock/certs/ca.crt
+       verify_mode: "require"
+     external:
+       cert: /etc/neuralock/certs/external.crt
+       key: /etc/neuralock/certs/external.key
+   ```
+
+3. **Access Control**
+   - Implement mutual TLS between servers
+   - Use API keys for server authentication
+   - Regular key rotation
+
+### Server Hardening
+
+```bash
+# Disable unnecessary services
+systemctl disable bluetooth
+systemctl disable cups
+
+# Configure firewall
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 8000/tcp  # Neuralock API
+ufw allow 9090/tcp  # Metrics
+ufw enable
+
+# Set up fail2ban
+apt-get install fail2ban
+cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+systemctl enable fail2ban
+```
+
+## Operational Procedures
+
+### Rolling Updates
+
+1. **Preparation**
+   ```bash
+   # Check current version
+   curl -s http://server1:8000/version
+   
+   # Verify threshold configuration
+   neuralock-cli threshold status
+   ```
+
+2. **Update Process**
+   ```bash
+   # Update one server at a time
+   for server in server1 server2 server3; do
+     echo "Updating $server..."
+     ssh $server 'sudo systemctl stop neuralock'
+     ssh $server 'sudo apt-get update && sudo apt-get install neuralock'
+     ssh $server 'sudo systemctl start neuralock'
+     
+     # Wait for health check
+     sleep 30
+     curl -f http://$server:8000/health || exit 1
+   done
+   ```
+
+3. **Verification**
+   ```bash
+   # Test functionality
+   neuralock-cli test all-servers
+   ```
+
+### Backup and Recovery
+
+<Card type="warning">
+<strong>Critical:</strong> Always maintain backups of server keys and configuration. Loss of server keys can result in permanent data loss.
+</Card>
+
+```bash
+#!/bin/bash
+# Backup script for multi-server deployment
+
+BACKUP_DIR="/backup/neuralock/$(date +%Y%m%d)"
+SERVERS="server1 server2 server3"
+
+for server in $SERVERS; do
+  mkdir -p "$BACKUP_DIR/$server"
+  
+  # Backup configuration
+  scp $server:/etc/neuralock/config.yaml "$BACKUP_DIR/$server/"
+  
+  # Backup keys (encrypted)
+  ssh $server "sudo tar -czf - /etc/neuralock/keys/" | \
+    gpg --encrypt -r backup@example.com > "$BACKUP_DIR/$server/keys.tar.gz.gpg"
+  
+  # Backup database
+  ssh $server "sudo -u postgres pg_dump neuralock" | \
+    gzip > "$BACKUP_DIR/$server/database.sql.gz"
+done
+
+# Create manifest
+echo "Backup completed at $(date)" > "$BACKUP_DIR/manifest.txt"
+```
+
+### Disaster Recovery Procedures
+
+1. **Single Server Failure**
+   - Automatic failover handles request routing
+   - Replace failed server from backup
+   - Resync data from healthy servers
+
+2. **Regional Failure**
+   - Activate disaster recovery site
+   - Update DNS to point to DR region
+   - Notify users of potential degradation
+
+3. **Complete System Recovery**
+   - Restore from latest backup
+   - Verify threshold configuration
+   - Test with non-critical data first
+
+## Performance Tuning
+
+### Server Configuration
+
+```yaml
+# Optimized server configuration
+performance:
+  # Connection pooling
+  connection_pool:
+    size: 100
+    timeout: 30
+    idle_timeout: 300
+  
+  # Worker threads
+  workers:
+    count: 16  # 2x CPU cores
+    queue_size: 1000
+  
+  # Caching
+  cache:
+    type: "redis"
+    size: "1GB"
+    ttl: 3600
+  
+  # Database
+  database:
+    pool_size: 20
+    statement_timeout: 5000
+    lock_timeout: 3000
+```
+
+### Network Optimization
+
+1. **Enable TCP BBR**
+   ```bash
+   echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
+   echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
+   sysctl -p
+   ```
+
+2. **Tune Network Parameters**
+   ```bash
+   # Increase network buffers
+   echo "net.core.rmem_max = 134217728" >> /etc/sysctl.conf
+   echo "net.core.wmem_max = 134217728" >> /etc/sysctl.conf
+   echo "net.ipv4.tcp_rmem = 4096 87380 134217728" >> /etc/sysctl.conf
+   echo "net.ipv4.tcp_wmem = 4096 65536 134217728" >> /etc/sysctl.conf
+   ```
+
+## Monitoring Dashboard
+
+### Key Metrics for Multi-Server Deployments
+
+| Metric | Warning Threshold | Critical Threshold | Action |
+|--------|------------------|-------------------|---------|
+| Server Availability | < 95% | < 90% | Check health endpoint |
+| Response Time (p95) | > 200ms | > 500ms | Scale up servers |
+| Error Rate | > 1% | > 5% | Check logs |
+| Sync Lag | > 60s | > 300s | Investigate network |
+| Certificate Expiry | < 30 days | < 7 days | Renew certificates |
+
+### Grafana Dashboard Configuration
+
+```json
+{
+  "dashboard": {
+    "title": "Neuralock Multi-Server Overview",
+    "panels": [
+      {
+        "title": "Server Availability by Region",
+        "targets": [{
+          "expr": "up{job='neuralock'} by (region)"
+        }]
+      },
+      {
+        "title": "Request Distribution",
+        "targets": [{
+          "expr": "rate(neuralock_requests_total[5m]) by (server)"
+        }]
+      },
+      {
+        "title": "Threshold Status",
+        "targets": [{
+          "expr": "neuralock_threshold_health"
+        }]
+      }
+    ]
+  }
+}
+```
+
+## Troubleshooting Common Issues
+
+### Server Communication Failures
+
+1. **Check Network Connectivity**
+   ```bash
+   # Test server-to-server connectivity
+   for server in server2 server3; do
+     ssh server1 "nc -zv $server 8000"
+   done
+   ```
+
+2. **Verify TLS Certificates**
+   ```bash
+   # Check certificate validity
+   openssl s_client -connect server1:8000 -showcerts
+   ```
+
+3. **Review Firewall Rules**
+   ```bash
+   # List active rules
+   sudo iptables -L -n -v
+   ```
+
+### Synchronization Issues
+
+1. **Check Sync Status**
+   ```bash
+   neuralock-cli sync status --all-servers
+   ```
+
+2. **Force Resynchronization**
+   ```bash
+   neuralock-cli sync force --server server2
+   ```
+
+### Performance Degradation
+
+1. **Identify Slow Servers**
+   ```bash
+   neuralock-cli perf test --all-servers
+   ```
+
+2. **Check Resource Usage**
+   ```bash
+   # CPU and Memory
+   ssh server1 "top -b -n 1"
+   
+   # Disk I/O
+   ssh server1 "iostat -x 1 5"
+   ```
+
+## Best Practices
+
+1. **Geographic Distribution**
+   - Place servers in different availability zones
+   - Consider data sovereignty requirements
+   - Optimize for user proximity
+
+2. **Capacity Planning**
+   - Monitor growth trends
+   - Plan for 2x expected load
+   - Regular load testing
+
+3. **Documentation**
+   - Maintain server inventory
+   - Document network topology
+   - Keep runbooks updated
+
+4. **Security**
+   - Regular security audits
+   - Automated vulnerability scanning
+   - Incident response procedures
+
+<Card type="tip">
+<strong>Pro Tip:</strong> Use infrastructure as code for all deployments. This ensures consistency, enables version control, and simplifies disaster recovery.
+</Card>
+
+## Next Steps
+
+- Review [Performance Optimization](./03-performance-optimization) techniques
+- Set up comprehensive [Monitoring](../server-setup/monitoring)
+- Implement [Security Best Practices](../security/best-practices)
+
+## Related Resources
+
+- [Threshold Configuration](./01-threshold-configuration)
+- [Server Installation Guide](../server-setup/server-installation)
+- [Disaster Recovery Planning](./04-troubleshooting)

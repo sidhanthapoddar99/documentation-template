@@ -1,0 +1,48 @@
+graph TB
+    subgraph "Configuration Sources"
+        Config[config.yaml<br/>Main Configuration]
+        Keys[keys.yaml<br/>Cryptographic Keys]
+        Env[.env<br/>Environment Variables]
+        Logging[logging.yaml<br/>Logging Config]
+    end
+    
+    subgraph "Configuration Loading"
+        Loader[Configuration Loader<br/>- YAML Parser<br/>- Schema Validation<br/>- Variable Substitution]
+        Validator[Configuration Validator<br/>- Type Checking<br/>- Range Validation<br/>- Dependency Check]
+    end
+    
+    subgraph "Configuration Objects"
+        ServerConfig[Server Config<br/>- Host/Port<br/>- Workers<br/>- Timeouts]
+        BlockchainConfig[Blockchain Config<br/>- RPC URLs<br/>- Contracts<br/>- Gas Settings]
+        StorageConfig[Storage Config<br/>- Redis Settings<br/>- LevelDB Settings<br/>- Cache Config]
+        SecurityConfig[Security Config<br/>- Rate Limits<br/>- CORS<br/>- TLS Settings]
+    end
+    
+    subgraph "Application Components"
+        API[API Service<br/>FastAPI]
+        Session[Session Manager<br/>Redis Client]
+        Blockchain[Blockchain Service<br/>Web3 Provider]
+        Storage[Storage Service<br/>LevelDB Client]
+    end
+    
+    Config --> Loader
+    Keys --> Loader
+    Env --> Loader
+    Logging --> Loader
+    
+    Loader --> Validator
+    Validator --> ServerConfig
+    Validator --> BlockchainConfig
+    Validator --> StorageConfig
+    Validator --> SecurityConfig
+    
+    ServerConfig --> API
+    BlockchainConfig --> Blockchain
+    StorageConfig --> Session
+    StorageConfig --> Storage
+    SecurityConfig --> API
+    
+    style Config fill:#f9f,stroke:#333,stroke-width:2px
+    style Keys fill:#ff9,stroke:#333,stroke-width:2px
+    style Env fill:#9ff,stroke:#333,stroke-width:2px
+    style Validator fill:#f96,stroke:#333,stroke-width:2px

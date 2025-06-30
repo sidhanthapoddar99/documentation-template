@@ -1,0 +1,48 @@
+graph TB
+    subgraph "React Hooks Architecture"
+        App[React Application]
+        
+        subgraph "Context Layer"
+            Provider[NeuralockProvider]
+            Context[NeuralockContext]
+        end
+        
+        subgraph "Core Hooks"
+            UseNeuralock[useNeuralock]
+            UseSession[useNeuralockSession]
+            UsePermissions[useNeuralockPermissions]
+            UseCache[useNeuralockCache]
+        end
+        
+        subgraph "State Management"
+            ClientState[Client State]
+            SessionState[Session State]
+            CacheState[Cache State]
+        end
+        
+        subgraph "JavaScript SDK"
+            Client[NeuralockClient]
+            SM[SessionManager]
+            CM[CacheManager]
+        end
+    end
+    
+    App --> Provider
+    Provider --> Context
+    Context --> ClientState
+    Context --> SessionState
+    Context --> CacheState
+    
+    UseNeuralock --> Context
+    UseSession --> Context
+    UsePermissions --> Context
+    UseCache --> Context
+    
+    ClientState --> Client
+    SessionState --> SM
+    CacheState --> CM
+    
+    style Provider fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style UseNeuralock fill:#2196F3,stroke:#1565C0,color:#fff
+    style UseSession fill:#2196F3,stroke:#1565C0,color:#fff
+    style UsePermissions fill:#2196F3,stroke:#1565C0,color:#fff

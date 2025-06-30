@@ -1,0 +1,522 @@
+---
+title: Code Examples
+sidebar_position: 4
+description: Practical code examples for common Neuralock use cases
+---
+
+import { Card } from '@site/src/components/elements';
+import Tabs from "@theme/Tabs";
+import { FileCollapsibleCodeBlock } from "@site/src/components/elements/CodeBlock";
+import { MermaidDiagram } from '@site/src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import { Callout as Alert } from "@site/src/components/elements";
+
+import HealthcareExample from '!!raw-loader!./assets/examples/healthcare-app.js';
+import FinancialExample from '!!raw-loader!./assets/examples/financial-vault.py';
+import MessagingExample from '!!raw-loader!./assets/examples/secure-messaging.jsx';
+import FileStorageExample from '!!raw-loader!./assets/examples/file-storage.js';
+import MultiTenantExample from '!!raw-loader!./assets/examples/multi-tenant.py';
+import MobileExample from '!!raw-loader!./assets/examples/react-native.jsx';
+import ExampleFlowSource from '!!raw-loader!./assets/example-flow.mermaid';
+
+# Code Examples
+
+This section provides practical examples of how to implement Neuralock in various real-world scenarios. Each example demonstrates best practices and common patterns.
+
+## Overview
+
+<MermaidDiagram content={ExampleFlowSource} filename="example-flow.mermaid" />
+
+## Healthcare Application
+
+A HIPAA-compliant patient records system using Neuralock for encryption:
+
+<FileCollapsibleCodeBlock content={HealthcareExample} filename="healthcare-app.js" />
+
+### Key Features
+- Patient record encryption with field-level granularity
+- Role-based access control (Doctor, Nurse, Patient)
+- Audit logging for compliance
+- Emergency access protocols
+
+## Financial Vault
+
+A secure financial document storage system with Python:
+
+<FileCollapsibleCodeBlock content={FinancialExample} filename="financial-vault.py" />
+
+### Key Features
+- Document categorization and tagging
+- Multi-signature approval workflows
+- Automated retention policies
+- Integration with compliance systems
+
+## Secure Messaging
+
+End-to-end encrypted messaging using React:
+
+<FileCollapsibleCodeBlock content={MessagingExample} filename="secure-messaging.jsx" />
+
+### Key Features
+- Real-time message encryption
+- Group chat support
+- Message expiration
+- Attachment encryption
+
+## File Storage Service
+
+A Dropbox-like file storage service with encryption:
+
+<FileCollapsibleCodeBlock content={FileStorageExample} filename="file-storage.js" />
+
+### Key Features
+- Large file streaming encryption
+- Folder structure preservation
+- Sharing with granular permissions
+- Version history with encryption
+
+## Multi-Tenant SaaS
+
+Enterprise SaaS with tenant isolation:
+
+<FileCollapsibleCodeBlock content={MultiTenantExample} filename="multi-tenant.py" />
+
+### Key Features
+- Complete tenant data isolation
+- Per-tenant encryption keys
+- Cross-tenant data sharing (with consent)
+- Tenant-specific server selection
+
+## Mobile Integration
+
+React Native implementation for mobile apps:
+
+<FileCollapsibleCodeBlock content={MobileExample} filename="react-native.jsx" />
+
+### Key Features
+- Biometric authentication
+- Secure key storage
+- Offline capability
+- Background encryption
+
+## Common Patterns
+
+### Error Recovery
+
+```javascript
+class ResilientNeuralockClient {
+  constructor(config) {
+    this.client = new NeuralockClient(config);
+    this.retryCount = 3;
+    this.backoffMs = 1000;
+  }
+
+  async encryptWithRetry(data, objectId) {
+    let lastError;
+    
+    for (let i = 0; i < this.retryCount; i++) {
+      try {
+        return await this.client.encrypt(data, objectId);
+      } catch (error) {
+        lastError = error;
+        
+        if (error instanceof SessionExpiredError) {
+          await this.client.initialize();
+        } else if (error instanceof ThresholdNotMetError) {
+          // Wait with exponential backoff
+          await new Promise(resolve => 
+            setTimeout(resolve, this.backoffMs * Math.pow(2, i))
+          );
+        } else {
+          throw error; // Non-recoverable error
+        }
+      }
+    }
+    
+    throw lastError;
+  }
+}
+```
+
+### Batch Processing
+
+```python
+class BatchProcessor:
+    def __init__(self, client, batch_size=100):
+        self.client = client
+        self.batch_size = batch_size
+    
+    async def process_csv(self, file_path, object_id_column, data_columns):
+        """Process CSV file with encryption"""
+        import pandas as pd
+        
+        df = pd.read_csv(file_path)
+        total_rows = len(df)
+        
+        for start in range(0, total_rows, self.batch_size):
+            end = min(start + self.batch_size, total_rows)
+            batch = df.iloc[start:end]
+            
+            # Prepare batch items
+            items = []
+            for _, row in batch.iterrows():
+                data = {col: row[col] for col in data_columns}
+                items.append((
+                    json.dumps(data),
+                    row[object_id_column]
+                ))
+            
+            # Batch encrypt
+            results = await self.client.abatch_encrypt(items)
+            
+            # Store results
+            for (_, object_id), encrypted in zip(items, results):
+                await self.store_encrypted(object_id, encrypted)
+            
+            print(f"Processed {end}/{total_rows} rows")
+```
+
+### Migration from Existing System
+
+```javascript
+// Migrate from traditional encryption to Neuralock
+async function migrateExistingData(oldSystem, neuralockClient) {
+  const records = await oldSystem.getAllRecords();
+  const migrationLog = [];
+  
+  for (const record of records) {
+    try {
+      // Decrypt with old system
+      const decrypted = await oldSystem.decrypt(
+        record.encryptedData,
+        record.encryptionKey
+      );
+      
+      // Re-encrypt with Neuralock
+      const neuralockEncrypted = await neuralockClient.encrypt(
+        decrypted,
+        record.id
+      );
+      
+      // Store new encrypted data
+      await storeNeuralockData(record.id, neuralockEncrypted);
+      
+      // Log successful migration
+      migrationLog.push({
+        id: record.id,
+        status: 'success',
+        timestamp: new Date()
+      });
+      
+    } catch (error) {
+      migrationLog.push({
+        id: record.id,
+        status: 'failed',
+        error: error.message,
+        timestamp: new Date()
+      });
+    }
+  }
+  
+  return migrationLog;
+}
+```
+
+### Performance Monitoring
+
+```typescript
+interface PerformanceMetrics {
+  operationType: 'encrypt' | 'decrypt';
+  duration: number;
+  objectSize: number;
+  serverCount: number;
+  timestamp: Date;
+}
+
+class MonitoredNeuralockClient extends NeuralockClient {
+  private metrics: PerformanceMetrics[] = [];
+  
+  async encrypt(data: string, objectId: string): Promise<EncryptedData> {
+    const start = performance.now();
+    
+    try {
+      const result = await super.encrypt(data, objectId);
+      
+      this.recordMetric({
+        operationType: 'encrypt',
+        duration: performance.now() - start,
+        objectSize: new Blob([data]).size,
+        serverCount: result.metadata.servers.length,
+        timestamp: new Date()
+      });
+      
+      return result;
+    } catch (error) {
+      this.recordError('encrypt', error);
+      throw error;
+    }
+  }
+  
+  private recordMetric(metric: PerformanceMetrics) {
+    this.metrics.push(metric);
+    
+    // Send to monitoring service
+    if (this.metrics.length >= 100) {
+      this.flushMetrics();
+    }
+  }
+  
+  private async flushMetrics() {
+    await sendToMonitoring(this.metrics);
+    this.metrics = [];
+  }
+}
+```
+
+## Testing Strategies
+
+### Unit Testing
+
+```javascript
+import { createMockClient } from '@neuralock/client/testing';
+
+describe('SecureDocumentService', () => {
+  let mockClient;
+  let service;
+  
+  beforeEach(() => {
+    mockClient = createMockClient({
+      mockEncryption: true,
+      mockServers: 3
+    });
+    service = new SecureDocumentService(mockClient);
+  });
+  
+  test('should encrypt document with metadata', async () => {
+    const document = {
+      title: 'Test Document',
+      content: 'Sensitive content'
+    };
+    
+    const result = await service.saveDocument(document);
+    
+    expect(result.encrypted).toBeDefined();
+    expect(result.metadata.title).toBe('Test Document');
+    expect(mockClient.encrypt).toHaveBeenCalledWith(
+      JSON.stringify(document),
+      expect.any(String)
+    );
+  });
+});
+```
+
+### Integration Testing
+
+```python
+import pytest
+from neuralock.testing import TestServer, create_test_client
+
+@pytest.fixture
+async def test_environment():
+    # Start test servers
+    servers = [TestServer(port=8001 + i) for i in range(3)]
+    for server in servers:
+        await server.start()
+    
+    # Create test client
+    client = create_test_client(
+        servers=[{"nft_id": i+1} for i in range(3)],
+        test_mode=True
+    )
+    
+    yield client
+    
+    # Cleanup
+    for server in servers:
+        await server.stop()
+
+@pytest.mark.asyncio
+async def test_full_encryption_flow(test_environment):
+    client = test_environment
+    
+    # Initialize
+    await client.ainitialize()
+    
+    # Test encryption
+    data = "Integration test data"
+    encrypted = await client.aencrypt(data, "test-001")
+    
+    assert encrypted.metadata["servers"] == ["1", "2", "3"]
+    
+    # Test decryption
+    decrypted = await client.adecrypt(encrypted, "test-001")
+    assert decrypted == data
+```
+
+## Security Best Practices
+
+### Input Validation
+
+```javascript
+class SecureNeuralockWrapper {
+  constructor(client) {
+    this.client = client;
+  }
+  
+  async encryptValidated(data, objectId) {
+    // Validate object ID format
+    if (!/^[a-zA-Z0-9-_]+$/.test(objectId)) {
+      throw new Error('Invalid object ID format');
+    }
+    
+    // Validate data size
+    const dataSize = new Blob([data]).size;
+    if (dataSize > 10 * 1024 * 1024) { // 10MB limit
+      throw new Error('Data too large for encryption');
+    }
+    
+    // Sanitize data if needed
+    const sanitized = this.sanitizeData(data);
+    
+    return await this.client.encrypt(sanitized, objectId);
+  }
+  
+  sanitizeData(data) {
+    // Implement data sanitization logic
+    return data;
+  }
+}
+```
+
+### Access Control
+
+```typescript
+interface AccessPolicy {
+  objectId: string;
+  allowedUsers: string[];
+  expiresAt?: Date;
+  conditions?: {
+    ipWhitelist?: string[];
+    timeRestriction?: {
+      start: string; // "09:00"
+      end: string;   // "17:00"
+    };
+  };
+}
+
+class PolicyEnforcedClient {
+  constructor(
+    private client: NeuralockClient,
+    private policyStore: PolicyStore
+  ) {}
+  
+  async decrypt(
+    encrypted: EncryptedData, 
+    objectId: string,
+    userId: string,
+    context: RequestContext
+  ): Promise<string> {
+    // Check policy
+    const policy = await this.policyStore.getPolicy(objectId);
+    
+    if (!this.validateAccess(policy, userId, context)) {
+      throw new PermissionDeniedError('Access denied by policy');
+    }
+    
+    // Proceed with decryption
+    return await this.client.decrypt(encrypted, objectId);
+  }
+  
+  private validateAccess(
+    policy: AccessPolicy,
+    userId: string,
+    context: RequestContext
+  ): boolean {
+    // Check user allowlist
+    if (!policy.allowedUsers.includes(userId)) {
+      return false;
+    }
+    
+    // Check expiration
+    if (policy.expiresAt && new Date() > policy.expiresAt) {
+      return false;
+    }
+    
+    // Check conditions
+    if (policy.conditions) {
+      // IP whitelist
+      if (policy.conditions.ipWhitelist && 
+          !policy.conditions.ipWhitelist.includes(context.ip)) {
+        return false;
+      }
+      
+      // Time restriction
+      if (policy.conditions.timeRestriction) {
+        const now = new Date();
+        const currentTime = `${now.getHours()}:${now.getMinutes()}`;
+        if (currentTime < policy.conditions.timeRestriction.start ||
+            currentTime > policy.conditions.timeRestriction.end) {
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  }
+}
+```
+
+## Deployment Considerations
+
+### Environment Configuration
+
+```javascript
+// config/neuralock.js
+module.exports = {
+  development: {
+    applicationContract: process.env.DEV_CONTRACT,
+    servers: [{ nftId: 1 }], // Single server for dev
+    options: {
+      threshold: { mode: 'single' },
+      debug: true
+    }
+  },
+  
+  staging: {
+    applicationContract: process.env.STAGING_CONTRACT,
+    servers: [
+      { nftId: 1 },
+      { nftId: 2 },
+      { nftId: 3 }
+    ],
+    options: {
+      threshold: { mode: 'flexible', minimum: 2 },
+      ttl: 1800 // 30 minutes
+    }
+  },
+  
+  production: {
+    applicationContract: process.env.PROD_CONTRACT,
+    servers: [
+      { nftId: 1, importanceFactor: 1.0, required: true },
+      { nftId: 2, importanceFactor: 0.9 },
+      { nftId: 3, importanceFactor: 0.8 },
+      { nftId: 4, importanceFactor: 0.7 },
+      { nftId: 5, importanceFactor: 0.6 }
+    ],
+    options: {
+      threshold: { mode: 'flexible', minimum: 3, tolerance: 0.2 },
+      ttl: 3600, // 1 hour
+      retryAttempts: 5,
+      cacheEnabled: true
+    }
+  }
+};
+```
+
+## Next Steps
+
+- Review the [Security Guide](/neuralock/security) for best practices
+- Explore [Server Setup](/neuralock/server-setup) for deployment
+- Check the [Management Portal](/neuralock/management-portal) for monitoring
+- Join our [Discord](https://discord.gg/neuralock) for support

@@ -1,0 +1,470 @@
+---
+id: registry-contract
+title: Registry Contract
+description: Core NFT registry contract for managing Neuralock servers
+sidebar_position: 1
+---
+
+import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/elements/Card';
+import { Callout } from "@site/src/components/elements";
+import { FileCollapsibleCodeBlock, FileInlineCodeCard } from '@site/src/components/elements/CodeBlock';
+import { CustomMermaid } from '@site/src/components/elements';
+import { MermaidDiagram } from '@site/src/components/elements';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+import RegistryArchitectureSource from '!!raw-loader!./assets/registry-architecture.mermaid';
+import ServerLifecycleSource from '!!raw-loader!./assets/server-lifecycle.mermaid';
+import MintServerExample from '!!raw-loader!./assets/mint-server-example.sol';
+import UpdateMetadataExample from '!!raw-loader!./assets/update-metadata-example.sol';
+
+# Registry Contract
+
+The Neuralock Registry contract is the core component that manages NFTs representing verified Neuralock servers. It implements role-based access control and provides a decentralized registry for server metadata.
+
+## Overview
+
+<Card className="card--primary">
+  <CardHeader>
+    <CardTitle>NeuralockRegistry.sol</CardTitle>
+    <CardDescription>
+      ERC721-compliant NFT contract with advanced server management capabilities
+    </CardDescription>
+  </CardHeader>
+  <ul>
+    <li>**NFT-based server representation** - Each server is a unique NFT</li>
+    <li>**Role-based access control** - Multi-tier permission system</li>
+    <li>**Verification system** - Multi-signature approval for metadata updates</li>
+    <li>**Gas-optimized** - Batch operations and efficient storage patterns</li>
+  </ul>
+</Card>
+
+## Contract Architecture
+
+<MermaidDiagram 
+  content={RegistryArchitectureSource}
+  filename="registry-architecture.mermaid"
+  title="Registry Contract Architecture"
+  description="Complete structure of the Neuralock Registry system"
+/>
+
+## State Variables
+
+The registry maintains several critical mappings and state variables:
+
+<FileCollapsibleCodeBlock 
+  content={`// Server metadata storage
+mapping(uint256 => ServerMetadata) public serverMetadata;
+
+// Efficient lookup by server public key
+mapping(bytes32 => uint256) public serverKeyToTokenId;
+
+// Role management
+mapping(address => Role) public roles;
+
+// Verification status tracking
+mapping(uint256 => bool) public verifiedServers;
+mapping(uint256 => VerificationRequest) public pendingVerifications;
+
+// Global state
+uint256 public totalServers;
+uint256 public verificationThreshold; // Minimum approvals needed`}
+  filename="state-variables.sol"
+  description="Core state variables in the registry contract"
+/>
+
+## Data Structures
+
+### ServerMetadata Struct
+
+<FileCollapsibleCodeBlock 
+  content={`struct ServerMetadata {
+    bytes32 serverPublicKey;      // Server's unique public key
+    bytes32 encryptionPublicKey;  // Key used for encryption operations
+    string domain;                // Server domain (e.g., "server1.neuralock.io")
+    bool verified;                // Verification status
+    uint256 registeredAt;         // Registration timestamp
+    uint256 lastUpdated;          // Last update timestamp
+    address registeredBy;         // Address that registered the server
+}`}
+  filename="server-metadata.sol"
+  description="Server metadata structure"
+/>
+
+### Role Management
+
+<FileCollapsibleCodeBlock 
+  content={`struct Role {
+    bool isOwner;          // Full system control
+    bool isAdmin;          // Server management
+    bool isManager;        // Verification duties
+    uint256 assignedAt;    // Role assignment timestamp
+    address assignedBy;    // Who assigned the role
+}`}
+  filename="role-struct.sol"
+  description="Role structure for access control"
+/>
+
+### Verification Request
+
+<FileCollapsibleCodeBlock 
+  content={`struct VerificationRequest {
+    uint256 tokenId;                    // Server NFT ID
+    ServerMetadata proposedMetadata;    // New metadata to approve
+    address proposer;                   // Who proposed the change
+    uint256 approvals;                  // Current approval count
+    mapping(address => bool) hasApproved; // Approval tracking
+    uint256 createdAt;                  // Request timestamp
+    bool executed;                      // Execution status
+}`}
+  filename="verification-request.sol"
+  description="Structure for metadata update requests"
+/>
+
+## Core Functions
+
+### Server NFT Management
+
+<Tabs>
+<TabItem value="mint" label="Mint Server">
+
+<FileCollapsibleCodeBlock 
+  content={MintServerExample}
+  filename="mint-server-example.sol"
+  description="Example of minting a new server NFT"
+/>
+
+**Key Points:**
+- Only owners, admins, or managers can mint
+- Server public key must be unique
+- NFT is minted in unverified state
+- Creates bidirectional mapping for efficient lookups
+
+</TabItem>
+<TabItem value="burn" label="Burn Server">
+
+<FileCollapsibleCodeBlock 
+  content={`function burnServer(uint256 tokenId) external onlyRole(Role.Manager) {
+    require(_exists(tokenId), "Server does not exist");
+    
+    // Get server key before deletion
+    bytes32 serverKey = serverMetadata[tokenId].serverPublicKey;
+    
+    // Clean up all mappings
+    delete serverKeyToTokenId[serverKey];
+    delete serverMetadata[tokenId];
+    delete verifiedServers[tokenId];
+    
+    // Burn the NFT
+    _burn(tokenId);
+    
+    emit ServerBurned(tokenId, msg.sender);
+}`}
+  filename="burn-server.sol"
+  description="Burning a server NFT and cleaning up mappings"
+/>
+
+</TabItem>
+<TabItem value="update" label="Update Metadata">
+
+<FileCollapsibleCodeBlock 
+  content={UpdateMetadataExample}
+  filename="update-metadata-example.sol"
+  description="Process for updating server metadata with verification"
+/>
+
+**Verification Flow:**
+1. NFT owner proposes metadata update
+2. Creates verification request
+3. Managers approve the request
+4. Update executes when threshold is met
+
+</TabItem>
+</Tabs>
+
+## Server Lifecycle
+
+<MermaidDiagram 
+  content={ServerLifecycleSource}
+  filename="server-lifecycle.mermaid"
+  title="Server NFT Lifecycle"
+  description="Complete lifecycle of a Neuralock server from minting to burning"
+/>
+
+## Query Functions
+
+The registry provides several view functions for efficient data retrieval:
+
+### Get Server by Public Key
+
+<FileCollapsibleCodeBlock 
+  content={`function getServerByPublicKey(bytes32 serverPublicKey) 
+    external 
+    view 
+    returns (uint256 tokenId, ServerMetadata memory metadata) 
+{
+    tokenId = serverKeyToTokenId[serverPublicKey];
+    require(tokenId != 0, "Server not found");
+    
+    metadata = serverMetadata[tokenId];
+    return (tokenId, metadata);
+}`}
+  filename="get-by-key.sol"
+  description="Retrieve server information by public key"
+/>
+
+### Batch Operations
+
+<FileCollapsibleCodeBlock 
+  content={`function getServerBatch(uint256[] calldata tokenIds) 
+    external 
+    view 
+    returns (ServerMetadata[] memory) 
+{
+    ServerMetadata[] memory batch = new ServerMetadata[](tokenIds.length);
+    
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+        require(_exists(tokenIds[i]), "Server does not exist");
+        batch[i] = serverMetadata[tokenIds[i]];
+    }
+    
+    return batch;
+}`}
+  filename="batch-query.sol"
+  description="Gas-efficient batch querying"
+/>
+
+### Pagination Support
+
+<FileCollapsibleCodeBlock 
+  content={`function getActiveServers(uint256 offset, uint256 limit) 
+    external 
+    view 
+    returns (ServerMetadata[] memory servers, uint256 total) 
+{
+    uint256 count = 0;
+    uint256 arrayIndex = 0;
+    servers = new ServerMetadata[](limit);
+    
+    for (uint256 i = 1; i <= totalSupply(); i++) {
+        if (_exists(i) && verifiedServers[i]) {
+            if (count >= offset && arrayIndex < limit) {
+                servers[arrayIndex] = serverMetadata[i];
+                arrayIndex++;
+            }
+            count++;
+        }
+    }
+    
+    // Resize array to actual size
+    assembly {
+        mstore(servers, arrayIndex)
+    }
+    
+    return (servers, count);
+}`}
+  filename="pagination.sol"
+  description="Paginated retrieval of verified servers"
+/>
+
+## Events
+
+The contract emits events for all significant state changes:
+
+<FileCollapsibleCodeBlock 
+  content={`// Server lifecycle events
+event ServerMinted(
+    uint256 indexed tokenId, 
+    address indexed to, 
+    bytes32 indexed serverPublicKey
+);
+
+event ServerBurned(
+    uint256 indexed tokenId, 
+    address indexed by
+);
+
+event ServerVerified(
+    uint256 indexed tokenId, 
+    address indexed verifier
+);
+
+// Metadata events
+event MetadataUpdated(
+    uint256 indexed tokenId, 
+    bytes32 oldKey, 
+    bytes32 newKey
+);
+
+event MetadataUpdateRequested(
+    uint256 indexed tokenId, 
+    address indexed proposer
+);
+
+event MetadataUpdateApproved(
+    uint256 indexed requestId, 
+    address indexed approver
+);
+
+// Role management events
+event RoleGranted(
+    address indexed account, 
+    string role, 
+    address indexed by
+);
+
+event RoleRevoked(
+    address indexed account, 
+    string role, 
+    address indexed by
+);`}
+  filename="events.sol"
+  description="Complete event definitions"
+/>
+
+## Security Features
+
+<Card>
+  <CardHeader>
+    <CardTitle>Access Control</CardTitle>
+    <CardDescription>Multi-tier permission system</CardDescription>
+  </CardHeader>
+  
+  <Tabs>
+  <TabItem value="modifiers" label="Modifiers">
+  
+  ```solidity
+  modifier onlyOwner() {
+      require(roles[msg.sender].isOwner, "Not an owner");
+      _;
+  }
+  
+  modifier onlyAdmin() {
+      require(
+          roles[msg.sender].isOwner || 
+          roles[msg.sender].isAdmin, 
+          "Not an admin"
+      );
+      _;
+  }
+  
+  modifier onlyManager() {
+      require(
+          roles[msg.sender].isOwner || 
+          roles[msg.sender].isAdmin ||
+          roles[msg.sender].isManager, 
+          "Not a manager"
+      );
+      _;
+  }
+  ```
+  
+  </TabItem>
+  <TabItem value="validation" label="Validation">
+  
+  ```solidity
+  modifier validServerMetadata(ServerMetadata memory data) {
+      require(data.serverPublicKey != bytes32(0), "Invalid server key");
+      require(data.encryptionPublicKey != bytes32(0), "Invalid encryption key");
+      require(bytes(data.domain).length > 0, "Invalid domain");
+      _;
+  }
+  ```
+  
+  </TabItem>
+  </Tabs>
+</Card>
+
+## Gas Optimization
+
+<Callout type="success" title="Optimization Strategies">
+
+1. **Packed Structs**: Struct members are ordered for optimal storage packing
+2. **Batch Operations**: Multiple operations in single transaction
+3. **Efficient Mappings**: Bidirectional mappings for O(1) lookups
+4. **Storage Gaps**: Reserved slots for upgradeable contracts
+5. **Event-based History**: Use events instead of storing historical data
+
+</Callout>
+
+## Integration Example
+
+<FileCollapsibleCodeBlock 
+  content={`// Example: Integrating with the Registry
+
+contract MyApplication {
+    INeuralockRegistry public registry;
+    
+    constructor(address _registry) {
+        registry = INeuralockRegistry(_registry);
+    }
+    
+    function validateServer(bytes32 serverKey) external view returns (bool) {
+        try registry.getServerByPublicKey(serverKey) returns (
+            uint256 tokenId, 
+            INeuralockRegistry.ServerMetadata memory metadata
+        ) {
+            return metadata.verified;
+        } catch {
+            return false;
+        }
+    }
+    
+    function getVerifiedServers() external view returns (
+        INeuralockRegistry.ServerMetadata[] memory
+    ) {
+        return registry.getActiveServers(0, 100);
+    }
+}`}
+  filename="integration-example.sol"
+  description="Example of integrating with the registry contract"
+/>
+
+## Upgrade Pattern
+
+The registry implements the UUPS (Universal Upgradeable Proxy Standard) pattern:
+
+<FileCollapsibleCodeBlock 
+  content={`// Storage gap for future upgrades
+uint256[50] private __gap;
+
+// Upgrade authorization
+function _authorizeUpgrade(address newImplementation) 
+    internal 
+    override 
+    onlyOwner 
+{
+    // Additional upgrade logic if needed
+}
+
+// Version tracking
+function version() external pure returns (string memory) {
+    return "1.0.0";
+}`}
+  filename="upgrade-pattern.sol"
+  description="UUPS upgrade implementation"
+/>
+
+## Best Practices
+
+<Callout type="info" title="Implementation Guidelines">
+
+**For Contract Developers:**
+1. Always validate server metadata before operations
+2. Use batch functions for multiple operations
+3. Monitor events for state changes
+4. Implement proper error handling
+
+**For Server Operators:**
+1. Keep server keys secure and backed up
+2. Monitor verification status
+3. Update metadata through proper channels
+4. Coordinate with managers for verification
+
+</Callout>
+
+## Next Steps
+
+- Learn about [Access Control](./02-access-control) patterns
+- Explore the [Integration Interface](./03-integration-interface)
+- Follow the [Deployment Guide](./04-deployment-guide)

@@ -1,0 +1,49 @@
+sequenceDiagram
+    participant Client
+    participant Blockchain
+    participant Server1
+    participant Server2
+    participant Server3
+    
+    Note over Client: User wants to encrypt data
+    
+    Client->>Client: Generate AES key
+    Client->>Client: Encrypt data
+    Client->>Client: Split key (Shamir's)
+    
+    Client->>Blockchain: Check server registry
+    Blockchain-->>Client: Server list & keys
+    
+    par Distribute shares
+        Client->>Server1: Encrypted share 1
+        Server1->>Blockchain: Verify permissions
+        Blockchain-->>Server1: Permission granted
+        Server1-->>Client: Stored
+    and
+        Client->>Server2: Encrypted share 2
+        Server2->>Blockchain: Verify permissions
+        Blockchain-->>Server2: Permission granted
+        Server2-->>Client: Stored
+    and
+        Client->>Server3: Encrypted share 3
+        Server3->>Blockchain: Verify permissions
+        Blockchain-->>Server3: Permission granted
+        Server3-->>Client: Stored
+    end
+    
+    Note over Client: Later: User wants to decrypt
+    
+    par Request shares
+        Client->>Server1: Request share
+        Server1->>Blockchain: Check read permission
+        Blockchain-->>Server1: Allowed
+        Server1-->>Client: Encrypted share 1
+    and
+        Client->>Server2: Request share
+        Server2->>Blockchain: Check read permission
+        Blockchain-->>Server2: Allowed
+        Server2-->>Client: Encrypted share 2
+    end
+    
+    Client->>Client: Reconstruct key
+    Client->>Client: Decrypt data

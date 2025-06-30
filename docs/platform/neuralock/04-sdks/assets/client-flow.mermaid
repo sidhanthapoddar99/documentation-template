@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant App as Application
+    participant Client as NeuralockClient
+    participant SM as SessionManager
+    participant Wallet as User Wallet
+    participant Servers as Encryption Servers
+    participant BC as Blockchain
+    
+    App->>Client: new NeuralockClient(config)
+    App->>Client: initialize()
+    
+    Client->>SM: createSession()
+    SM->>SM: Generate ephemeral keypair
+    SM->>Wallet: Request signature
+    Wallet-->>SM: Signed message
+    
+    SM->>BC: Fetch server metadata
+    BC-->>SM: Server endpoints & public keys
+    
+    par Establish Sessions
+        SM->>Servers: POST /session
+        Note right of Servers: With ephemeral public key<br/>and signed message
+        Servers-->>SM: Session tokens
+    end
+    
+    SM->>SM: Store session data
+    Client-->>App: Initialized
+    
+    Note over App,Servers: Ready for encryption/decryption operations

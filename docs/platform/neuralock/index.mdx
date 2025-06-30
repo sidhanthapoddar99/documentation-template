@@ -1,56 +1,224 @@
 ---
-title: NeuraLock
-description: Security and authentication system for NeuraLabs
+id: neuralock
+title: Neuralock - Distributed Threshold Encryption
+description: Secure, decentralized key management using blockchain-based access control
+sidebar_position: 1
 ---
 
-# NeuraLock
+import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/elements/Card';
+import { Features, Feature } from '@site/src/components/elements/Features';
+import { Callout } from "@site/src/components/elements";
+import { MermaidDiagram } from '@site/src/components/elements';
+import CodeBlock from '@theme/CodeBlock';
 
-## Overview
+import SystemOverviewDiagram from '!!raw-loader!./assets/system-overview.mermaid';
+import ProtocolFlowDiagram from '!!raw-loader!./assets/protocol-flow.mermaid';
 
-NeuraLock is the security backbone of the NeuraLabs platform, providing robust authentication, authorization, and encryption services.
+# Neuralock: Distributed Threshold Encryption
 
-## Features
+<Callout type="info">
+  Neuralock provides secure, decentralized key management by combining Shamir's Secret Sharing with blockchain-based access control, eliminating single points of failure in encryption systems.
+</Callout>
 
-### Authentication
-- Multi-factor authentication
-- Biometric support
-- Hardware key integration
-- Session management
+## What is Neuralock?
 
-### Authorization
-- Role-based access control (RBAC)
-- Fine-grained permissions
-- Dynamic policy enforcement
-- Audit logging
+Neuralock is a distributed threshold encryption system that revolutionizes how applications handle encrypted data. Instead of relying on centralized key servers or complex key management infrastructure, Neuralock distributes encryption keys across multiple servers using Shamir's Secret Sharing, with permissions enforced through smart contracts.
 
-### Encryption
-- AES-256 encryption at rest
-- TLS 1.3 for data in transit
-- Homomorphic encryption for sensitive computations
-- Key rotation and management
+<MermaidDiagram 
+  content={SystemOverviewDiagram}
+  filename="system-overview.mermaid"
+  title="Neuralock System Overview"
+  description="High-level architecture showing the three layers of Neuralock"
+/>
 
-## Implementation
+## Key Features
 
-### API Authentication
-```javascript
-const auth = await NeuraLock.authenticate({
-  credentials: userCredentials,
-  mfaToken: mfaCode
+<Features className="features--large">
+  <Feature 
+    icon="🔐" 
+    title="No Single Point of Failure" 
+    description="Encryption keys are split across multiple servers using Shamir's Secret Sharing. Even if some servers fail or are compromised, your data remains secure and accessible."
+  />
+  <Feature 
+    icon="⛓️" 
+    title="Blockchain-Based Access Control" 
+    description="Smart contracts define who can access what data. Permissions are transparent, immutable, and enforceable without trusting any single party."
+  />
+  <Feature 
+    icon="🛡️" 
+    title="End-to-End Encryption" 
+    description="Servers never see plaintext data or complete encryption keys. All cryptographic operations happen client-side, ensuring true privacy."
+  />
+  <Feature 
+    icon="🔧" 
+    title="Easy Integration" 
+    description="Simple SDKs for JavaScript/TypeScript and Python. Implement secure encryption in minutes with just a few lines of code."
+  />
+  <Feature 
+    icon="📊" 
+    title="Flexible Thresholds" 
+    description="Configure your security requirements from development (1-of-1) to production (k-of-n). Adapt to your specific needs and threat model."
+  />
+  <Feature 
+    icon="🌐" 
+    title="Decentralized Infrastructure" 
+    description="No vendor lock-in or central authority. Deploy your own servers or use community-operated nodes for true decentralization."
+  />
+</Features>
+
+## How It Works
+
+<div style={{ marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>1. Encryption Process</CardTitle>
+    </CardHeader>
+    <ol style={{ paddingLeft: '1.5rem' }}>
+      <li>Client generates a random AES encryption key</li>
+      <li>Data is encrypted locally using AES-256-GCM</li>
+      <li>AES key is split into shares using Shamir's Secret Sharing</li>
+      <li>Each share is encrypted and sent to a different server</li>
+      <li>Servers verify permissions via smart contracts before storing</li>
+    </ol>
+  </Card>
+</div>
+
+<div style={{ marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>2. Decryption Process</CardTitle>
+    </CardHeader>
+    <ol style={{ paddingLeft: '1.5rem' }}>
+      <li>Client requests shares from multiple servers</li>
+      <li>Each server checks blockchain permissions independently</li>
+      <li>Minimum threshold of servers return their encrypted shares</li>
+      <li>Client reconstructs the AES key from the shares</li>
+      <li>Data is decrypted locally with the reconstructed key</li>
+    </ol>
+  </Card>
+</div>
+
+## Quick Example
+
+<CodeBlock language="typescript">
+{`// Initialize Neuralock client
+const neuralock = new NeuralockClient({
+  applicationContract: "0x...",
+  signer: wallet,
+  servers: [
+    { nftId: 1 },
+    { nftId: 2 },
+    { nftId: 3 }
+  ]
 });
-```
 
-### Access Control
-```javascript
-const hasAccess = await NeuraLock.authorize({
-  userId: auth.userId,
-  resource: 'agent.create',
-  action: 'write'
-});
-```
+// Encrypt sensitive data
+const encrypted = await neuralock.encrypt(
+  "Secret document content",
+  "doc-123"
+);
 
-## Security Best Practices
+// Decrypt when needed
+const decrypted = await neuralock.decrypt(
+  encrypted,
+  "doc-123"
+);`}
+</CodeBlock>
 
-1. Enable MFA for all accounts
-2. Regular security audits
-3. Monitor access logs
-4. Implement least privilege principle
+## Use Cases
+
+<Features className="features--cols-2">
+  <Feature 
+    icon="📄" 
+    title="Document Vaults" 
+    description="Secure document storage with fine-grained sharing permissions"
+  />
+  <Feature 
+    icon="🏥" 
+    title="Healthcare Records" 
+    description="Patient-controlled medical data with provider access management"
+  />
+  <Feature 
+    icon="💰" 
+    title="DeFi Applications" 
+    description="Encrypted trading strategies and private financial data"
+  />
+  <Feature 
+    icon="🔑" 
+    title="Key Management" 
+    description="Distributed custody for cryptocurrency wallets and secrets"
+  />
+</Features>
+
+## Getting Started
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>📚 Learn the Basics</CardTitle>
+      <CardDescription>Understand core concepts and architecture</CardDescription>
+    </CardHeader>
+    <a href="/neuralock/overview/introduction" style={{ textDecoration: 'none' }}>
+      <p>Start with Introduction →</p>
+    </a>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🚀 Quick Start Guide</CardTitle>
+      <CardDescription>Get up and running in minutes</CardDescription>
+    </CardHeader>
+    <a href="/neuralock/getting-started/quick-start" style={{ textDecoration: 'none' }}>
+      <p>View Quick Start →</p>
+    </a>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>💻 SDK Documentation</CardTitle>
+      <CardDescription>Integrate Neuralock into your application</CardDescription>
+    </CardHeader>
+    <a href="/neuralock/sdks/javascript-sdk" style={{ textDecoration: 'none' }}>
+      <p>Explore SDKs →</p>
+    </a>
+  </Card>
+</div>
+
+## Architecture Overview
+
+<MermaidDiagram 
+  content={ProtocolFlowDiagram}
+  filename="protocol-flow.mermaid"
+  title="Neuralock Protocol Flow"
+  description="Detailed sequence diagram showing encryption and decryption operations"
+/>
+
+## Why Choose Neuralock?
+
+<Callout type="success" title="Production Ready">
+  Neuralock has been designed for real-world applications with comprehensive security analysis, performance optimization, and enterprise features. Whether you're building a simple encrypted storage solution or a complex multi-party system, Neuralock provides the infrastructure you need.
+</Callout>
+
+### Comparison with Alternatives
+
+| Feature | Neuralock | Traditional KMS | HSM | MPC Solutions |
+|---------|-----------|-----------------|-----|---------------|
+| Decentralized | ✅ | ❌ | ❌ | ✅ |
+| No Single Point of Failure | ✅ | ❌ | ❌ | ✅ |
+| Easy Integration | ✅ | ✅ | ❌ | ❌ |
+| Cost Effective | ✅ | ❌ | ❌ | ❌ |
+| Blockchain Access Control | ✅ | ❌ | ❌ | ❌ |
+| Open Source | ✅ | ❌ | ❌ | ⚡ |
+
+## Next Steps
+
+Ready to implement distributed encryption in your application?
+
+1. **[Read the Introduction](/neuralock/overview/introduction)** - Understand the core concepts
+2. **[Follow the Quick Start](/neuralock/getting-started/quick-start)** - Set up your first encryption
+3. **[Deploy Smart Contracts](/neuralock/smart-contracts/deployment-guide)** - Launch your own instance
+4. **[Explore the SDKs](/neuralock/sdks/javascript-sdk)** - Integrate with your application
+
+<Callout type="tip">
+  Join our community on [Discord](https://discord.gg/neuralabs) for support, updates, and discussions with other developers building on Neuralock.
+</Callout>

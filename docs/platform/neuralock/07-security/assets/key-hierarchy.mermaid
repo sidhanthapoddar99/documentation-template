@@ -1,0 +1,54 @@
+graph TB
+    subgraph "Master Keys"
+        UserWallet[User Wallet Key]
+        ServerIdentity[Server Identity Key]
+    end
+    
+    subgraph "Derived Keys"
+        SessionKey[Session Key]
+        EphemeralKey[Ephemeral Key]
+        EncryptionKey[Data Encryption Key]
+    end
+    
+    subgraph "Split Keys"
+        Share1[Share 1]
+        Share2[Share 2]
+        ShareK[Share k]
+        ShareN[Share n]
+    end
+    
+    subgraph "Protection Keys"
+        ShareEncKey1[Share Encryption Key 1]
+        ShareEncKey2[Share Encryption Key 2]
+        ShareEncKeyN[Share Encryption Key N]
+    end
+    
+    UserWallet --> SessionKey
+    UserWallet --> EphemeralKey
+    
+    SessionKey --> EncryptionKey
+    
+    EncryptionKey --> Share1
+    EncryptionKey --> Share2
+    EncryptionKey --> ShareK
+    EncryptionKey --> ShareN
+    
+    EphemeralKey --> ShareEncKey1
+    EphemeralKey --> ShareEncKey2
+    EphemeralKey --> ShareEncKeyN
+    
+    ServerIdentity --> ShareEncKey1
+    ServerIdentity --> ShareEncKey2
+    ServerIdentity --> ShareEncKeyN
+    
+    Share1 --> |Encrypted with| ShareEncKey1
+    Share2 --> |Encrypted with| ShareEncKey2
+    ShareN --> |Encrypted with| ShareEncKeyN
+    
+    style UserWallet fill:#ff6b6b
+    style ServerIdentity fill:#ff6b6b
+    style EncryptionKey fill:#4c6ef5
+    style Share1 fill:#51cf66
+    style Share2 fill:#51cf66
+    style ShareK fill:#51cf66
+    style ShareN fill:#51cf66

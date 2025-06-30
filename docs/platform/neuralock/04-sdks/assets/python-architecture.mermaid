@@ -1,0 +1,60 @@
+graph TB
+    subgraph "Python SDK Architecture"
+        Client[NeuralockClient]
+        
+        subgraph "Core Components"
+            CM[CryptoManager]
+            SM[SessionManager]
+            TM[ThresholdManager]
+        end
+        
+        subgraph "Storage Backends"
+            MS[MemoryStorage]
+            RS[RedisStorage]
+            FS[FileStorage]
+        end
+        
+        subgraph "Network Layer"
+            SC[ServerClient]
+            AC[AsyncClient]
+            CP[ConnectionPool]
+        end
+        
+        subgraph "Blockchain"
+            CI[ContractInterface]
+            RC[RegistryClient]
+            W3[Web3Utils]
+        end
+        
+        subgraph "Framework Integration"
+            Flask[FlaskIntegration]
+            Django[DjangoIntegration]
+            FastAPI[FastAPIIntegration]
+        end
+    end
+    
+    Client --> CM
+    Client --> SM
+    Client --> TM
+    
+    SM --> MS
+    SM --> RS
+    SM --> FS
+    
+    Client --> SC
+    Client --> AC
+    SC --> CP
+    AC --> CP
+    
+    Client --> CI
+    CI --> RC
+    CI --> W3
+    
+    Flask --> Client
+    Django --> Client
+    FastAPI --> Client
+    
+    style Client fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style CM fill:#2196F3,stroke:#1565C0,color:#fff
+    style SM fill:#2196F3,stroke:#1565C0,color:#fff
+    style TM fill:#2196F3,stroke:#1565C0,color:#fff

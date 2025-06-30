@@ -1,0 +1,83 @@
+graph TB
+    subgraph "Event Sources"
+        App[Application Events]
+        System[System Events]
+        Security[Security Events]
+        Blockchain[Blockchain Events]
+    end
+    
+    subgraph "Collection Layer"
+        Collector[Event Collector]
+        Validator[Event Validator]
+        Enricher[Event Enricher]
+    end
+    
+    subgraph "Processing Layer"
+        Stream[Stream Processor]
+        Aggregator[Aggregator]
+        Analyzer[Analyzer]
+    end
+    
+    subgraph "Storage Layer"
+        HotStorage[(Hot Storage)]
+        WarmStorage[(Warm Storage)]
+        ColdStorage[(Cold Storage)]
+        BlockchainAnchor[Blockchain Anchor]
+    end
+    
+    subgraph "Access Layer"
+        API[Audit API]
+        Query[Query Engine]
+        Reports[Report Generator]
+        Export[Export Service]
+    end
+    
+    subgraph "Compliance Layer"
+        Monitor[Compliance Monitor]
+        Alerts[Alert System]
+        Dashboard[Compliance Dashboard]
+    end
+    
+    App --> Collector
+    System --> Collector
+    Security --> Collector
+    Blockchain --> Collector
+    
+    Collector --> Validator
+    Validator --> Enricher
+    Enricher --> Stream
+    
+    Stream --> Aggregator
+    Stream --> Analyzer
+    Stream --> HotStorage
+    
+    HotStorage --> WarmStorage
+    WarmStorage --> ColdStorage
+    
+    Aggregator --> BlockchainAnchor
+    
+    HotStorage --> Query
+    WarmStorage --> Query
+    ColdStorage --> Query
+    
+    Query --> API
+    API --> Reports
+    API --> Export
+    
+    Analyzer --> Monitor
+    Monitor --> Alerts
+    Monitor --> Dashboard
+    
+    classDef source fill:#e1f5fe,stroke:#01579b
+    classDef collection fill:#f3e5f5,stroke:#4a148c
+    classDef processing fill:#e8f5e9,stroke:#1b5e20
+    classDef storage fill:#fff3e0,stroke:#e65100
+    classDef access fill:#fce4ec,stroke:#880e4f
+    classDef compliance fill:#e0f2f1,stroke:#00695c
+    
+    class App,System,Security,Blockchain source
+    class Collector,Validator,Enricher collection
+    class Stream,Aggregator,Analyzer processing
+    class HotStorage,WarmStorage,ColdStorage,BlockchainAnchor storage
+    class API,Query,Reports,Export access
+    class Monitor,Alerts,Dashboard compliance

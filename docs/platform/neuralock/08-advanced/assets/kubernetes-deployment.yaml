@@ -1,0 +1,377 @@
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: neuralock
+---
+# ConfigMap for server configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neuralock-config
+  namespace: neuralock
+data:
+  config.yaml: |
+    server:
+      port: 8000
+      mode: production
+      log_level: info
+    
+    threshold:
+      k: 5
+      n: 9
+      mode: flexible
+    
+    database:
+      pool_size: 20
+      max_connections: 100
+    
+    redis:
+      pool_size: 10
+      ttl: 3600
+    
+    metrics:
+      enabled: true
+      port: 9090
+---
+# Secret for sensitive data
+apiVersion: v1
+kind: Secret
+metadata:
+  name: neuralock-secrets
+  namespace: neuralock
+type: Opaque
+stringData:
+  database-url: "postgresql://neuralock:password@postgres:5432/neuralock"
+  redis-url: "redis://:password@redis:6379"
+  encryption-key: "base64-encoded-key"
+  signing-key: "base64-encoded-key"
+---
+# Persistent Volume for data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: neuralock-data
+  namespace: neuralock
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 100Gi
+---
+# Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: neuralock-server
+  namespace: neuralock
+---
+# Role for server permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: neuralock-server
+  namespace: neuralock
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+# RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: neuralock-server
+  namespace: neuralock
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: neuralock-server
+subjects:
+  - kind: ServiceAccount
+    name: neuralock-server
+    namespace: neuralock
+---
+# StatefulSet for Neuralock servers
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: neuralock-server
+  namespace: neuralock
+spec:
+  serviceName: neuralock
+  replicas: 9
+  selector:
+    matchLabels:
+      app: neuralock-server
+  template:
+    metadata:
+      labels:
+        app: neuralock-server
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: neuralock-server
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - neuralock-server
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: neuralock
+          image: neuralock/server:v1.0.0
+          imagePullPolicy: Always
+          ports:
+            - name: api
+              containerPort: 8000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: SERVER_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NFT_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['neuralock.io/nft-id']
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: neuralock-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: neuralock-secrets
+                  key: redis-url
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: neuralock-secrets
+                  key: encryption-key
+            - name: SIGNING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: neuralock-secrets
+                  key: signing-key
+          volumeMounts:
+            - name: config
+              mountPath: /etc/neuralock
+            - name: data
+              mountPath: /var/lib/neuralock
+            - name: tls
+              mountPath: /etc/neuralock/tls
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: api
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: api
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+      volumes:
+        - name: config
+          configMap:
+            name: neuralock-config
+        - name: tls
+          secret:
+            secretName: neuralock-tls
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: fast-ssd
+        resources:
+          requests:
+            storage: 50Gi
+---
+# Headless Service for StatefulSet
+apiVersion: v1
+kind: Service
+metadata:
+  name: neuralock
+  namespace: neuralock
+spec:
+  clusterIP: None
+  selector:
+    app: neuralock-server
+  ports:
+    - name: api
+      port: 8000
+      targetPort: api
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+---
+# Load Balancer Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: neuralock-lb
+  namespace: neuralock
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+spec:
+  type: LoadBalancer
+  selector:
+    app: neuralock-server
+  ports:
+    - name: api
+      port: 443
+      targetPort: 8000
+      protocol: TCP
+---
+# HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: neuralock-hpa
+  namespace: neuralock
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: neuralock-server
+  minReplicas: 9
+  maxReplicas: 18
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Pods
+      pods:
+        metric:
+          name: neuralock_request_rate
+        target:
+          type: AverageValue
+          averageValue: "1000"
+---
+# PodDisruptionBudget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: neuralock-pdb
+  namespace: neuralock
+spec:
+  minAvailable: 5  # Ensure k servers always available
+  selector:
+    matchLabels:
+      app: neuralock-server
+---
+# NetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: neuralock-network-policy
+  namespace: neuralock
+spec:
+  podSelector:
+    matchLabels:
+      app: neuralock-server
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: neuralock
+        - podSelector:
+            matchLabels:
+              app: neuralock-server
+      ports:
+        - protocol: TCP
+          port: 8000
+        - protocol: TCP
+          port: 9090
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: neuralock
+      ports:
+        - protocol: TCP
+          port: 5432  # PostgreSQL
+        - protocol: TCP
+          port: 6379  # Redis
+    - to:
+        - podSelector:
+            matchLabels:
+              app: neuralock-server
+      ports:
+        - protocol: TCP
+          port: 8000
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443  # HTTPS for external APIs
+        - protocol: TCP
+          port: 53   # DNS
+        - protocol: UDP
+          port: 53   # DNS
+---
+# ServiceMonitor for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: neuralock-metrics
+  namespace: neuralock
+spec:
+  selector:
+    matchLabels:
+      app: neuralock-server
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics

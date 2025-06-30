@@ -1,0 +1,72 @@
+graph LR
+    subgraph "Development Phase"
+        Design[Threat Modeling]
+        Code[Secure Coding]
+        Review[Code Review]
+        SAST[Static Analysis]
+    end
+    
+    subgraph "Testing Phase"
+        Unit[Unit Tests]
+        Integration[Integration Tests]
+        Security[Security Tests]
+        Pen[Penetration Testing]
+    end
+    
+    subgraph "Build Phase"
+        Deps[Dependency Scan]
+        Build[Secure Build]
+        Sign[Code Signing]
+        Package[Package Security]
+    end
+    
+    subgraph "Deployment Phase"
+        Config[Config Review]
+        Infra[Infrastructure Check]
+        Deploy[Secure Deployment]
+        Monitor[Enable Monitoring]
+    end
+    
+    subgraph "Operations Phase"
+        Logging[Security Logging]
+        Alerts[Alert Management]
+        Patch[Patch Management]
+        Audit[Regular Audits]
+    end
+    
+    Design --> Code
+    Code --> Review
+    Review --> SAST
+    SAST --> Unit
+    
+    Unit --> Integration
+    Integration --> Security
+    Security --> Pen
+    Pen --> Deps
+    
+    Deps --> Build
+    Build --> Sign
+    Sign --> Package
+    Package --> Config
+    
+    Config --> Infra
+    Infra --> Deploy
+    Deploy --> Monitor
+    Monitor --> Logging
+    
+    Logging --> Alerts
+    Alerts --> Patch
+    Patch --> Audit
+    Audit --> Design
+    
+    classDef dev fill:#e1f5fe,stroke:#01579b
+    classDef test fill:#f3e5f5,stroke:#4a148c
+    classDef build fill:#e8f5e9,stroke:#1b5e20
+    classDef deploy fill:#fff3e0,stroke:#e65100
+    classDef ops fill:#ffebee,stroke:#c62828
+    
+    class Design,Code,Review,SAST dev
+    class Unit,Integration,Security,Pen test
+    class Deps,Build,Sign,Package build
+    class Config,Infra,Deploy,Monitor deploy
+    class Logging,Alerts,Patch,Audit ops

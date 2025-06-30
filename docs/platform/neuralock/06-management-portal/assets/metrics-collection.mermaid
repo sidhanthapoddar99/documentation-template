@@ -1,0 +1,47 @@
+sequenceDiagram
+    participant Server
+    participant Collector
+    participant Queue
+    participant Processor
+    participant Storage
+    participant Dashboard
+    
+    loop Every 30 seconds
+        Server->>Server: Collect Metrics
+        Note over Server: CPU, Memory, Disk<br/>Request counts<br/>Error rates<br/>Latencies
+    end
+    
+    Server->>Collector: Push Metrics Batch
+    
+    Collector->>Collector: Validate & Tag
+    Note over Collector: Add metadata:<br/>- Server ID<br/>- Timestamp<br/>- Region<br/>- Version
+    
+    Collector->>Queue: Enqueue Metrics
+    
+    Queue->>Processor: Consume Messages
+    
+    par Aggregation
+        Processor->>Processor: Calculate Aggregates
+        Note over Processor: 1min, 5min, 1hour<br/>averages
+    and Enrichment
+        Processor->>Processor: Add Context
+        Note over Processor: Server metadata<br/>Threshold info<br/>Historical context
+    and Anomaly Detection
+        Processor->>Processor: ML Analysis
+        Note over Processor: Detect outliers<br/>Predict trends
+    end
+    
+    Processor->>Storage: Store Processed Data
+    
+    Storage->>Storage: Index & Partition
+    Note over Storage: Time-based partitions<br/>Metric indexes<br/>Tag indexes
+    
+    Dashboard->>Storage: Query Metrics
+    Storage->>Dashboard: Return Results
+    
+    Dashboard->>Dashboard: Render Charts
+    
+    opt Alert Triggered
+        Processor->>Alerts: Send Alert
+        Alerts->>Admin: Notify
+    end

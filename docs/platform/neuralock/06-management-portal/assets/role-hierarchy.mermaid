@@ -1,0 +1,79 @@
+graph TB
+    subgraph "Role Hierarchy"
+        Owner[Owner Role]
+        Admin[Admin Role]
+        Manager[Manager Role]
+        User[Regular User]
+    end
+    
+    subgraph "Owner Permissions"
+        O1[Add/Remove Owners]
+        O2[Emergency Controls]
+        O3[Contract Upgrades]
+        O4[System Pause]
+        O5[All Admin Permissions]
+    end
+    
+    subgraph "Admin Permissions"
+        A1[Server Registration]
+        A2[Role Management]
+        A3[System Configuration]
+        A4[Verification Approval]
+        A5[All Manager Permissions]
+    end
+    
+    subgraph "Manager Permissions"
+        M1[Server Verification]
+        M2[View Analytics]
+        M3[Monitor Health]
+        M4[Read Configuration]
+        M5[Report Issues]
+    end
+    
+    subgraph "User Permissions"
+        U1[View Public Data]
+        U2[Use Neuralock Services]
+        U3[Manage Own Assets]
+    end
+    
+    Owner --> O1
+    Owner --> O2
+    Owner --> O3
+    Owner --> O4
+    Owner --> O5
+    
+    O5 -.-> Admin
+    
+    Admin --> A1
+    Admin --> A2
+    Admin --> A3
+    Admin --> A4
+    Admin --> A5
+    
+    A5 -.-> Manager
+    
+    Manager --> M1
+    Manager --> M2
+    Manager --> M3
+    Manager --> M4
+    Manager --> M5
+    
+    User --> U1
+    User --> U2
+    User --> U3
+    
+    Owner -.->|inherits| Admin
+    Admin -.->|inherits| Manager
+    Manager -.->|inherits| User
+    
+    classDef owner fill:#ff6b6b,stroke:#c92a2a,color:#fff
+    classDef admin fill:#4c6ef5,stroke:#364fc7,color:#fff
+    classDef manager fill:#51cf66,stroke:#2f9e44,color:#fff
+    classDef user fill:#868e96,stroke:#495057,color:#fff
+    classDef permission fill:#f8f9fa,stroke:#dee2e6
+    
+    class Owner owner
+    class Admin admin
+    class Manager manager
+    class User user
+    class O1,O2,O3,O4,O5,A1,A2,A3,A4,A5,M1,M2,M3,M4,M5,U1,U2,U3 permission

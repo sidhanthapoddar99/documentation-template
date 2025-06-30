@@ -1,0 +1,362 @@
+---
+title: JavaScript SDK
+sidebar_position: 1
+description: Complete guide to the Neuralock JavaScript SDK for frontend applications
+---
+
+import { Card } from '@site/src/components/elements';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { FileCollapsibleCodeBlock } from "@site/src/components/elements/CodeBlock";
+import { MermaidDiagram } from '@site/src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import { Callout as Alert } from "@site/src/components/elements";
+
+import SDKArchitectureSource from '!!raw-loader!./assets/sdk-architecture.mermaid';
+import ClientFlowSource from '!!raw-loader!./assets/client-flow.mermaid';
+import BasicUsageExample from '!!raw-loader!./assets/basic-usage.js';
+import AdvancedConfigExample from '!!raw-loader!./assets/advanced-config.js';
+import ErrorHandlingExample from '!!raw-loader!./assets/error-handling.js';
+import SessionManagementExample from '!!raw-loader!./assets/session-management.js';
+
+# JavaScript SDK
+
+The Neuralock JavaScript SDK provides a powerful interface for integrating distributed encryption into web applications. Built with TypeScript, it offers full type safety and seamless integration with modern JavaScript frameworks.
+
+## Overview
+
+The SDK handles all the complexity of:
+- **Shamir's Secret Sharing** for key distribution
+- **Multi-server coordination** for decentralized storage
+- **Session management** with ephemeral keys
+- **Blockchain integration** for access control
+- **Automatic retries** and error handling
+
+<MermaidDiagram content={SDKArchitectureSource} filename="sdk-architecture.mermaid" />
+
+## Installation
+
+<Tabs
+  items={[
+    { label: "npm", value: "npm" },
+    { label: "yarn", value: "yarn" },
+    { label: "pnpm", value: "pnpm" }
+  ]}
+>
+  <TabItem value="npm">
+    ```bash
+    npm install @neuralock/client
+    ```
+  </TabItem><TabItem value="yarn">
+    ```bash
+    yarn add @neuralock/client
+    ```
+  </TabItem><TabItem value="pnpm">
+    ```bash
+    pnpm add @neuralock/client
+    ```
+  </TabItem></Tabs>
+
+## Quick Start
+
+<FileCollapsibleCodeBlock content={BasicUsageExample} filename="basic-usage.js" />
+
+## Core Concepts
+
+### Client Configuration
+
+The `NeuralockClient` is configured with several key parameters:
+
+<Card title="Configuration Options">
+  <table>
+    <thead>
+      <tr>
+        <th>Parameter</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>applicationContract</td>
+        <td>string</td>
+        <td>Your application's contract address</td>
+      </tr>
+      <tr>
+        <td>signer</td>
+        <td>Signer | WalletClient</td>
+        <td>Ethereum signer for authentication</td>
+      </tr>
+      <tr>
+        <td>servers</td>
+        <td>ServerConfig[]</td>
+        <td>Array of server configurations</td>
+      </tr>
+      <tr>
+        <td>options</td>
+        <td>ClientOptions</td>
+        <td>Optional advanced settings</td>
+      </tr>
+    </tbody>
+  </table>
+</Card>
+
+### Server Configuration
+
+Each server in the network is configured with:
+
+```typescript
+interface ServerConfig {
+  nftId: number;              // Server's NFT identifier
+  importanceFactor?: number;  // Weight (0-1) for threshold calculation
+  required?: boolean;         // Must participate in operations
+}
+```
+
+### Threshold Modes
+
+<Tabs
+  items={[
+    { label: "Strict Mode", value: "strict" },
+    { label: "Flexible Mode", value: "flexible" },
+    { label: "Single Mode", value: "single" }
+  ]}
+>
+  <TabItem value="strict">
+    <Callout type="info">
+      **Strict Mode**: Requires exact threshold of servers to participate. Best for high-security scenarios.
+    </Callout>
+    
+    ```javascript
+    threshold: {
+      mode: 'strict',
+      minimum: 3  // Exactly 3 servers must respond
+    }
+    ```
+  </TabItem><TabItem value="flexible">
+    <Callout type="info">
+      **Flexible Mode**: Allows tolerance in server participation. Ideal for production environments.
+    </Callout>
+    
+    ```javascript
+    threshold: {
+      mode: 'flexible',
+      minimum: 2,
+      tolerance: 0.2  // 20% tolerance allowed
+    }
+    ```
+  </TabItem><TabItem value="single">
+    <Callout type="warning">
+      **Single Mode**: Uses only one server. For testing and development only!
+    </Callout>
+    
+    ```javascript
+    threshold: {
+      mode: 'single'
+    }
+    ```
+  </TabItem></Tabs>
+
+## API Reference
+
+### NeuralockClient
+
+The main client class for all encryption operations.
+
+#### Constructor
+
+```typescript
+new NeuralockClient(config: NeuralockConfig)
+```
+
+#### Methods
+
+##### initialize()
+
+Establishes sessions with all configured servers.
+
+```typescript
+await client.initialize(): Promise<void>
+```
+
+<Callout type="info">
+  Must be called before any encryption/decryption operations. Creates ephemeral keypairs and authenticates with servers.
+</Callout>
+
+##### encrypt()
+
+Encrypts data and distributes key shares to servers.
+
+```typescript
+await client.encrypt(
+  data: string,
+  objectId: string
+): Promise<EncryptedData>
+```
+
+**Parameters:**
+- `data`: The plaintext to encrypt
+- `objectId`: Unique identifier for this encrypted object
+
+**Returns:**
+```typescript
+interface EncryptedData {
+  ciphertext: string;
+  objectId: string;
+  metadata: {
+    timestamp: number;
+    servers: string[];
+    threshold: number;
+  };
+}
+```
+
+##### decrypt()
+
+Retrieves key shares and decrypts data.
+
+```typescript
+await client.decrypt(
+  encryptedData: EncryptedData,
+  objectId: string
+): Promise<string>
+```
+
+**Parameters:**
+- `encryptedData`: The encrypted data object
+- `objectId`: Object identifier for permission verification
+
+##### updatePermissions()
+
+Updates access control for an encrypted object.
+
+```typescript
+await client.updatePermissions(
+  objectId: string,
+  permissions: PermissionUpdate
+): Promise<void>
+```
+
+##### revokeAccess()
+
+Permanently revokes access to an encrypted object.
+
+```typescript
+await client.revokeAccess(objectId: string): Promise<void>
+```
+
+<Callout type="warning">
+  This operation is irreversible. All key shares will be deleted from servers.
+</Callout>
+
+### Session Management
+
+The SDK automatically manages ephemeral sessions with servers.
+
+<MermaidDiagram content={ClientFlowSource} filename="client-flow.mermaid" />
+
+<FileCollapsibleCodeBlock content={SessionManagementExample} filename="session-management.js" />
+
+### Error Handling
+
+The SDK provides comprehensive error types for different failure scenarios:
+
+<FileCollapsibleCodeBlock content={ErrorHandlingExample} filename="error-handling.js" />
+
+### Advanced Configuration
+
+For production environments, you can fine-tune the client behavior:
+
+<FileCollapsibleCodeBlock content={AdvancedConfigExample} filename="advanced-config.js" />
+
+## Performance Optimization
+
+### Web Workers
+
+For large encryption operations, the SDK can utilize Web Workers:
+
+```javascript
+const client = new NeuralockClient({
+  // ... config
+  options: {
+    useWebWorkers: true,
+    workerPoolSize: 4
+  }
+});
+```
+
+### Connection Pooling
+
+The SDK automatically pools connections to servers:
+
+```javascript
+const client = new NeuralockClient({
+  // ... config
+  options: {
+    connectionPool: {
+      maxConnections: 10,
+      keepAlive: true,
+      timeout: 30000
+    }
+  }
+});
+```
+
+### Caching
+
+Enable caching for frequently accessed objects:
+
+```javascript
+const client = new NeuralockClient({
+  // ... config
+  options: {
+    cacheEnabled: true,
+    cacheStrategy: 'lru',
+    cacheSize: 100 // Maximum cached objects
+  }
+});
+```
+
+## TypeScript Support
+
+The SDK is written in TypeScript and provides full type definitions:
+
+```typescript
+import { 
+  NeuralockClient,
+  NeuralockConfig,
+  EncryptedData,
+  ServerConfig,
+  ThresholdConfig,
+  NeuralockError
+} from '@neuralock/client';
+
+// All types are fully typed and documented
+const config: NeuralockConfig = {
+  applicationContract: '0x...',
+  signer: wallet,
+  servers: [
+    { nftId: 1, importanceFactor: 1.0 }
+  ]
+};
+```
+
+## Browser Compatibility
+
+The SDK supports all modern browsers:
+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+<Callout type="info">
+  For older browsers, use the polyfill bundle: `@neuralock/client/polyfill`
+</Callout>
+
+## Next Steps
+
+- Explore [React Hooks](/neuralock/sdks/react-hooks) for React integration
+- View [Code Examples](/neuralock/sdks/code-examples) for common use cases
+- Learn about [Server Setup](/neuralock/server-setup) for running your own servers
+- Read the [Security Guide](/neuralock/security) for best practices

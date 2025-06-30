@@ -1,0 +1,612 @@
+---
+id: api-reference
+title: API Reference
+description: Complete API reference for Neuralock server endpoints
+sidebar_position: 3
+---
+
+import { Card, CardHeader, CardTitle } from "@site/src/components/elements";
+import { Callout } from "@site/src/components/elements";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { FileCollapsibleCodeBlock } from "@site/src/components/elements/CodeBlock";
+import { MermaidDiagram } from '@site/src/components/elements';
+import APIFlow from '!!raw-loader!./assets/api-flow.mermaid';
+import SessionExample from '!!raw-loader!./assets/session-example.py';
+import EncryptionExample from '!!raw-loader!./assets/encryption-example.py';
+import DecryptionExample from '!!raw-loader!./assets/decryption-example.py';
+import OpenAPISpec from '!!raw-loader!./assets/openapi.yaml';
+
+# API Reference
+
+Complete reference documentation for all Neuralock server API endpoints.
+
+## API Overview
+
+<MermaidDiagram content={APIFlow} filename="api-flow.mermaid" />
+
+## Base URL
+
+```
+https://your-server.example.com/api/v1
+```
+
+## Authentication
+
+All API requests (except `/info` and `/health`) require ephemeral key authentication:
+
+1. Create a session with your blockchain wallet signature
+2. Use the ephemeral key to sign subsequent requests
+3. Include signature in `X-Signature` header
+
+## API Endpoints
+
+### Session Management
+
+<Tabs defaultValue="create">
+  <TabItem value="create">
+    #### POST /session/create
+
+    Creates an ephemeral session for authenticated operations.
+
+    **Request Body:**
+    ```json
+    {
+      "signed_message": "base64_encoded_signed_message",
+      "ephemeral_public_key": "0x04abc...def",
+      "encrypted_payload": "base64_encrypted_data"
+    }
+    ```
+
+    **Signed Message Structure:**
+    ```json
+    {
+      "contract": "0x1234...abcd",
+      "user_public_key": "0x04123...456",
+      "ephemeral_public_key": "0x04abc...def",
+      "ttl": 3600,
+      "timestamp": 1704067200,
+      "nonce": "random_nonce"
+    }
+    ```
+
+    **Response:**
+    ```json
+    {
+      "success": true,
+      "session_id": "0x04abc...def",
+      "expires_at": "2024-01-01T12:00:00Z",
+      "server_info": {
+        "server_public_key": "0x04server...key",
+        "encryption_public_key": "0x04enc...key",
+        "supported_features": ["encryption", "decryption", "batch"]
+      }
+    }
+    ```
+
+    **Error Responses:**
+
+    | Status | Error Code | Description |
+    |--------|------------|-------------|
+    | 400 | `INVALID_SIGNATURE` | Signature verification failed |
+    | 400 | `INVALID_CONTRACT` | Contract not found or invalid |
+    | 401 | `NO_PERMISSION` | User lacks required permissions |
+    | 429 | `RATE_LIMITED` | Too many requests |
+
+    **Example Implementation:**
+    <FileCollapsibleCodeBlock content={SessionExample} filename="session-example.py" />
+  </TabItem>
+
+  <TabItem value="validate">
+    #### GET /session/validate/{ephemeral_public_key}
+
+    Validates if a session is active and returns session details.
+
+    **Path Parameters:**
+    - `ephemeral_public_key`: The ephemeral public key from session creation
+
+    **Response:**
+    ```json
+    {
+      "valid": true,
+      "session": {
+        "ephemeral_public_key": "0x04abc...def",
+        "user_public_key": "0x04123...456",
+        "contract": "0x1234...abcd",
+        "created_at": "2024-01-01T11:00:00Z",
+        "expires_at": "2024-01-01T12:00:00Z",
+        "remaining_ttl": 3000
+      }
+    }
+    ```
+
+    **Error Responses:**
+
+    | Status | Error Code | Description |
+    |--------|------------|-------------|
+    | 404 | `SESSION_NOT_FOUND` | Session does not exist |
+    | 410 | `SESSION_EXPIRED` | Session has expired |
+  </TabItem>
+
+  <TabItem value="delete">
+    #### DELETE /session/{ephemeral_public_key}
+
+    Terminates an active session immediately.
+
+    **Headers:**
+    - `X-Signature`: Request signature using ephemeral private key
+    - `X-Timestamp`: Unix timestamp of request
+
+    **Response:**
+    ```json
+    {
+      "success": true,
+      "message": "Session terminated"
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### Encryption Operations
+
+<Tabs defaultValue="encrypt">
+  <TabItem value="encrypt">
+    #### POST /encrypt
+
+    Stores an encrypted Shamir's secret share for an object.
+
+    **Headers:**
+    - `X-Signature`: Request signature
+    - `X-Timestamp`: Unix timestamp
+    - `X-Ephemeral-Key`: Ephemeral public key
+
+    **Request Body:**
+    ```json
+    {
+      "ephemeral_public_key": "0x04abc...def",
+      "contract_address": "0x1234...abcd",
+      "object_id": "token_123",
+      "encrypted_share": "base64_encrypted_share",
+      "signature": "0x123...def",
+      "threshold_config": {
+        "total_shares": 3,
+        "threshold": 2,
+        "share_index": 1
+      },
+      "metadata": {
+        "version": 1,
+        "created_by": "0x04user...key",
+        "description": "NFT private key share"
+      }
+    }
+    ```
+
+    **Response:**
+    ```json
+    {
+      "success": true,
+      "object_id": "token_123",
+      "version": 1,
+      "share_stored": true,
+      "storage_proof": {
+        "hash": "0xabc...123",
+        "timestamp": "2024-01-01T11:30:00Z",
+        "server_signature": "0xserver...sig"
+      }
+    }
+    ```
+
+    **Error Responses:**
+
+    | Status | Error Code | Description |
+    |--------|------------|-------------|
+    | 400 | `INVALID_THRESHOLD` | Invalid threshold configuration |
+    | 401 | `NO_WRITE_PERMISSION` | No write permission for object |
+    | 409 | `SHARE_EXISTS` | Share already exists (use update) |
+    | 507 | `STORAGE_FULL` | Storage capacity exceeded |
+
+    **Example Implementation:**
+    <FileCollapsibleCodeBlock content={EncryptionExample} filename="encryption-example.py" />
+  </TabItem>
+
+  <TabItem value="update">
+    #### PUT /encrypt
+
+    Updates an existing encrypted share.
+
+    **Request Body:**
+    Similar to POST /encrypt, but requires existing share.
+
+    **Additional Fields:**
+    ```json
+    {
+      "previous_version": 1,
+      "update_reason": "Key rotation"
+    }
+    ```
+
+    **Response:**
+    ```json
+    {
+      "success": true,
+      "object_id": "token_123",
+      "previous_version": 1,
+      "new_version": 2,
+      "updated_at": "2024-01-01T11:45:00Z"
+    }
+    ```
+  </TabItem>
+
+  <TabItem value="delete">
+    #### DELETE /encrypt/{contract_address}/{object_id}
+
+    Deletes a stored share (requires special permissions).
+
+    **Headers:**
+    - `X-Signature`: Request signature
+    - `X-Timestamp`: Unix timestamp
+    - `X-Ephemeral-Key`: Ephemeral public key
+
+    **Response:**
+    ```json
+    {
+      "success": true,
+      "deleted": true,
+      "object_id": "token_123",
+      "versions_deleted": [1, 2]
+    }
+    ```
+
+    <Callout type="warning" title="Deletion Warning">
+      Share deletion is permanent and may prevent secret reconstruction if threshold is not met.
+    </Callout>
+  </TabItem>
+</Tabs>
+
+### Decryption Operations
+
+#### POST /decrypt
+
+Retrieves and returns an encrypted share for reconstruction.
+
+**Headers:**
+- `X-Signature`: Request signature
+- `X-Timestamp`: Unix timestamp
+- `X-Ephemeral-Key`: Ephemeral public key
+
+**Request Body:**
+```json
+{
+  "ephemeral_public_key": "0x04abc...def",
+  "contract_address": "0x1234...abcd",
+  "object_id": "token_123",
+  "signature": "0x123...def",
+  "version": null  // null for latest, or specific version number
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "encrypted_share": "base64_encrypted_share",
+  "share_index": 1,
+  "version": 2,
+  "threshold_info": {
+    "total_shares": 3,
+    "threshold": 2,
+    "available_servers": ["server1", "server2", "server3"]
+  },
+  "metadata": {
+    "created_at": "2024-01-01T10:00:00Z",
+    "updated_at": "2024-01-01T11:45:00Z",
+    "access_count": 5
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error Code | Description |
+|--------|------------|-------------|
+| 401 | `NO_READ_PERMISSION` | No read permission for object |
+| 404 | `SHARE_NOT_FOUND` | No share exists for object |
+| 410 | `VERSION_NOT_FOUND` | Requested version not found |
+
+**Example Implementation:**
+<FileCollapsibleCodeBlock content={DecryptionExample} filename="decryption-example.py" />
+
+### Server Information
+
+#### GET /info
+
+Returns public server information and capabilities.
+
+**Response:**
+```json
+{
+  "server_public_key": "0x04server...key",
+  "encryption_public_key": "0x04enc...key",
+  "version": "1.0.0",
+  "network": "mainnet",
+  "supported_features": {
+    "threshold_modes": ["strict", "flexible", "single"],
+    "encryption_algorithms": ["ECDH-AES256", "ECDH-ChaCha20"],
+    "signature_schemes": ["ECDSA-secp256k1"],
+    "api_version": "v1"
+  },
+  "server_metadata": {
+    "name": "Neuralock Node 1",
+    "operator": "Example Operator",
+    "location": "US-East",
+    "uptime": 864000
+  },
+  "rate_limits": {
+    "requests_per_minute": 100,
+    "burst_size": 200
+  }
+}
+```
+
+### Health & Monitoring
+
+<Tabs defaultValue="health">
+  <TabItem value="health">
+    #### GET /health
+
+    Basic health check endpoint for load balancers.
+
+    **Response:**
+    ```json
+    {
+      "status": "healthy",
+      "timestamp": "2024-01-01T12:00:00Z"
+    }
+    ```
+
+    **Status Codes:**
+    - `200`: Service is healthy
+    - `503`: Service is unhealthy
+  </TabItem>
+
+  <TabItem value="ready">
+    #### GET /ready
+
+    Detailed readiness check including dependencies.
+
+    **Response:**
+    ```json
+    {
+      "ready": true,
+      "checks": {
+        "redis": {
+          "status": "ok",
+          "latency_ms": 2
+        },
+        "leveldb": {
+          "status": "ok",
+          "size_bytes": 1048576
+        },
+        "blockchain": {
+          "status": "ok",
+          "block_number": 18900000,
+          "synced": true
+        }
+      },
+      "timestamp": "2024-01-01T12:00:00Z"
+    }
+    ```
+  </TabItem>
+
+  <TabItem value="metrics">
+    #### GET /metrics
+
+    Prometheus-compatible metrics endpoint.
+
+    **Response:**
+    ```
+    # HELP neuralock_requests_total Total API requests
+    # TYPE neuralock_requests_total counter
+    neuralock_requests_total{method="POST",endpoint="/encrypt",status="200"} 1234
+    
+    # HELP neuralock_active_sessions Current active sessions
+    # TYPE neuralock_active_sessions gauge
+    neuralock_active_sessions 42
+    
+    # HELP neuralock_storage_bytes Storage usage in bytes
+    # TYPE neuralock_storage_bytes gauge
+    neuralock_storage_bytes{type="leveldb"} 10485760
+    ```
+  </TabItem>
+</Tabs>
+
+## Request Signing
+
+All authenticated endpoints require request signing:
+
+### Signature Generation
+
+```python
+import hashlib
+import json
+from eth_account.messages import encode_defunct
+from eth_account import Account
+
+def sign_request(method, path, body, ephemeral_private_key):
+    # Create message to sign
+    timestamp = int(time.time())
+    message = {
+        "method": method,
+        "path": path,
+        "body": json.dumps(body, sort_keys=True),
+        "timestamp": timestamp
+    }
+    
+    # Hash the message
+    message_bytes = json.dumps(message, sort_keys=True).encode()
+    message_hash = hashlib.sha256(message_bytes).hexdigest()
+    
+    # Sign with ephemeral key
+    signable_message = encode_defunct(text=message_hash)
+    signature = Account.sign_message(signable_message, ephemeral_private_key)
+    
+    return {
+        "signature": signature.signature.hex(),
+        "timestamp": timestamp
+    }
+```
+
+### Request Headers
+
+```python
+headers = {
+    "Content-Type": "application/json",
+    "X-Signature": signature,
+    "X-Timestamp": str(timestamp),
+    "X-Ephemeral-Key": ephemeral_public_key
+}
+```
+
+## Rate Limiting
+
+<Card>
+  <CardHeader>
+    <CardTitle>Rate Limit Headers</CardTitle>
+  </CardHeader>
+  
+  All responses include rate limit information:
+  
+  - `X-RateLimit-Limit`: Requests allowed per window
+  - `X-RateLimit-Remaining`: Requests remaining
+  - `X-RateLimit-Reset`: Unix timestamp when window resets
+  - `X-RateLimit-Retry-After`: Seconds until next request (if limited)
+</Card>
+
+## Error Handling
+
+### Error Response Format
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": {
+      "field": "Additional context"
+    },
+    "request_id": "uuid-v4",
+    "timestamp": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+### Common Error Codes
+
+| Code | HTTP Status | Description |
+|------|-------------|-------------|
+| `INVALID_REQUEST` | 400 | Malformed request |
+| `INVALID_SIGNATURE` | 401 | Signature verification failed |
+| `SESSION_EXPIRED` | 401 | Session has expired |
+| `NO_PERMISSION` | 403 | Insufficient permissions |
+| `NOT_FOUND` | 404 | Resource not found |
+| `RATE_LIMITED` | 429 | Too many requests |
+| `INTERNAL_ERROR` | 500 | Server error |
+| `BLOCKCHAIN_ERROR` | 502 | Blockchain connectivity issue |
+
+## OpenAPI Specification
+
+<FileCollapsibleCodeBlock content={OpenAPISpec} filename="openapi.yaml" />
+
+## SDK Integration
+
+### Python SDK
+
+```python
+from neuralock import NeuralockClient
+
+client = NeuralockClient(
+    server_url="https://your-server.example.com",
+    private_key=your_wallet_private_key
+)
+
+# Create session
+session = await client.create_session(
+    contract_address="0x1234...abcd",
+    ttl=3600
+)
+
+# Store encrypted share
+await client.store_share(
+    object_id="token_123",
+    share_data=encrypted_share,
+    threshold_config={
+        "total_shares": 3,
+        "threshold": 2,
+        "share_index": 1
+    }
+)
+
+# Retrieve share
+share = await client.get_share(
+    object_id="token_123"
+)
+```
+
+### JavaScript/TypeScript SDK
+
+```typescript
+import { NeuralockClient } from '@neuralock/client';
+
+const client = new NeuralockClient({
+  serverUrl: 'https://your-server.example.com',
+  signer: wallet.getSigner()
+});
+
+// Create session
+const session = await client.createSession({
+  contractAddress: '0x1234...abcd',
+  ttl: 3600
+});
+
+// Store encrypted share
+await client.storeShare({
+  objectId: 'token_123',
+  shareData: encryptedShare,
+  thresholdConfig: {
+    totalShares: 3,
+    threshold: 2,
+    shareIndex: 1
+  }
+});
+```
+
+## Testing Endpoints
+
+### cURL Examples
+
+```bash
+# Get server info
+curl https://your-server.example.com/api/v1/info
+
+# Health check
+curl https://your-server.example.com/api/v1/health
+
+# Create session (requires proper signing)
+curl -X POST https://your-server.example.com/api/v1/session/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "signed_message": "...",
+    "ephemeral_public_key": "...",
+    "encrypted_payload": "..."
+  }'
+```
+
+### Postman Collection
+
+Download our [Postman collection](https://api.neuralock.io/postman-collection.json) for easy API testing.
+
+## Next Steps
+
+- [Setup monitoring](./04-monitoring) for your API endpoints
+- Review security best practices for production
+- Implement automated testing for your integration

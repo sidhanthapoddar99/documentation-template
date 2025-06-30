@@ -1,0 +1,81 @@
+graph LR
+    subgraph "Regulatory Requirements"
+        GDPR[GDPR]
+        CCPA[CCPA]
+        HIPAA[HIPAA]
+        SOC2[SOC 2]
+        ISO[ISO 27001]
+    end
+    
+    subgraph "Compliance Controls"
+        Privacy[Privacy Controls]
+        Security[Security Controls]
+        Access[Access Controls]
+        Audit[Audit Controls]
+        Data[Data Controls]
+    end
+    
+    subgraph "Implementation"
+        Policies[Policies & Procedures]
+        Technical[Technical Measures]
+        Training[Training Programs]
+        Monitoring[Continuous Monitoring]
+    end
+    
+    subgraph "Validation"
+        Internal[Internal Audits]
+        External[External Audits]
+        Certification[Certifications]
+        Reports[Compliance Reports]
+    end
+    
+    subgraph "Continuous Improvement"
+        Review[Regular Reviews]
+        Updates[Policy Updates]
+        Remediation[Remediation Plans]
+        Metrics[Compliance Metrics]
+    end
+    
+    GDPR --> Privacy
+    GDPR --> Data
+    CCPA --> Privacy
+    CCPA --> Access
+    HIPAA --> Security
+    HIPAA --> Audit
+    SOC2 --> Security
+    SOC2 --> Audit
+    ISO --> Security
+    ISO --> Access
+    
+    Privacy --> Policies
+    Security --> Technical
+    Access --> Technical
+    Audit --> Technical
+    Data --> Policies
+    
+    Policies --> Training
+    Technical --> Monitoring
+    Training --> Monitoring
+    
+    Monitoring --> Internal
+    Internal --> External
+    External --> Certification
+    Certification --> Reports
+    
+    Reports --> Review
+    Review --> Updates
+    Updates --> Remediation
+    Remediation --> Metrics
+    Metrics --> Review
+    
+    classDef regulation fill:#ffebee,stroke:#c62828
+    classDef control fill:#e8f5e9,stroke:#1b5e20
+    classDef implementation fill:#e3f2fd,stroke:#0d47a1
+    classDef validation fill:#fff3e0,stroke:#e65100
+    classDef improvement fill:#f3e5f5,stroke:#4a148c
+    
+    class GDPR,CCPA,HIPAA,SOC2,ISO regulation
+    class Privacy,Security,Access,Audit,Data control
+    class Policies,Technical,Training,Monitoring implementation
+    class Internal,External,Certification,Reports validation
+    class Review,Updates,Remediation,Metrics improvement

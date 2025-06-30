@@ -1,0 +1,182 @@
+# Prometheus configuration for Neuralock monitoring
+
+global:
+  # How frequently to scrape targets
+  scrape_interval: 15s
+  
+  # How frequently to evaluate rules
+  evaluation_interval: 15s
+  
+  # Scrape timeout
+  scrape_timeout: 10s
+  
+  # External labels to attach to metrics
+  external_labels:
+    monitor: 'neuralock-monitor'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+      # Timeout for pushing alerts
+      timeout: 10s
+
+# Load rules files
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: '/metrics'
+
+  # Neuralock server metrics
+  - job_name: 'neuralock-servers'
+    static_configs:
+      - targets:
+          - 'neuralock-1:9090'
+          - 'neuralock-2:9090'
+          - 'neuralock-3:9090'
+        labels:
+          service: 'neuralock'
+          component: 'api'
+    
+    # Metrics endpoint configuration
+    metrics_path: '/metrics'
+    scheme: 'http'
+    
+    # Relabeling for better organization
+    relabel_configs:
+      # Extract server ID from target
+      - source_labels: [__address__]
+        regex: '(.+):.*'
+        target_label: instance
+        replacement: '$1'
+      
+      # Add environment label based on target
+      - source_labels: [__address__]
+        regex: '.*-prod-.*'
+        target_label: environment
+        replacement: 'production'
+      
+      - source_labels: [__address__]
+        regex: '.*-staging-.*'
+        target_label: environment
+        replacement: 'staging'
+
+  # Redis metrics via Redis exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets:
+          - 'redis-exporter:9121'
+        labels:
+          service: 'neuralock'
+          component: 'redis'
+    
+    # Redis-specific metric relabeling
+    metric_relabel_configs:
+      # Rename redis metrics to match naming convention
+      - source_labels: [__name__]
+        regex: 'redis_(.*)'
+        target_label: __name__
+        replacement: 'neuralock_redis_$1'
+
+  # Node exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets:
+          - 'neuralock-1:9100'
+          - 'neuralock-2:9100'
+          - 'neuralock-3:9100'
+        labels:
+          service: 'neuralock'
+          component: 'system'
+    
+    # System metric relabeling
+    metric_relabel_configs:
+      # Only keep important system metrics
+      - source_labels: [__name__]
+        regex: 'node_(cpu|memory|disk|network|filesystem).*'
+        action: keep
+
+  # Blackbox exporter for endpoint probing
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - 'https://neuralock-1:8000/api/v1/health'
+          - 'https://neuralock-2:8000/api/v1/health'
+          - 'https://neuralock-3:8000/api/v1/health'
+        labels:
+          probe_type: 'health'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Ethereum node metrics (if running own node)
+  - job_name: 'ethereum'
+    static_configs:
+      - targets:
+          - 'geth:6060'
+        labels:
+          service: 'ethereum'
+          network: 'mainnet'
+    metrics_path: '/debug/metrics/prometheus'
+
+# Remote write for long-term storage (optional)
+remote_write:
+  - url: 'https://prometheus-storage.example.com/api/v1/write'
+    basic_auth:
+      username: 'neuralock'
+      password: 'secret'
+    
+    # Write configuration
+    queue_config:
+      capacity: 10000
+      max_shards: 100
+      min_shards: 1
+      max_samples_per_send: 1000
+      batch_send_deadline: 5s
+      min_backoff: 30ms
+      max_backoff: 100ms
+    
+    # Only send important metrics to remote storage
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'neuralock_.*'
+        action: keep
+
+# Storage configuration
+storage:
+  tsdb:
+    # Retention time for local storage
+    retention.time: 30d
+    
+    # Maximum storage size
+    retention.size: 50GB
+    
+    # Path to store data
+    path: /prometheus/data
+
+# API configuration
+web:
+  # Enable admin API (for deletion, snapshot, etc.)
+  enable_admin_api: true
+  
+  # Enable lifecycle API (for reload)
+  enable_lifecycle: true
+  
+  # External URL for alerts
+  external_url: 'https://prometheus.neuralock.io'

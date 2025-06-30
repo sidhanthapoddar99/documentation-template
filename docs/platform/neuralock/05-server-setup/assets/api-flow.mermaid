@@ -1,0 +1,65 @@
+sequenceDiagram
+    participant Client
+    participant API as Neuralock API
+    participant Auth as Auth Service
+    participant Blockchain
+    participant Storage as Storage Layer
+    participant Redis
+    participant LevelDB
+
+    Note over Client,LevelDB: Session Creation Flow
+    
+    Client->>Client: Generate ephemeral keypair
+    Client->>Client: Sign message with wallet
+    Client->>API: POST /session/create
+    API->>API: Derive ECDH key
+    API->>API: Decrypt payload
+    API->>API: Verify signature
+    API->>Blockchain: Validate contract
+    Blockchain-->>API: Contract valid
+    API->>Redis: Store session data
+    Redis-->>API: Session stored
+    API-->>Client: Session created
+
+    Note over Client,LevelDB: Encryption (Store Share) Flow
+    
+    Client->>Client: Encrypt share with ECDH
+    Client->>Client: Sign request
+    Client->>API: POST /encrypt
+    API->>Auth: Validate session
+    Auth->>Redis: Check session
+    Redis-->>Auth: Session valid
+    Auth-->>API: Authorized
+    API->>API: Verify signature
+    API->>Blockchain: Check write permission
+    Blockchain-->>API: Permission granted
+    API->>API: Decrypt share
+    API->>API: Re-encrypt with master key
+    API->>LevelDB: Store encrypted share
+    LevelDB-->>API: Share stored
+    API-->>Client: Success + storage proof
+
+    Note over Client,LevelDB: Decryption (Retrieve Share) Flow
+    
+    Client->>Client: Sign request
+    Client->>API: POST /decrypt
+    API->>Auth: Validate session
+    Auth->>Redis: Check session
+    Redis-->>Auth: Session valid
+    Auth-->>API: Authorized
+    API->>API: Verify signature
+    API->>Blockchain: Check read permission
+    Blockchain-->>API: Permission granted
+    API->>LevelDB: Retrieve share
+    LevelDB-->>API: Encrypted share
+    API->>API: Decrypt with master key
+    API->>API: Re-encrypt with ECDH
+    API-->>Client: Encrypted share + metadata
+
+    Note over Client,API: Health Monitoring
+    
+    Client->>API: GET /health
+    API->>Redis: Ping
+    API->>LevelDB: Check status
+    API->>Blockchain: Check connection
+    API-->>Client: Health status

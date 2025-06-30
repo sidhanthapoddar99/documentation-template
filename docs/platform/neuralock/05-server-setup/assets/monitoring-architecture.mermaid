@@ -1,0 +1,65 @@
+graph TB
+    subgraph "Neuralock Servers"
+        Server1[Server 1<br/>- Metrics Endpoint<br/>- Structured Logs<br/>- Health Checks]
+        Server2[Server 2<br/>- Metrics Endpoint<br/>- Structured Logs<br/>- Health Checks]
+        Server3[Server N<br/>- Metrics Endpoint<br/>- Structured Logs<br/>- Health Checks]
+    end
+    
+    subgraph "Metrics Collection"
+        Prometheus[Prometheus<br/>- Time Series DB<br/>- Pull-based Metrics<br/>- Alert Rules]
+        Pushgateway[Pushgateway<br/>- Batch Jobs<br/>- Short-lived Metrics]
+    end
+    
+    subgraph "Log Aggregation"
+        Logstash[Logstash<br/>- Log Processing<br/>- Parsing & Enrichment]
+        Elasticsearch[Elasticsearch<br/>- Log Storage<br/>- Full-text Search]
+        Filebeat[Filebeat<br/>- Log Shipper<br/>- Lightweight Agent]
+    end
+    
+    subgraph "Visualization"
+        Grafana[Grafana<br/>- Dashboards<br/>- Graphs & Charts<br/>- Annotations]
+        Kibana[Kibana<br/>- Log Analysis<br/>- Search & Filter<br/>- Visualizations]
+    end
+    
+    subgraph "Alerting"
+        AlertManager[AlertManager<br/>- Alert Routing<br/>- Grouping<br/>- Silencing]
+        PagerDuty[PagerDuty<br/>- On-call<br/>- Escalation]
+        Slack[Slack<br/>- Notifications<br/>- Collaboration]
+        Email[Email<br/>- Alert Details<br/>- Reports]
+    end
+    
+    subgraph "External Monitoring"
+        Uptime[Uptime Monitoring<br/>- Pingdom/UptimeRobot<br/>- External Checks]
+        StatusPage[Status Page<br/>- Public Status<br/>- Incident Updates]
+    end
+    
+    Server1 -->|Metrics| Prometheus
+    Server2 -->|Metrics| Prometheus
+    Server3 -->|Metrics| Prometheus
+    
+    Server1 -->|Logs| Filebeat
+    Server2 -->|Logs| Filebeat
+    Server3 -->|Logs| Filebeat
+    
+    Filebeat --> Logstash
+    Logstash --> Elasticsearch
+    
+    Prometheus --> Grafana
+    Prometheus --> AlertManager
+    Elasticsearch --> Kibana
+    
+    AlertManager --> PagerDuty
+    AlertManager --> Slack
+    AlertManager --> Email
+    
+    Uptime -->|Health Checks| Server1
+    Uptime -->|Health Checks| Server2
+    Uptime -->|Health Checks| Server3
+    
+    Uptime --> StatusPage
+    AlertManager --> StatusPage
+    
+    style Prometheus fill:#ff9,stroke:#333,stroke-width:2px
+    style Grafana fill:#9cf,stroke:#333,stroke-width:2px
+    style AlertManager fill:#f96,stroke:#333,stroke-width:2px
+    style Elasticsearch fill:#9f9,stroke:#333,stroke-width:2px

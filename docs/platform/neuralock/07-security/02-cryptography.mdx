@@ -1,0 +1,383 @@
+---
+id: cryptography
+title: Cryptography
+description: Detailed cryptographic protocols and implementations in Neuralock
+sidebar_position: 2
+---
+
+import { Card, CardHeader, CardTitle } from "@site/src/components/elements";
+import { Callout } from "@site/src/components/elements";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@theme/Tabs';
+import { MermaidDiagram } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
+import CodeBlock from '@theme/CodeBlock';
+
+import CryptoFlow from '!!raw-loader!./assets/crypto-flow.mermaid';
+import KeyHierarchy from '!!raw-loader!./assets/key-hierarchy.mermaid';
+import ShamirImplementation from '!!raw-loader!./assets/shamir-implementation.ts';
+import ECDHProtocol from '!!raw-loader!./assets/ecdh-protocol.ts';
+import EncryptionProtocol from '!!raw-loader!./assets/encryption-protocol.ts';
+
+# Cryptography
+
+Neuralock employs state-of-the-art cryptographic protocols to ensure data confidentiality, integrity, and authenticity. This section provides a detailed overview of the cryptographic mechanisms, their implementation, and security considerations.
+
+## Cryptographic Overview
+
+<MermaidDiagram content={CryptoFlow} filename="crypto-flow.mermaid" />
+
+## Cryptographic Primitives
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>🔐 Symmetric Encryption</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <p><strong>Algorithm:</strong> AES-256-GCM</p>
+      <p><strong>Purpose:</strong> Data encryption</p>
+      <p><strong>Features:</strong> Authenticated encryption with associated data (AEAD)</p>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🔑 Key Exchange</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <p><strong>Algorithm:</strong> ECDH with X25519</p>
+      <p><strong>Purpose:</strong> Secure key agreement</p>
+      <p><strong>Features:</strong> Forward secrecy, constant-time operations</p>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>✍️ Digital Signatures</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <p><strong>Algorithm:</strong> ECDSA with secp256k1</p>
+      <p><strong>Purpose:</strong> Authentication & integrity</p>
+      <p><strong>Features:</strong> Ethereum compatible</p>
+    </div>
+  </Card>
+</div>
+
+## Key Hierarchy
+
+<MermaidDiagram content={KeyHierarchy} filename="key-hierarchy.mermaid" />
+
+## Shamir's Secret Sharing
+
+### Mathematical Foundation
+
+Shamir's Secret Sharing is based on polynomial interpolation over a finite field. For a (k,n) threshold scheme:
+
+1. **Secret**: S (the encryption key)
+2. **Polynomial**: f(x) = a₀ + a₁x + a₂x² + ... + aₖ₋₁xᵏ⁻¹
+   - Where a₀ = S (the secret)
+   - Other coefficients are random
+3. **Shares**: f(1), f(2), ..., f(n)
+4. **Reconstruction**: Any k shares can reconstruct f(x) and thus S = f(0)
+
+### Implementation
+
+<FileCollapsibleCodeBlock content={ShamirImplementation} filename="shamir-implementation.ts" />
+
+### Security Properties
+
+<Callout type="info">
+  <strong>Information Theoretic Security:</strong> With fewer than k shares, no information about the secret can be determined, even with unlimited computational power.
+</Callout>
+
+## ECDH Key Agreement
+
+### Protocol Flow
+
+<FileCollapsibleCodeBlock content={ECDHProtocol} filename="ecdh-protocol.ts" />
+
+### X25519 Advantages
+
+1. **Constant-time operations**: Resistant to timing attacks
+2. **Small key size**: 256-bit keys provide 128-bit security
+3. **Fast computation**: Optimized for modern processors
+4. **Simple API**: Reduces implementation errors
+
+## Encryption Protocol
+
+### Complete Encryption Flow
+
+<FileCollapsibleCodeBlock content={EncryptionProtocol} filename="encryption-protocol.ts" />
+
+### AES-256-GCM Details
+
+<Tabs defaultValue="properties">
+  <TabItem value="properties">
+    <Card>
+      <CardHeader>
+        <CardTitle>Algorithm Properties</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <ul>
+          <li><strong>Block Size:</strong> 128 bits</li>
+          <li><strong>Key Size:</strong> 256 bits</li>
+          <li><strong>Mode:</strong> Galois/Counter Mode (GCM)</li>
+          <li><strong>Authentication:</strong> Built-in MAC</li>
+          <li><strong>Parallelizable:</strong> Yes</li>
+          <li><strong>Patent-free:</strong> Yes</li>
+        </ul>
+      </div>
+    </Card>
+  </TabItem>
+  
+  <TabItem value="parameters">
+    <Card>
+      <CardHeader>
+        <CardTitle>Implementation Parameters</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <ul>
+          <li><strong>IV Size:</strong> 96 bits (12 bytes)</li>
+          <li><strong>Auth Tag Size:</strong> 128 bits (16 bytes)</li>
+          <li><strong>AAD:</strong> Optional associated data</li>
+          <li><strong>Max Message Size:</strong> 2³⁹ - 256 bits</li>
+          <li><strong>Key Derivation:</strong> HKDF-SHA256</li>
+        </ul>
+      </div>
+    </Card>
+  </TabItem>
+  
+  <TabItem value="security">
+    <Card>
+      <CardHeader>
+        <CardTitle>Security Considerations</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <ul>
+          <li><strong>IV Uniqueness:</strong> Critical - never reuse with same key</li>
+          <li><strong>Authentication:</strong> Always verify auth tag</li>
+          <li><strong>Key Rotation:</strong> Recommended after 2³² encryptions</li>
+          <li><strong>Side Channels:</strong> Use constant-time implementations</li>
+          <li><strong>Random Source:</strong> Use cryptographically secure RNG</li>
+        </ul>
+      </div>
+    </Card>
+  </TabItem>
+</Tabs>
+
+## Key Management
+
+### Key Generation
+
+```typescript
+// Secure key generation process
+class KeyGenerator {
+  // Generate encryption key
+  static generateDataKey(): Buffer {
+    return crypto.randomBytes(32); // 256 bits
+  }
+  
+  // Generate key pair for ECDH
+  static generateKeyPair(): {
+    privateKey: Buffer;
+    publicKey: Buffer;
+  } {
+    const privateKey = crypto.randomBytes(32);
+    const publicKey = x25519.scalarMultBase(privateKey);
+    return { privateKey, publicKey };
+  }
+  
+  // Derive key from shared secret
+  static deriveKey(
+    sharedSecret: Buffer,
+    salt: Buffer,
+    info: Buffer
+  ): Buffer {
+    return hkdf(sharedSecret, 32, { salt, info, hash: 'sha256' });
+  }
+}
+```
+
+### Key Storage
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>Client-Side</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Never store long-term keys</li>
+        <li>Use session storage for ephemeral keys</li>
+        <li>Clear keys after use</li>
+        <li>Leverage Web Crypto API</li>
+      </ul>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>Server-Side</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Hardware Security Modules (HSM)</li>
+        <li>Encrypted key storage</li>
+        <li>Key encryption keys (KEK)</li>
+        <li>Secure key deletion</li>
+      </ul>
+    </div>
+  </Card>
+</div>
+
+### Key Rotation
+
+```typescript
+interface KeyRotationPolicy {
+  maxAge: number;           // Maximum key age in days
+  maxUsage: number;         // Maximum encryptions
+  gracePeriod: number;      // Overlap period for migration
+  
+  shouldRotate(key: KeyMetadata): boolean {
+    const ageExceeded = Date.now() - key.createdAt > this.maxAge * 86400000;
+    const usageExceeded = key.usageCount > this.maxUsage;
+    return ageExceeded || usageExceeded;
+  }
+}
+```
+
+## Cryptographic Agility
+
+### Algorithm Migration Strategy
+
+<Callout type="warning">
+  <strong>Future-Proofing:</strong> The system is designed to support algorithm upgrades without breaking existing encrypted data.
+</Callout>
+
+```typescript
+interface CryptoVersion {
+  version: number;
+  algorithms: {
+    symmetric: 'aes-256-gcm' | 'chacha20-poly1305';
+    keyExchange: 'x25519' | 'x448' | 'kyber512';
+    signature: 'secp256k1' | 'ed25519';
+    hash: 'sha256' | 'sha3-256' | 'blake2b';
+  };
+  deprecated?: boolean;
+  migrationDeadline?: Date;
+}
+```
+
+## Random Number Generation
+
+### Secure Random Requirements
+
+```typescript
+class SecureRandom {
+  private static entropy: Buffer = Buffer.alloc(0);
+  private static minEntropy = 256; // bits
+  
+  static async initialize(): Promise<void> {
+    // Gather entropy from multiple sources
+    const sources = [
+      crypto.randomBytes(32),              // OS RNG
+      this.getTimingEntropy(),            // High-resolution timing
+      this.getEnvironmentalEntropy(),     // Environmental noise
+    ];
+    
+    // Mix entropy sources
+    this.entropy = this.mixEntropy(sources);
+  }
+  
+  static getBytes(length: number): Buffer {
+    if (this.entropy.length < this.minEntropy / 8) {
+      throw new Error('Insufficient entropy');
+    }
+    
+    // Use CSPRNG with entropy seed
+    return crypto.randomBytes(length);
+  }
+}
+```
+
+## Performance Considerations
+
+### Optimization Strategies
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>Client-Side</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Web Workers for crypto operations</li>
+        <li>WASM implementations for speed</li>
+        <li>Batch operations when possible</li>
+        <li>Cache derived keys appropriately</li>
+      </ul>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>Server-Side</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <ul>
+        <li>Hardware acceleration (AES-NI)</li>
+        <li>Connection pooling for HSM</li>
+        <li>Parallel processing</li>
+        <li>Efficient share distribution</li>
+      </ul>
+    </div>
+  </Card>
+</div>
+
+## Cryptographic Best Practices
+
+<Callout type="tip">
+  <strong>Implementation Guidelines:</strong>
+  <ul>
+    <li>Always use well-tested cryptographic libraries</li>
+    <li>Never implement cryptographic primitives from scratch</li>
+    <li>Regularly update dependencies for security patches</li>
+    <li>Use constant-time operations for secret data</li>
+    <li>Implement proper key lifecycle management</li>
+    <li>Regular security audits by cryptography experts</li>
+  </ul>
+</Callout>
+
+## Common Pitfalls
+
+### What NOT to Do
+
+❌ **Reuse IVs/Nonces** - Catastrophic for stream ciphers
+❌ **Weak Random Sources** - Use only cryptographic RNGs
+❌ **Roll Your Own Crypto** - Use standard, audited libraries
+❌ **Ignore Timing Attacks** - Use constant-time operations
+❌ **Store Keys in Code** - Use secure key management
+❌ **Skip Authentication** - Always verify signatures/MACs
+
+## Compliance & Standards
+
+### Cryptographic Standards
+
+- **FIPS 140-2**: Federal Information Processing Standards
+- **NIST SP 800-38D**: GCM mode specification
+- **RFC 7748**: Elliptic Curves for Security
+- **RFC 5869**: HKDF specification
+- **PKCS Standards**: Various key management standards
+
+### Regulatory Compliance
+
+- **Export Controls**: Compliance with encryption export regulations
+- **Key Escrow**: Not implemented (user sovereignty)
+- **Backdoors**: None - verifiable through open source
+- **Audit Trail**: Cryptographic operations logged (not keys)
+
+## Next Steps
+
+- [Security Best Practices →](./03-best-practices)
+- [Audit & Compliance →](./04-audit-compliance)
+- [Advanced Cryptography →](../08-advanced)

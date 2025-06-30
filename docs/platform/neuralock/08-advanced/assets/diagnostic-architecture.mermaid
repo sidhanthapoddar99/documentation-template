@@ -1,0 +1,95 @@
+graph TB
+    subgraph "Data Collection Layer"
+        L1[Application Logs]
+        L2[System Logs]
+        L3[Network Logs]
+        M1[Application Metrics]
+        M2[System Metrics]
+        M3[Network Metrics]
+        T1[Request Traces]
+        T2[Error Traces]
+    end
+    
+    subgraph "Aggregation Layer"
+        LA[Log Aggregator<br/>Elasticsearch/Loki]
+        MA[Metrics Store<br/>Prometheus/InfluxDB]
+        TA[Trace Store<br/>Jaeger/Zipkin]
+    end
+    
+    subgraph "Analysis Layer"
+        AA[Automated Analysis]
+        AD[Anomaly Detection]
+        AP[Pattern Recognition]
+        AC[Correlation Engine]
+    end
+    
+    subgraph "Diagnostic Tools"
+        DT1[Health Checker]
+        DT2[Threshold Validator]
+        DT3[Network Analyzer]
+        DT4[Performance Profiler]
+        DT5[Security Scanner]
+        DT6[Data Integrity Checker]
+    end
+    
+    subgraph "Visualization Layer"
+        D1[Grafana Dashboards]
+        D2[Kibana Dashboards]
+        D3[Custom UI]
+        A1[Alert Manager]
+        A2[PagerDuty]
+        A3[Slack/Email]
+    end
+    
+    subgraph "Recovery Tools"
+        RT1[Auto Remediation]
+        RT2[Failover Manager]
+        RT3[Backup Restore]
+        RT4[Emergency Mode]
+    end
+    
+    %% Data flow
+    L1 --> LA
+    L2 --> LA
+    L3 --> LA
+    M1 --> MA
+    M2 --> MA
+    M3 --> MA
+    T1 --> TA
+    T2 --> TA
+    
+    LA --> AA
+    MA --> AA
+    TA --> AA
+    
+    AA --> AD
+    AA --> AP
+    AD --> AC
+    AP --> AC
+    
+    AC --> D1
+    AC --> D2
+    AC --> D3
+    AC --> A1
+    
+    A1 --> A2
+    A1 --> A3
+    
+    DT1 --> AC
+    DT2 --> AC
+    DT3 --> AC
+    DT4 --> AC
+    DT5 --> AC
+    DT6 --> AC
+    
+    A1 --> RT1
+    RT1 --> RT2
+    RT1 --> RT3
+    RT1 --> RT4
+    
+    style LA fill:#e1f5fe
+    style MA fill:#e1f5fe
+    style TA fill:#e1f5fe
+    style AC fill:#fff9c4
+    style A1 fill:#ffccbc
+    style RT1 fill:#c8e6c9

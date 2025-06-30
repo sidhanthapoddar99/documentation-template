@@ -1,0 +1,79 @@
+graph TB
+    subgraph "Client Operations"
+        GenKey[Generate Data Key]
+        EncData[Encrypt Data]
+        SplitKey[Split Key via Shamir]
+        GenEphemeral[Generate Ephemeral Keys]
+    end
+    
+    subgraph "Key Exchange"
+        ECDH1[ECDH with Server 1]
+        ECDH2[ECDH with Server 2]
+        ECDHN[ECDH with Server N]
+        DeriveKeys[Derive Session Keys]
+    end
+    
+    subgraph "Share Distribution"
+        EncShare1[Encrypt Share 1]
+        EncShare2[Encrypt Share 2]
+        EncShareN[Encrypt Share N]
+        SendShares[Distribute Shares]
+    end
+    
+    subgraph "Server Storage"
+        Server1[Server 1 Stores]
+        Server2[Server 2 Stores]
+        ServerN[Server N Stores]
+    end
+    
+    subgraph "Decryption Flow"
+        RequestShares[Request k Shares]
+        DecryptShares[Decrypt Shares]
+        RecombineKey[Recombine via Shamir]
+        DecryptData[Decrypt Data]
+    end
+    
+    GenKey --> EncData
+    GenKey --> SplitKey
+    
+    SplitKey --> GenEphemeral
+    
+    GenEphemeral --> ECDH1
+    GenEphemeral --> ECDH2
+    GenEphemeral --> ECDHN
+    
+    ECDH1 --> DeriveKeys
+    ECDH2 --> DeriveKeys
+    ECDHN --> DeriveKeys
+    
+    DeriveKeys --> EncShare1
+    DeriveKeys --> EncShare2
+    DeriveKeys --> EncShareN
+    
+    EncShare1 --> SendShares
+    EncShare2 --> SendShares
+    EncShareN --> SendShares
+    
+    SendShares --> Server1
+    SendShares --> Server2
+    SendShares --> ServerN
+    
+    Server1 --> RequestShares
+    Server2 --> RequestShares
+    ServerN --> RequestShares
+    
+    RequestShares --> DecryptShares
+    DecryptShares --> RecombineKey
+    RecombineKey --> DecryptData
+    
+    classDef client fill:#e1f5fe,stroke:#01579b
+    classDef exchange fill:#f3e5f5,stroke:#4a148c
+    classDef distribution fill:#e8f5e9,stroke:#1b5e20
+    classDef server fill:#fff3e0,stroke:#e65100
+    classDef decryption fill:#ffebee,stroke:#c62828
+    
+    class GenKey,EncData,SplitKey,GenEphemeral client
+    class ECDH1,ECDH2,ECDHN,DeriveKeys exchange
+    class EncShare1,EncShare2,EncShareN,SendShares distribution
+    class Server1,Server2,ServerN server
+    class RequestShares,DecryptShares,RecombineKey,DecryptData decryption

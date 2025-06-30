@@ -1,0 +1,149 @@
+version: 1
+disable_existing_loggers: false
+
+# Formatters define output format
+formatters:
+  default:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  detailed:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(pathname)s:%(lineno)d - %(funcName)s() - %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  json:
+    class: 'pythonjsonlogger.jsonlogger.JsonFormatter'
+    format: '%(asctime)s %(name)s %(levelname)s %(message)s %(pathname)s %(lineno)d %(funcName)s'
+
+# Handlers define where logs go
+handlers:
+  console:
+    class: 'logging.StreamHandler'
+    level: 'INFO'
+    formatter: 'default'
+    stream: 'ext://sys.stdout'
+  
+  error_console:
+    class: 'logging.StreamHandler'
+    level: 'ERROR'
+    formatter: 'detailed'
+    stream: 'ext://sys.stderr'
+  
+  file:
+    class: 'logging.handlers.RotatingFileHandler'
+    level: 'DEBUG'
+    formatter: 'detailed'
+    filename: '/opt/neuralock/logs/neuralock.log'
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: 'utf8'
+  
+  error_file:
+    class: 'logging.handlers.RotatingFileHandler'
+    level: 'ERROR'
+    formatter: 'detailed'
+    filename: '/opt/neuralock/logs/error.log'
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: 'utf8'
+  
+  json_file:
+    class: 'logging.handlers.RotatingFileHandler'
+    level: 'INFO'
+    formatter: 'json'
+    filename: '/opt/neuralock/logs/neuralock.json'
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: 'utf8'
+  
+  syslog:
+    class: 'logging.handlers.SysLogHandler'
+    level: 'INFO'
+    formatter: 'default'
+    address: '/dev/log'
+    facility: 'local0'
+
+# Loggers define log sources
+loggers:
+  # Root logger
+  '':
+    level: 'INFO'
+    handlers: ['console', 'file']
+  
+  # Neuralock application
+  neuralock:
+    level: 'DEBUG'
+    handlers: ['console', 'file', 'json_file']
+    propagate: false
+  
+  # API routes
+  neuralock.api:
+    level: 'INFO'
+    handlers: ['console', 'file']
+    propagate: false
+  
+  # Core services
+  neuralock.core:
+    level: 'INFO'
+    handlers: ['console', 'file']
+    propagate: false
+  
+  # Session management
+  neuralock.session:
+    level: 'INFO'
+    handlers: ['console', 'file']
+    propagate: false
+  
+  # Cryptographic operations
+  neuralock.crypto:
+    level: 'WARNING'
+    handlers: ['console', 'file', 'error_file']
+    propagate: false
+  
+  # Blockchain interactions
+  neuralock.blockchain:
+    level: 'INFO'
+    handlers: ['console', 'file']
+    propagate: false
+  
+  # Storage operations
+  neuralock.storage:
+    level: 'INFO'
+    handlers: ['console', 'file']
+    propagate: false
+  
+  # Third-party libraries
+  uvicorn:
+    level: 'INFO'
+    handlers: ['console']
+    propagate: false
+  
+  uvicorn.error:
+    level: 'INFO'
+    handlers: ['console', 'error_file']
+    propagate: false
+  
+  uvicorn.access:
+    level: 'INFO'
+    handlers: ['console']
+    propagate: false
+  
+  fastapi:
+    level: 'INFO'
+    handlers: ['console']
+    propagate: false
+  
+  redis:
+    level: 'WARNING'
+    handlers: ['console', 'file']
+    propagate: false
+  
+  web3:
+    level: 'WARNING'
+    handlers: ['console', 'file']
+    propagate: false
+
+# Root logger configuration
+root:
+  level: 'INFO'
+  handlers: ['console', 'file', 'error_console']

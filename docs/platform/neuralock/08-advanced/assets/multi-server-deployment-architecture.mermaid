@@ -1,0 +1,86 @@
+graph TB
+    subgraph "Global Load Balancer"
+        GLB[Geographic Load Balancer<br/>Anycast IP: 1.2.3.4]
+    end
+    
+    subgraph "North America"
+        subgraph "US-East Region"
+            USE_LB[Regional Load Balancer]
+            USE1[Server US-E-1<br/>Primary]
+            USE2[Server US-E-2<br/>Secondary]
+            USE3[Server US-E-3<br/>Backup]
+            USE_LB --> USE1
+            USE_LB --> USE2
+            USE_LB --> USE3
+        end
+        
+        subgraph "US-West Region"
+            USW_LB[Regional Load Balancer]
+            USW1[Server US-W-1<br/>Primary]
+            USW2[Server US-W-2<br/>Secondary]
+            USW3[Server US-W-3<br/>Backup]
+            USW_LB --> USW1
+            USW_LB --> USW2
+            USW_LB --> USW3
+        end
+    end
+    
+    subgraph "Europe"
+        subgraph "EU-West Region"
+            EUW_LB[Regional Load Balancer]
+            EUW1[Server EU-W-1<br/>Primary]
+            EUW2[Server EU-W-2<br/>Secondary]
+            EUW3[Server EU-W-3<br/>Backup]
+            EUW_LB --> EUW1
+            EUW_LB --> EUW2
+            EUW_LB --> EUW3
+        end
+        
+        subgraph "EU-Central Region"
+            EUC_LB[Regional Load Balancer]
+            EUC1[Server EU-C-1<br/>Primary]
+            EUC2[Server EU-C-2<br/>Secondary]
+            EUC_LB --> EUC1
+            EUC_LB --> EUC2
+        end
+    end
+    
+    subgraph "Asia Pacific"
+        subgraph "APAC-SG Region"
+            APS_LB[Regional Load Balancer]
+            APS1[Server AP-SG-1<br/>Primary]
+            APS2[Server AP-SG-2<br/>Secondary]
+            APS_LB --> APS1
+            APS_LB --> APS2
+        end
+        
+        subgraph "APAC-Tokyo Region"
+            APT_LB[Regional Load Balancer]
+            APT1[Server AP-TK-1<br/>Primary]
+            APT2[Server AP-TK-2<br/>Secondary]
+            APT_LB --> APT1
+            APT_LB --> APT2
+        end
+    end
+    
+    GLB --> USE_LB
+    GLB --> USW_LB
+    GLB --> EUW_LB
+    GLB --> EUC_LB
+    GLB --> APS_LB
+    GLB --> APT_LB
+    
+    %% Cross-region sync connections
+    USE1 -.->|Sync| USW1
+    USE1 -.->|Sync| EUW1
+    EUW1 -.->|Sync| APS1
+    APS1 -.->|Sync| USE1
+    
+    %% Styling
+    style GLB fill:#e1f5fe
+    style USE1 fill:#c8e6c9
+    style USW1 fill:#c8e6c9
+    style EUW1 fill:#c8e6c9
+    style EUC1 fill:#c8e6c9
+    style APS1 fill:#c8e6c9
+    style APT1 fill:#c8e6c9

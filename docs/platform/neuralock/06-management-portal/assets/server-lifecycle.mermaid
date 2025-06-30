@@ -1,0 +1,45 @@
+stateDiagram-v2
+    [*] --> Unregistered
+    
+    Unregistered --> Pending: Submit Registration
+    Pending --> Registered: Transaction Confirmed
+    
+    Registered --> Unverified: Initial State
+    Unverified --> VerificationPending: Request Verification
+    VerificationPending --> Verified: Approved by Admins
+    VerificationPending --> Unverified: Rejected
+    
+    Verified --> Active: Health Check Passed
+    Active --> Degraded: Performance Issues
+    Degraded --> Active: Issues Resolved
+    Active --> Offline: No Response
+    Offline --> Active: Comes Back Online
+    
+    Active --> Maintenance: Scheduled Downtime
+    Maintenance --> Active: Maintenance Complete
+    
+    Verified --> UpdatePending: Metadata Update Request
+    UpdatePending --> Verified: Update Approved
+    UpdatePending --> Verified: Update Rejected
+    
+    Registered --> Transferred: NFT Transfer
+    Transferred --> Registered: New Owner
+    
+    Registered --> Burned: Destroy NFT
+    Burned --> [*]
+    
+    note right of Active
+        Normal operational state
+        Handling encryption requests
+    end note
+    
+    note right of Degraded
+        Slow response times
+        High error rates
+        Partial functionality
+    end note
+    
+    note right of Offline
+        Not responding to health checks
+        Automatic alerts triggered
+    end note

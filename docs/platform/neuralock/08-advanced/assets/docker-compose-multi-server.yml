@@ -1,0 +1,291 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (shared)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: neuralock
+      POSTGRES_USER: neuralock
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - neuralock-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neuralock"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (shared)
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - neuralock-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Neuralock Server 1
+  neuralock-server-1:
+    image: neuralock/server:latest
+    container_name: neuralock-server-1
+    environment:
+      SERVER_ID: server-1
+      SERVER_PORT: 8001
+      DATABASE_URL: postgresql://neuralock:${DB_PASSWORD}@postgres:5432/neuralock
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      ENCRYPTION_KEY: ${SERVER_1_ENCRYPTION_KEY}
+      SIGNING_KEY: ${SERVER_1_SIGNING_KEY}
+      NFT_ID: 1
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    ports:
+      - "8001:8001"
+      - "9091:9090"  # Metrics
+    volumes:
+      - ./configs/server-1:/etc/neuralock
+      - server1_data:/var/lib/neuralock
+    networks:
+      - neuralock-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Neuralock Server 2
+  neuralock-server-2:
+    image: neuralock/server:latest
+    container_name: neuralock-server-2
+    environment:
+      SERVER_ID: server-2
+      SERVER_PORT: 8002
+      DATABASE_URL: postgresql://neuralock:${DB_PASSWORD}@postgres:5432/neuralock
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      ENCRYPTION_KEY: ${SERVER_2_ENCRYPTION_KEY}
+      SIGNING_KEY: ${SERVER_2_SIGNING_KEY}
+      NFT_ID: 2
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    ports:
+      - "8002:8002"
+      - "9092:9090"
+    volumes:
+      - ./configs/server-2:/etc/neuralock
+      - server2_data:/var/lib/neuralock
+    networks:
+      - neuralock-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Neuralock Server 3
+  neuralock-server-3:
+    image: neuralock/server:latest
+    container_name: neuralock-server-3
+    environment:
+      SERVER_ID: server-3
+      SERVER_PORT: 8003
+      DATABASE_URL: postgresql://neuralock:${DB_PASSWORD}@postgres:5432/neuralock
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      ENCRYPTION_KEY: ${SERVER_3_ENCRYPTION_KEY}
+      SIGNING_KEY: ${SERVER_3_SIGNING_KEY}
+      NFT_ID: 3
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    ports:
+      - "8003:8003"
+      - "9093:9090"
+    volumes:
+      - ./configs/server-3:/etc/neuralock
+      - server3_data:/var/lib/neuralock
+    networks:
+      - neuralock-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Neuralock Server 4
+  neuralock-server-4:
+    image: neuralock/server:latest
+    container_name: neuralock-server-4
+    environment:
+      SERVER_ID: server-4
+      SERVER_PORT: 8004
+      DATABASE_URL: postgresql://neuralock:${DB_PASSWORD}@postgres:5432/neuralock
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      ENCRYPTION_KEY: ${SERVER_4_ENCRYPTION_KEY}
+      SIGNING_KEY: ${SERVER_4_SIGNING_KEY}
+      NFT_ID: 4
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    ports:
+      - "8004:8004"
+      - "9094:9090"
+    volumes:
+      - ./configs/server-4:/etc/neuralock
+      - server4_data:/var/lib/neuralock
+    networks:
+      - neuralock-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Neuralock Server 5
+  neuralock-server-5:
+    image: neuralock/server:latest
+    container_name: neuralock-server-5
+    environment:
+      SERVER_ID: server-5
+      SERVER_PORT: 8005
+      DATABASE_URL: postgresql://neuralock:${DB_PASSWORD}@postgres:5432/neuralock
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      ENCRYPTION_KEY: ${SERVER_5_ENCRYPTION_KEY}
+      SIGNING_KEY: ${SERVER_5_SIGNING_KEY}
+      NFT_ID: 5
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    ports:
+      - "8005:8005"
+      - "9095:9090"
+    volumes:
+      - ./configs/server-5:/etc/neuralock
+      - server5_data:/var/lib/neuralock
+    networks:
+      - neuralock-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # HAProxy Load Balancer
+  haproxy:
+    image: haproxy:2.8-alpine
+    ports:
+      - "8000:8000"  # Main API endpoint
+      - "8404:8404"  # HAProxy stats
+    volumes:
+      - ./configs/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - neuralock-net
+    depends_on:
+      - neuralock-server-1
+      - neuralock-server-2
+      - neuralock-server-3
+      - neuralock-server-4
+      - neuralock-server-5
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8404/stats"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - neuralock-net
+    depends_on:
+      - neuralock-server-1
+      - neuralock-server-2
+      - neuralock-server-3
+      - neuralock-server-4
+      - neuralock-server-5
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - ./configs/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./configs/grafana/datasources:/etc/grafana/provisioning/datasources
+      - grafana_data:/var/lib/grafana
+    networks:
+      - neuralock-net
+    depends_on:
+      - prometheus
+
+  # Admin Portal
+  admin-portal:
+    image: neuralock/admin-portal:latest
+    ports:
+      - "3001:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+      REACT_APP_CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      REACT_APP_CHAIN_ID: 31337  # Local hardhat
+    networks:
+      - neuralock-net
+    depends_on:
+      - haproxy
+
+networks:
+  neuralock-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+  redis_data:
+  server1_data:
+  server2_data:
+  server3_data:
+  server4_data:
+  server5_data:
+  prometheus_data:
+  grafana_data:

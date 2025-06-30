@@ -1,0 +1,77 @@
+graph TB
+    subgraph "Your Application"
+        Frontend[Frontend<br/>React/Vue/Angular]
+        Backend[Backend<br/>Node.js/Python]
+        Database[(Database<br/>PostgreSQL/MongoDB)]
+    end
+    
+    subgraph "Neuralock SDK"
+        JSClient[JavaScript SDK<br/>@neuralock/client]
+        PyClient[Python SDK<br/>neuralock-python]
+        Hooks[React Hooks<br/>@neuralock/react]
+    end
+    
+    subgraph "Blockchain Layer"
+        Wallet[Web3 Wallet<br/>MetaMask/WalletConnect]
+        AppContract[Application Contract<br/>Access Control]
+        Registry[Registry Contract<br/>Server Directory]
+    end
+    
+    subgraph "Neuralock Network"
+        Server1[Server 1<br/>NFT #1]
+        Server2[Server 2<br/>NFT #2]
+        Server3[Server 3<br/>NFT #3]
+        ServerN[Server N<br/>NFT #N]
+    end
+    
+    subgraph "Encryption Flow"
+        KeyGen[AES Key Generation]
+        Shamir[Shamir's Secret Sharing]
+        ECDH[ECDH Key Exchange]
+    end
+    
+    %% Frontend connections
+    Frontend --> JSClient
+    Frontend --> Hooks
+    JSClient --> Wallet
+    
+    %% Backend connections
+    Backend --> PyClient
+    PyClient --> AppContract
+    
+    %% Wallet connections
+    Wallet --> AppContract
+    Wallet --> Registry
+    
+    %% Contract connections
+    AppContract --> Registry
+    Registry --> Server1
+    Registry --> Server2
+    Registry --> Server3
+    Registry --> ServerN
+    
+    %% SDK to encryption
+    JSClient --> KeyGen
+    PyClient --> KeyGen
+    KeyGen --> Shamir
+    Shamir --> ECDH
+    
+    %% Encryption to servers
+    ECDH --> Server1
+    ECDH --> Server2
+    ECDH --> Server3
+    
+    %% Data flow
+    Frontend -.->|Encrypted Data| Database
+    Backend -.->|Encrypted Data| Database
+    
+    style Frontend fill:#e1f5e1
+    style Backend fill:#e1f5e1
+    style JSClient fill:#ffe1e1
+    style PyClient fill:#ffe1e1
+    style Wallet fill:#e1e1ff
+    style AppContract fill:#fff1e1
+    style Registry fill:#fff1e1
+    style Server1 fill:#f1e1ff
+    style Server2 fill:#f1e1ff
+    style Server3 fill:#f1e1ff

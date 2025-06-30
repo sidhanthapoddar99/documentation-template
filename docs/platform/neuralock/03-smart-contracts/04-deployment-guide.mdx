@@ -1,0 +1,413 @@
+---
+id: deployment-guide
+title: Deployment Guide
+description: Step-by-step guide for deploying Neuralock smart contracts
+sidebar_position: 4
+---
+
+import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/elements/Card';
+import { Callout } from "@site/src/components/elements";
+import { FileCollapsibleCodeBlock, FileInlineCodeCard } from '@site/src/components/elements/CodeBlock';
+import { CustomMermaid } from '@site/src/components/elements';
+import { MermaidDiagram } from '@site/src/components/elements';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+import DeploymentFlowSource from '!!raw-loader!./assets/deployment-flow.mermaid';
+import NetworkArchitectureSource from '!!raw-loader!./assets/network-architecture.mermaid';
+import DeploymentScriptExample from '!!raw-loader!./assets/deployment-script.js';
+import VerificationScriptExample from '!!raw-loader!./assets/verification-script.js';
+import MultiChainDeployJs from '!!raw-loader!./assets/multi-chain-deploy.js';
+import MonitoringJs from '!!raw-loader!./assets/monitoring.js';
+import RegisterServersJs from '!!raw-loader!./assets/register-servers.js';
+import SetupRolesJs from '!!raw-loader!./assets/setup-roles.js';
+import TruffleConfigMainnetJs from '!!raw-loader!./assets/truffle-config-mainnet.js';
+import LocalDeploymentSh from '!!raw-loader!./assets/local-deployment.sh';
+import Env from '!!raw-loader!./assets/.env';
+
+# Deployment Guide
+
+This guide provides comprehensive instructions for deploying the Neuralock smart contracts to various networks, from local development to mainnet production.
+
+## Prerequisites
+
+<Card className="card--primary">
+  <CardHeader>
+    <CardTitle>Required Tools & Resources</CardTitle>
+  </CardHeader>
+  
+  - **Node.js** 16+ and npm/yarn
+  - **Git** for version control
+  - **RPC Endpoint** (Infura, Alchemy, or similar)
+  - **Wallet** with deployment funds
+  - **Etherscan API Key** for contract verification
+</Card>
+
+## Quick Start
+
+<Tabs>
+<TabItem value="npm" label="NPM">
+
+```bash
+# Clone the repository
+git clone https://github.com/neuralabs/neuralock-contracts.git
+cd neuralock-contracts
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your configuration
+
+# Run tests
+npm test
+
+# Deploy to local network
+npm run deploy:local
+```
+
+</TabItem>
+<TabItem value="yarn" label="Yarn">
+
+```bash
+# Clone the repository
+git clone https://github.com/neuralabs/neuralock-contracts.git
+cd neuralock-contracts
+
+# Install dependencies
+yarn install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your configuration
+
+# Run tests
+yarn test
+
+# Deploy to local network
+yarn deploy:local
+```
+
+</TabItem>
+</Tabs>
+
+## Environment Configuration
+
+### Complete .env Template
+
+<FileCollapsibleCodeBlock content={Env} filename=".env" />
+
+## Network Architecture
+
+<MermaidDiagram 
+  content={NetworkArchitectureSource}
+  filename="network-architecture.mermaid"
+  title="Multi-Network Deployment Architecture"
+  description="Deployment strategy across different networks"
+/>
+
+## Deployment Flow
+
+<MermaidDiagram 
+  content={DeploymentFlowSource}
+  filename="deployment-flow.mermaid"
+  title="Contract Deployment Flow"
+  description="Step-by-step deployment process"
+/>
+
+## Local Development
+
+### Setting Up Ganache
+
+<Tabs>
+<TabItem value="cli" label="CLI (Recommended)">
+
+```bash
+# Install Ganache CLI
+npm install -g ganache-cli
+
+# Start with deterministic accounts
+ganache-cli \
+  --deterministic \
+  --accounts 10 \
+  --host 0.0.0.0 \
+  --port 8545 \
+  --gasLimit 10000000 \
+  --gasPrice 20000000000
+
+# Or use the npm script
+npm run ganache
+```
+
+</TabItem>
+<TabItem value="gui" label="GUI">
+
+1. Download [Ganache](https://trufflesuite.com/ganache/)
+2. Create new workspace
+3. Configure:
+   - **Port**: 8545
+   - **Network ID**: 1337
+   - **Gas Limit**: 10000000
+   - **Host**: 0.0.0.0 (for WSL access)
+
+</TabItem>
+</Tabs>
+
+### Local Deployment
+
+<FileCollapsibleCodeBlock content={LocalDeploymentSh} filename="local-deployment.sh" />
+
+## Testnet Deployment
+
+### Supported Testnets
+
+<Card>
+  <CardHeader>
+    <CardTitle>Testnet Options</CardTitle>
+  </CardHeader>
+  
+  | Network | Chain ID | RPC Endpoint | Faucet |
+  |---------|----------|--------------|---------|
+  | **Sepolia** | 11155111 | `https://sepolia.infura.io/v3/YOUR_KEY` | [Sepolia Faucet](https://sepoliafaucet.com) |
+  | **Goerli** | 5 | `https://goerli.infura.io/v3/YOUR_KEY` | [Goerli Faucet](https://goerlifaucet.com) |
+  | **Polygon Mumbai** | 80001 | `https://polygon-mumbai.infura.io/v3/YOUR_KEY` | [Mumbai Faucet](https://faucet.polygon.technology/) |
+  | **Arbitrum Goerli** | 421613 | `https://arbitrum-goerli.infura.io/v3/YOUR_KEY` | [Bridge ETH](https://bridge.arbitrum.io/) |
+</Card>
+
+### Testnet Deployment Script
+
+<FileCollapsibleCodeBlock 
+  content={DeploymentScriptExample}
+  filename="deployment-script.js"
+  description="Complete deployment script with role setup"
+/>
+
+### Running Testnet Deployment
+
+```bash
+# Deploy to Sepolia
+npm run deploy:testnet
+
+# Deploy to specific network
+npx truffle migrate --network sepolia
+
+# Deploy with examples
+npm run deploy:examples
+```
+
+## Mainnet Deployment
+
+<Callout type="warning" title="Mainnet Checklist">
+
+Before deploying to mainnet:
+
+- [ ] All tests passing
+- [ ] Security audit completed
+- [ ] Gas optimization reviewed
+- [ ] Multi-sig wallets configured
+- [ ] Emergency procedures documented
+- [ ] Deployment rehearsed on testnet
+- [ ] Team members notified
+- [ ] Monitoring setup ready
+
+</Callout>
+
+### Production Configuration
+
+<FileCollapsibleCodeBlock content={TruffleConfigMainnetJs} filename="truffle-config-mainnet.js" />
+
+### Mainnet Deployment Process
+
+```bash
+# 1. Final checks
+npm run test:all
+npm run audit
+
+# 2. Dry run
+npm run deploy:mainnet:dry
+
+# 3. Actual deployment
+npm run deploy:mainnet
+
+# 4. Verify contracts
+npm run verify:mainnet
+```
+
+## Contract Verification
+
+<Tabs>
+<TabItem value="auto" label="Automatic">
+
+<FileCollapsibleCodeBlock 
+  content={VerificationScriptExample}
+  filename="verification-script.js"
+  description="Automated verification script"
+/>
+
+</TabItem>
+<TabItem value="manual" label="Manual">
+
+```bash
+# Verify Registry contract
+npx truffle run verify NeuralockRegistry@0x123... --network mainnet
+
+# Verify with constructor args
+npx truffle run verify NeuralockRegistry@0x123... \
+  --network mainnet \
+  --forceConstructorArgs string:arg1,uint256:arg2
+
+# Verify on Etherscan directly
+curl -X POST https://api.etherscan.io/api \
+  -d "module=contract" \
+  -d "action=verifysourcecode" \
+  -d "contractaddress=0x123..." \
+  -d "sourceCode=..." \
+  -d "contractname=NeuralockRegistry" \
+  -d "compilerversion=v0.8.19+commit.7dd6d404" \
+  -d "optimizationUsed=1" \
+  -d "runs=1000" \
+  -d "apikey=$ETHERSCAN_API_KEY"
+```
+
+</TabItem>
+</Tabs>
+
+## Post-Deployment Setup
+
+### 1. Role Configuration
+
+<FileCollapsibleCodeBlock content={SetupRolesJs} filename="setup-roles.js" />
+
+### 2. Initial Server Registration
+
+<FileCollapsibleCodeBlock content={RegisterServersJs} filename="register-servers.js" />
+
+### 3. Monitoring Setup
+
+<FileCollapsibleCodeBlock content={MonitoringJs} filename="monitoring.js" />
+
+## Gas Optimization
+
+<Card className="card--elevated">
+  <CardHeader>
+    <CardTitle>Gas Usage Estimates</CardTitle>
+  </CardHeader>
+  
+  | Operation | Gas Used | Cost @ 30 gwei |
+  |-----------|----------|----------------|
+  | Deploy Registry | ~3,500,000 | 0.105 ETH |
+  | Deploy Metadata | ~1,200,000 | 0.036 ETH |
+  | Mint Server NFT | ~180,000 | 0.0054 ETH |
+  | Update Metadata | ~120,000 | 0.0036 ETH |
+  | Grant Role | ~50,000 | 0.0015 ETH |
+  | Batch Query (10) | ~45,000 | 0.00135 ETH |
+</Card>
+
+### Optimization Tips
+
+<Callout type="success" title="Gas Optimization Strategies">
+
+1. **Batch Operations**: Use batch functions to reduce transaction count
+2. **Storage Packing**: Struct members are already optimized
+3. **Short-Circuit Logic**: Check cheapest conditions first
+4. **Event Logs**: Use events instead of storage for history
+5. **Proxy Pattern**: Deploy minimal proxy for multiple instances
+
+</Callout>
+
+## Troubleshooting
+
+### Common Issues
+
+<Tabs>
+<TabItem value="compilation" label="Compilation">
+
+```bash
+# Error: Cannot find module
+npm install --force
+
+# Error: Compiler version mismatch
+npm run clean
+npm run compile
+
+# Error: Stack too deep
+# Enable optimizer with viaIR in truffle-config.js
+```
+
+</TabItem>
+<TabItem value="deployment" label="Deployment">
+
+```bash
+# Error: Insufficient funds
+# Check balance:
+npx truffle exec scripts/check-balance.js --network testnet
+
+# Error: Gas price too low
+# Increase gas price in .env or truffle-config.js
+
+# Error: Nonce mismatch
+# Reset account in MetaMask or use:
+npx truffle exec scripts/reset-nonce.js --network testnet
+```
+
+</TabItem>
+<TabItem value="verification" label="Verification">
+
+```bash
+# Error: Contract source code not verified
+# Ensure correct compiler version and optimization settings
+
+# Error: Unable to locate ContractName
+# Use full contract name with path:
+npx truffle run verify contracts/core/NeuralockRegistry.sol:NeuralockRegistry
+
+# Error: Invalid API key
+# Check ETHERSCAN_API_KEY in .env
+```
+
+</TabItem>
+</Tabs>
+
+## Security Checklist
+
+<Card>
+  <CardHeader>
+    <CardTitle>Pre-Deployment Security</CardTitle>
+  </CardHeader>
+  
+  - [ ] Run static analysis: `npm run analyze`
+  - [ ] Run security audit: `npm run audit`
+  - [ ] Review access control logic
+  - [ ] Test emergency functions
+  - [ ] Verify upgrade mechanism
+  - [ ] Check for reentrancy
+  - [ ] Validate input sanitization
+  - [ ] Test gas limits
+  - [ ] Review external calls
+  - [ ] Document known issues
+</Card>
+
+## Multi-Chain Deployment
+
+<FileCollapsibleCodeBlock content={MultiChainDeployJs} filename="multi-chain-deploy.js" />
+
+## Next Steps
+
+After successful deployment:
+
+1. **Verify all contracts** on block explorers
+2. **Set up monitoring** for events and state changes
+3. **Configure access control** with proper roles
+4. **Register initial servers** if applicable
+5. **Test integration** with a sample application
+6. **Document deployment** addresses and configuration
+7. **Set up backup** and recovery procedures
+
+## Resources
+
+- [Contract Documentation](./01-registry-contract)
+- [Security Guidelines](../07-security/01-smart-contract-security)
+- [Integration Examples](../08-advanced/01-example-contracts)
+- [Truffle Documentation](https://trufflesuite.com/docs/)
+- [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/)

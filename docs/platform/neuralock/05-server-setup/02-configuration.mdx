@@ -1,0 +1,459 @@
+---
+id: configuration
+title: Configuration
+description: Complete configuration guide for Neuralock server nodes
+sidebar_position: 2
+---
+
+import { Card, CardHeader, CardTitle } from "@site/src/components/elements";
+import { Callout } from "@site/src/components/elements";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { FileCollapsibleCodeBlock } from "@site/src/components/elements/CodeBlock";
+import { MermaidDiagram } from '@site/src/components/elements';
+import ConfigSchema from '!!raw-loader!./assets/config.yaml';
+import ConfigExample from '!!raw-loader!./assets/config.example.yaml';
+import LoggingConfig from '!!raw-loader!./assets/logging.yaml';
+import EnvExample from '!!raw-loader!./assets/.env.example';
+import ConfigFlow from '!!raw-loader!./assets/configuration-flow.mermaid';
+
+# Configuration
+
+This guide covers all configuration options for Neuralock server nodes, from basic setup to advanced tuning.
+
+## Configuration Overview
+
+<MermaidDiagram content={ConfigFlow} filename="configuration-flow.mermaid" />
+
+## Configuration Files
+
+Neuralock uses a hierarchical configuration system with multiple files:
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>📄 config.yaml</CardTitle>
+    </CardHeader>
+    <p>Main configuration file containing server settings, blockchain connections, and service parameters.</p>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🔐 keys.yaml</CardTitle>
+    </CardHeader>
+    <p>Cryptographic keys for server identity, encryption, and storage. Generated separately for security.</p>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>📊 logging.yaml</CardTitle>
+    </CardHeader>
+    <p>Logging configuration for different components, log levels, and output formats.</p>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🔧 .env</CardTitle>
+    </CardHeader>
+    <p>Environment variables for sensitive data like passwords and API keys.</p>
+  </Card>
+</div>
+
+## Main Configuration File
+
+<FileCollapsibleCodeBlock content={ConfigSchema} filename="config.yaml" />
+
+### Configuration Sections
+
+<Tabs defaultValue="server">
+  <TabItem value="server">
+    ### Server Configuration
+
+    Basic server settings that control the API service:
+
+    ```yaml
+    server:
+      name: "Neuralock Server Node 1"  # Unique identifier for this node
+      host: "0.0.0.0"                   # Bind address (0.0.0.0 for all interfaces)
+      port: 8000                        # API port
+      workers: 1                        # Number of worker processes (always 1)
+      log_level: "INFO"                 # Logging verbosity
+      metrics_enabled: true             # Enable Prometheus metrics
+      metrics_port: 9090               # Metrics endpoint port
+    ```
+
+    <Callout type="info" title="Single Worker Design">
+      Neuralock servers are designed to run with a single worker process. This ensures consistent state management and prevents race conditions in cryptographic operations.
+    </Callout>
+
+    #### Advanced Server Options
+
+    ```yaml
+    server:
+      # Connection settings
+      keepalive: 75                     # TCP keepalive in seconds
+      timeout_keep_alive: 5             # HTTP keepalive timeout
+      
+      # Request handling
+      max_request_size: 10485760        # 10MB max request size
+      request_timeout: 300              # 5 minutes max request time
+      
+      # Performance tuning
+      backlog: 2048                     # Socket backlog size
+      limit_concurrency: 1000           # Max concurrent connections
+      
+      # Development options
+      reload: false                     # Auto-reload on code changes
+      debug: false                      # Debug mode (never in production!)
+    ```
+  </TabItem>
+
+  <TabItem value="blockchain">
+    ### Blockchain Configuration
+
+    Settings for connecting to Ethereum networks and interacting with smart contracts:
+
+    ```yaml
+    blockchain:
+      # Network selection
+      network: "mainnet"                # mainnet, sepolia, or custom
+      chain_id: 1                       # Ethereum chain ID
+      
+      # RPC endpoints (multiple for redundancy)
+      rpc_urls:
+        - "https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
+        - "https://mainnet.infura.io/v3/YOUR_PROJECT_ID"
+        - "https://cloudflare-eth.com"
+      
+      # Contract addresses
+      neuralock_contract: "0x..."      # Main Neuralock NFT registry
+      
+      # Connection settings
+      connection_timeout: 30            # RPC timeout in seconds
+      max_retries: 3                    # Retry failed requests
+      retry_delay: 1                    # Delay between retries
+      
+      # Gas settings (for server registration)
+      gas_price_multiplier: 1.1         # Multiply estimated gas price
+      max_gas_price: 100               # Max gas price in gwei
+      
+      # Caching
+      contract_cache_ttl: 300           # Cache contract data for 5 min
+      block_cache_size: 1000            # Number of blocks to cache
+    ```
+
+    #### Network Presets
+
+    <Tabs defaultValue="mainnet">
+      <TabItem value="mainnet">
+        ```yaml
+        blockchain:
+          network: "mainnet"
+          chain_id: 1
+          rpc_urls:
+            - "https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY"
+            - "https://mainnet.infura.io/v3/YOUR_KEY"
+          neuralock_contract: "0x1234...abcd"  # Official mainnet contract
+        ```
+      </TabItem>
+
+      <TabItem value="sepolia">
+        ```yaml
+        blockchain:
+          network: "sepolia"
+          chain_id: 11155111
+          rpc_urls:
+            - "https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY"
+            - "https://sepolia.infura.io/v3/YOUR_KEY"
+          neuralock_contract: "0xtest...addr"  # Testnet contract
+        ```
+      </TabItem>
+
+      <TabItem value="custom">
+        ```yaml
+        blockchain:
+          network: "custom"
+          chain_id: 31337  # Local hardhat/ganache
+          rpc_urls:
+            - "http://localhost:8545"
+          neuralock_contract: "0xlocal...addr"
+          # Additional custom settings
+          block_confirmations: 1
+          gas_price_strategy: "fixed"
+          fixed_gas_price: 20
+        ```
+      </TabItem>
+    </Tabs>
+  </TabItem>
+
+  <TabItem value="storage">
+    ### Storage Configuration
+
+    Settings for Redis (ephemeral) and LevelDB (persistent) storage:
+
+    #### Redis Configuration
+
+    ```yaml
+    redis:
+      # Connection settings
+      host: "localhost"                 # Redis host (use "redis" for Docker)
+      port: 6379                        # Redis port
+      password: "${REDIS_PASSWORD}"     # From environment variable
+      
+      # Database selection
+      db: 0                             # Main database
+      session_db: 1                     # Separate DB for sessions
+      cache_db: 2                       # Cache database
+      
+      # Connection pool
+      max_connections: 50               # Pool size
+      min_connections: 10               # Minimum pool size
+      connection_timeout: 20            # Connection timeout
+      socket_timeout: 5                 # Socket timeout
+      
+      # TTL settings
+      ttl_padding: 30                   # Extra seconds for TTL safety
+      session_ttl_max: 86400           # Max session TTL (24 hours)
+      
+      # Performance
+      decode_responses: true            # Decode to strings
+      health_check_interval: 30         # Health check frequency
+    ```
+
+    #### LevelDB Configuration
+
+    ```yaml
+    leveldb:
+      # Storage location
+      path: "/data/leveldb"             # Database directory
+      
+      # Performance tuning
+      cache_size: 8388608               # 8MB cache
+      write_buffer_size: 4194304        # 4MB write buffer
+      block_size: 4096                  # Block size in bytes
+      max_open_files: 1000              # Max file descriptors
+      
+      # Compression
+      compression: "snappy"             # snappy or none
+      
+      # Write options
+      sync: false                       # Sync writes to disk
+      verify_checksums: true            # Verify on read
+      paranoid_checks: true             # Extra corruption checks
+      
+      # Compaction
+      max_file_size: 2097152            # 2MB max file size
+      target_file_size_base: 2097152    # Base file size
+      target_file_size_multiplier: 1    # Size multiplier
+    ```
+
+    <Callout type="warning" title="Storage Security">
+      Always use encrypted filesystems for LevelDB storage in production. The database contains encrypted key shares that must be protected at rest.
+    </Callout>
+  </TabItem>
+
+  <TabItem value="security">
+    ### Security Configuration
+
+    Security settings for API protection and cryptographic operations:
+
+    ```yaml
+    security:
+      # API Security
+      rate_limit: 100                   # Requests per minute per IP
+      rate_limit_burst: 200             # Burst allowance
+      max_message_size: 10485760        # 10MB max message
+      signature_timeout: 300            # 5 min signature validity
+      
+      # CORS settings
+      enable_cors: true                 # Enable CORS
+      allowed_origins:                  # Allowed origins
+        - "https://app.neuralock.io"
+        - "http://localhost:3000"       # Development
+      allowed_methods:
+        - "GET"
+        - "POST"
+        - "OPTIONS"
+      allowed_headers:
+        - "Content-Type"
+        - "X-Signature"
+        - "X-Timestamp"
+      
+      # TLS settings (when not behind proxy)
+      tls_enabled: false                # Enable HTTPS
+      tls_cert_file: "/path/to/cert.pem"
+      tls_key_file: "/path/to/key.pem"
+      tls_min_version: "1.2"            # Minimum TLS version
+      
+      # Authentication
+      api_key_header: "X-API-Key"       # Optional API key header
+      require_api_key: false            # Require API key
+      api_keys: []                      # List of valid API keys
+      
+      # IP filtering
+      ip_whitelist_enabled: false       # Enable IP whitelist
+      ip_whitelist:                     # Allowed IPs
+        - "10.0.0.0/8"
+        - "172.16.0.0/12"
+      ip_blacklist_enabled: true        # Enable IP blacklist
+      ip_blacklist: []                  # Blocked IPs
+    ```
+
+    #### Cryptographic Settings
+
+    ```yaml
+    keys:
+      # Server identity keys (ECC secp256k1)
+      server_private_key: "encrypted:..."  # Encrypted with password
+      server_public_key: "0x..."           # Public key
+      
+      # Encryption keys (for ECDH)
+      encryption_private_key: "encrypted:..."
+      encryption_public_key: "0x..."
+      
+      # Storage encryption (AES-256)
+      symmetric_master_key: "encrypted:..."  # Master key for LevelDB
+      
+      # Key encryption settings
+      key_derivation: "scrypt"          # KDF algorithm
+      scrypt_n: 32768                   # CPU/memory cost
+      scrypt_r: 8                       # Block size
+      scrypt_p: 1                       # Parallelization
+      
+      # Key rotation
+      rotation_enabled: false           # Enable key rotation
+      rotation_interval: 2592000        # 30 days in seconds
+    ```
+  </TabItem>
+</Tabs>
+
+## Environment Variables
+
+<FileCollapsibleCodeBlock content={EnvExample} filename=".env.example" />
+
+### Required Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `REDIS_PASSWORD` | Redis authentication password | `strong_random_password` |
+| `KEY_ENCRYPTION_PASSWORD` | Password for encrypted keys | `another_strong_password` |
+| `NEURALOCK_ENV` | Environment name | `production`, `staging`, `development` |
+| `ALCHEMY_API_KEY` | Alchemy RPC API key | `your_alchemy_key` |
+| `INFURA_PROJECT_ID` | Infura project ID | `your_infura_id` |
+
+## Logging Configuration
+
+<FileCollapsibleCodeBlock content={LoggingConfig} filename="logging.yaml" />
+
+### Log Levels
+
+- **DEBUG**: Detailed information for debugging
+- **INFO**: General operational information
+- **WARNING**: Warning messages for potential issues
+- **ERROR**: Error messages for failures
+- **CRITICAL**: Critical errors requiring immediate attention
+
+## Configuration Examples
+
+<FileCollapsibleCodeBlock content={ConfigExample} filename="config.example.yaml" />
+
+## Configuration Best Practices
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>🔒 Security</CardTitle>
+    </CardHeader>
+    <ul>
+      <li>Never commit sensitive data</li>
+      <li>Use environment variables for secrets</li>
+      <li>Encrypt private keys at rest</li>
+      <li>Rotate keys regularly</li>
+      <li>Use strong passwords</li>
+    </ul>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🚀 Performance</CardTitle>
+    </CardHeader>
+    <ul>
+      <li>Tune cache sizes for workload</li>
+      <li>Use connection pooling</li>
+      <li>Enable compression</li>
+      <li>Monitor resource usage</li>
+      <li>Set appropriate timeouts</li>
+    </ul>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>📊 Monitoring</CardTitle>
+    </CardHeader>
+    <ul>
+      <li>Enable metrics collection</li>
+      <li>Set appropriate log levels</li>
+      <li>Configure log rotation</li>
+      <li>Setup alerting thresholds</li>
+      <li>Monitor all endpoints</li>
+    </ul>
+  </Card>
+</div>
+
+## Configuration Validation
+
+### Validate Configuration
+
+```bash
+# Check configuration syntax
+python scripts/validate_config.py --config config/config.yaml
+
+# Test Redis connection
+python scripts/test_redis.py --config config/config.yaml
+
+# Verify blockchain connection
+python scripts/test_blockchain.py --config config/config.yaml
+
+# Full validation suite
+python scripts/validate_all.py
+```
+
+### Common Validation Errors
+
+<Callout type="error" title="Invalid RPC URL">
+  Ensure RPC URLs are properly formatted and accessible. Test with curl:
+  ```bash
+  curl -X POST -H "Content-Type: application/json" \
+    --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+    YOUR_RPC_URL
+  ```
+</Callout>
+
+<Callout type="warning" title="Redis Connection Failed">
+  Check Redis is running and password matches:
+  ```bash
+  redis-cli -h localhost -p 6379 -a YOUR_PASSWORD ping
+  ```
+</Callout>
+
+## Dynamic Configuration
+
+Some settings can be changed at runtime without restarting:
+
+```bash
+# Update rate limits
+curl -X POST http://localhost:8000/api/v1/admin/config \
+  -H "X-Admin-Key: $ADMIN_KEY" \
+  -d '{"rate_limit": 200}'
+
+# Toggle maintenance mode
+curl -X POST http://localhost:8000/api/v1/admin/maintenance \
+  -H "X-Admin-Key: $ADMIN_KEY" \
+  -d '{"enabled": true, "message": "Scheduled maintenance"}'
+```
+
+## Next Steps
+
+- [Review the API reference](./03-api-reference) for integration details
+- [Setup monitoring](./04-monitoring) for your deployment
+- Configure high availability with multiple nodes

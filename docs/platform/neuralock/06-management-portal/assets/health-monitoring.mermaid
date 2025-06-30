@@ -1,0 +1,71 @@
+graph TB
+    subgraph "Health Monitoring System"
+        Monitor[Health Monitor Service]
+        
+        subgraph "Data Collection"
+            Ping[Ping Check]
+            API[API Health]
+            Metrics[Metrics Endpoint]
+            Chain[Blockchain Status]
+        end
+        
+        subgraph "Processing"
+            Aggregate[Aggregate Data]
+            Calculate[Calculate Health Score]
+            Trend[Trend Analysis]
+            Anomaly[Anomaly Detection]
+        end
+        
+        subgraph "Storage"
+            TimeSeries[(Time Series DB)]
+            Cache[(Redis Cache)]
+            History[(Historical Data)]
+        end
+        
+        subgraph "Actions"
+            Alert[Alert System]
+            Status[Update Status]
+            Report[Generate Reports]
+            Auto[Auto-Recovery]
+        end
+    end
+    
+    Monitor --> Ping
+    Monitor --> API
+    Monitor --> Metrics
+    Monitor --> Chain
+    
+    Ping --> Aggregate
+    API --> Aggregate
+    Metrics --> Aggregate
+    Chain --> Aggregate
+    
+    Aggregate --> Calculate
+    Calculate --> Trend
+    Calculate --> Anomaly
+    
+    Calculate --> TimeSeries
+    Calculate --> Cache
+    Trend --> History
+    
+    Anomaly --> Alert
+    Calculate --> Status
+    Trend --> Report
+    Anomaly --> Auto
+    
+    Alert --> Notification[Send Notifications]
+    Status --> Portal[Update Portal UI]
+    Report --> Analytics[Analytics Dashboard]
+    Auto --> Recovery[Trigger Recovery]
+    
+    classDef monitor fill:#e3f2fd,stroke:#1565c0
+    classDef collect fill:#f3e5f5,stroke:#6a1b9a
+    classDef process fill:#e8f5e9,stroke:#2e7d32
+    classDef store fill:#fff3e0,stroke:#ef6c00
+    classDef action fill:#ffebee,stroke:#c62828
+    
+    class Monitor monitor
+    class Ping,API,Metrics,Chain collect
+    class Aggregate,Calculate,Trend,Anomaly process
+    class TimeSeries,Cache,History store
+    class Alert,Status,Report,Auto action

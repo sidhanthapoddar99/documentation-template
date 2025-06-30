@@ -1,0 +1,706 @@
+---
+id: key-features
+title: Key Features
+description: Comprehensive overview of Neuralock's core capabilities and benefits
+sidebar_position: 4
+---
+
+import { Card, CardHeader, CardTitle } from "@site/src/components/elements";
+import { Callout } from "@site/src/components/elements";
+import { Features, Feature } from '@site/src/components/elements/Features';
+import { CustomMermaid } from '@site/src/components/elements';
+import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Key Features
+
+Neuralock provides a comprehensive set of features designed to make distributed encryption accessible, secure, and practical for real-world applications.
+
+## Core Security Features
+
+### Distributed Trust Model
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>No Single Point of Failure</CardTitle>
+    </CardHeader>
+    <p>The system continues operating even when servers fail. With a 3-of-5 configuration, up to 2 servers can be offline without affecting availability.</p>
+    <CodeBlock language="text">
+{`Total Servers: 5
+Threshold: 3
+Fault Tolerance: 2 servers`}
+    </CodeBlock>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>End-to-End Encryption</CardTitle>
+    </CardHeader>
+    <p>Data is encrypted on the client before any network transmission. Servers never see plaintext data or complete encryption keys.</p>
+    <CodeBlock language="text">
+{`Client → AES Encrypt → Split Key → Distribute
+Servers see: Encrypted shares only
+Key reconstruction: Client-side only`}
+    </CodeBlock>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>Cryptographic Access Control</CardTitle>
+    </CardHeader>
+    <p>Permissions are verified on-chain using smart contracts, making access control transparent and tamper-proof.</p>
+    <CodeBlock language="solidity">
+{`function neuralock(address user, bytes32 id) 
+  external view returns (uint8)`}
+    </CodeBlock>
+  </Card>
+</div>
+
+### Threshold Cryptography
+
+<CustomMermaid 
+  value={`graph LR
+    subgraph "Secret Sharing"
+        K[Original Key] --> S[Shamir's Algorithm]
+        S --> S1[Share 1]
+        S --> S2[Share 2]
+        S --> S3[Share 3]
+        S --> S4[Share 4]
+        S --> S5[Share 5]
+    end
+    
+    subgraph "Reconstruction (3-of-5)"
+        S1 --> R[Reconstruct]
+        S3 --> R
+        S5 --> R
+        R --> K2[Original Key]
+    end
+    
+    style K fill:#e1f5e1
+    style K2 fill:#e1f5e1
+    style S fill:#e1e1ff`}
+/>
+
+<Features>
+  <Feature 
+    icon="🔐" 
+    title="Flexible Thresholds" 
+    description="Configure k-of-n threshold based on security requirements (1-of-1 for dev, 3-of-5 for production)"
+  />
+  <Feature 
+    icon="🛡️" 
+    title="Byzantine Fault Tolerance" 
+    description="System remains secure even if some servers are compromised, as long as threshold isn't reached"
+  />
+  <Feature 
+    icon="⚖️" 
+    title="Weighted Importance" 
+    description="Assign importance factors to servers for sophisticated threshold configurations"
+  />
+</Features>
+
+### Perfect Forward Secrecy
+
+Each session uses ephemeral keys that are discarded after use:
+
+<CodeBlock language="typescript">
+{`// Session keys are temporary and unique
+interface Session {
+  id: string;
+  ephemeralKeypair: CryptoKeyPair;
+  expires: number;
+  servers: string[];
+}
+
+// After session expires
+session.ephemeralKeypair = null; // Keys destroyed
+// Past communications remain secure`}</CodeBlock>
+
+## Blockchain Integration
+
+### NFT-Based Server Registry
+
+<CustomMermaid 
+  value={`graph TB
+    subgraph "Server Registration"
+        A[Deploy Server] --> B[Generate Keys]
+        B --> C[Request NFT]
+        C --> D[Owner Mints NFT]
+        D --> E[NFT Contains Metadata]
+        E --> F[Server Active]
+    end
+    
+    subgraph "NFT Metadata"
+        E --> M1[Server ID]
+        E --> M2[Public Keys]
+        E --> M3[Endpoint URL]
+        E --> M4[Importance Factor]
+        E --> M5[Status]
+    end
+    
+    style D fill:#fff1e1
+    style E fill:#e1e1ff`}
+/>
+
+<Callout type="info">
+  Each server is represented by an NFT, making server management transparent and decentralized. Only NFT holders can update server metadata.
+</Callout>
+
+### Smart Contract Flexibility
+
+Applications can implement custom access logic:
+
+<Tabs>
+<TabItem value="simple" label="Simple Ownership">
+
+<CodeBlock language="solidity">
+{`contract SimpleVault is INeuralock {
+    mapping(bytes32 => address) public owners;
+    
+    function neuralock(address user, bytes32 objectId) 
+        external view returns (uint8) {
+        return owners[objectId] == user ? 3 : 0;
+    }
+}`}</CodeBlock>
+
+</TabItem>
+<TabItem value="roles" label="Role-Based">
+
+<CodeBlock language="solidity">
+{`contract RoleBasedVault is INeuralock {
+    mapping(bytes32 => mapping(address => uint8)) permissions;
+    mapping(address => uint8) public roles;
+    
+    function neuralock(address user, bytes32 objectId) 
+        external view returns (uint8) {
+        // Check specific permission first
+        uint8 specific = permissions[objectId][user];
+        if (specific > 0) return specific;
+        
+        // Fall back to role-based access
+        return roles[user] >= 2 ? 1 : 0; // Managers can read
+    }
+}`}</CodeBlock>
+
+</TabItem>
+<TabItem value="time" label="Time-Based">
+
+<CodeBlock language="solidity">
+{`contract TimedVault is INeuralock {
+    struct Access {
+        uint8 level;
+        uint256 expires;
+    }
+    
+    mapping(bytes32 => mapping(address => Access)) access;
+    
+    function neuralock(address user, bytes32 objectId) 
+        external view returns (uint8) {
+        Access memory a = access[objectId][user];
+        return block.timestamp <= a.expires ? a.level : 0;
+    }
+}`}</CodeBlock>
+
+</TabItem>
+</Tabs>
+
+### On-Chain Audit Trail
+
+All critical operations can be logged on-chain:
+
+<CodeBlock language="solidity">
+{`event ShareStored(
+    address indexed user,
+    bytes32 indexed objectId,
+    uint256 timestamp,
+    uint8 serverCount
+);
+
+event ShareAccessed(
+    address indexed user,
+    bytes32 indexed objectId,
+    uint256 timestamp,
+    uint8 permission
+);`}</CodeBlock>
+
+## Developer Experience
+
+### Simple SDK Interface
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>JavaScript/TypeScript</CardTitle>
+    </CardHeader>
+    <CodeBlock language="typescript">
+{`import { NeuralockClient } from '@neuralock/sdk';
+
+const client = new NeuralockClient({
+  servers: [...],
+  threshold: 3
+});
+
+// Simple encryption
+const result = await client.encrypt(
+  data,
+  contractAddress,
+  objectId
+);`}
+    </CodeBlock>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>Python</CardTitle>
+    </CardHeader>
+    <CodeBlock language="python">
+{`from neuralock import NeuralockClient
+
+client = NeuralockClient(
+    servers=[...],
+    threshold=3
+)
+
+# Simple encryption
+result = await client.encrypt(
+    data,
+    contract_address,
+    object_id
+)`}
+    </CodeBlock>
+  </Card>
+</div>
+
+### React Integration
+
+<CodeBlock language="tsx">
+{`// React hooks for easy integration
+import { useNeuralock } from '@neuralock/react';
+
+function SecureDocument() {
+  const { encrypt, decrypt, loading } = useNeuralock();
+  
+  const handleSave = async (content) => {
+    const result = await encrypt(content, CONTRACT, docId);
+    console.log('Encrypted:', result.objectId);
+  };
+  
+  const handleLoad = async () => {
+    const content = await decrypt(CONTRACT, docId);
+    setDocument(content);
+  };
+  
+  return (
+    <div>
+      {loading ? <Spinner /> : <Editor onSave={handleSave} />}
+    </div>
+  );
+}`}</CodeBlock>
+
+### Error Handling
+
+Comprehensive error handling with clear messages:
+
+<CodeBlock language="typescript">
+{`try {
+  await client.encrypt(data, contract, objectId);
+} catch (error) {
+  if (error instanceof InsufficientServersError) {
+    // Not enough servers available
+    console.log(\`Only \${error.available}/\${error.required} servers\`);
+  } else if (error instanceof PermissionError) {
+    // No write permission
+    console.log('Access denied:', error.permission);
+  } else if (error instanceof SessionExpiredError) {
+    // Session needs renewal
+    await client.renewSession();
+  }
+}`}</CodeBlock>
+
+## Performance Features
+
+### Intelligent Caching
+
+<Features>
+  <Feature 
+    icon="💾" 
+    title="Permission Cache" 
+    description="Cache blockchain permission queries to reduce latency and gas costs"
+  />
+  <Feature 
+    icon="🔄" 
+    title="Share Cache" 
+    description="Temporarily cache encrypted shares for frequently accessed objects"
+  />
+  <Feature 
+    icon="📊" 
+    title="Session Pool" 
+    description="Reuse sessions across multiple operations to minimize overhead"
+  />
+</Features>
+
+### Batch Operations
+
+Process multiple items efficiently:
+
+<CodeBlock language="typescript">
+{`// Batch encryption for multiple files
+const files = [file1, file2, file3, ...];
+
+const results = await client.batchEncrypt(
+  files.map(f => ({
+    data: f.content,
+    objectId: f.id,
+    metadata: f.metadata
+  })),
+  contractAddress
+);
+
+// Results include all successes and failures
+console.log(\`Encrypted: \${results.success.length}\`);
+console.log(\`Failed: \${results.failed.length}\`);`}</CodeBlock>
+
+### Streaming Support
+
+Handle large files without memory constraints:
+
+<CodeBlock language="typescript">
+{`// Stream encryption for large files
+const fileStream = fs.createReadStream('large-file.dat');
+const encryptedStream = client.encryptStream(
+  fileStream,
+  contractAddress,
+  objectId
+);
+
+// Pipe to storage
+encryptedStream.pipe(storageStream);
+
+// Progress tracking
+encryptedStream.on('progress', (percent) => {
+  console.log(\`Encrypted: \${percent}%\`);
+});`}</CodeBlock>
+
+## Operational Features
+
+### Multi-Environment Support
+
+<Tabs>
+<TabItem value="dev" label="Development">
+
+<CodeBlock language="typescript">
+{`// Single server configuration for development
+const devConfig = {
+  servers: [{
+    id: 'dev-server',
+    endpoint: 'http://localhost:3001',
+    publicKey: '...'
+  }],
+  threshold: 1,
+  environment: 'development'
+};`}</CodeBlock>
+
+**Features:**
+- Instant operations
+- No coordination overhead
+- Local debugging
+- Simplified testing
+
+</TabItem>
+<TabItem value="staging" label="Staging">
+
+<CodeBlock language="typescript">
+{`// Multi-server staging environment
+const stagingConfig = {
+  servers: [
+    { id: 'staging-1', endpoint: '...', publicKey: '...' },
+    { id: 'staging-2', endpoint: '...', publicKey: '...' },
+    { id: 'staging-3', endpoint: '...', publicKey: '...' }
+  ],
+  threshold: 2,
+  environment: 'staging'
+};`}</CodeBlock>
+
+**Features:**
+- Test distributed behavior
+- Verify fault tolerance
+- Performance testing
+- Integration testing
+
+</TabItem>
+<TabItem value="prod" label="Production">
+
+<CodeBlock language="typescript">
+{`// Production configuration
+const prodConfig = {
+  servers: [
+    { id: 'prod-us-east', endpoint: '...', importance: 1.0 },
+    { id: 'prod-us-west', endpoint: '...', importance: 1.0 },
+    { id: 'prod-eu', endpoint: '...', importance: 0.8 },
+    { id: 'prod-asia', endpoint: '...', importance: 0.8 },
+    { id: 'prod-backup', endpoint: '...', importance: 0.5 }
+  ],
+  threshold: 3,
+  environment: 'production',
+  timeout: 30000,
+  retries: 3
+};`}</CodeBlock>
+
+**Features:**
+- Geographic distribution
+- Weighted importance
+- Automatic failover
+- High availability
+
+</TabItem>
+</Tabs>
+
+### Monitoring & Analytics
+
+<CustomMermaid 
+  value={`graph LR
+    subgraph "Metrics Collection"
+        S1[Server 1] --> M[Metrics Aggregator]
+        S2[Server 2] --> M
+        S3[Server 3] --> M
+    end
+    
+    subgraph "Analytics Dashboard"
+        M --> D1[Performance Metrics]
+        M --> D2[Usage Statistics]
+        M --> D3[Error Rates]
+        M --> D4[Security Events]
+    end
+    
+    subgraph "Alerting"
+        D3 --> A1[Threshold Alerts]
+        D4 --> A2[Security Alerts]
+        A1 --> N[Notifications]
+        A2 --> N
+    end
+    
+    style M fill:#e1e1ff
+    style N fill:#ffe1e1`}
+/>
+
+**Available Metrics:**
+- Operation latency (p50, p95, p99)
+- Success/failure rates
+- Server availability
+- Storage utilization
+- Permission check frequency
+- Session duration
+
+### Administrative Controls
+
+<Features>
+  <Feature 
+    icon="👤" 
+    title="Role Management" 
+    description="Owner, Admin, and Manager roles with hierarchical permissions"
+  />
+  <Feature 
+    icon="🔧" 
+    title="Server Management" 
+    description="Add, remove, and update servers through NFT operations"
+  />
+  <Feature 
+    icon="📝" 
+    title="Audit Logging" 
+    description="Complete audit trail of all administrative actions"
+  />
+  <Feature 
+    icon="🚨" 
+    title="Emergency Controls" 
+    description="Pause operations, rotate keys, or adjust thresholds in emergencies"
+  />
+</Features>
+
+## Advanced Features
+
+### Key Rotation
+
+Periodic key rotation without service interruption:
+
+<CodeBlock language="typescript">
+{`// Automatic key rotation
+async function rotateKeys(objectId: string) {
+  // 1. Retrieve current data
+  const data = await client.decrypt(contract, objectId);
+  
+  // 2. Generate new encryption key
+  const newKey = await generateAESKey();
+  
+  // 3. Re-encrypt with new key
+  const result = await client.encrypt(
+    data,
+    contract,
+    objectId,
+    { rotate: true }
+  );
+  
+  // 4. Old shares marked for deletion
+  await client.cleanupOldShares(objectId);
+}`}</CodeBlock>
+
+### Cross-Chain Support
+
+<Callout type="info" title="Multi-Chain Architecture">
+  Neuralock can operate across multiple blockchain networks, allowing applications to leverage the best features of each chain.
+</Callout>
+
+<CodeBlock language="typescript">
+{`// Multi-chain configuration
+const multiChainClient = new NeuralockClient({
+  networks: {
+    ethereum: {
+      rpc: 'https://eth-mainnet...',
+      contracts: { ... }
+    },
+    polygon: {
+      rpc: 'https://polygon-rpc...',
+      contracts: { ... }
+    },
+    arbitrum: {
+      rpc: 'https://arb1...',
+      contracts: { ... }
+    }
+  },
+  defaultNetwork: 'ethereum'
+});`}</CodeBlock>
+
+### Privacy-Preserving Features
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>Anonymous Access</CardTitle>
+    </CardHeader>
+    <p>Support for zero-knowledge proofs to verify permissions without revealing identity.</p>
+    <CodeBlock language="typescript">
+{`const proof = await generateZKProof(
+  privateKey,
+  accessRight
+);
+await client.decryptAnonymous(
+  objectId,
+  proof
+);`}
+    </CodeBlock>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>Metadata Privacy</CardTitle>
+    </CardHeader>
+    <p>Encrypt metadata along with data to prevent information leakage.</p>
+    <CodeBlock language="typescript">
+{`await client.encrypt(data, contract, id, {
+  metadata: {
+    encrypted: true,
+    fields: ['filename', 'size', 'type']
+  }
+});`}
+    </CodeBlock>
+  </Card>
+</div>
+
+### Integration Ecosystem
+
+<Features>
+  <Feature 
+    icon="🔌" 
+    title="IPFS Integration" 
+    description="Store encrypted data on IPFS with Neuralock managing keys"
+  />
+  <Feature 
+    icon="🗃️" 
+    title="Database Plugins" 
+    description="Transparent encryption for PostgreSQL, MongoDB, and more"
+  />
+  <Feature 
+    icon="☁️" 
+    title="Cloud Storage" 
+    description="Secure wrappers for S3, Azure Blob, Google Cloud Storage"
+  />
+  <Feature 
+    icon="🔗" 
+    title="API Middleware" 
+    description="Express, FastAPI, and other framework integrations"
+  />
+</Features>
+
+## Compliance & Standards
+
+### Regulatory Compliance
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>GDPR Compliant</CardTitle>
+    </CardHeader>
+    <ul>
+      <li>Right to erasure (key deletion)</li>
+      <li>Data portability</li>
+      <li>Privacy by design</li>
+      <li>Audit trails</li>
+    </ul>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>HIPAA Ready</CardTitle>
+    </CardHeader>
+    <ul>
+      <li>Encryption at rest and in transit</li>
+      <li>Access controls</li>
+      <li>Audit logging</li>
+      <li>Key management</li>
+    </ul>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>SOC 2 Compatible</CardTitle>
+    </CardHeader>
+    <ul>
+      <li>Security controls</li>
+      <li>Availability monitoring</li>
+      <li>Processing integrity</li>
+      <li>Confidentiality measures</li>
+    </ul>
+  </Card>
+</div>
+
+### Cryptographic Standards
+
+All cryptographic operations follow established standards:
+
+| Operation | Standard | Implementation |
+|-----------|----------|----------------|
+| Key Agreement | NIST SP 800-56A | X25519 ECDH |
+| Symmetric Encryption | NIST SP 800-38D | AES-256-GCM |
+| Digital Signatures | FIPS 186-4 | ECDSA with secp256k1 |
+| Key Derivation | NIST SP 800-108 | HKDF-SHA256 |
+| Random Generation | NIST SP 800-90A | Platform CSPRNG |
+
+## Summary
+
+Neuralock's key features provide:
+
+✅ **Security**: Distributed trust, end-to-end encryption, blockchain verification  
+✅ **Reliability**: No single points of failure, configurable redundancy  
+✅ **Flexibility**: Custom access logic, multiple SDKs, various deployment modes  
+✅ **Performance**: Intelligent caching, batch operations, streaming support  
+✅ **Compliance**: Standards adherence, regulatory compliance, audit trails  
+✅ **Developer Experience**: Simple APIs, comprehensive error handling, extensive documentation  
+
+These features combine to create a robust, production-ready platform for distributed encryption that meets the needs of modern applications.
+
+## Next Steps
+
+- **[Quick Start Guide](/neuralock/getting-started/quick-start)** - Begin implementing Neuralock
+- **[API Reference](/neuralock/api/reference)** - Detailed API documentation
+- **[Security Best Practices](/neuralock/security/best-practices)** - Security implementation guide

@@ -1,0 +1,44 @@
+graph LR
+    subgraph "Common Use Cases"
+        Healthcare[Healthcare Records]
+        Financial[Financial Documents]
+        Messaging[Secure Messaging]
+        Storage[File Storage]
+        SaaS[Multi-tenant SaaS]
+        Mobile[Mobile Apps]
+    end
+    
+    subgraph "Neuralock Features"
+        Encryption[Distributed Encryption]
+        Access[Access Control]
+        Session[Session Management]
+        Audit[Audit Logging]
+    end
+    
+    Healthcare --> Encryption
+    Healthcare --> Access
+    Healthcare --> Audit
+    
+    Financial --> Encryption
+    Financial --> Access
+    Financial --> Audit
+    
+    Messaging --> Encryption
+    Messaging --> Session
+    
+    Storage --> Encryption
+    Storage --> Access
+    
+    SaaS --> Encryption
+    SaaS --> Access
+    SaaS --> Session
+    
+    Mobile --> Encryption
+    Mobile --> Session
+    
+    style Healthcare fill:#E3F2FD,stroke:#1976D2
+    style Financial fill:#FFF3E0,stroke:#F57C00
+    style Messaging fill:#E8F5E9,stroke:#388E3C
+    style Storage fill:#F3E5F5,stroke:#7B1FA2
+    style SaaS fill:#FCE4EC,stroke:#C2185B
+    style Mobile fill:#E0F2F1,stroke:#00796B

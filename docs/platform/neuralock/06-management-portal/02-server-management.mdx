@@ -1,0 +1,340 @@
+---
+id: server-management
+title: Server Management
+description: Comprehensive tools for managing Neuralock server NFTs
+sidebar_position: 2
+---
+
+import { Card, CardHeader, CardTitle } from "@site/src/components/elements";
+import { Callout } from "@site/src/components/elements";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@theme/Tabs';
+import { MermaidDiagram } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
+import CodeBlock from '@theme/CodeBlock';
+
+import ServerLifecycle from '!!raw-loader!./assets/server-lifecycle.mermaid';
+import HealthMonitoring from '!!raw-loader!./assets/health-monitoring.mermaid';
+import RegistrationFlow from '!!raw-loader!./assets/registration-flow.mermaid';
+import ServerDataStructure from '!!raw-loader!./assets/server-data-structure.ts';
+import AddServerExample from '!!raw-loader!./assets/add-server-example.tsx';
+import HealthCheckImplementation from '!!raw-loader!./assets/health-check-implementation.ts';
+
+# Server Management
+
+The Server Management interface provides comprehensive tools for registering, monitoring, and managing Neuralock server NFTs. This section covers all aspects of server lifecycle management from initial registration to ongoing health monitoring.
+
+## Server Lifecycle
+
+<MermaidDiagram content={ServerLifecycle} filename="server-lifecycle.mermaid" />
+
+## Server Data Structure
+
+Each server in the Neuralock network is represented by an NFT with the following data structure:
+
+<FileCollapsibleCodeBlock content={ServerDataStructure} filename="server-data-structure.ts" />
+
+## Server Registration
+
+### Registration Flow
+
+<MermaidDiagram content={RegistrationFlow} filename="registration-flow.mermaid" />
+
+### Multi-Step Registration Process
+
+The portal provides a wizard-style interface for server registration:
+
+<Tabs defaultValue="step1">
+  <TabItem value="step1">
+    <Card>
+      <CardHeader>
+        <CardTitle>Basic Information</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <p><strong>Recipient Address:</strong> Ethereum address to receive the NFT</p>
+        <p><strong>Server Name:</strong> Human-readable identifier</p>
+        <p><strong>Description:</strong> Optional server description</p>
+        <p><strong>Location:</strong> Geographic region (optional)</p>
+      </div>
+    </Card>
+  </TabItem>
+  
+  <TabItem value="step2">
+    <Card>
+      <CardHeader>
+        <CardTitle>Cryptographic Keys</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <p><strong>Server Public Key:</strong> secp256k1 public key for identity</p>
+        <p><strong>Encryption Public Key:</strong> X25519 public key for ECDH</p>
+        <p><strong>Proof of Ownership:</strong> Signed message proving key control</p>
+        
+        <Callout type="info" style={{ marginTop: '1rem' }}>
+          Keys must be generated on the server and only public keys should be entered here.
+        </Callout>
+      </div>
+    </Card>
+  </TabItem>
+  
+  <TabItem value="step3">
+    <Card>
+      <CardHeader>
+        <CardTitle>Domain Configuration</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <p><strong>Domain:</strong> Fully qualified domain name</p>
+        <p><strong>SSL/TLS:</strong> HTTPS requirement toggle</p>
+        <p><strong>Health Endpoint:</strong> URL for health checks</p>
+        <p><strong>API Version:</strong> Supported Neuralock API version</p>
+      </div>
+    </Card>
+  </TabItem>
+  
+  <TabItem value="step4">
+    <Card>
+      <CardHeader>
+        <CardTitle>Review & Submit</CardTitle>
+      </CardHeader>
+      <div style={{ padding: '1rem' }}>
+        <p>Review all information before submitting:</p>
+        <ul>
+          <li>Verify all addresses and keys</li>
+          <li>Check domain configuration</li>
+          <li>Review gas estimation</li>
+          <li>Confirm transaction details</li>
+        </ul>
+      </div>
+    </Card>
+  </TabItem>
+</Tabs>
+
+### Implementation Example
+
+<FileCollapsibleCodeBlock content={AddServerExample} filename="add-server-example.tsx" />
+
+## Server List View
+
+The main server management interface provides multiple viewing options:
+
+### Grid View
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>Server #1234</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <p><strong>Status:</strong> 🟢 Online</p>
+      <p><strong>Health:</strong> 98% uptime</p>
+      <p><strong>Domain:</strong> server1.example.com</p>
+      <p><strong>Last Ping:</strong> 2 minutes ago</p>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>Server #1235</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <p><strong>Status:</strong> 🟡 Degraded</p>
+      <p><strong>Health:</strong> 85% uptime</p>
+      <p><strong>Domain:</strong> server2.example.com</p>
+      <p><strong>Last Ping:</strong> 5 minutes ago</p>
+    </div>
+  </Card>
+</div>
+
+### List View
+- Tabular format with sortable columns
+- Quick actions per row
+- Batch selection for operations
+- Export functionality
+
+### Filtering Options
+
+```typescript
+interface ServerFilters {
+  status: 'all' | 'online' | 'offline' | 'degraded';
+  verified: boolean | null;
+  owner: string | null;
+  searchTerm: string;
+  sortBy: 'id' | 'name' | 'status' | 'lastPing' | 'uptime';
+  sortOrder: 'asc' | 'desc';
+}
+```
+
+## Health Monitoring
+
+### Real-time Health Tracking
+
+<MermaidDiagram content={HealthMonitoring} filename="health-monitoring.mermaid" />
+
+### Health Metrics
+
+Each server tracks the following health metrics:
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>Availability</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <p><strong>Uptime:</strong> Percentage online</p>
+      <p><strong>Downtime:</strong> Total offline duration</p>
+      <p><strong>Last Outage:</strong> Most recent failure</p>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>Performance</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <p><strong>Response Time:</strong> Average latency</p>
+      <p><strong>Throughput:</strong> Requests/second</p>
+      <p><strong>Error Rate:</strong> Failed requests %</p>
+    </div>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>Resources</CardTitle>
+    </CardHeader>
+    <div style={{ padding: '1rem' }}>
+      <p><strong>CPU Usage:</strong> Processing load</p>
+      <p><strong>Memory:</strong> RAM utilization</p>
+      <p><strong>Storage:</strong> Disk usage</p>
+    </div>
+  </Card>
+</div>
+
+### Health Check Implementation
+
+<FileCollapsibleCodeBlock content={HealthCheckImplementation} filename="health-check-implementation.ts" />
+
+## Server Details Modal
+
+Clicking on a server opens a detailed view with comprehensive information:
+
+### Information Tabs
+
+<Tabs defaultValue="overview">
+  <TabItem value="overview">
+    - NFT ID and metadata
+    - Owner information
+    - Verification status
+    - Current health summary
+    - Quick actions
+  </TabItem>
+  
+  <TabItem value="metrics">
+    - Performance charts (24h, 7d, 30d)
+    - Availability timeline
+    - Request distribution
+    - Error analysis
+  </TabItem>
+  
+  <TabItem value="logs">
+    - Recent activity log
+    - Error events
+    - Configuration changes
+    - Access history
+  </TabItem>
+  
+  <TabItem value="config">
+    - Current settings
+    - Threshold configurations
+    - Update metadata option
+    - Advanced settings
+  </TabItem>
+</Tabs>
+
+## Batch Operations
+
+The portal supports batch operations for efficient management:
+
+### Supported Batch Actions
+
+1. **Health Check All**: Trigger immediate health checks
+2. **Export Selection**: Download server data as CSV/JSON
+3. **Update Metadata**: Bulk metadata updates
+4. **Transfer Ownership**: Batch NFT transfers
+
+### Batch Operation Flow
+
+```typescript
+async function performBatchOperation(
+  operation: BatchOperation,
+  serverIds: number[],
+  options?: BatchOptions
+): Promise<BatchResult> {
+  // Validate selection
+  const validServers = await validateServers(serverIds);
+  
+  // Show confirmation dialog
+  const confirmed = await confirmBatchOperation(operation, validServers);
+  
+  if (!confirmed) return;
+  
+  // Execute with progress tracking
+  const results = await executeBatch(operation, validServers, {
+    onProgress: (progress) => updateProgressBar(progress),
+    onError: (error, serverId) => logError(error, serverId),
+    ...options
+  });
+  
+  return results;
+}
+```
+
+## Quick Actions Menu
+
+Each server card includes a quick actions menu:
+
+<div style={{ background: 'var(--theme-bg-secondary)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+  <p><strong>⚡ Quick Actions:</strong></p>
+  <ul style={{ marginLeft: '1.5rem' }}>
+    <li>📊 View Details</li>
+    <li>🔄 Refresh Status</li>
+    <li>✏️ Edit Metadata</li>
+    <li>🔑 Manage Keys</li>
+    <li>📤 Transfer NFT</li>
+    <li>🗑️ Burn NFT (owner only)</li>
+  </ul>
+</div>
+
+## Server Status Indicators
+
+The portal uses color-coded status indicators:
+
+- 🟢 **Online**: Server responding normally
+- 🟡 **Degraded**: Partial functionality or slow response
+- 🔴 **Offline**: Server not responding
+- 🔵 **Maintenance**: Scheduled downtime
+- ⚫ **Unknown**: No recent health data
+
+## Best Practices
+
+<Callout type="tip">
+  <strong>Registration Tips:</strong>
+  <ul>
+    <li>Generate keys on secure, isolated systems</li>
+    <li>Use dedicated server addresses for NFT ownership</li>
+    <li>Configure monitoring before registration</li>
+    <li>Test domain accessibility from multiple regions</li>
+  </ul>
+</Callout>
+
+<Callout type="warning">
+  <strong>Security Considerations:</strong>
+  <ul>
+    <li>Never share private keys in the portal</li>
+    <li>Verify domain ownership before registration</li>
+    <li>Use hardware wallets for high-value operations</li>
+    <li>Regularly audit server access logs</li>
+  </ul>
+</Callout>
+
+## Next Steps
+
+- [Role Management →](./03-role-management)
+- [Analytics Dashboard →](./04-analytics)
+- [Server Setup Guide →](../05-server-setup)

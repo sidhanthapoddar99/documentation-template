@@ -1,0 +1,313 @@
+# Multi-Region Failover Configuration
+# Defines regional server groups and failover strategies
+
+global:
+  # Global threshold requirements
+  threshold:
+    k: 5
+    n: 9
+  
+  # Failover behavior
+  failover:
+    strategy: "regional_priority"  # regional_priority | round_robin | latency_based
+    timeout: 5000  # ms before considering server failed
+    retry_attempts: 3
+    backoff_multiplier: 2
+  
+  # Health check settings
+  health_check:
+    interval: 30  # seconds
+    timeout: 5000  # ms
+    healthy_threshold: 2  # consecutive successes to mark healthy
+    unhealthy_threshold: 3  # consecutive failures to mark unhealthy
+
+regions:
+  us-east:
+    priority: 1  # Primary region for US traffic
+    servers:
+      - id: us-east-1
+        datacenter: aws-us-east-1a
+        weight: 1.0
+        capabilities: ["standard", "compliance"]
+      - id: us-east-2
+        datacenter: aws-us-east-1b
+        weight: 0.9
+        capabilities: ["standard", "compliance"]
+      - id: us-east-3
+        datacenter: aws-us-east-1c
+        weight: 0.8
+        capabilities: ["standard"]
+    
+    # Regional threshold (can operate independently)
+    regional_threshold:
+      k: 2
+      n: 3
+    
+    # Failover targets in priority order
+    failover_regions:
+      - us-west    # Same country
+      - us-central # Geographic proximity
+      - eu-west    # Cross-atlantic
+  
+  us-west:
+    priority: 2
+    servers:
+      - id: us-west-1
+        datacenter: aws-us-west-2a
+        weight: 1.0
+        capabilities: ["standard", "compliance"]
+      - id: us-west-2
+        datacenter: aws-us-west-2b
+        weight: 0.9
+        capabilities: ["standard"]
+      - id: us-west-3
+        datacenter: gcp-us-west1-a
+        weight: 0.8
+        capabilities: ["standard", "high_performance"]
+    
+    regional_threshold:
+      k: 2
+      n: 3
+    
+    failover_regions:
+      - us-central
+      - us-east
+      - ap-northeast
+  
+  us-central:
+    priority: 3
+    servers:
+      - id: us-central-1
+        datacenter: aws-us-central-1a
+        weight: 0.9
+        capabilities: ["standard"]
+      - id: us-central-2
+        datacenter: azure-central-us
+        weight: 0.8
+        capabilities: ["standard", "backup"]
+    
+    regional_threshold:
+      k: 1
+      n: 2
+    
+    failover_regions:
+      - us-east
+      - us-west
+      - eu-central
+  
+  eu-west:
+    priority: 1  # Primary for EU traffic
+    servers:
+      - id: eu-west-1
+        datacenter: aws-eu-west-1a
+        weight: 1.0
+        capabilities: ["standard", "gdpr_compliant"]
+      - id: eu-west-2
+        datacenter: aws-eu-west-1b
+        weight: 0.9
+        capabilities: ["standard", "gdpr_compliant"]
+      - id: eu-west-3
+        datacenter: aws-eu-west-2a
+        weight: 0.8
+        capabilities: ["standard", "gdpr_compliant"]
+    
+    regional_threshold:
+      k: 2
+      n: 3
+    
+    failover_regions:
+      - eu-central
+      - eu-north
+      - us-east
+  
+  eu-central:
+    priority: 2
+    servers:
+      - id: eu-central-1
+        datacenter: aws-eu-central-1a
+        weight: 1.0
+        capabilities: ["standard", "gdpr_compliant"]
+      - id: eu-central-2
+        datacenter: aws-eu-central-1b
+        weight: 0.9
+        capabilities: ["standard", "gdpr_compliant"]
+    
+    regional_threshold:
+      k: 1
+      n: 2
+    
+    failover_regions:
+      - eu-west
+      - eu-north
+      - us-east
+  
+  eu-north:
+    priority: 3
+    servers:
+      - id: eu-north-1
+        datacenter: aws-eu-north-1a
+        weight: 0.8
+        capabilities: ["standard", "gdpr_compliant", "cold_storage"]
+    
+    regional_threshold:
+      k: 1
+      n: 1
+    
+    failover_regions:
+      - eu-central
+      - eu-west
+      - us-east
+  
+  ap-southeast:
+    priority: 1  # Primary for APAC traffic
+    servers:
+      - id: ap-singapore-1
+        datacenter: aws-ap-southeast-1a
+        weight: 1.0
+        capabilities: ["standard", "low_latency"]
+      - id: ap-singapore-2
+        datacenter: aws-ap-southeast-1b
+        weight: 0.9
+        capabilities: ["standard"]
+    
+    regional_threshold:
+      k: 1
+      n: 2
+    
+    failover_regions:
+      - ap-northeast
+      - ap-south
+      - us-west
+  
+  ap-northeast:
+    priority: 2
+    servers:
+      - id: ap-tokyo-1
+        datacenter: aws-ap-northeast-1a
+        weight: 1.0
+        capabilities: ["standard", "high_bandwidth"]
+      - id: ap-tokyo-2
+        datacenter: aws-ap-northeast-1c
+        weight: 0.9
+        capabilities: ["standard"]
+    
+    regional_threshold:
+      k: 1
+      n: 2
+    
+    failover_regions:
+      - ap-southeast
+      - ap-south
+      - us-west
+  
+  ap-south:
+    priority: 3
+    servers:
+      - id: ap-sydney-1
+        datacenter: aws-ap-southeast-2a
+        weight: 0.9
+        capabilities: ["standard"]
+    
+    regional_threshold:
+      k: 1
+      n: 1
+    
+    failover_regions:
+      - ap-southeast
+      - ap-northeast
+      - us-west
+
+# Traffic routing rules
+routing_rules:
+  - name: "US Traffic"
+    source_regions: ["north_america"]
+    primary_region: "us-east"
+    fallback_order: ["us-west", "us-central", "eu-west"]
+  
+  - name: "EU Traffic"
+    source_regions: ["europe"]
+    primary_region: "eu-west"
+    fallback_order: ["eu-central", "eu-north", "us-east"]
+    requirements: ["gdpr_compliant"]
+  
+  - name: "APAC Traffic"
+    source_regions: ["asia_pacific"]
+    primary_region: "ap-southeast"
+    fallback_order: ["ap-northeast", "ap-south", "us-west"]
+  
+  - name: "Compliance Traffic"
+    requirements: ["compliance", "gdpr_compliant"]
+    eligible_regions: ["us-east", "us-west", "eu-west", "eu-central"]
+  
+  - name: "High Performance"
+    requirements: ["high_performance", "low_latency"]
+    eligible_regions: ["us-west", "ap-singapore", "eu-west"]
+
+# Disaster recovery scenarios
+disaster_recovery:
+  scenarios:
+    - name: "Single Region Failure"
+      description: "One entire region becomes unavailable"
+      detection:
+        failed_servers: "all_in_region"
+        duration: 60  # seconds
+      response:
+        action: "regional_failover"
+        notification: true
+        auto_recovery: true
+    
+    - name: "Multi-Region Degradation"
+      description: "Multiple regions experiencing issues"
+      detection:
+        failed_regions: 2
+        degraded_performance: 50  # percent
+      response:
+        action: "emergency_mode"
+        reduce_threshold: true  # Temporarily reduce k
+        notification: true
+        escalation: "critical"
+    
+    - name: "Global Outage"
+      description: "More than 50% of servers unavailable"
+      detection:
+        available_servers: "< 50%"
+        duration: 300  # seconds
+      response:
+        action: "circuit_breaker"
+        fallback_to_cache: true
+        notification: true
+        escalation: "emergency"
+
+# Monitoring and alerting
+monitoring:
+  metrics:
+    - name: "regional_availability"
+      threshold: 90  # percent
+      window: 300  # seconds
+      alert_level: "warning"
+    
+    - name: "global_threshold_margin"
+      threshold: 2  # servers above k
+      alert_level: "critical"
+    
+    - name: "failover_frequency"
+      threshold: 5  # per hour
+      alert_level: "warning"
+    
+    - name: "cross_region_latency"
+      threshold: 200  # ms
+      alert_level: "info"
+  
+  alerting:
+    channels:
+      - type: "slack"
+        webhook: "${SLACK_WEBHOOK_URL}"
+        levels: ["warning", "critical", "emergency"]
+      
+      - type: "pagerduty"
+        api_key: "${PAGERDUTY_API_KEY}"
+        levels: ["critical", "emergency"]
+      
+      - type: "email"
+        recipients: ["ops@example.com"]
+        levels: ["warning", "critical", "emergency"]

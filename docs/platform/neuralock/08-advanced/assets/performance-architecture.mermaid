@@ -1,0 +1,71 @@
+graph TD
+    subgraph "Client Layer"
+        C[Client Application]
+        SDK[Neuralock SDK]
+        C --> SDK
+    end
+    
+    subgraph "Edge Layer"
+        CDN[CDN Cache]
+        LB[Load Balancer]
+        SDK --> CDN
+        CDN --> LB
+    end
+    
+    subgraph "Application Layer"
+        API[API Gateway<br/>Rate Limiting]
+        WP[Worker Pool<br/>Async Processing]
+        LB --> API
+        API --> WP
+    end
+    
+    subgraph "Cache Layer"
+        L1[L1 Memory Cache<br/>Hot Data]
+        L2[L2 Redis Cache<br/>Warm Data]
+        L3[L3 Database Cache<br/>Query Results]
+        WP --> L1
+        L1 --> L2
+        L2 --> L3
+    end
+    
+    subgraph "Crypto Layer"
+        CPU[CPU Crypto<br/>Standard Ops]
+        GPU[GPU Acceleration<br/>Batch Ops]
+        HSM[HSM<br/>Key Operations]
+        WP --> CPU
+        WP --> GPU
+        WP --> HSM
+    end
+    
+    subgraph "Storage Layer"
+        PG[(PostgreSQL<br/>Primary)]
+        PGR[(Read Replicas)]
+        S3[Object Storage<br/>Large Data]
+        L3 --> PG
+        L3 --> PGR
+        WP --> S3
+    end
+    
+    subgraph "Monitoring"
+        M[Metrics Collector]
+        A[Alert Manager]
+        D[Dashboard]
+        
+        API -.-> M
+        WP -.-> M
+        L1 -.-> M
+        L2 -.-> M
+        CPU -.-> M
+        GPU -.-> M
+        
+        M --> A
+        M --> D
+    end
+    
+    style C fill:#e1f5fe
+    style SDK fill:#e1f5fe
+    style CDN fill:#c8e6c9
+    style L1 fill:#fff9c4
+    style L2 fill:#fff9c4
+    style GPU fill:#ffccbc
+    style M fill:#f3e5f5

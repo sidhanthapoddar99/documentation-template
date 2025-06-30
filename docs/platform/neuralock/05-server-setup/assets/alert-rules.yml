@@ -1,0 +1,282 @@
+# Prometheus alert rules for Neuralock monitoring
+
+groups:
+  # Service availability alerts
+  - name: availability
+    interval: 30s
+    rules:
+      # Critical: Service down
+      - alert: NeuralockServiceDown
+        expr: up{job="neuralock-servers"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "Neuralock server {{ $labels.instance }} is down"
+          description: "Server {{ $labels.instance }} has been down for more than 2 minutes."
+          runbook: "https://docs.neuralock.io/runbooks/service-down"
+
+      # High: API errors
+      - alert: HighAPIErrorRate
+        expr: |
+          (
+            sum(rate(neuralock_requests_total{status=~"5.."}[5m])) by (instance)
+            /
+            sum(rate(neuralock_requests_total[5m])) by (instance)
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: high
+          team: ops
+        annotations:
+          summary: "High error rate on {{ $labels.instance }}"
+          description: "Error rate is {{ $value }}% on {{ $labels.instance }} (threshold: 5%)"
+          dashboard: "https://grafana.neuralock.io/d/neuralock-main"
+
+      # Medium: Degraded performance
+      - alert: SlowAPIResponse
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(neuralock_request_duration_seconds_bucket[5m])) by (endpoint, le)
+          ) > 1
+        for: 10m
+        labels:
+          severity: medium
+          team: ops
+        annotations:
+          summary: "Slow API responses for {{ $labels.endpoint }}"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.endpoint }}"
+
+  # Session management alerts
+  - name: sessions
+    interval: 30s
+    rules:
+      # High: Session creation failures
+      - alert: SessionCreationFailures
+        expr: |
+          sum(rate(neuralock_session_creation_failures_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: high
+          team: ops
+        annotations:
+          summary: "High session creation failure rate"
+          description: "Session creation is failing at {{ $value }} per second"
+
+      # Medium: High session count
+      - alert: HighSessionCount
+        expr: neuralock_active_sessions > 900
+        for: 10m
+        labels:
+          severity: medium
+          team: ops
+        annotations:
+          summary: "High number of active sessions"
+          description: "{{ $value }} active sessions (threshold: 900)"
+          action: "Consider scaling up servers"
+
+      # Low: Session expiry spike
+      - alert: SessionExpirySpike
+        expr: |
+          rate(neuralock_sessions_expired_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: low
+          team: ops
+        annotations:
+          summary: "High session expiry rate"
+          description: "Sessions expiring at {{ $value }} per second"
+
+  # Storage alerts
+  - name: storage
+    interval: 30s
+    rules:
+      # Critical: Storage full
+      - alert: StorageAlmostFull
+        expr: |
+          (neuralock_storage_bytes / neuralock_storage_capacity_bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "Storage almost full on {{ $labels.instance }}"
+          description: "Storage is {{ $value }}% full on {{ $labels.instance }}"
+          action: "Immediate action required to prevent data loss"
+
+      # High: Redis memory pressure
+      - alert: RedisMemoryHigh
+        expr: |
+          neuralock_redis_memory_used_bytes / neuralock_redis_memory_max_bytes > 0.8
+        for: 10m
+        labels:
+          severity: high
+          team: ops
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis is using {{ $value }}% of available memory"
+
+      # Medium: Slow LevelDB operations
+      - alert: SlowLevelDBOperations
+        expr: |
+          rate(neuralock_leveldb_operation_duration_seconds_sum[5m])
+          /
+          rate(neuralock_leveldb_operation_duration_seconds_count[5m]) > 0.1
+        for: 15m
+        labels:
+          severity: medium
+          team: ops
+        annotations:
+          summary: "Slow LevelDB operations"
+          description: "Average operation time is {{ $value }}s"
+
+  # Blockchain connectivity alerts
+  - name: blockchain
+    interval: 30s
+    rules:
+      # Critical: No blockchain connection
+      - alert: BlockchainDisconnected
+        expr: neuralock_blockchain_connected == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "Blockchain disconnected on {{ $labels.instance }}"
+          description: "Cannot connect to blockchain RPC endpoint"
+          impact: "All operations requiring blockchain validation will fail"
+
+      # High: Blockchain sync lag
+      - alert: BlockchainSyncLag
+        expr: |
+          neuralock_blockchain_sync_lag_blocks > 10
+        for: 10m
+        labels:
+          severity: high
+          team: ops
+        annotations:
+          summary: "Blockchain sync lagging"
+          description: "{{ $value }} blocks behind on {{ $labels.instance }}"
+
+      # Medium: High RPC error rate
+      - alert: HighRPCErrorRate
+        expr: |
+          rate(neuralock_blockchain_rpc_errors_total[5m]) > 0.5
+        for: 10m
+        labels:
+          severity: medium
+          team: ops
+        annotations:
+          summary: "High blockchain RPC error rate"
+          description: "RPC errors at {{ $value }} per second"
+
+  # Security alerts
+  - name: security
+    interval: 30s
+    rules:
+      # Critical: Authentication bypass attempts
+      - alert: AuthenticationBypassAttempts
+        expr: |
+          sum(rate(neuralock_auth_bypass_attempts_total[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: security
+          pager: true
+        annotations:
+          summary: "Authentication bypass attempts detected"
+          description: "{{ $value }} bypass attempts per second"
+          action: "Investigate immediately for potential security breach"
+
+      # High: Rate limit violations
+      - alert: HighRateLimitViolations
+        expr: |
+          sum(rate(neuralock_rate_limit_exceeded_total[5m])) by (ip) > 10
+        for: 5m
+        labels:
+          severity: high
+          team: security
+        annotations:
+          summary: "High rate limit violations from {{ $labels.ip }}"
+          description: "{{ $value }} violations per second from {{ $labels.ip }}"
+
+      # Medium: Invalid signatures
+      - alert: HighInvalidSignatures
+        expr: |
+          sum(rate(neuralock_invalid_signatures_total[5m])) > 1
+        for: 10m
+        labels:
+          severity: medium
+          team: security
+        annotations:
+          summary: "High rate of invalid signatures"
+          description: "{{ $value }} invalid signatures per second"
+
+  # Resource utilization alerts
+  - name: resources
+    interval: 30s
+    rules:
+      # High: CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 15m
+        labels:
+          severity: high
+          team: ops
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}%"
+
+      # High: Memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 15m
+        labels:
+          severity: high
+          team: ops
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value }}%"
+
+      # Medium: Disk space low
+      - alert: LowDiskSpace
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 20
+        for: 30m
+        labels:
+          severity: medium
+          team: ops
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Only {{ $value }}% disk space remaining"
+
+  # Business metrics alerts
+  - name: business
+    interval: 1m
+    rules:
+      # Medium: Low share storage rate
+      - alert: LowShareStorageRate
+        expr: |
+          sum(rate(neuralock_shares_stored_total[1h])) < 10
+        for: 1h
+        labels:
+          severity: medium
+          team: business
+        annotations:
+          summary: "Low share storage rate"
+          description: "Only {{ $value }} shares per second over the last hour"
+
+      # Low: Unusual threshold configurations
+      - alert: UnusualThresholdConfig
+        expr: |
+          neuralock_threshold_config_unusual > 0
+        for: 30m
+        labels:
+          severity: low
+          team: ops
+        annotations:
+          summary: "Unusual threshold configuration detected"
+          description: "{{ $value }} shares with unusual threshold settings"

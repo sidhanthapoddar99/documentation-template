@@ -1,0 +1,410 @@
+---
+title: Performance Optimization
+description: Advanced techniques for optimizing Neuralock performance, including caching strategies, network optimization, and cryptographic acceleration
+sidebar_position: 3
+---
+
+import { Card as InfoCard } from '@site/src/components/elements';
+import { Card as WarningCard } from '@site/src/components/elements';
+import { Card as TipCard } from '@site/src/components/elements';
+import { CollapsibleCodeBlock as CodePreview } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { MermaidDiagram } from '@site/src/components/elements';
+import PerformanceArchitectureSource from '!!raw-loader!./assets/performance-architecture.mermaid';
+import CachingStrategySource from '!!raw-loader!./assets/caching-strategy.mermaid';
+import CacheImplementationSource from '!!raw-loader!./assets/cache-implementation.ts';
+import CryptoAccelerationSource from '!!raw-loader!./assets/crypto-acceleration.ts';
+import NetworkOptimizationSource from '!!raw-loader!./assets/network-optimization.ts';
+import BatchProcessingSource from '!!raw-loader!./assets/batch-processing.ts';
+import ConnectionPoolingSource from '!!raw-loader!./assets/connection-pooling.ts';
+import PerformanceMonitoringSource from '!!raw-loader!./assets/performance-monitoring.ts';
+import BenchmarkScriptSource from '!!raw-loader!./assets/benchmark-script.ts';
+import OptimizedConfigSource from '!!raw-loader!./assets/optimized-server-config.yaml';
+
+# Performance Optimization
+
+This guide covers advanced performance optimization techniques for Neuralock deployments, focusing on achieving sub-100ms latency and handling thousands of requests per second.
+
+<Card type="info">
+<strong>Performance Baseline:</strong> Before optimizing, establish baseline metrics using the benchmarking tools. Target improvements should be measurable and aligned with your SLA requirements.
+</Card>
+
+## Performance Architecture Overview
+
+Understanding the performance-critical paths in Neuralock is essential for effective optimization.
+
+<MermaidDiagram content={PerformanceArchitectureSource} filename="performance-architecture.mermaid" />
+
+## Key Performance Metrics
+
+### Target Performance Goals
+
+| Metric | Standard | High Performance | Ultra Performance |
+|--------|----------|------------------|-------------------|
+| Session Creation | < 200ms | < 100ms | < 50ms |
+| Encryption (1MB) | < 500ms | < 200ms | < 100ms |
+| Decryption (1MB) | < 600ms | < 300ms | < 150ms |
+| Throughput | 100 req/s | 1000 req/s | 5000 req/s |
+| Concurrent Sessions | 1,000 | 10,000 | 50,000 |
+
+## Caching Strategy
+
+Implementing a multi-layer caching strategy significantly improves performance by reducing redundant computations and network calls.
+
+<MermaidDiagram content={CachingStrategySource} filename="caching-strategy.mermaid" />
+
+### Cache Implementation
+
+<FileCollapsibleCodeBlock content={CacheImplementationSource} filename="cache-implementation.ts" />
+
+### Cache Configuration
+
+```yaml
+caching:
+  # L1: In-memory cache
+  memory:
+    enabled: true
+    size: 1GB
+    ttl: 300  # 5 minutes
+    eviction: lru
+    
+  # L2: Redis cache
+  redis:
+    enabled: true
+    cluster:
+      - redis-1:6379
+      - redis-2:6379
+      - redis-3:6379
+    ttl: 3600  # 1 hour
+    max_connections: 100
+    
+  # L3: CDN cache
+  cdn:
+    enabled: true
+    providers:
+      - cloudflare
+      - fastly
+    cache_control: "public, max-age=300"
+```
+
+## Cryptographic Acceleration
+
+Optimize cryptographic operations using hardware acceleration and efficient algorithms.
+
+<FileCollapsibleCodeBlock content={CryptoAccelerationSource} filename="crypto-acceleration.ts" />
+
+### Hardware Acceleration Options
+
+| Technology | Use Case | Performance Gain | Cost |
+|------------|----------|------------------|------|
+| AES-NI | AES encryption | 3-10x | Built-in (Intel/AMD) |
+| GPU (CUDA) | Batch operations | 10-50x | $$$ |
+| FPGA | Custom crypto | 50-100x | $$$$ |
+| Intel QAT | General crypto | 5-20x | $$ |
+
+## Network Optimization
+
+Reduce network latency and improve throughput with advanced networking techniques.
+
+<FileCollapsibleCodeBlock content={NetworkOptimizationSource} filename="network-optimization.ts" />
+
+### Network Tuning Parameters
+
+```bash
+# Kernel parameters for high-performance networking
+cat >> /etc/sysctl.conf << EOF
+# TCP optimization
+net.core.rmem_max = 134217728
+net.core.wmem_max = 134217728
+net.ipv4.tcp_rmem = 4096 87380 134217728
+net.ipv4.tcp_wmem = 4096 65536 134217728
+net.ipv4.tcp_congestion_control = bbr
+net.core.default_qdisc = fq
+
+# Connection handling
+net.core.somaxconn = 65535
+net.ipv4.tcp_max_syn_backlog = 65535
+net.ipv4.ip_local_port_range = 1024 65535
+net.ipv4.tcp_tw_reuse = 1
+
+# Buffer sizes
+net.core.netdev_max_backlog = 65536
+net.ipv4.tcp_mtu_probing = 1
+EOF
+
+sysctl -p
+```
+
+## Batch Processing
+
+Implement batch processing for multiple operations to reduce overhead and improve throughput.
+
+<FileCollapsibleCodeBlock content={BatchProcessingSource} filename="batch-processing.ts" />
+
+## Connection Pooling
+
+Efficient connection management reduces latency and resource usage.
+
+<FileCollapsibleCodeBlock content={ConnectionPoolingSource} filename="connection-pooling.ts" />
+
+## Optimized Server Configuration
+
+<FileCollapsibleCodeBlock content={OptimizedConfigSource} filename="optimized-server-config.yaml" />
+
+## Performance Monitoring
+
+Implement comprehensive performance monitoring to identify bottlenecks and track improvements.
+
+<FileCollapsibleCodeBlock content={PerformanceMonitoringSource} filename="performance-monitoring.ts" />
+
+### Key Performance Indicators
+
+1. **Response Time Metrics**
+   - Average response time
+   - 95th percentile (p95)
+   - 99th percentile (p99)
+   - Maximum response time
+
+2. **Throughput Metrics**
+   - Requests per second
+   - Bytes processed per second
+   - Active connections
+   - Queue depth
+
+3. **Resource Utilization**
+   - CPU usage per core
+   - Memory allocation/GC
+   - Network I/O
+   - Disk I/O
+
+4. **Error Metrics**
+   - Error rate
+   - Timeout rate
+   - Retry rate
+   - Circuit breaker trips
+
+## Database Optimization
+
+### PostgreSQL Tuning
+
+```sql
+-- Optimized PostgreSQL configuration
+ALTER SYSTEM SET shared_buffers = '4GB';
+ALTER SYSTEM SET effective_cache_size = '12GB';
+ALTER SYSTEM SET maintenance_work_mem = '1GB';
+ALTER SYSTEM SET work_mem = '32MB';
+ALTER SYSTEM SET max_connections = 200;
+ALTER SYSTEM SET random_page_cost = 1.1;
+ALTER SYSTEM SET effective_io_concurrency = 200;
+ALTER SYSTEM SET max_worker_processes = 8;
+ALTER SYSTEM SET max_parallel_workers_per_gather = 4;
+ALTER SYSTEM SET max_parallel_workers = 8;
+
+-- Create optimized indexes
+CREATE INDEX CONCURRENTLY idx_shares_object_id_server 
+ON shares(object_id, server_id) 
+WHERE deleted_at IS NULL;
+
+CREATE INDEX CONCURRENTLY idx_sessions_user_expires 
+ON sessions(user_address, expires_at) 
+WHERE active = true;
+
+-- Partitioning for large tables
+CREATE TABLE shares_2024_01 PARTITION OF shares
+FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+```
+
+### Redis Optimization
+
+```redis
+# Redis configuration for performance
+maxmemory 8gb
+maxmemory-policy allkeys-lru
+save ""  # Disable persistence for cache-only use
+tcp-backlog 511
+timeout 0
+tcp-keepalive 300
+lazyfree-lazy-eviction yes
+lazyfree-lazy-expire yes
+io-threads 4
+io-threads-do-reads yes
+```
+
+## Benchmarking
+
+Use the comprehensive benchmarking script to measure performance improvements.
+
+<FileCollapsibleCodeBlock content={BenchmarkScriptSource} filename="benchmark-script.ts" />
+
+### Running Benchmarks
+
+```bash
+# Basic performance test
+npm run benchmark -- --servers 9 --duration 300
+
+# Stress test
+npm run benchmark -- --servers 9 --concurrent 1000 --rate 5000
+
+# Latency test
+npm run benchmark -- --servers 9 --test latency --percentiles 50,95,99,99.9
+
+# Compare configurations
+npm run benchmark -- --compare config1.yaml config2.yaml
+```
+
+## Optimization Techniques by Layer
+
+### Application Layer
+
+1. **Code Optimization**
+   - Use worker threads for CPU-intensive operations
+   - Implement efficient data structures
+   - Minimize memory allocations
+   - Use streaming for large data
+
+2. **Async Processing**
+   - Non-blocking I/O operations
+   - Promise pooling
+   - Event-driven architecture
+   - Message queuing for heavy tasks
+
+### Infrastructure Layer
+
+1. **Server Configuration**
+   - CPU affinity for network interrupts
+   - NUMA optimization
+   - Huge pages for memory
+   - Disable unnecessary services
+
+2. **Container Optimization**
+   - Use slim base images
+   - Multi-stage builds
+   - Resource limits and requests
+   - Host network mode for performance
+
+### Network Layer
+
+1. **Load Balancer Optimization**
+   - Connection pooling
+   - Health check optimization
+   - Session persistence
+   - Geographic routing
+
+2. **CDN Integration**
+   - Edge caching
+   - Request collapsing
+   - Compression
+   - HTTP/3 support
+
+## Performance Troubleshooting
+
+### Common Bottlenecks
+
+<Card type="tip">
+<strong>Quick Wins:</strong>
+<ul>
+<li>Enable connection pooling (20-30% improvement)</li>
+<li>Implement caching (50-80% for reads)</li>
+<li>Batch operations (3-5x throughput)</li>
+<li>Upgrade to HTTP/2 (15-20% improvement)</li>
+</ul>
+</Card>
+
+### Profiling Tools
+
+1. **Application Profiling**
+   ```bash
+   # CPU profiling
+   node --prof app.js
+   node --prof-process isolate-*.log > profile.txt
+   
+   # Memory profiling
+   node --trace-gc --max-old-space-size=4096 app.js
+   
+   # Async profiling
+   node --trace-warnings --trace-sync-io app.js
+   ```
+
+2. **System Profiling**
+   ```bash
+   # CPU flame graphs
+   perf record -F 99 -p $(pgrep node) -g -- sleep 60
+   perf script | flamegraph.pl > flame.svg
+   
+   # Network analysis
+   tcpdump -i eth0 -w capture.pcap
+   wireshark capture.pcap
+   
+   # I/O analysis
+   iotop -p $(pgrep node)
+   ```
+
+## Best Practices
+
+1. **Measure Before Optimizing**
+   - Establish baseline metrics
+   - Identify actual bottlenecks
+   - Set realistic goals
+   - Monitor continuously
+
+2. **Optimize Strategically**
+   - Focus on hot paths
+   - Consider trade-offs
+   - Test at scale
+   - Document changes
+
+3. **Maintain Performance**
+   - Regular benchmarking
+   - Capacity planning
+   - Performance regression tests
+   - Alert on degradation
+
+<Card type="warning">
+<strong>Performance vs Security:</strong> Some optimizations may impact security. Always evaluate the security implications of performance changes, especially when caching sensitive data or reducing cryptographic rounds.
+</Card>
+
+## Performance Checklist
+
+- [ ] **Caching Strategy**
+  - [ ] L1 memory cache configured
+  - [ ] L2 Redis cache deployed
+  - [ ] Cache invalidation strategy defined
+  - [ ] Cache metrics monitored
+
+- [ ] **Network Optimization**
+  - [ ] TCP tuning applied
+  - [ ] HTTP/2 enabled
+  - [ ] Connection pooling configured
+  - [ ] Geographic routing setup
+
+- [ ] **Cryptographic Optimization**
+  - [ ] Hardware acceleration enabled
+  - [ ] Batch processing implemented
+  - [ ] Key caching configured
+  - [ ] Algorithm selection optimized
+
+- [ ] **Database Optimization**
+  - [ ] Indexes optimized
+  - [ ] Connection pooling configured
+  - [ ] Query performance analyzed
+  - [ ] Partitioning implemented
+
+- [ ] **Monitoring**
+  - [ ] Performance metrics collected
+  - [ ] Alerts configured
+  - [ ] Dashboards created
+  - [ ] SLOs defined
+
+## Next Steps
+
+- Review [Troubleshooting Guide](./04-troubleshooting) for performance issues
+- Implement [Monitoring](../server-setup/monitoring) for performance tracking
+- Consider [Multi-Server Setup](./02-multi-server-setup) for scaling
+
+## Related Resources
+
+- [Threshold Configuration](./01-threshold-configuration) - Impact on performance
+- [Security Best Practices](../security/best-practices) - Security considerations
+- [API Reference](../server-setup/api-reference) - Performance endpoints

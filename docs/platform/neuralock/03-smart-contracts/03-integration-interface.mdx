@@ -1,0 +1,513 @@
+---
+id: integration-interface
+title: Integration Interface
+description: Standard interface for applications to integrate with Neuralock
+sidebar_position: 3
+---
+
+import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/elements/Card';
+import { Callout } from "@site/src/components/elements";
+import { FileCollapsibleCodeBlock, FileInlineCodeCard } from '@site/src/components/elements/CodeBlock';
+import { CustomMermaid } from '@site/src/components/elements';
+import { MermaidDiagram } from '@site/src/components/elements';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+import IntegrationFlowSource from '!!raw-loader!./assets/integration-flow.mermaid';
+import PermissionModelSource from '!!raw-loader!./assets/permission-model.mermaid';
+import SimpleNFTVaultExample from '!!raw-loader!./assets/simple-nft-vault.sol';
+import MultiSigVaultExample from '!!raw-loader!./assets/multi-sig-vault.sol';
+import TimeLockVaultExample from '!!raw-loader!./assets/time-lock-vault.sol';
+
+# Integration Interface
+
+The Neuralock integration interface provides a standardized way for smart contracts to define access control logic for encrypted data. Any contract implementing the `INeuralock` interface can integrate with the Neuralock protocol.
+
+## Overview
+
+<Card className="card--primary">
+  <CardHeader>
+    <CardTitle>INeuralock Interface</CardTitle>
+    <CardDescription>
+      Simple, flexible interface for defining on-chain access control
+    </CardDescription>
+  </CardHeader>
+  <ul>
+    <li>**Single function interface** - Easy to implement</li>
+    <li>**Flexible permission model** - Read, write, or custom access levels</li>
+    <li>**Gas efficient** - View functions for off-chain queries</li>
+    <li>**Extensible** - Optional batch operations and versioning</li>
+  </ul>
+</Card>
+
+## Core Interface
+
+<FileCollapsibleCodeBlock 
+  content={`// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+interface INeuralock {
+    /**
+     * @dev Returns the access level for a user on a specific object
+     * @param user The address to check permissions for
+     * @param objectId The identifier of the encrypted object
+     * @return Access level:
+     *         0 = No access
+     *         1 = Read only
+     *         2 = Write only
+     *         3 = Read and Write
+     */
+    function neuralock(
+        address user,
+        bytes32 objectId
+    ) external view returns (uint8);
+    
+    /**
+     * @dev Optional: Returns the interface version for compatibility
+     * @return Version number (e.g., 1 for v1.0.0)
+     */
+    function neuralockVersion() external pure returns (uint256);
+    
+    /**
+     * @dev Optional: Batch permission check for efficiency
+     * @param user The address to check permissions for
+     * @param objectIds Array of object identifiers
+     * @return Array of access levels corresponding to objectIds
+     */
+    function neuralockBatch(
+        address user,
+        bytes32[] calldata objectIds
+    ) external view returns (uint8[] memory);
+}`}
+  filename="INeuralock.sol"
+  description="Complete INeuralock interface definition"
+/>
+
+## Permission Model
+
+<MermaidDiagram 
+  content={PermissionModelSource}
+  filename="permission-model.mermaid"
+  title="Neuralock Permission Model"
+  description="Access levels and their meanings"
+/>
+
+### Access Levels
+
+<Card>
+  <CardHeader>
+    <CardTitle>Standard Access Levels</CardTitle>
+  </CardHeader>
+  
+  | Level | Value | Description | Use Case |
+  |-------|-------|-------------|----------|
+  | **No Access** | `0` | User cannot read or write | Default state, revoked access |
+  | **Read Only** | `1` | User can decrypt and read | Viewers, auditors |
+  | **Write Only** | `2` | User can create/update only | Data collectors, sensors |
+  | **Read & Write** | `3` | Full access to data | Owners, administrators |
+  
+  <Callout type="info">
+    Applications can extend this model with custom levels (4-255) for specific use cases.
+  </Callout>
+</Card>
+
+## Integration Flow
+
+<MermaidDiagram 
+  content={IntegrationFlowSource}
+  filename="integration-flow.mermaid"
+  title="Integration Flow"
+  description="How Neuralock servers interact with application contracts"
+/>
+
+## Example Implementations
+
+### Simple NFT Vault
+
+<Card>
+  <CardHeader>
+    <CardTitle>NFT-Based Access Control</CardTitle>
+    <CardDescription>
+      NFT holders can encrypt/decrypt data associated with their tokens
+    </CardDescription>
+  </CardHeader>
+</Card>
+
+<FileCollapsibleCodeBlock 
+  content={SimpleNFTVaultExample}
+  filename="simple-nft-vault.sol"
+  description="Complete NFT vault implementation"
+/>
+
+### Multi-Signature Vault
+
+<Card>
+  <CardHeader>
+    <CardTitle>Multi-Sig Access Control</CardTitle>
+    <CardDescription>
+      Shared encrypted data with multi-signature governance
+    </CardDescription>
+  </CardHeader>
+</Card>
+
+<FileCollapsibleCodeBlock 
+  content={MultiSigVaultExample}
+  filename="multi-sig-vault.sol"
+  description="Multi-signature vault with proposal system"
+/>
+
+### Time-Lock Vault
+
+<Card>
+  <CardHeader>
+    <CardTitle>Time-Based Access</CardTitle>
+    <CardDescription>
+      Access control that changes based on time conditions
+    </CardDescription>
+  </CardHeader>
+</Card>
+
+<FileCollapsibleCodeBlock 
+  content={TimeLockVaultExample}
+  filename="time-lock-vault.sol"
+  description="Time-based access control implementation"
+/>
+
+## Implementation Patterns
+
+### Basic Implementation
+
+<Tabs>
+<TabItem value="minimal" label="Minimal">
+
+<FileCollapsibleCodeBlock 
+  content={`contract MinimalVault is INeuralock {
+    mapping(bytes32 => address) public dataOwners;
+    
+    function neuralock(address user, bytes32 objectId) 
+        external 
+        view 
+        returns (uint8) 
+    {
+        if (dataOwners[objectId] == user) {
+            return 3; // Full access for owner
+        }
+        return 0; // No access for others
+    }
+}`}
+  filename="minimal-implementation.sol"
+  description="Simplest possible implementation"
+/>
+
+</TabItem>
+<TabItem value="advanced" label="Advanced">
+
+<FileCollapsibleCodeBlock 
+  content={`contract AdvancedVault is INeuralock, AccessControl {
+    struct DataObject {
+        address owner;
+        mapping(address => uint8) permissions;
+        uint256 createdAt;
+        bool exists;
+    }
+    
+    mapping(bytes32 => DataObject) public objects;
+    
+    function neuralock(address user, bytes32 objectId) 
+        external 
+        view 
+        returns (uint8) 
+    {
+        DataObject storage obj = objects[objectId];
+        if (!obj.exists) return 0;
+        
+        // Check direct permissions
+        if (obj.permissions[user] > 0) {
+            return obj.permissions[user];
+        }
+        
+        // Check role-based access
+        if (hasRole(DEFAULT_ADMIN_ROLE, user)) {
+            return 3; // Admins have full access
+        }
+        
+        // Owner always has full access
+        if (obj.owner == user) {
+            return 3;
+        }
+        
+        return 0;
+    }
+    
+    function grantPermission(
+        bytes32 objectId, 
+        address user, 
+        uint8 level
+    ) external {
+        require(objects[objectId].owner == msg.sender, "Not owner");
+        require(level <= 3, "Invalid permission level");
+        
+        objects[objectId].permissions[user] = level;
+        emit PermissionGranted(objectId, user, level);
+    }
+}`}
+  filename="advanced-implementation.sol"
+  description="Advanced implementation with role-based access"
+/>
+
+</TabItem>
+</Tabs>
+
+### Batch Operations
+
+Implement batch operations for gas efficiency:
+
+<FileCollapsibleCodeBlock 
+  content={`function neuralockBatch(
+    address user,
+    bytes32[] calldata objectIds
+) external view returns (uint8[] memory) {
+    uint8[] memory permissions = new uint8[](objectIds.length);
+    
+    for (uint256 i = 0; i < objectIds.length; i++) {
+        permissions[i] = this.neuralock(user, objectIds[i]);
+    }
+    
+    return permissions;
+}
+
+// Gas-optimized version using internal function
+function neuralockBatch(
+    address user,
+    bytes32[] calldata objectIds
+) external view returns (uint8[] memory) {
+    uint8[] memory permissions = new uint8[](objectIds.length);
+    
+    for (uint256 i = 0; i < objectIds.length; i++) {
+        permissions[i] = _getPermission(user, objectIds[i]);
+    }
+    
+    return permissions;
+}
+
+function _getPermission(address user, bytes32 objectId) 
+    internal 
+    view 
+    returns (uint8) 
+{
+    // Internal implementation without external call overhead
+    DataObject storage obj = objects[objectId];
+    if (!obj.exists) return 0;
+    
+    if (obj.owner == user) return 3;
+    return obj.permissions[user];
+}`}
+  filename="batch-operations.sol"
+  description="Efficient batch permission checking"
+/>
+
+## Security Considerations
+
+<Callout type="warning" title="Important Security Guidelines">
+
+### Access Control Logic
+1. **Default Deny**: Always return 0 (no access) for unknown objects
+2. **Input Validation**: Validate all parameters before processing
+3. **Reentrancy**: Use view functions to prevent state changes
+4. **Gas Limits**: Be mindful of gas usage in permission checks
+
+### Common Pitfalls
+```solidity
+// BAD: Returns undefined behavior
+function neuralock(address user, bytes32 objectId) external view returns (uint8) {
+    return permissions[user][objectId]; // Might return 0 by accident
+}
+
+// GOOD: Explicit access control
+function neuralock(address user, bytes32 objectId) external view returns (uint8) {
+    if (!objects[objectId].exists) return 0; // Explicit denial
+    return permissions[user][objectId];
+}
+```
+
+</Callout>
+
+## Testing Your Implementation
+
+<FileCollapsibleCodeBlock 
+  content={`// Test suite for INeuralock implementation
+contract NeuralockTest {
+    INeuralock public vault;
+    
+    function setUp() public {
+        vault = new MyVault();
+    }
+    
+    function testBasicAccess() public {
+        address user = address(0x1);
+        bytes32 objectId = keccak256("test-object");
+        
+        // Test no access by default
+        assertEq(vault.neuralock(user, objectId), 0);
+        
+        // Grant access
+        MyVault(address(vault)).grantAccess(objectId, user, 1);
+        
+        // Test read access
+        assertEq(vault.neuralock(user, objectId), 1);
+    }
+    
+    function testBatchAccess() public {
+        address user = address(0x1);
+        bytes32[] memory objectIds = new bytes32[](3);
+        objectIds[0] = keccak256("object1");
+        objectIds[1] = keccak256("object2");
+        objectIds[2] = keccak256("object3");
+        
+        uint8[] memory permissions = vault.neuralockBatch(user, objectIds);
+        
+        // All should be 0 (no access)
+        for (uint i = 0; i < permissions.length; i++) {
+            assertEq(permissions[i], 0);
+        }
+    }
+    
+    function testGasUsage() public {
+        address user = address(0x1);
+        bytes32 objectId = keccak256("test");
+        
+        uint256 gasBefore = gasleft();
+        vault.neuralock(user, objectId);
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        // Ensure gas usage is reasonable (< 50k for simple checks)
+        assert(gasUsed < 50000);
+    }
+}`}
+  filename="testing-implementation.sol"
+  description="Test suite for INeuralock implementations"
+/>
+
+## Integration Checklist
+
+<Card className="card--elevated">
+  <CardHeader>
+    <CardTitle>Implementation Checklist</CardTitle>
+  </CardHeader>
+  
+  - [ ] Implement `neuralock(address, bytes32)` function
+  - [ ] Function must be `external view`
+  - [ ] Return valid permission codes (0-3)
+  - [ ] Handle non-existent objects (return 0)
+  - [ ] Add `neuralockVersion()` for compatibility
+  - [ ] Consider implementing `neuralockBatch()` for efficiency
+  - [ ] Test all permission scenarios
+  - [ ] Document custom permission levels if used
+  - [ ] Emit events for permission changes
+  - [ ] Add natspec documentation
+</Card>
+
+## Advanced Features
+
+### Custom Permission Levels
+
+<FileCollapsibleCodeBlock 
+  content={`contract CustomPermissionVault is INeuralock {
+    // Standard levels (0-3) plus custom levels
+    uint8 constant AUDIT_ONLY = 4;      // Can read + generate audit logs
+    uint8 constant DELEGATE = 5;        // Can grant permissions to others
+    uint8 constant TEMPORARY_READ = 6;  // Time-limited read access
+    
+    struct Permission {
+        uint8 level;
+        uint256 expiresAt;
+        bool isDelegated;
+    }
+    
+    mapping(bytes32 => mapping(address => Permission)) permissions;
+    
+    function neuralock(address user, bytes32 objectId) 
+        external 
+        view 
+        returns (uint8) 
+    {
+        Permission memory perm = permissions[objectId][user];
+        
+        // Check expiration
+        if (perm.expiresAt > 0 && block.timestamp > perm.expiresAt) {
+            return 0; // Expired
+        }
+        
+        // Convert custom levels to standard for Neuralock
+        if (perm.level == AUDIT_ONLY || perm.level == TEMPORARY_READ) {
+            return 1; // Read only
+        } else if (perm.level == DELEGATE) {
+            return 3; // Full access for delegates
+        }
+        
+        return perm.level; // Return standard levels as-is
+    }
+}`}
+  filename="custom-permissions.sol"
+  description="Extending the permission model"
+/>
+
+### Event-Driven Updates
+
+<FileCollapsibleCodeBlock 
+  content={`interface INeuralockEvents {
+    event AccessGranted(bytes32 indexed objectId, address indexed user, uint8 level);
+    event AccessRevoked(bytes32 indexed objectId, address indexed user);
+    event ObjectCreated(bytes32 indexed objectId, address indexed creator);
+    event ObjectDeleted(bytes32 indexed objectId);
+}
+
+contract EventDrivenVault is INeuralock, INeuralockEvents {
+    // Servers can watch these events to update their caches
+    
+    function createObject(bytes32 objectId) external {
+        require(!objects[objectId].exists, "Already exists");
+        
+        objects[objectId] = DataObject({
+            owner: msg.sender,
+            exists: true,
+            createdAt: block.timestamp
+        });
+        
+        emit ObjectCreated(objectId, msg.sender);
+    }
+    
+    function grantAccess(bytes32 objectId, address user, uint8 level) external {
+        require(objects[objectId].owner == msg.sender, "Not owner");
+        
+        permissions[objectId][user] = level;
+        
+        if (level > 0) {
+            emit AccessGranted(objectId, user, level);
+        } else {
+            emit AccessRevoked(objectId, user);
+        }
+    }
+}`}
+  filename="event-driven.sol"
+  description="Event-driven permission updates"
+/>
+
+## Best Practices
+
+<Callout type="success" title="Implementation Best Practices">
+
+1. **Keep It Simple**: Start with basic implementation, add complexity as needed
+2. **Gas Efficiency**: Optimize for common operations
+3. **Clear Documentation**: Document your permission model
+4. **Consistent Behavior**: Follow standard permission levels
+5. **Error Handling**: Return 0 for errors, don't revert
+6. **Upgradeability**: Consider proxy patterns for future updates
+
+</Callout>
+
+## Next Steps
+
+- Review the [Deployment Guide](./04-deployment-guide) for deployment instructions
+- Study [Example Contracts](../08-advanced/01-example-contracts) for more patterns
+- Read about [Security Best Practices](../07-security/01-smart-contract-security)

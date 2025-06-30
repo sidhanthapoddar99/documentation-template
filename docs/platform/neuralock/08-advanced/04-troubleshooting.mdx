@@ -1,0 +1,507 @@
+---
+title: Troubleshooting
+description: Comprehensive troubleshooting guide for common issues, debugging techniques, and resolution strategies
+sidebar_position: 4
+---
+
+import { Card as InfoCard } from '@site/src/components/elements';
+import { Card as WarningCard } from '@site/src/components/elements';
+import { Card as TipCard } from '@site/src/components/elements';
+import { Card as DangerCard } from '@site/src/components/elements';
+import { CollapsibleCodeBlock as CodePreview } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { MermaidDiagram } from '@site/src/components/elements';
+import TroubleshootingFlowSource from '!!raw-loader!./assets/troubleshooting-flow.mermaid';
+import DiagnosticArchitectureSource from '!!raw-loader!./assets/diagnostic-architecture.mermaid';
+import DiagnosticScriptSource from '!!raw-loader!./assets/diagnostic-script.ts';
+import DebugToolsSource from '!!raw-loader!./assets/debug-tools.ts';
+import LogAnalyzerSource from '!!raw-loader!./assets/log-analyzer.ts';
+import NetworkDebuggerSource from '!!raw-loader!./assets/network-debugger.ts';
+import RecoveryScriptsSource from '!!raw-loader!./assets/recovery-scripts.sh';
+import CommonFixesSource from '!!raw-loader!./assets/common-fixes.yaml';
+
+# Troubleshooting Guide
+
+This comprehensive guide helps diagnose and resolve common issues with Neuralock deployments, from basic connectivity problems to complex threshold violations.
+
+<Card type="info">
+<strong>Before You Begin:</strong> Always check the system status dashboard and recent alerts before troubleshooting. Many issues are transient and may resolve automatically.
+</Card>
+
+## Troubleshooting Flow
+
+Follow this systematic approach to identify and resolve issues efficiently.
+
+<MermaidDiagram content={TroubleshootingFlowSource} filename="troubleshooting-flow.mermaid" />
+
+## Diagnostic Architecture
+
+Understanding the diagnostic tools and data flow helps in effective troubleshooting.
+
+<MermaidDiagram content={DiagnosticArchitectureSource} filename="diagnostic-architecture.mermaid" />
+
+## Common Issues and Solutions
+
+### 1. Connection Issues
+
+<Tabs>
+<TabItem value="timeout" label="Connection Timeout">
+
+**Symptoms:**
+- `ETIMEDOUT` errors
+- Requests hanging indefinitely
+- Health checks failing
+
+**Diagnosis:**
+```bash
+# Test server connectivity
+curl -v https://server1.neuralock.io:8000/health
+
+# Check network path
+traceroute server1.neuralock.io
+
+# Test port accessibility
+nc -zv server1.neuralock.io 8000
+```
+
+**Solutions:**
+1. Check firewall rules
+2. Verify server is running
+3. Check load balancer configuration
+4. Increase timeout values
+
+<FileCollapsibleCodeBlock content={CommonFixesSource} filename="common-fixes.yaml" startLine={1} endLine={25} />
+
+</TabItem>
+<TabItem value="refused" label="Connection Refused">
+
+**Symptoms:**
+- `ECONNREFUSED` errors
+- Immediate connection failures
+- Service unavailable messages
+
+**Diagnosis:**
+```bash
+# Check if service is running
+systemctl status neuralock
+
+# Check listening ports
+netstat -tlnp | grep 8000
+
+# Review service logs
+journalctl -u neuralock -n 100
+```
+
+**Solutions:**
+1. Start the service if stopped
+2. Check port bindings
+3. Verify configuration file
+4. Check for port conflicts
+
+</TabItem>
+<TabItem value="ssl" label="SSL/TLS Errors">
+
+**Symptoms:**
+- Certificate verification failures
+- SSL handshake errors
+- Mixed content warnings
+
+**Diagnosis:**
+```bash
+# Check certificate validity
+openssl s_client -connect server1.neuralock.io:8000 -showcerts
+
+# Verify certificate chain
+openssl verify -CAfile ca.crt server.crt
+
+# Test TLS versions
+nmap --script ssl-enum-ciphers -p 8000 server1.neuralock.io
+```
+
+**Solutions:**
+1. Update expired certificates
+2. Fix certificate chain
+3. Configure proper TLS versions
+4. Update CA certificates
+
+</TabItem>
+</Tabs>
+
+### 2. Threshold Violations
+
+<Card type="warning">
+<strong>Critical Issue:</strong> Threshold violations prevent encryption/decryption operations. Immediate action required to restore service.
+</Card>
+
+**Symptoms:**
+- "Insufficient servers available" errors
+- Unable to meet threshold k requirements
+- Operations failing consistently
+
+**Diagnosis and Resolution:**
+
+<FileCollapsibleCodeBlock content={DiagnosticScriptSource} filename="diagnostic-script.ts" startLine={150} endLine={250} />
+
+### 3. Performance Issues
+
+<Tabs>
+<TabItem value="latency" label="High Latency">
+
+**Symptoms:**
+- Slow response times (> 1s)
+- Timeout errors under load
+- User complaints about speed
+
+**Diagnosis:**
+```bash
+# Measure response times
+curl -w "@curl-format.txt" -o /dev/null -s https://api.neuralock.io/health
+
+# Check server load
+top -b -n 1 | head -20
+
+# Monitor network latency
+ping -c 10 server1.neuralock.io
+```
+
+**Quick Fixes:**
+1. Enable caching if disabled
+2. Check for CPU/memory constraints
+3. Review database query performance
+4. Enable connection pooling
+
+</TabItem>
+<TabItem value="throughput" label="Low Throughput">
+
+**Symptoms:**
+- Unable to handle expected load
+- Queue buildup
+- Rate limiting triggered prematurely
+
+**Diagnosis:**
+<FileCollapsibleCodeBlock content={DebugToolsSource} filename="debug-tools.ts" startLine={1} endLine={100} />
+
+**Solutions:**
+1. Scale horizontally (add servers)
+2. Enable batch processing
+3. Optimize database indexes
+4. Implement request queuing
+
+</TabItem>
+<TabItem value="memory" label="Memory Leaks">
+
+**Symptoms:**
+- Gradually increasing memory usage
+- Out of memory errors
+- Service restarts
+
+**Diagnosis:**
+```bash
+# Monitor memory usage
+watch -n 1 'ps aux | grep neuralock'
+
+# Generate heap dump
+kill -USR2 $(pgrep -f neuralock)
+
+# Analyze with tools
+node --inspect-brk server.js
+```
+
+**Solutions:**
+1. Update to latest version
+2. Review custom middleware
+3. Check for circular references
+4. Implement proper cleanup
+
+</TabItem>
+</Tabs>
+
+### 4. Data Consistency Issues
+
+**Symptoms:**
+- Share reconstruction failures
+- Data corruption errors
+- Inconsistent results between servers
+
+**Root Causes:**
+- Network partitions during writes
+- Clock synchronization issues
+- Partial write failures
+
+**Resolution Steps:**
+
+<FileCollapsibleCodeBlock content={RecoveryScriptsSource} filename="recovery-scripts.sh" startLine={50} endLine={150} />
+
+### 5. Authentication/Authorization Failures
+
+<Tabs>
+<TabItem value="session" label="Session Issues">
+
+**Symptoms:**
+- "Invalid session" errors
+- Frequent re-authentication required
+- Session data loss
+
+**Common Causes:**
+1. Session storage misconfiguration
+2. Clock drift between servers
+3. Load balancer sticky sessions disabled
+4. Redis connection issues
+
+**Fix:**
+```yaml
+# Verify session configuration
+sessions:
+  storage: redis
+  ttl: 3600
+  sticky_sessions: true
+  redis:
+    cluster: true
+    nodes:
+      - redis-1:6379
+      - redis-2:6379
+```
+
+</TabItem>
+<TabItem value="permissions" label="Permission Denied">
+
+**Symptoms:**
+- 403 Forbidden errors
+- "Insufficient permissions" messages
+- Operations succeeding for some users but not others
+
+**Debugging:**
+<FileCollapsibleCodeBlock content={DebugToolsSource} filename="debug-tools.ts" startLine={200} endLine={300} />
+
+</TabItem>
+</Tabs>
+
+## Advanced Debugging Tools
+
+### Log Analysis
+
+Comprehensive log analysis tool for identifying patterns and issues.
+
+<FileCollapsibleCodeBlock content={LogAnalyzerSource} filename="log-analyzer.ts" />
+
+### Network Debugging
+
+Tools for diagnosing network-related issues.
+
+<FileCollapsibleCodeBlock content={NetworkDebuggerSource} filename="network-debugger.ts" />
+
+### Performance Profiling
+
+<Card type="tip">
+<strong>Pro Tip:</strong> Always profile in a staging environment first. Production profiling can impact performance.
+</Card>
+
+```bash
+# CPU profiling
+node --prof server.js
+node --prof-process isolate-*.log > profile.txt
+
+# Memory profiling
+node --trace-gc --expose-gc server.js
+
+# Flame graphs
+perf record -F 99 -p $(pgrep node) -g -- sleep 30
+perf script | stackcollapse-perf.pl | flamegraph.pl > flame.svg
+```
+
+## Recovery Procedures
+
+### Emergency Recovery Mode
+
+When threshold requirements cannot be met:
+
+<Card type="danger">
+<strong>Warning:</strong> Emergency recovery reduces security. Use only when absolutely necessary and re-secure immediately after recovery.
+</Card>
+
+<FileCollapsibleCodeBlock content={RecoveryScriptsSource} filename="recovery-scripts.sh" startLine={200} endLine={300} />
+
+### Data Recovery
+
+For recovering from data loss or corruption:
+
+1. **Identify affected data**
+   ```sql
+   SELECT object_id, server_id, created_at 
+   FROM shares 
+   WHERE created_at > NOW() - INTERVAL '1 hour'
+   AND status = 'error';
+   ```
+
+2. **Restore from backup**
+   ```bash
+   # Stop affected servers
+   systemctl stop neuralock
+
+   # Restore database
+   pg_restore -d neuralock backup.dump
+
+   # Verify integrity
+   neuralock-cli verify --all
+   ```
+
+3. **Resynchronize servers**
+   ```bash
+   neuralock-cli sync --force --all-servers
+   ```
+
+## Monitoring and Alerting
+
+### Key Metrics to Monitor
+
+| Metric | Warning Threshold | Critical Threshold | Check Frequency |
+|--------|------------------|-------------------|-----------------|
+| Server Availability | < 90% | < k servers | 30s |
+| Response Time (p95) | > 500ms | > 1000ms | 1m |
+| Error Rate | > 1% | > 5% | 1m |
+| Queue Depth | > 1000 | > 5000 | 30s |
+| Memory Usage | > 80% | > 95% | 1m |
+| Disk Space | < 20% free | < 10% free | 5m |
+
+### Alert Response Playbook
+
+1. **High Error Rate**
+   - Check recent deployments
+   - Review error logs
+   - Verify external dependencies
+   - Scale if load-related
+
+2. **Server Unavailable**
+   - Check server health endpoint
+   - Review system resources
+   - Check network connectivity
+   - Initiate failover if needed
+
+3. **Threshold Violation**
+   - Count available servers
+   - Check for network partitions
+   - Activate backup servers
+   - Notify on-call team
+
+## Preventive Measures
+
+### Regular Maintenance
+
+<Card type="info">
+<strong>Best Practice:</strong> Schedule maintenance during low-traffic periods and always maintain threshold requirements during maintenance.
+</Card>
+
+1. **Weekly Tasks**
+   - Review error logs
+   - Check certificate expiration
+   - Verify backup integrity
+   - Test failover procedures
+
+2. **Monthly Tasks**
+   - Update dependencies
+   - Rotate credentials
+   - Performance benchmarking
+   - Disaster recovery drill
+
+3. **Quarterly Tasks**
+   - Security audit
+   - Capacity planning review
+   - Architecture review
+   - Documentation update
+
+### Health Checks
+
+Implement comprehensive health checks:
+
+```typescript
+interface HealthCheck {
+  database: boolean;
+  redis: boolean;
+  threshold: boolean;
+  certificates: boolean;
+  diskSpace: boolean;
+  memory: boolean;
+}
+
+async function comprehensiveHealthCheck(): Promise<HealthCheck> {
+  return {
+    database: await checkDatabase(),
+    redis: await checkRedis(),
+    threshold: await checkThreshold(),
+    certificates: await checkCertificates(),
+    diskSpace: await checkDiskSpace(),
+    memory: await checkMemory()
+  };
+}
+```
+
+## Getting Help
+
+If you've exhausted troubleshooting options:
+
+1. **Gather Information**
+   - System configuration
+   - Error logs (last 24 hours)
+   - Metrics/monitoring data
+   - Steps to reproduce
+
+2. **Check Resources**
+   - [GitHub Issues](https://github.com/neuralock/neuralock)
+   - [Community Forum](https://forum.neuralock.io)
+   - [Stack Overflow](https://stackoverflow.com/questions/tagged/neuralock)
+
+3. **Contact Support**
+   - Enterprise: support@neuralock.io
+   - Community: Discord/Slack channels
+
+<Card type="warning">
+<strong>Security Note:</strong> Never share private keys, credentials, or sensitive configuration in public forums or support tickets.
+</Card>
+
+## Quick Reference
+
+### Common Commands
+
+```bash
+# Service management
+systemctl status/start/stop/restart neuralock
+
+# Log viewing
+journalctl -u neuralock -f
+tail -f /var/log/neuralock/server.log
+
+# Configuration validation
+neuralock-cli config validate
+
+# Threshold status
+neuralock-cli threshold status
+
+# Server health
+neuralock-cli health --all-servers
+
+# Force sync
+neuralock-cli sync --force
+
+# Emergency mode
+neuralock-cli emergency --enable --duration 3600
+```
+
+### Error Code Reference
+
+| Code | Description | Common Cause | Quick Fix |
+|------|-------------|--------------|-----------|
+| NL001 | Connection timeout | Network issue | Check connectivity |
+| NL002 | Threshold not met | Too few servers | Activate backups |
+| NL003 | Invalid session | Session expired | Re-authenticate |
+| NL004 | Permission denied | ACL issue | Check permissions |
+| NL005 | Share corrupted | Data integrity | Restore from backup |
+| NL006 | Rate limited | Too many requests | Implement backoff |
+
+## Next Steps
+
+- Review [Performance Optimization](./03-performance-optimization) for preventive tuning
+- Set up comprehensive [Monitoring](../server-setup/monitoring)
+- Implement [Security Best Practices](../security/best-practices)
+- Create custom [Runbooks](https://github.com/neuralock/runbooks) for your deployment

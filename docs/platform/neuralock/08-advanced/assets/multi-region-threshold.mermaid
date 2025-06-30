@@ -1,0 +1,56 @@
+graph TB
+    subgraph "Global Configuration"
+        GC[Global Threshold: 5-of-9]
+    end
+    
+    subgraph "US Region (3 servers)"
+        US1[US-East-1<br/>Primary]
+        US2[US-West-1<br/>Secondary]
+        US3[US-Central<br/>Backup]
+        US1 -.->|Sync| US2
+        US2 -.->|Sync| US3
+        US3 -.->|Sync| US1
+    end
+    
+    subgraph "EU Region (3 servers)"
+        EU1[EU-West-1<br/>Primary]
+        EU2[EU-Central<br/>Secondary]
+        EU3[EU-North<br/>Backup]
+        EU1 -.->|Sync| EU2
+        EU2 -.->|Sync| EU3
+        EU3 -.->|Sync| EU1
+    end
+    
+    subgraph "APAC Region (3 servers)"
+        AP1[APAC-SG<br/>Primary]
+        AP2[APAC-Tokyo<br/>Secondary]
+        AP3[APAC-Sydney<br/>Backup]
+        AP1 -.->|Sync| AP2
+        AP2 -.->|Sync| AP3
+        AP3 -.->|Sync| AP1
+    end
+    
+    GC --> US1
+    GC --> EU1
+    GC --> AP1
+    
+    US1 <==>|Cross-Region<br/>Replication| EU1
+    EU1 <==>|Cross-Region<br/>Replication| AP1
+    AP1 <==>|Cross-Region<br/>Replication| US1
+    
+    subgraph "Regional Thresholds"
+        RT1[US: 2-of-3 Local]
+        RT2[EU: 2-of-3 Local]
+        RT3[APAC: 2-of-3 Local]
+    end
+    
+    subgraph "Failover Strategy"
+        FS1[Primary: Local Region]
+        FS2[Secondary: Nearest Region]
+        FS3[Tertiary: Any 5 Servers]
+    end
+    
+    style GC fill:#e1f5fe
+    style US1 fill:#c8e6c9
+    style EU1 fill:#c8e6c9
+    style AP1 fill:#c8e6c9

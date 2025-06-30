@@ -1,0 +1,64 @@
+sequenceDiagram
+    participant U as User
+    participant C as Client App
+    participant S as Neuralock Server
+    participant R as Registry Contract
+    participant A as Application Contract
+    participant N as Neuralock Network
+    
+    Note over U,N: Integration Flow: User accessing encrypted data
+    
+    rect rgb(232, 245, 233)
+        Note over U,C: 1. User Request
+        U->>C: Request access to data (objectId)
+        C->>C: Generate request with user address
+    end
+    
+    rect rgb(232, 240, 254)
+        Note over C,R: 2. Server Verification
+        C->>S: Forward request
+        S->>R: getServerByPublicKey(serverKey)
+        R-->>S: Server metadata & verification status
+        alt Server Not Verified
+            S-->>C: Error: Server not verified
+            C-->>U: Access denied
+        end
+    end
+    
+    rect rgb(255, 243, 224)
+        Note over S,A: 3. Permission Check
+        S->>A: neuralock(userAddress, objectId)
+        A->>A: Check access logic
+        A-->>S: Permission level (0-3)
+        
+        alt No Access (0)
+            S-->>C: Access denied
+            C-->>U: No permission
+        else Read Access (1)
+            S->>N: Retrieve encrypted data
+            N-->>S: Encrypted data
+            S->>S: Decrypt with server key
+            S-->>C: Decrypted data
+            C-->>U: Display data
+        else Write Access (2)
+            S-->>C: Write permission granted
+            C->>U: Allow data creation
+            U->>C: Create new data
+            C->>S: Encrypt and store
+            S->>S: Encrypt with server key
+            S->>N: Store encrypted data
+        else Full Access (3)
+            S-->>C: Full access granted
+            C-->>U: All operations available
+        end
+    end
+    
+    rect rgb(255, 235, 238)
+        Note over S,A: 4. Batch Operations (Optional)
+        S->>A: neuralockBatch(user, [objectIds])
+        A-->>S: [permission levels]
+        S->>S: Process batch efficiently
+        S-->>C: Batch results
+    end
+    
+    Note over U,N: Access control enforced at every step

@@ -1,0 +1,479 @@
+---
+title: Python SDK
+sidebar_position: 2
+description: Complete guide to the Neuralock Python SDK for backend applications
+---
+
+import { Card } from '@site/src/components/elements';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { FileCollapsibleCodeBlock } from "@site/src/components/elements/CodeBlock";
+import { MermaidDiagram } from '@site/src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import { Callout as Alert } from "@site/src/components/elements";
+
+import PythonArchitectureSource from '!!raw-loader!./assets/python-architecture.mermaid';
+import BasicPythonExample from '!!raw-loader!./assets/basic-python.py';
+import AsyncPythonExample from '!!raw-loader!./assets/async-python.py';
+import FlaskIntegrationExample from '!!raw-loader!./assets/flask-integration.py';
+import DjangoIntegrationExample from '!!raw-loader!./assets/django-integration.py';
+import FastAPIIntegrationExample from '!!raw-loader!./assets/fastapi-integration.py';
+import BatchOperationsExample from '!!raw-loader!./assets/batch-operations.py';
+
+# Python SDK
+
+The Neuralock Python SDK provides a comprehensive solution for integrating distributed encryption into backend services. It supports both synchronous and asynchronous operations, making it perfect for any Python application architecture.
+
+## Overview
+
+Key features of the Python SDK:
+- **Full async/await support** for high-performance applications
+- **Multiple storage backends** (Memory, Redis, File-based)
+- **Framework integrations** for Flask, Django, and FastAPI
+- **Batch operations** for efficient bulk processing
+- **Hardware Security Module (HSM)** support
+- **Comprehensive type hints** for better IDE support
+
+<MermaidDiagram content={PythonArchitectureSource} filename="python-architecture.mermaid" />
+
+## Installation
+
+<Tabs
+  items={[
+    { label: "pip", value: "pip" },
+    { label: "poetry", value: "poetry" },
+    { label: "pipenv", value: "pipenv" }
+  ]}
+>
+  <TabItem value="pip">
+    ```bash
+    pip install neuralock
+    ```
+  </TabItem><TabItem value="poetry">
+    ```bash
+    poetry add neuralock
+    ```
+  </TabItem><TabItem value="pipenv">
+    ```bash
+    pipenv install neuralock
+    ```
+  </TabItem></Tabs>
+
+### Optional Dependencies
+
+Install additional dependencies based on your needs:
+
+```bash
+# For Redis session storage
+pip install neuralock[redis]
+
+# For async support
+pip install neuralock[async]
+
+# For all features
+pip install neuralock[all]
+```
+
+## Quick Start
+
+<FileCollapsibleCodeBlock content={BasicPythonExample} filename="basic-python.py" />
+
+## Async Support
+
+The SDK provides full asyncio support for high-performance applications:
+
+<FileCollapsibleCodeBlock content={AsyncPythonExample} filename="async-python.py" />
+
+## Configuration
+
+### Client Initialization
+
+The `NeuralockClient` accepts various configuration options:
+
+```python
+from neuralock import NeuralockClient, ThresholdConfig, SessionStorage
+
+client = NeuralockClient(
+    application_contract="0x1234...",
+    private_key="0xabcd...",  # Or web3 account object
+    servers=[
+        {"nft_id": 1, "importance_factor": 1.0, "required": True},
+        {"nft_id": 2, "importance_factor": 0.8},
+        {"nft_id": 3, "importance_factor": 0.6}
+    ],
+    web3_provider="https://mainnet.infura.io/v3/YOUR_KEY",
+    
+    # Optional parameters
+    ttl=600,  # Session TTL in seconds
+    threshold_config=ThresholdConfig(
+        mode="flexible",
+        minimum=2,
+        tolerance=0.2
+    ),
+    async_mode=True,  # Enable async support
+    
+    # Storage configuration
+    session_storage=SessionStorage.REDIS,
+    storage_config={
+        "host": "localhost",
+        "port": 6379,
+        "db": 0
+    }
+)
+```
+
+### Storage Backends
+
+<Tabs
+  items={[
+    { label: "Memory", value: "memory" },
+    { label: "Redis", value: "redis" },
+    { label: "File", value: "file" }
+  ]}
+>
+  <TabItem value="memory">
+    ```python
+    from neuralock import MemoryStorage
+    
+    client = NeuralockClient(
+        # ... other config
+        session_storage=MemoryStorage()
+    )
+    ```
+    
+    <Callout type="warning">
+      Memory storage is cleared when the process restarts. Use Redis or file storage for persistence.
+    </Callout>
+  </TabItem><TabItem value="redis">
+    ```python
+    from neuralock import RedisStorage
+    
+    client = NeuralockClient(
+        # ... other config
+        session_storage=RedisStorage(
+            host="localhost",
+            port=6379,
+            db=0,
+            key_prefix="neuralock:"
+        )
+    )
+    ```
+  </TabItem><TabItem value="file">
+    ```python
+    from neuralock import FileStorage
+    
+    client = NeuralockClient(
+        # ... other config
+        session_storage=FileStorage(
+            directory="/var/lib/neuralock/sessions",
+            encryption_key="your-encryption-key"  # Encrypt session files
+        )
+    )
+    ```
+  </TabItem></Tabs>
+
+## API Reference
+
+### NeuralockClient
+
+The main client class for encryption operations.
+
+#### Methods
+
+##### initialize()
+
+Establishes sessions with configured servers.
+
+```python
+client.initialize() -> None
+```
+
+##### encrypt()
+
+Encrypts data and distributes key shares.
+
+```python
+encrypted = client.encrypt(
+    data: Union[str, bytes],
+    object_id: str,
+    compress: bool = False
+) -> EncryptedData
+```
+
+**Parameters:**
+- `data`: String or bytes to encrypt
+- `object_id`: Unique identifier for the encrypted object
+- `compress`: Enable compression for large data
+
+##### decrypt()
+
+Retrieves and reconstructs encryption keys to decrypt data.
+
+```python
+decrypted = client.decrypt(
+    encrypted_data: EncryptedData,
+    object_id: str
+) -> Union[str, bytes]
+```
+
+##### batch_encrypt()
+
+Efficiently encrypts multiple objects.
+
+```python
+results = client.batch_encrypt(
+    items: List[Tuple[Union[str, bytes], str]],
+    compress: bool = False
+) -> List[EncryptedData]
+```
+
+##### batch_decrypt()
+
+Efficiently decrypts multiple objects.
+
+```python
+results = client.batch_decrypt(
+    items: List[Tuple[EncryptedData, str]]
+) -> List[Union[str, bytes]]
+```
+
+### Async Methods
+
+All methods have async equivalents:
+
+```python
+# Async initialization
+await client.ainitialize()
+
+# Async encryption
+encrypted = await client.aencrypt(data, object_id)
+
+# Async decryption
+decrypted = await client.adecrypt(encrypted_data, object_id)
+
+# Async batch operations
+results = await client.abatch_encrypt(items)
+results = await client.abatch_decrypt(items)
+```
+
+## Framework Integrations
+
+### Flask Integration
+
+<FileCollapsibleCodeBlock content={FlaskIntegrationExample} filename="flask-integration.py" />
+
+### Django Integration
+
+<FileCollapsibleCodeBlock content={DjangoIntegrationExample} filename="django-integration.py" />
+
+### FastAPI Integration
+
+<FileCollapsibleCodeBlock content={FastAPIIntegrationExample} filename="fastapi-integration.py" />
+
+## Advanced Features
+
+### Batch Operations
+
+Process multiple encryption/decryption operations efficiently:
+
+<FileCollapsibleCodeBlock content={BatchOperationsExample} filename="batch-operations.py" />
+
+### Streaming Large Files
+
+Handle large files with streaming support:
+
+```python
+from neuralock import StreamingClient
+
+streaming_client = StreamingClient(client)
+
+# Encrypt large file
+with open("large_file.dat", "rb") as f:
+    encrypted_stream = streaming_client.encrypt_stream(
+        f,
+        object_id="large-file-123",
+        chunk_size=1024 * 1024  # 1MB chunks
+    )
+    
+    # Save encrypted chunks
+    for chunk in encrypted_stream:
+        process_chunk(chunk)
+
+# Decrypt large file
+with open("decrypted_file.dat", "wb") as f:
+    for chunk in streaming_client.decrypt_stream(
+        encrypted_chunks,
+        object_id="large-file-123"
+    ):
+        f.write(chunk)
+```
+
+### HSM Integration
+
+For enhanced security, integrate with Hardware Security Modules:
+
+```python
+from neuralock import HSMKeyManager
+
+key_manager = HSMKeyManager(
+    hsm_type="softhsm",
+    slot=0,
+    pin="1234"
+)
+
+client = NeuralockClient(
+    # ... other config
+    key_manager=key_manager
+)
+```
+
+### Custom Crypto Providers
+
+Implement custom cryptographic providers:
+
+```python
+from neuralock import CryptoProvider
+
+class CustomCryptoProvider(CryptoProvider):
+    def generate_key(self, size: int) -> bytes:
+        # Custom key generation
+        pass
+    
+    def encrypt(self, data: bytes, key: bytes) -> bytes:
+        # Custom encryption
+        pass
+    
+    def decrypt(self, data: bytes, key: bytes) -> bytes:
+        # Custom decryption
+        pass
+
+client = NeuralockClient(
+    # ... other config
+    crypto_provider=CustomCryptoProvider()
+)
+```
+
+## Error Handling
+
+The SDK provides specific exception types:
+
+```python
+from neuralock import (
+    NeuralockError,
+    SessionExpiredError,
+    ThresholdNotMetError,
+    PermissionDeniedError,
+    ServerCommunicationError
+)
+
+try:
+    encrypted = client.encrypt(data, object_id)
+except SessionExpiredError:
+    # Session expired, reinitialize
+    client.initialize()
+    encrypted = client.encrypt(data, object_id)
+except ThresholdNotMetError as e:
+    # Not enough servers available
+    logger.error(f"Threshold not met: {e.details}")
+except PermissionDeniedError:
+    # User lacks permission
+    raise HTTPException(status_code=403)
+except ServerCommunicationError as e:
+    # Network or server issue
+    logger.error(f"Server error: {e.server_id}")
+except NeuralockError as e:
+    # Generic Neuralock error
+    logger.error(f"Neuralock error: {e.code}")
+```
+
+## Performance Optimization
+
+### Connection Pooling
+
+The SDK automatically manages connection pools:
+
+```python
+client = NeuralockClient(
+    # ... other config
+    connection_pool_size=20,
+    connection_timeout=30,
+    max_retries=3
+)
+```
+
+### Caching
+
+Enable caching for frequently accessed objects:
+
+```python
+from neuralock import LRUCache
+
+client = NeuralockClient(
+    # ... other config
+    cache=LRUCache(max_size=100),
+    cache_ttl=300  # 5 minutes
+)
+```
+
+### Monitoring and Metrics
+
+Integrate with monitoring systems:
+
+```python
+from neuralock import PrometheusMetrics
+
+metrics = PrometheusMetrics()
+client = NeuralockClient(
+    # ... other config
+    metrics_provider=metrics
+)
+
+# Access metrics
+print(metrics.get_metrics())
+```
+
+## Testing
+
+The SDK provides testing utilities:
+
+```python
+from neuralock.testing import MockServer, create_test_client
+
+# Create test client with mock server
+client = create_test_client(single_server_mode=True)
+
+# Use in tests
+def test_encryption():
+    client.initialize()
+    encrypted = client.encrypt("test data", "test-id")
+    decrypted = client.decrypt(encrypted, "test-id")
+    assert decrypted == "test data"
+```
+
+## CLI Usage
+
+The SDK includes a CLI for testing and management:
+
+```bash
+# Initialize client
+neuralock init --contract 0x1234... --key private_key.pem
+
+# Encrypt file
+neuralock encrypt --file document.pdf --id doc-123
+
+# Decrypt file
+neuralock decrypt --file encrypted.bin --id doc-123 --output decrypted.pdf
+
+# List sessions
+neuralock sessions list
+
+# Refresh session
+neuralock sessions refresh
+```
+
+## Next Steps
+
+- Explore [React Hooks](/neuralock/sdks/react-hooks) for frontend integration
+- View [Code Examples](/neuralock/sdks/code-examples) for more use cases
+- Learn about [Server Setup](/neuralock/server-setup) for deployment
+- Read the [Security Guide](/neuralock/security) for best practices

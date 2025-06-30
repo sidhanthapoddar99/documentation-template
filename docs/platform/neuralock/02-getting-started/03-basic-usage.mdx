@@ -1,0 +1,1607 @@
+---
+id: basic-usage
+title: Basic Usage
+description: Learn the core features and operations of Neuralock
+sidebar_position: 3
+---
+
+import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/elements/Card';
+import { Callout } from "@site/src/components/elements";
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
+import { CustomMermaid } from '@site/src/components/elements';
+import { MermaidDiagram } from '@site/src/components/elements';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+import EncryptionFlowSource from '!!raw-loader!./assets/encryption-flow.mermaid';
+import PermissionModelSource from '!!raw-loader!./assets/permission-model.mermaid';
+
+# Basic Usage
+
+Learn how to use Neuralock's core features including encryption, decryption, permission management, and advanced operations.
+
+## Core Concepts
+
+Before diving into usage, let's understand the key concepts:
+
+<div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>🔐 Distributed Encryption</CardTitle>
+      <CardDescription>
+        Encryption keys are split using Shamir's Secret Sharing and distributed across multiple servers
+      </CardDescription>
+    </CardHeader>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🎯 Threshold Security</CardTitle>
+      <CardDescription>
+        Configure how many servers must cooperate to decrypt data (e.g., 2-of-3, 3-of-5)
+      </CardDescription>
+    </CardHeader>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🔑 Object IDs</CardTitle>
+      <CardDescription>
+        Unique identifiers that link encrypted data to access permissions
+      </CardDescription>
+    </CardHeader>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>⏱️ Session Management</CardTitle>
+      <CardDescription>
+        Ephemeral sessions with configurable TTL for secure server communication
+      </CardDescription>
+    </CardHeader>
+  </Card>
+</div>
+
+## Encryption Flow
+
+<MermaidDiagram 
+  content={EncryptionFlowSource}
+  filename="encryption-flow.mermaid"
+  title="Complete Encryption Process"
+  description="How data flows through the Neuralock encryption system"
+/>
+
+## Basic Operations
+
+### Session Management
+
+Before performing any encryption operations, you need to establish a session:
+
+<Tabs>
+<TabItem value="javascript" label="JavaScript">
+
+<FileCollapsibleCodeBlock 
+  content={`import { NeuralockClient } from '@neuralock/client';
+
+// Session lifecycle management
+class NeuralockSession {
+  constructor(config) {
+    this.client = null;
+    this.config = config;
+    this.sessionTimer = null;
+  }
+  
+  async initialize() {
+    // Create and initialize client
+    this.client = new NeuralockClient(this.config);
+    await this.client.initialize();
+    
+    // Set up automatic session refresh
+    this.setupAutoRefresh();
+    
+    return this.client;
+  }
+  
+  setupAutoRefresh() {
+    // Refresh session 1 minute before expiry
+    const refreshInterval = (this.config.options.ttl - 60) * 1000;
+    
+    this.sessionTimer = setInterval(async () => {
+      try {
+        await this.client.refreshSession();
+        console.log('Session refreshed successfully');
+      } catch (error) {
+        console.error('Failed to refresh session:', error);
+        clearInterval(this.sessionTimer);
+      }
+    }, refreshInterval);
+  }
+  
+  async destroy() {
+    // Clean up session
+    if (this.sessionTimer) {
+      clearInterval(this.sessionTimer);
+    }
+    
+    if (this.client) {
+      await this.client.revokeSession();
+    }
+  }
+  
+  // Check session validity
+  isValid() {
+    return this.client && this.client.validateSession();
+  }
+  
+  // Get time remaining in seconds
+  getTimeRemaining() {
+    if (!this.client) return 0;
+    
+    const sessionData = this.client.getSessionData();
+    const now = Date.now();
+    const expiresAt = sessionData.expiresAt;
+    
+    return Math.max(0, Math.floor((expiresAt - now) / 1000));
+  }
+}
+
+// Usage
+const session = new NeuralockSession({
+  applicationContract: "0x...",
+  signer: signer,
+  servers: [
+    { nftId: 1, importanceFactor: 1.0 },
+    { nftId: 2, importanceFactor: 0.9 },
+    { nftId: 3, importanceFactor: 0.8 }
+  ],
+  options: {
+    ttl: 300, // 5 minutes
+    threshold: { mode: 'flexible', minimum: 2 }
+  }
+});
+
+const client = await session.initialize();`}
+  filename="session-management.js"
+  description="Complete session lifecycle management"
+/>
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+<FileCollapsibleCodeBlock 
+  content={`from neuralock import NeuralockClient
+import asyncio
+import time
+from typing import Optional
+
+class NeuralockSession:
+    """Managed session for Neuralock operations"""
+    
+    def __init__(self, config: dict):
+        self.client: Optional[NeuralockClient] = None
+        self.config = config
+        self.refresh_task = None
+        self._session_start = None
+    
+    def initialize(self) -> NeuralockClient:
+        """Initialize client and start session"""
+        
+        # Create client
+        self.client = NeuralockClient(
+            application_contract=self.config["applicationContract"],
+            private_key=self.config["privateKey"],
+            servers=self.config["servers"],
+            web3_provider=self.config["web3Provider"],
+            ttl=self.config.get("ttl", 300),
+            threshold_config=self.config.get("threshold", {
+                "mode": "flexible",
+                "minimum": 2
+            })
+        )
+        
+        # Initialize session
+        self.client.initialize()
+        self._session_start = time.time()
+        
+        # Start auto-refresh
+        self._start_auto_refresh()
+        
+        return self.client
+    
+    def _start_auto_refresh(self):
+        """Start automatic session refresh"""
+        
+        refresh_interval = self.config.get("ttl", 300) - 60  # 1 min before expiry
+        
+        async def refresh_loop():
+            while True:
+                await asyncio.sleep(refresh_interval)
+                try:
+                    self.client.refresh_session()
+                    print("Session refreshed successfully")
+                except Exception as e:
+                    print(f"Failed to refresh session: {e}")
+                    break
+        
+        # For async clients
+        if hasattr(self.client, 'arefresh_session'):
+            self.refresh_task = asyncio.create_task(refresh_loop())
+    
+    def destroy(self):
+        """Clean up session"""
+        
+        if self.refresh_task:
+            self.refresh_task.cancel()
+        
+        if self.client:
+            self.client.revoke_session()
+    
+    def is_valid(self) -> bool:
+        """Check if session is still valid"""
+        
+        if not self.client or not self._session_start:
+            return False
+        
+        elapsed = time.time() - self._session_start
+        return elapsed < self.config.get("ttl", 300)
+    
+    def get_time_remaining(self) -> int:
+        """Get remaining session time in seconds"""
+        
+        if not self._session_start:
+            return 0
+        
+        elapsed = time.time() - self._session_start
+        ttl = self.config.get("ttl", 300)
+        
+        return max(0, int(ttl - elapsed))
+    
+    def __enter__(self):
+        """Context manager support"""
+        return self.initialize()
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Cleanup on context exit"""
+        self.destroy()
+
+# Usage with context manager
+config = {
+    "applicationContract": "0x...",
+    "privateKey": "YOUR_PRIVATE_KEY",
+    "servers": [
+        {"nftId": 1, "importanceFactor": 1.0},
+        {"nftId": 2, "importanceFactor": 0.9},
+        {"nftId": 3, "importanceFactor": 0.8}
+    ],
+    "web3Provider": "https://mainnet.base.org",
+    "ttl": 300,
+    "threshold": {"mode": "flexible", "minimum": 2}
+}
+
+with NeuralockSession(config) as client:
+    # Perform operations
+    encrypted = client.encrypt("sensitive data", "object-123")
+    decrypted = client.decrypt(encrypted, "object-123")`}
+  filename="session_management.py"
+  description="Python session management with context manager"
+/>
+
+</TabItem>
+</Tabs>
+
+### Encrypting Data
+
+Neuralock supports encrypting various data types with automatic serialization:
+
+<Tabs>
+<TabItem value="javascript" label="JavaScript">
+
+<FileCollapsibleCodeBlock 
+  content={`// Encrypt different data types
+async function encryptData(client) {
+  // 1. String encryption
+  const textData = "This is sensitive information";
+  const textObjectId = ethers.utils.id("text-" + Date.now());
+  const encryptedText = await client.encrypt(textData, textObjectId);
+  
+  // 2. Object encryption (auto-serialized)
+  const objectData = {
+    user: {
+      name: "John Doe",
+      ssn: "123-45-6789",
+      creditCard: "4532-1234-5678-9012"
+    },
+    metadata: {
+      created: new Date().toISOString(),
+      version: "1.0"
+    }
+  };
+  const objectId = ethers.utils.id("user-" + Date.now());
+  const encryptedObject = await client.encrypt(
+    JSON.stringify(objectData), 
+    objectId
+  );
+  
+  // 3. Binary data encryption (base64 encoded)
+  const fileBuffer = await readFile('./document.pdf');
+  const binaryData = fileBuffer.toString('base64');
+  const fileObjectId = ethers.utils.id("file-" + Date.now());
+  const encryptedFile = await client.encrypt(binaryData, fileObjectId);
+  
+  // 4. Large data with compression
+  const largeData = generateLargeDataset(); // > 1MB
+  const compressed = await compressData(largeData);
+  const largeObjectId = ethers.utils.id("large-" + Date.now());
+  const encryptedLarge = await client.encrypt(compressed, largeObjectId);
+  
+  return {
+    text: { encrypted: encryptedText, objectId: textObjectId },
+    object: { encrypted: encryptedObject, objectId: objectId },
+    file: { encrypted: encryptedFile, objectId: fileObjectId },
+    large: { encrypted: encryptedLarge, objectId: largeObjectId }
+  };
+}
+
+// Batch encryption for multiple items
+async function batchEncrypt(client, items) {
+  const results = await Promise.all(
+    items.map(async (item) => {
+      const objectId = ethers.utils.id(item.id);
+      const encrypted = await client.encrypt(item.data, objectId);
+      
+      return {
+        id: item.id,
+        objectId,
+        encrypted: encrypted.ciphertext,
+        metadata: encrypted.metadata
+      };
+    })
+  );
+  
+  return results;
+}
+
+// Encryption with custom metadata
+async function encryptWithMetadata(client, data, customMetadata) {
+  const objectId = ethers.utils.id("metadata-" + Date.now());
+  
+  // Set custom metadata before encryption
+  client.setEncryptionMetadata({
+    ...customMetadata,
+    timestamp: Date.now(),
+    version: "1.0"
+  });
+  
+  const encrypted = await client.encrypt(data, objectId);
+  
+  return {
+    objectId,
+    encrypted: encrypted.ciphertext,
+    metadata: {
+      ...encrypted.metadata,
+      custom: customMetadata
+    }
+  };
+}`}
+  filename="encryption-examples.js"
+  description="Various encryption scenarios and patterns"
+/>
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+<FileCollapsibleCodeBlock 
+  content={`import json
+import base64
+import gzip
+import hashlib
+from datetime import datetime
+from typing import List, Dict, Any
+
+class EncryptionHelper:
+    """Helper class for various encryption scenarios"""
+    
+    def __init__(self, client: NeuralockClient):
+        self.client = client
+    
+    def encrypt_text(self, text: str, identifier: str) -> Dict[str, Any]:
+        """Encrypt plain text"""
+        object_id = self._generate_object_id(f"text-{identifier}")
+        encrypted = self.client.encrypt(text, object_id)
+        
+        return {
+            "object_id": object_id,
+            "encrypted": encrypted.ciphertext,
+            "metadata": encrypted.metadata
+        }
+    
+    def encrypt_object(self, obj: dict, identifier: str) -> Dict[str, Any]:
+        """Encrypt Python object as JSON"""
+        object_id = self._generate_object_id(f"object-{identifier}")
+        json_data = json.dumps(obj, default=str)
+        encrypted = self.client.encrypt(json_data, object_id)
+        
+        return {
+            "object_id": object_id,
+            "encrypted": encrypted.ciphertext,
+            "metadata": encrypted.metadata,
+            "type": "json"
+        }
+    
+    def encrypt_file(self, file_path: str, identifier: str) -> Dict[str, Any]:
+        """Encrypt file contents"""
+        with open(file_path, 'rb') as f:
+            file_data = f.read()
+        
+        # Base64 encode binary data
+        encoded_data = base64.b64encode(file_data).decode('utf-8')
+        object_id = self._generate_object_id(f"file-{identifier}")
+        
+        encrypted = self.client.encrypt(encoded_data, object_id)
+        
+        return {
+            "object_id": object_id,
+            "encrypted": encrypted.ciphertext,
+            "metadata": {
+                **encrypted.metadata,
+                "filename": file_path,
+                "size": len(file_data),
+                "encoding": "base64"
+            }
+        }
+    
+    def encrypt_large_data(self, data: str, identifier: str, 
+                          compress: bool = True) -> Dict[str, Any]:
+        """Encrypt large data with optional compression"""
+        
+        # Compress if requested
+        if compress and len(data) > 1024 * 1024:  # > 1MB
+            compressed = gzip.compress(data.encode('utf-8'))
+            data_to_encrypt = base64.b64encode(compressed).decode('utf-8')
+            is_compressed = True
+        else:
+            data_to_encrypt = data
+            is_compressed = False
+        
+        object_id = self._generate_object_id(f"large-{identifier}")
+        encrypted = self.client.encrypt(data_to_encrypt, object_id)
+        
+        return {
+            "object_id": object_id,
+            "encrypted": encrypted.ciphertext,
+            "metadata": {
+                **encrypted.metadata,
+                "compressed": is_compressed,
+                "original_size": len(data)
+            }
+        }
+    
+    def batch_encrypt(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Encrypt multiple items efficiently"""
+        
+        results = []
+        for item in items:
+            object_id = self._generate_object_id(item["id"])
+            encrypted = self.client.encrypt(item["data"], object_id)
+            
+            results.append({
+                "id": item["id"],
+                "object_id": object_id,
+                "encrypted": encrypted.ciphertext,
+                "metadata": encrypted.metadata
+            })
+        
+        return results
+    
+    def encrypt_with_metadata(self, data: str, identifier: str,
+                            custom_metadata: dict) -> Dict[str, Any]:
+        """Encrypt with custom metadata"""
+        
+        object_id = self._generate_object_id(identifier)
+        
+        # Add custom metadata
+        enhanced_metadata = {
+            **custom_metadata,
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.0"
+        }
+        
+        encrypted = self.client.encrypt(
+            data, 
+            object_id,
+            metadata=enhanced_metadata
+        )
+        
+        return {
+            "object_id": object_id,
+            "encrypted": encrypted.ciphertext,
+            "metadata": {
+                **encrypted.metadata,
+                "custom": custom_metadata
+            }
+        }
+    
+    def _generate_object_id(self, identifier: str) -> str:
+        """Generate unique object ID"""
+        unique_string = f"{identifier}-{datetime.now().timestamp()}"
+        return hashlib.sha256(unique_string.encode()).hexdigest()
+
+# Usage example
+helper = EncryptionHelper(client)
+
+# Encrypt different types
+text_result = helper.encrypt_text("Sensitive text", "doc1")
+object_result = helper.encrypt_object({"user": "john", "api_key": "secret"}, "user1")
+file_result = helper.encrypt_file("/path/to/document.pdf", "pdf1")
+
+# Batch encryption
+items = [
+    {"id": "item1", "data": "Data 1"},
+    {"id": "item2", "data": "Data 2"},
+    {"id": "item3", "data": "Data 3"}
+]
+batch_results = helper.batch_encrypt(items)`}
+  filename="encryption_examples.py"
+  description="Python encryption patterns and helpers"
+/>
+
+</TabItem>
+</Tabs>
+
+### Decrypting Data
+
+Decrypt data using the encrypted object and its ID:
+
+<Tabs>
+<TabItem value="javascript" label="JavaScript">
+
+<FileCollapsibleCodeBlock 
+  content={`// Decryption with error handling
+async function decryptData(client, encryptedData, objectId) {
+  try {
+    // Basic decryption
+    const decrypted = await client.decrypt(encryptedData, objectId);
+    
+    // Parse based on data type
+    if (encryptedData.metadata.type === 'json') {
+      return JSON.parse(decrypted);
+    } else if (encryptedData.metadata.encoding === 'base64') {
+      return Buffer.from(decrypted, 'base64');
+    } else {
+      return decrypted;
+    }
+    
+  } catch (error) {
+    if (error.code === 'PERMISSION_DENIED') {
+      console.error('You do not have permission to decrypt this data');
+    } else if (error.code === 'THRESHOLD_NOT_MET') {
+      console.error('Not enough servers available for decryption');
+    } else if (error.code === 'SESSION_EXPIRED') {
+      // Try to refresh session and retry
+      await client.refreshSession();
+      return await client.decrypt(encryptedData, objectId);
+    } else {
+      throw error;
+    }
+  }
+}
+
+// Batch decryption
+async function batchDecrypt(client, encryptedItems) {
+  const results = await Promise.allSettled(
+    encryptedItems.map(async (item) => {
+      try {
+        const decrypted = await client.decrypt(
+          item.encrypted,
+          item.objectId
+        );
+        
+        return {
+          id: item.id,
+          data: decrypted,
+          success: true
+        };
+      } catch (error) {
+        return {
+          id: item.id,
+          error: error.message,
+          success: false
+        };
+      }
+    })
+  );
+  
+  // Separate successful and failed decryptions
+  const successful = results
+    .filter(r => r.status === 'fulfilled' && r.value.success)
+    .map(r => r.value);
+    
+  const failed = results
+    .filter(r => r.status === 'rejected' || !r.value.success)
+    .map(r => r.reason || r.value);
+  
+  return { successful, failed };
+}
+
+// Streaming decryption for large files
+async function streamDecrypt(client, encryptedFile, objectId) {
+  const decrypted = await client.decrypt(encryptedFile, objectId);
+  
+  // If compressed, decompress
+  if (encryptedFile.metadata.compressed) {
+    const compressed = Buffer.from(decrypted, 'base64');
+    const decompressed = await decompress(compressed);
+    return decompressed;
+  }
+  
+  // If base64 encoded, decode
+  if (encryptedFile.metadata.encoding === 'base64') {
+    return Buffer.from(decrypted, 'base64');
+  }
+  
+  return decrypted;
+}
+
+// Decryption with progress tracking
+async function decryptWithProgress(client, encryptedData, objectId, onProgress) {
+  // Set up progress listener
+  client.on('decryption:progress', (progress) => {
+    onProgress({
+      stage: progress.stage,
+      serversResponded: progress.serversResponded,
+      totalServers: progress.totalServers,
+      percentage: (progress.serversResponded / progress.totalServers) * 100
+    });
+  });
+  
+  try {
+    const decrypted = await client.decrypt(encryptedData, objectId);
+    onProgress({ stage: 'complete', percentage: 100 });
+    return decrypted;
+  } finally {
+    // Clean up listener
+    client.removeAllListeners('decryption:progress');
+  }
+}`}
+  filename="decryption-examples.js"
+  description="Decryption patterns with error handling"
+/>
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+<FileCollapsibleCodeBlock 
+  content={`import json
+from typing import List, Dict, Any, Optional, Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+class DecryptionHelper:
+    """Helper class for various decryption scenarios"""
+    
+    def __init__(self, client: NeuralockClient):
+        self.client = client
+    
+    def decrypt_with_type(self, encrypted_data: Dict[str, Any], 
+                         object_id: str) -> Any:
+        """Decrypt and parse based on data type"""
+        
+        try:
+            # Basic decryption
+            decrypted = self.client.decrypt(encrypted_data, object_id)
+            
+            # Parse based on metadata
+            metadata = encrypted_data.get("metadata", {})
+            
+            if metadata.get("type") == "json":
+                return json.loads(decrypted)
+            elif metadata.get("encoding") == "base64":
+                return base64.b64decode(decrypted)
+            elif metadata.get("compressed"):
+                compressed = base64.b64decode(decrypted)
+                return gzip.decompress(compressed).decode('utf-8')
+            else:
+                return decrypted
+                
+        except Exception as e:
+            if "PERMISSION_DENIED" in str(e):
+                raise PermissionError("No permission to decrypt this data")
+            elif "THRESHOLD_NOT_MET" in str(e):
+                raise RuntimeError("Not enough servers available")
+            elif "SESSION_EXPIRED" in str(e):
+                # Refresh and retry
+                self.client.refresh_session()
+                return self.decrypt_with_type(encrypted_data, object_id)
+            else:
+                raise
+    
+    def batch_decrypt(self, encrypted_items: List[Dict[str, Any]], 
+                     max_workers: int = 5) -> Dict[str, List]:
+        """Decrypt multiple items concurrently"""
+        
+        successful = []
+        failed = []
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all decryption tasks
+            future_to_item = {
+                executor.submit(
+                    self.decrypt_with_type, 
+                    item["encrypted"], 
+                    item["object_id"]
+                ): item for item in encrypted_items
+            }
+            
+            # Process results as they complete
+            for future in as_completed(future_to_item):
+                item = future_to_item[future]
+                try:
+                    result = future.result()
+                    successful.append({
+                        "id": item.get("id"),
+                        "data": result
+                    })
+                except Exception as e:
+                    failed.append({
+                        "id": item.get("id"),
+                        "error": str(e)
+                    })
+        
+        return {
+            "successful": successful,
+            "failed": failed
+        }
+    
+    def decrypt_file(self, encrypted_file: Dict[str, Any], 
+                    object_id: str, output_path: str) -> str:
+        """Decrypt file and save to disk"""
+        
+        # Decrypt the data
+        decrypted = self.client.decrypt(encrypted_file, object_id)
+        
+        # Decode from base64
+        file_data = base64.b64decode(decrypted)
+        
+        # Save to file
+        with open(output_path, 'wb') as f:
+            f.write(file_data)
+        
+        return output_path
+    
+    def decrypt_with_progress(self, encrypted_data: Dict[str, Any],
+                            object_id: str, 
+                            progress_callback: Optional[Callable] = None) -> Any:
+        """Decrypt with progress tracking"""
+        
+        class ProgressTracker:
+            def __init__(self, callback):
+                self.callback = callback
+                self.stage = "initializing"
+                self.servers_responded = 0
+                self.total_servers = 0
+            
+            def update(self, stage: str, servers: int = None, total: int = None):
+                self.stage = stage
+                if servers is not None:
+                    self.servers_responded = servers
+                if total is not None:
+                    self.total_servers = total
+                
+                if self.callback:
+                    self.callback({
+                        "stage": self.stage,
+                        "servers_responded": self.servers_responded,
+                        "total_servers": self.total_servers,
+                        "percentage": (self.servers_responded / max(self.total_servers, 1)) * 100
+                    })
+        
+        tracker = ProgressTracker(progress_callback)
+        
+        # Simulate progress updates (in real implementation, 
+        # this would be integrated with the client)
+        tracker.update("requesting_shares", 0, 3)
+        
+        try:
+            # Perform decryption
+            result = self.client.decrypt(encrypted_data, object_id)
+            tracker.update("complete", 3, 3)
+            return result
+        except Exception as e:
+            tracker.update("error")
+            raise
+    
+    async def async_decrypt(self, encrypted_data: Dict[str, Any],
+                           object_id: str) -> Any:
+        """Async decryption for async clients"""
+        
+        if hasattr(self.client, 'adecrypt'):
+            decrypted = await self.client.adecrypt(encrypted_data, object_id)
+            return self._parse_decrypted(decrypted, encrypted_data.get("metadata", {}))
+        else:
+            # Fallback to sync in thread
+            import asyncio
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(
+                None, 
+                self.decrypt_with_type, 
+                encrypted_data, 
+                object_id
+            )
+    
+    def _parse_decrypted(self, decrypted: str, metadata: dict) -> Any:
+        """Parse decrypted data based on metadata"""
+        
+        if metadata.get("type") == "json":
+            return json.loads(decrypted)
+        elif metadata.get("encoding") == "base64":
+            return base64.b64decode(decrypted)
+        else:
+            return decrypted
+
+# Usage examples
+helper = DecryptionHelper(client)
+
+# Single decryption
+decrypted = helper.decrypt_with_type(encrypted_data, object_id)
+
+# Batch decryption
+items = [
+    {"id": "1", "encrypted": enc1, "object_id": oid1},
+    {"id": "2", "encrypted": enc2, "object_id": oid2}
+]
+results = helper.batch_decrypt(items)
+
+# Decrypt with progress
+def progress_handler(progress):
+    print(f"Decryption {progress['stage']}: {progress['percentage']:.1f}%")
+
+data = helper.decrypt_with_progress(encrypted_data, object_id, progress_handler)`}
+  filename="decryption_examples.py"
+  description="Python decryption patterns and helpers"
+/>
+
+</TabItem>
+</Tabs>
+
+## Permission Management
+
+<MermaidDiagram 
+  content={PermissionModelSource}
+  filename="permission-model.mermaid"
+  title="Neuralock Permission Model"
+  description="How permissions are managed and enforced"
+/>
+
+### Permission Levels
+
+Neuralock supports four permission levels:
+
+| Level | Value | Description | Capabilities |
+|-------|-------|-------------|--------------|
+| **None** | 0 | No access | Cannot decrypt or modify |
+| **Read** | 1 | Read-only access | Can decrypt data |
+| **Write** | 2 | Write-only access | Can update encrypted data |
+| **Full** | 3 | Read and write access | Can decrypt and update |
+
+### Managing Permissions
+
+<Tabs>
+<TabItem value="javascript" label="JavaScript">
+
+<FileCollapsibleCodeBlock 
+  content={`// Permission management class
+class PermissionManager {
+  constructor(client, contractAddress) {
+    this.client = client;
+    this.contract = contractAddress;
+  }
+  
+  // Grant permissions to users
+  async grantAccess(objectId, permissions) {
+    // permissions: { address: level }
+    // Example: { "0x123...": 1, "0x456...": 3 }
+    
+    const tx = await this.client.updatePermissions(objectId, permissions);
+    await tx.wait();
+    
+    console.log('Permissions granted successfully');
+    return tx.hash;
+  }
+  
+  // Revoke access for specific users
+  async revokeAccess(objectId, addresses) {
+    const revocations = {};
+    addresses.forEach(addr => {
+      revocations[addr] = 0; // Set to no access
+    });
+    
+    const tx = await this.client.updatePermissions(objectId, revocations);
+    await tx.wait();
+    
+    console.log('Access revoked for:', addresses);
+    return tx.hash;
+  }
+  
+  // Check user permissions
+  async checkPermission(userAddress, objectId) {
+    const permission = await this.client.checkPermission(
+      userAddress,
+      objectId
+    );
+    
+    return {
+      level: permission,
+      canRead: permission === 1 || permission === 3,
+      canWrite: permission === 2 || permission === 3,
+      hasAccess: permission > 0
+    };
+  }
+  
+  // Batch permission update
+  async batchUpdatePermissions(updates) {
+    // updates: [{ objectId, permissions }]
+    
+    const results = await Promise.all(
+      updates.map(async (update) => {
+        try {
+          const tx = await this.client.updatePermissions(
+            update.objectId,
+            update.permissions
+          );
+          await tx.wait();
+          
+          return {
+            objectId: update.objectId,
+            success: true,
+            txHash: tx.hash
+          };
+        } catch (error) {
+          return {
+            objectId: update.objectId,
+            success: false,
+            error: error.message
+          };
+        }
+      })
+    );
+    
+    return results;
+  }
+  
+  // Transfer ownership
+  async transferOwnership(objectId, newOwner) {
+    // Only current owner can transfer
+    const tx = await this.client.transferOwnership(objectId, newOwner);
+    await tx.wait();
+    
+    console.log(\`Ownership transferred to: \${newOwner}\`);
+    return tx.hash;
+  }
+  
+  // Create shareable link (time-limited access)
+  async createShareableLink(objectId, duration = 3600) {
+    // Generate temporary access token
+    const token = await this.client.generateAccessToken(objectId, duration);
+    
+    // Create shareable URL
+    const baseUrl = window.location.origin;
+    const shareUrl = \`\${baseUrl}/shared/\${objectId}?token=\${token}\`;
+    
+    return {
+      url: shareUrl,
+      token: token,
+      expiresAt: Date.now() + (duration * 1000)
+    };
+  }
+}
+
+// Usage examples
+const permManager = new PermissionManager(client, appContract);
+
+// Grant read access to multiple users
+await permManager.grantAccess("object-123", {
+  "0x1234567890123456789012345678901234567890": 1,
+  "0x0987654321098765432109876543210987654321": 1
+});
+
+// Check permissions before decryption
+const perms = await permManager.checkPermission(userAddress, objectId);
+if (perms.canRead) {
+  const decrypted = await client.decrypt(encryptedData, objectId);
+}
+
+// Create time-limited share link
+const share = await permManager.createShareableLink("object-123", 7200); // 2 hours
+console.log("Share this link:", share.url);`}
+  filename="permission-management.js"
+  description="Complete permission management system"
+/>
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+<FileCollapsibleCodeBlock 
+  content={`from typing import Dict, List, Optional, Tuple
+from datetime import datetime, timedelta
+import secrets
+import urllib.parse
+
+class PermissionManager:
+    """Manage Neuralock permissions and access control"""
+    
+    # Permission level constants
+    NONE = 0
+    READ = 1
+    WRITE = 2
+    FULL = 3
+    
+    def __init__(self, client: NeuralockClient):
+        self.client = client
+    
+    def grant_access(self, object_id: str, 
+                    permissions: Dict[str, int]) -> str:
+        """Grant permissions to users
+        
+        Args:
+            object_id: The encrypted object ID
+            permissions: Dict of address -> permission level
+            
+        Returns:
+            Transaction hash
+        """
+        
+        # Validate permission levels
+        for addr, level in permissions.items():
+            if level not in [0, 1, 2, 3]:
+                raise ValueError(f"Invalid permission level: {level}")
+        
+        # Update permissions on-chain
+        tx_hash = self.client.update_permissions(object_id, permissions)
+        
+        print(f"Permissions granted. Tx: {tx_hash}")
+        return tx_hash
+    
+    def revoke_access(self, object_id: str, 
+                     addresses: List[str]) -> str:
+        """Revoke access for specific users"""
+        
+        # Set all addresses to no access (0)
+        revocations = {addr: self.NONE for addr in addresses}
+        
+        tx_hash = self.client.update_permissions(object_id, revocations)
+        
+        print(f"Access revoked for {len(addresses)} users")
+        return tx_hash
+    
+    def check_permission(self, user_address: str, 
+                        object_id: str) -> Dict[str, any]:
+        """Check user permissions for an object"""
+        
+        level = self.client.check_permission(user_address, object_id)
+        
+        return {
+            "level": level,
+            "level_name": self._get_level_name(level),
+            "can_read": level in [self.READ, self.FULL],
+            "can_write": level in [self.WRITE, self.FULL],
+            "has_access": level > self.NONE
+        }
+    
+    def batch_update_permissions(self, 
+                               updates: List[Dict[str, any]]) -> List[Dict]:
+        """Update permissions for multiple objects"""
+        
+        results = []
+        
+        for update in updates:
+            try:
+                tx_hash = self.client.update_permissions(
+                    update["object_id"],
+                    update["permissions"]
+                )
+                
+                results.append({
+                    "object_id": update["object_id"],
+                    "success": True,
+                    "tx_hash": tx_hash
+                })
+            except Exception as e:
+                results.append({
+                    "object_id": update["object_id"],
+                    "success": False,
+                    "error": str(e)
+                })
+        
+        return results
+    
+    def transfer_ownership(self, object_id: str, 
+                          new_owner: str) -> str:
+        """Transfer ownership of an encrypted object"""
+        
+        tx_hash = self.client.transfer_ownership(object_id, new_owner)
+        
+        print(f"Ownership transferred to: {new_owner}")
+        return tx_hash
+    
+    def create_shareable_link(self, object_id: str,
+                            duration_hours: int = 24,
+                            base_url: str = "https://app.neuralock.io") -> Dict:
+        """Create a time-limited shareable link"""
+        
+        # Generate secure token
+        token = secrets.token_urlsafe(32)
+        expires_at = datetime.now() + timedelta(hours=duration_hours)
+        
+        # Store token mapping (in production, use secure storage)
+        self._store_access_token(token, object_id, expires_at)
+        
+        # Create shareable URL
+        params = urllib.parse.urlencode({
+            "token": token,
+            "expires": int(expires_at.timestamp())
+        })
+        
+        share_url = f"{base_url}/shared/{object_id}?{params}"
+        
+        return {
+            "url": share_url,
+            "token": token,
+            "expires_at": expires_at.isoformat(),
+            "duration_hours": duration_hours
+        }
+    
+    def validate_access_token(self, token: str, 
+                            object_id: str) -> bool:
+        """Validate a temporary access token"""
+        
+        stored_data = self._get_access_token(token)
+        
+        if not stored_data:
+            return False
+        
+        # Check if token matches object and hasn't expired
+        return (stored_data["object_id"] == object_id and
+                stored_data["expires_at"] > datetime.now())
+    
+    def create_permission_report(self, object_ids: List[str]) -> Dict:
+        """Generate a report of all permissions for objects"""
+        
+        report = {
+            "generated_at": datetime.now().isoformat(),
+            "objects": []
+        }
+        
+        for object_id in object_ids:
+            # Get all users with access (from contract events)
+            users = self.client.get_object_permissions(object_id)
+            
+            obj_report = {
+                "object_id": object_id,
+                "total_users": len(users),
+                "permissions": []
+            }
+            
+            for user in users:
+                perm = self.check_permission(user, object_id)
+                obj_report["permissions"].append({
+                    "address": user,
+                    "level": perm["level"],
+                    "level_name": perm["level_name"]
+                })
+            
+            report["objects"].append(obj_report)
+        
+        return report
+    
+    def _get_level_name(self, level: int) -> str:
+        """Get human-readable permission level name"""
+        
+        names = {
+            0: "None",
+            1: "Read",
+            2: "Write",
+            3: "Full"
+        }
+        return names.get(level, "Unknown")
+    
+    def _store_access_token(self, token: str, object_id: str, 
+                           expires_at: datetime):
+        """Store temporary access token (implement with secure storage)"""
+        # In production, use Redis or database
+        pass
+    
+    def _get_access_token(self, token: str) -> Optional[Dict]:
+        """Retrieve access token data"""
+        # In production, retrieve from secure storage
+        pass
+
+# Usage examples
+perm_manager = PermissionManager(client)
+
+# Grant different access levels
+perm_manager.grant_access("object-123", {
+    "0x1234...": PermissionManager.READ,
+    "0x5678...": PermissionManager.FULL,
+    "0x9abc...": PermissionManager.WRITE
+})
+
+# Check before operations
+perms = perm_manager.check_permission(user_address, object_id)
+if perms["can_read"]:
+    decrypted = client.decrypt(encrypted_data, object_id)
+elif perms["can_write"]:
+    client.update_encrypted(object_id, new_data)
+
+# Create shareable link
+share = perm_manager.create_shareable_link("object-123", duration_hours=48)
+print(f"Share this link: {share['url']}")
+
+# Generate permission report
+report = perm_manager.create_permission_report(["obj1", "obj2", "obj3"])
+print(json.dumps(report, indent=2))`}
+  filename="permission_management.py"
+  description="Python permission management system"
+/>
+
+</TabItem>
+</Tabs>
+
+## Advanced Features
+
+### Key Rotation
+
+Rotate encryption keys for enhanced security:
+
+<FileCollapsibleCodeBlock 
+  content={`// Key rotation for enhanced security
+async function rotateEncryptionKey(client, objectId, currentData) {
+  // 1. Generate new encryption key
+  const newKey = await client.generateKey();
+  
+  // 2. Re-encrypt data with new key
+  const reencrypted = await client.rotateKey(objectId, {
+    currentData: currentData,
+    newKey: newKey,
+    maintainPermissions: true
+  });
+  
+  // 3. Update all server shares
+  await client.distributeNewShares(objectId, reencrypted.shares);
+  
+  // 4. Verify rotation success
+  const testDecrypt = await client.decrypt(reencrypted, objectId);
+  if (testDecrypt !== currentData) {
+    throw new Error('Key rotation verification failed');
+  }
+  
+  console.log('Key rotation completed successfully');
+  return reencrypted;
+}
+
+// Automatic key rotation policy
+class KeyRotationPolicy {
+  constructor(client, config) {
+    this.client = client;
+    this.config = config;
+    this.rotationSchedule = new Map();
+  }
+  
+  // Schedule automatic rotation
+  scheduleRotation(objectId, intervalDays = 90) {
+    const rotateAt = Date.now() + (intervalDays * 24 * 60 * 60 * 1000);
+    
+    this.rotationSchedule.set(objectId, {
+      rotateAt,
+      intervalDays,
+      lastRotation: Date.now()
+    });
+    
+    // Set up automatic rotation
+    setTimeout(() => {
+      this.performRotation(objectId);
+    }, rotateAt - Date.now());
+  }
+  
+  async performRotation(objectId) {
+    try {
+      // Get current encrypted data
+      const current = await this.client.getEncryptedData(objectId);
+      
+      // Perform rotation
+      await rotateEncryptionKey(this.client, objectId, current);
+      
+      // Reschedule next rotation
+      const schedule = this.rotationSchedule.get(objectId);
+      this.scheduleRotation(objectId, schedule.intervalDays);
+      
+    } catch (error) {
+      console.error(\`Failed to rotate key for \${objectId}:\`, error);
+      // Implement retry logic or alerts
+    }
+  }
+}`}
+  filename="key-rotation.js"
+  description="Key rotation implementation for enhanced security"
+/>
+
+### Multi-Server Coordination
+
+Optimize multi-server operations:
+
+<FileCollapsibleCodeBlock 
+  content={`// Advanced server coordination
+class ServerCoordinator {
+  constructor(client) {
+    this.client = client;
+    this.serverHealth = new Map();
+    this.performanceMetrics = new Map();
+  }
+  
+  // Monitor server health
+  async monitorHealth() {
+    const servers = this.client.getServers();
+    
+    for (const server of servers) {
+      try {
+        const startTime = Date.now();
+        const health = await this.client.checkServerHealth(server.nftId);
+        const responseTime = Date.now() - startTime;
+        
+        this.serverHealth.set(server.nftId, {
+          status: 'healthy',
+          responseTime,
+          lastCheck: Date.now(),
+          uptime: health.uptime,
+          load: health.load
+        });
+        
+        // Update performance metrics
+        this.updateMetrics(server.nftId, responseTime);
+        
+      } catch (error) {
+        this.serverHealth.set(server.nftId, {
+          status: 'unhealthy',
+          error: error.message,
+          lastCheck: Date.now()
+        });
+      }
+    }
+  }
+  
+  // Select optimal servers for operation
+  selectOptimalServers(requiredCount) {
+    const healthyServers = Array.from(this.serverHealth.entries())
+      .filter(([_, health]) => health.status === 'healthy')
+      .sort((a, b) => {
+        // Sort by performance score
+        const scoreA = this.calculateScore(a[1]);
+        const scoreB = this.calculateScore(b[1]);
+        return scoreB - scoreA;
+      });
+    
+    return healthyServers
+      .slice(0, requiredCount)
+      .map(([nftId, _]) => nftId);
+  }
+  
+  calculateScore(health) {
+    // Lower response time and load = higher score
+    const responseScore = 1000 / (health.responseTime || 1000);
+    const loadScore = 1 - (health.load || 0);
+    const uptimeScore = (health.uptime || 0) / 100;
+    
+    return (responseScore * 0.4) + (loadScore * 0.3) + (uptimeScore * 0.3);
+  }
+  
+  // Adaptive threshold adjustment
+  async adaptiveThreshold() {
+    const healthyCount = Array.from(this.serverHealth.values())
+      .filter(h => h.status === 'healthy').length;
+    
+    const totalServers = this.serverHealth.size;
+    const healthRatio = healthyCount / totalServers;
+    
+    // Adjust threshold based on server availability
+    if (healthRatio < 0.5) {
+      console.warn('Less than 50% servers healthy, reducing threshold');
+      await this.client.adjustThreshold({
+        mode: 'flexible',
+        minimum: Math.max(1, Math.floor(healthyCount * 0.5))
+      });
+    }
+  }
+  
+  updateMetrics(serverId, responseTime) {
+    if (!this.performanceMetrics.has(serverId)) {
+      this.performanceMetrics.set(serverId, {
+        samples: [],
+        average: 0,
+        p95: 0,
+        p99: 0
+      });
+    }
+    
+    const metrics = this.performanceMetrics.get(serverId);
+    metrics.samples.push(responseTime);
+    
+    // Keep last 100 samples
+    if (metrics.samples.length > 100) {
+      metrics.samples.shift();
+    }
+    
+    // Calculate statistics
+    const sorted = [...metrics.samples].sort((a, b) => a - b);
+    metrics.average = sorted.reduce((a, b) => a + b, 0) / sorted.length;
+    metrics.p95 = sorted[Math.floor(sorted.length * 0.95)];
+    metrics.p99 = sorted[Math.floor(sorted.length * 0.99)];
+  }
+}`}
+  filename="server-coordination.js"
+  description="Advanced multi-server coordination and optimization"
+/>
+
+## Best Practices
+
+<Callout type="success" title="Security Best Practices">
+
+1. **Always use multi-server mode in production** - Single server mode is only for development
+2. **Implement proper session management** - Use automatic refresh and secure storage
+3. **Validate all inputs** - Check data size limits and format before encryption
+4. **Use appropriate permission levels** - Follow principle of least privilege
+5. **Monitor server health** - Implement health checks and failover strategies
+6. **Rotate keys regularly** - Schedule automatic key rotation for sensitive data
+7. **Audit access patterns** - Log and monitor all encryption/decryption operations
+
+</Callout>
+
+<Callout type="warning" title="Common Pitfalls">
+
+1. **Don't store private keys in code** - Use environment variables or secure key management
+2. **Don't ignore session expiry** - Handle session refresh proactively
+3. **Don't use predictable object IDs** - Use cryptographically secure random IDs
+4. **Don't skip error handling** - Implement comprehensive error recovery
+5. **Don't overload servers** - Implement rate limiting and load balancing
+
+</Callout>
+
+## Performance Optimization
+
+### Caching Strategies
+
+<FileCollapsibleCodeBlock 
+  content={`// Implement caching for better performance
+class NeuralockCache {
+  constructor(client, options = {}) {
+    this.client = client;
+    this.cache = new Map();
+    this.options = {
+      maxSize: options.maxSize || 100,
+      ttl: options.ttl || 300000, // 5 minutes
+      encryptionCache: options.encryptionCache || true,
+      decryptionCache: options.decryptionCache || true
+    };
+  }
+  
+  // Cache encrypted data
+  async encrypt(data, objectId) {
+    const cacheKey = \`enc:\${objectId}\`;
+    
+    // Check cache first
+    if (this.options.encryptionCache) {
+      const cached = this.getFromCache(cacheKey);
+      if (cached) return cached;
+    }
+    
+    // Perform encryption
+    const encrypted = await this.client.encrypt(data, objectId);
+    
+    // Cache result
+    this.setInCache(cacheKey, encrypted);
+    
+    return encrypted;
+  }
+  
+  // Cache decrypted data
+  async decrypt(encryptedData, objectId) {
+    const cacheKey = \`dec:\${objectId}\`;
+    
+    // Check cache first
+    if (this.options.decryptionCache) {
+      const cached = this.getFromCache(cacheKey);
+      if (cached) return cached;
+    }
+    
+    // Perform decryption
+    const decrypted = await this.client.decrypt(encryptedData, objectId);
+    
+    // Cache result
+    this.setInCache(cacheKey, decrypted);
+    
+    return decrypted;
+  }
+  
+  getFromCache(key) {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    
+    // Check if expired
+    if (Date.now() > entry.expiresAt) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return entry.value;
+  }
+  
+  setInCache(key, value) {
+    // Implement LRU eviction if needed
+    if (this.cache.size >= this.options.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      this.cache.delete(firstKey);
+    }
+    
+    this.cache.set(key, {
+      value,
+      expiresAt: Date.now() + this.options.ttl
+    });
+  }
+  
+  // Clear cache for specific object
+  invalidate(objectId) {
+    this.cache.delete(\`enc:\${objectId}\`);
+    this.cache.delete(\`dec:\${objectId}\`);
+  }
+  
+  // Clear entire cache
+  clear() {
+    this.cache.clear();
+  }
+}`}
+  filename="caching-strategy.js"
+  description="Caching implementation for improved performance"
+/>
+
+## Next Steps
+
+Now that you understand the basic usage:
+
+1. **[Example Application](/neuralock/getting-started/example-application)** - Build a complete document vault
+2. **[Smart Contracts](/neuralock/smart-contracts)** - Deep dive into the contract architecture
+3. **[Server Setup](/neuralock/server-setup)** - Deploy your own Neuralock servers
+4. **[Security Guide](/neuralock/security)** - Advanced security considerations
+
+## Quick Reference
+
+### Common Operations
+
+```javascript
+// Initialize
+const client = new NeuralockClient(config);
+await client.initialize();
+
+// Encrypt
+const encrypted = await client.encrypt(data, objectId);
+
+// Decrypt
+const decrypted = await client.decrypt(encrypted, objectId);
+
+// Grant access
+await client.updatePermissions(objectId, { "0x...": 1 });
+
+// Check permission
+const hasAccess = await client.checkPermission(address, objectId);
+
+// Refresh session
+await client.refreshSession();
+```
+
+### Error Codes
+
+| Code | Description | Solution |
+|------|-------------|----------|
+| `SESSION_EXPIRED` | Session has expired | Call `refreshSession()` |
+| `PERMISSION_DENIED` | No access to decrypt | Check permissions |
+| `THRESHOLD_NOT_MET` | Too few servers | Check server status |
+| `INVALID_OBJECT_ID` | Object ID not found | Verify ID exists |
+| `ENCRYPTION_FAILED` | Encryption error | Check data format |
+
+Happy encrypting with Neuralock! 🔐

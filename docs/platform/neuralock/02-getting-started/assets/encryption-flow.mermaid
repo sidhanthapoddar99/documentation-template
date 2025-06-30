@@ -1,0 +1,46 @@
+sequenceDiagram
+    participant User
+    participant Client as Neuralock Client
+    participant Crypto as Crypto Module
+    participant Shamir as Shamir Module
+    participant Server1 as Server 1
+    participant Server2 as Server 2
+    participant Server3 as Server 3
+    participant Contract as Smart Contract
+    
+    User->>Client: encrypt(data, objectId)
+    
+    Note over Client: Validate session
+    
+    Client->>Crypto: Generate AES-256 key
+    Crypto-->>Client: encryptionKey
+    
+    Client->>Crypto: Encrypt data with AES-256-GCM
+    Crypto-->>Client: ciphertext + IV + authTag
+    
+    Client->>Shamir: Split key (threshold 2-of-3)
+    Shamir-->>Client: [share1, share2, share3]
+    
+    Client->>Contract: Check server registry
+    Contract-->>Client: Server public keys
+    
+    par Distribute shares
+        Client->>Crypto: ECDH encrypt share1
+        Crypto-->>Client: encryptedShare1
+        Client->>Server1: Store(encryptedShare1, objectId)
+        Server1-->>Client: Confirmation
+    and
+        Client->>Crypto: ECDH encrypt share2
+        Crypto-->>Client: encryptedShare2
+        Client->>Server2: Store(encryptedShare2, objectId)
+        Server2-->>Client: Confirmation
+    and
+        Client->>Crypto: ECDH encrypt share3
+        Crypto-->>Client: encryptedShare3
+        Client->>Server3: Store(encryptedShare3, objectId)
+        Server3-->>Client: Confirmation
+    end
+    
+    Client->>Client: Create metadata
+    
+    Client-->>User: {ciphertext, objectId, metadata}

@@ -1,0 +1,1786 @@
+---
+id: example-application
+title: Example Application
+description: Build a complete document vault application with Neuralock
+sidebar_position: 4
+---
+
+import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/elements/Card';
+import { Callout } from "@site/src/components/elements";
+import { FileCollapsibleCodeBlock, FileInlineCodeCard } from '@site/src/components/elements/CodeBlock';
+import { CustomMermaid } from '@site/src/components/elements';
+import { MermaidDiagram } from '@site/src/components/elements';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+import AppArchitectureSource from '!!raw-loader!./assets/app-architecture.mermaid';
+import UserFlowSource from '!!raw-loader!./assets/user-flow.mermaid';
+
+# Example Application: Secure Document Vault
+
+Build a complete decentralized document vault application using Neuralock. This example demonstrates real-world usage patterns, best practices, and production-ready code.
+
+## Application Overview
+
+<MermaidDiagram 
+  content={AppArchitectureSource}
+  filename="app-architecture.mermaid"
+  title="Document Vault Architecture"
+  description="Complete application architecture with all components"
+/>
+
+### Key Features
+
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+  <Card>
+    <CardHeader>
+      <CardTitle>📄 Document Management</CardTitle>
+      <CardDescription>Create, store, and organize encrypted documents</CardDescription>
+    </CardHeader>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🔐 End-to-End Encryption</CardTitle>
+      <CardDescription>Documents encrypted before leaving your device</CardDescription>
+    </CardHeader>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>👥 Secure Sharing</CardTitle>
+      <CardDescription>Share documents with granular permissions</CardDescription>
+    </CardHeader>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>🎯 Access Control</CardTitle>
+      <CardDescription>Blockchain-based permission management</CardDescription>
+    </CardHeader>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>📱 Responsive UI</CardTitle>
+      <CardDescription>Works on desktop and mobile devices</CardDescription>
+    </CardHeader>
+  </Card>
+  
+  <Card>
+    <CardHeader>
+      <CardTitle>⚡ Real-time Updates</CardTitle>
+      <CardDescription>WebSocket notifications for shared documents</CardDescription>
+    </CardHeader>
+  </Card>
+</div>
+
+## Project Setup
+
+### 1. Initialize the Project
+
+<Tabs>
+<TabItem value="vite" label="Vite + React">
+
+```bash
+# Create new project
+npm create vite@latest document-vault -- --template react-ts
+
+# Navigate to project
+cd document-vault
+
+# Install dependencies
+npm install @neuralock/client @neuralock/react ethers@^5.7.0
+npm install @tanstack/react-query axios react-router-dom
+npm install tailwindcss @headlessui/react @heroicons/react
+
+# Development dependencies
+npm install -D @types/react @types/react-dom
+```
+
+</TabItem>
+<TabItem value="nextjs" label="Next.js">
+
+```bash
+# Create new project
+npx create-next-app@latest document-vault --typescript --tailwind --app
+
+# Navigate to project
+cd document-vault
+
+# Install dependencies
+npm install @neuralock/client @neuralock/react ethers@^5.7.0
+npm install @tanstack/react-query axios
+npm install @headlessui/react @heroicons/react
+```
+
+</TabItem>
+</Tabs>
+
+### 2. Project Structure
+
+```
+document-vault/
+├── src/
+│   ├── components/
+│   │   ├── Layout/
+│   │   │   ├── Header.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   └── Footer.tsx
+│   │   ├── Document/
+│   │   │   ├── DocumentList.tsx
+│   │   │   ├── DocumentCard.tsx
+│   │   │   ├── CreateDocument.tsx
+│   │   │   └── DocumentViewer.tsx
+│   │   ├── Encryption/
+│   │   │   ├── EncryptionStatus.tsx
+│   │   │   └── ServerIndicator.tsx
+│   │   ├── Sharing/
+│   │   │   ├── ShareModal.tsx
+│   │   │   └── PermissionSelector.tsx
+│   │   └── Common/
+│   │       ├── LoadingSpinner.tsx
+│   │       └── ErrorBoundary.tsx
+│   ├── hooks/
+│   │   ├── useNeuralock.ts
+│   │   ├── useDocuments.ts
+│   │   └── useWallet.ts
+│   ├── services/
+│   │   ├── neuralock.ts
+│   │   ├── ipfs.ts
+│   │   └── api.ts
+│   ├── contracts/
+│   │   ├── DocumentVault.json
+│   │   └── addresses.ts
+│   ├── types/
+│   │   └── index.ts
+│   ├── utils/
+│   │   └── constants.ts
+│   ├── App.tsx
+│   └── main.tsx
+├── contracts/
+│   └── DocumentVault.sol
+└── .env
+```
+
+## Core Components
+
+### Smart Contract
+
+<FileCollapsibleCodeBlock 
+  content={`// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+interface INeuralock {
+    function neuralock(address user, bytes32 objectId) external view returns (uint8);
+}
+
+contract DocumentVault is ERC721, Ownable, INeuralock {
+    using Counters for Counters.Counter;
+    
+    Counters.Counter private _tokenIdCounter;
+    
+    struct Document {
+        string title;
+        string ipfsHash;
+        address creator;
+        uint256 createdAt;
+        uint256 lastModified;
+        bool isEncrypted;
+        string documentType;
+        uint256 size;
+    }
+    
+    // Token ID => Document
+    mapping(uint256 => Document) public documents;
+    
+    // Token ID => User => Permission Level
+    mapping(uint256 => mapping(address => uint8)) public permissions;
+    
+    // User => Token IDs
+    mapping(address => uint256[]) public userDocuments;
+    
+    // Events
+    event DocumentCreated(uint256 indexed tokenId, address indexed creator, string title);
+    event DocumentUpdated(uint256 indexed tokenId, string newIpfsHash);
+    event PermissionGranted(uint256 indexed tokenId, address indexed user, uint8 permission);
+    event DocumentShared(uint256 indexed tokenId, address indexed from, address indexed to);
+    
+    constructor() ERC721("DocumentVault", "DOCV") {}
+    
+    function createDocument(
+        string memory _title,
+        string memory _ipfsHash,
+        bool _isEncrypted,
+        string memory _documentType,
+        uint256 _size
+    ) public returns (uint256) {
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+        
+        _safeMint(msg.sender, tokenId);
+        
+        documents[tokenId] = Document({
+            title: _title,
+            ipfsHash: _ipfsHash,
+            creator: msg.sender,
+            createdAt: block.timestamp,
+            lastModified: block.timestamp,
+            isEncrypted: _isEncrypted,
+            documentType: _documentType,
+            size: _size
+        });
+        
+        userDocuments[msg.sender].push(tokenId);
+        
+        emit DocumentCreated(tokenId, msg.sender, _title);
+        
+        return tokenId;
+    }
+    
+    function updateDocument(uint256 _tokenId, string memory _newIpfsHash) public {
+        require(_exists(_tokenId), "Document does not exist");
+        require(
+            ownerOf(_tokenId) == msg.sender || permissions[_tokenId][msg.sender] >= 2,
+            "No write permission"
+        );
+        
+        documents[_tokenId].ipfsHash = _newIpfsHash;
+        documents[_tokenId].lastModified = block.timestamp;
+        
+        emit DocumentUpdated(_tokenId, _newIpfsHash);
+    }
+    
+    function grantPermission(uint256 _tokenId, address _user, uint8 _permission) public {
+        require(_exists(_tokenId), "Document does not exist");
+        require(ownerOf(_tokenId) == msg.sender, "Only owner can grant permissions");
+        require(_permission <= 3, "Invalid permission level");
+        
+        permissions[_tokenId][_user] = _permission;
+        
+        // Add to user's document list if granting access
+        if (_permission > 0 && !hasDocument(_user, _tokenId)) {
+            userDocuments[_user].push(_tokenId);
+        }
+        
+        emit PermissionGranted(_tokenId, _user, _permission);
+        
+        if (_permission > 0) {
+            emit DocumentShared(_tokenId, msg.sender, _user);
+        }
+    }
+    
+    function batchGrantPermissions(
+        uint256 _tokenId,
+        address[] memory _users,
+        uint8[] memory _permissions
+    ) public {
+        require(_users.length == _permissions.length, "Arrays length mismatch");
+        
+        for (uint i = 0; i < _users.length; i++) {
+            grantPermission(_tokenId, _users[i], _permissions[i]);
+        }
+    }
+    
+    // INeuralock implementation
+    function neuralock(address _user, bytes32 _objectId) external view override returns (uint8) {
+        uint256 tokenId = uint256(_objectId);
+        
+        if (!_exists(tokenId)) return 0;
+        
+        // Owner has full access
+        if (ownerOf(tokenId) == _user) return 3;
+        
+        // Return granted permission
+        return permissions[tokenId][_user];
+    }
+    
+    // View functions
+    function getUserDocuments(address _user) public view returns (uint256[] memory) {
+        return userDocuments[_user];
+    }
+    
+    function getDocument(uint256 _tokenId) public view returns (Document memory) {
+        require(_exists(_tokenId), "Document does not exist");
+        return documents[_tokenId];
+    }
+    
+    function hasDocument(address _user, uint256 _tokenId) private view returns (bool) {
+        uint256[] memory docs = userDocuments[_user];
+        for (uint i = 0; i < docs.length; i++) {
+            if (docs[i] == _tokenId) return true;
+        }
+        return false;
+    }
+    
+    // Metadata
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(_exists(tokenId), "Document does not exist");
+        
+        Document memory doc = documents[tokenId];
+        
+        // Return IPFS metadata URL
+        return string(abi.encodePacked("ipfs://", doc.ipfsHash, "/metadata.json"));
+    }
+}`}
+  filename="DocumentVault.sol"
+  description="Complete smart contract for document management"
+/>
+
+### Neuralock Service
+
+<FileCollapsibleCodeBlock 
+  content={`// src/services/neuralock.ts
+import { NeuralockClient } from '@neuralock/client';
+import { ethers } from 'ethers';
+import { NEURALOCK_CONFIG } from '../utils/constants';
+
+export interface EncryptedDocument {
+  id: string;
+  objectId: string;
+  ciphertext: string;
+  metadata: {
+    timestamp: number;
+    servers: string[];
+    threshold: number;
+  };
+}
+
+class NeuralockService {
+  private client: NeuralockClient | null = null;
+  private sessionRefreshTimer: NodeJS.Timer | null = null;
+
+  async initialize(signer: ethers.Signer): Promise<void> {
+    try {
+      this.client = new NeuralockClient({
+        applicationContract: NEURALOCK_CONFIG.applicationContract,
+        signer,
+        servers: NEURALOCK_CONFIG.servers,
+        options: {
+          threshold: NEURALOCK_CONFIG.threshold,
+          ttl: NEURALOCK_CONFIG.sessionTTL,
+          retryAttempts: 3,
+          timeout: 30000
+        }
+      });
+
+      await this.client.initialize();
+      this.setupSessionRefresh();
+      
+      console.log('Neuralock initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize Neuralock:', error);
+      throw error;
+    }
+  }
+
+  private setupSessionRefresh(): void {
+    // Refresh session 1 minute before expiry
+    const refreshInterval = (NEURALOCK_CONFIG.sessionTTL - 60) * 1000;
+    
+    this.sessionRefreshTimer = setInterval(async () => {
+      try {
+        if (this.client) {
+          await this.client.refreshSession();
+          console.log('Session refreshed');
+        }
+      } catch (error) {
+        console.error('Failed to refresh session:', error);
+      }
+    }, refreshInterval);
+  }
+
+  async encryptDocument(
+    content: string,
+    documentId: string
+  ): Promise<EncryptedDocument> {
+    if (!this.client) throw new Error('Neuralock not initialized');
+
+    // Generate object ID from document ID
+    const objectId = ethers.utils.id(\`doc-\${documentId}\`);
+
+    // Encrypt the content
+    const encrypted = await this.client.encrypt(content, objectId);
+
+    return {
+      id: documentId,
+      objectId,
+      ciphertext: encrypted.ciphertext,
+      metadata: encrypted.metadata
+    };
+  }
+
+  async decryptDocument(
+    encrypted: EncryptedDocument
+  ): Promise<string> {
+    if (!this.client) throw new Error('Neuralock not initialized');
+
+    const encryptedData = {
+      ciphertext: encrypted.ciphertext,
+      objectId: encrypted.objectId,
+      metadata: encrypted.metadata
+    };
+
+    return await this.client.decrypt(encryptedData, encrypted.objectId);
+  }
+
+  async updatePermissions(
+    documentId: string,
+    permissions: Record<string, number>
+  ): Promise<void> {
+    if (!this.client) throw new Error('Neuralock not initialized');
+
+    const objectId = ethers.utils.id(\`doc-\${documentId}\`);
+    await this.client.updatePermissions(objectId, permissions);
+  }
+
+  async checkPermission(
+    userAddress: string,
+    documentId: string
+  ): Promise<number> {
+    if (!this.client) throw new Error('Neuralock not initialized');
+
+    const objectId = ethers.utils.id(\`doc-\${documentId}\`);
+    return await this.client.checkPermission(userAddress, objectId);
+  }
+
+  getSessionStatus(): {
+    isValid: boolean;
+    timeRemaining: number;
+  } {
+    if (!this.client) {
+      return { isValid: false, timeRemaining: 0 };
+    }
+
+    const isValid = this.client.validateSession();
+    const sessionData = this.client.getSessionData();
+    const timeRemaining = Math.max(
+      0,
+      Math.floor((sessionData.expiresAt - Date.now()) / 1000)
+    );
+
+    return { isValid, timeRemaining };
+  }
+
+  destroy(): void {
+    if (this.sessionRefreshTimer) {
+      clearInterval(this.sessionRefreshTimer);
+    }
+
+    if (this.client) {
+      this.client.revokeSession();
+    }
+  }
+}
+
+export const neuralockService = new NeuralockService();`}
+  filename="neuralock.ts"
+  description="Neuralock service implementation"
+/>
+
+### React Components
+
+#### Document List Component
+
+<FileCollapsibleCodeBlock 
+  content={`// src/components/Document/DocumentList.tsx
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { DocumentCard } from './DocumentCard';
+import { CreateDocument } from './CreateDocument';
+import { useDocuments } from '../../hooks/useDocuments';
+import { LoadingSpinner } from '../Common/LoadingSpinner';
+import { 
+  FolderPlusIcon, 
+  MagnifyingGlassIcon,
+  FunnelIcon 
+} from '@heroicons/react/24/outline';
+
+interface Document {
+  id: string;
+  title: string;
+  type: string;
+  size: number;
+  createdAt: Date;
+  isEncrypted: boolean;
+  shared: boolean;
+  permissions: number;
+}
+
+export const DocumentList: React.FC = () => {
+  const [filter, setFilter] = useState<'all' | 'owned' | 'shared'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  
+  const { documents, isLoading, error, refetch } = useDocuments(filter);
+
+  const filteredDocuments = documents?.filter(doc =>
+    doc.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">Error loading documents</p>
+        <button 
+          onClick={() => refetch()}
+          className="mt-4 text-blue-600 hover:text-blue-800"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">My Documents</h1>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          <FolderPlusIcon className="w-5 h-5 mr-2" />
+          New Document
+        </button>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="mb-6 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
+        <div className="flex space-x-2">
+          {(['all', 'owned', 'shared'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={\`px-4 py-2 rounded-lg transition \${
+                filter === f
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }\`}
+            >
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search documents..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      {/* Document Grid */}
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <LoadingSpinner />
+        </div>
+      ) : filteredDocuments?.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 mb-4">
+            {searchTerm ? 'No documents found' : 'No documents yet'}
+          </p>
+          {!searchTerm && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              Create your first document
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredDocuments?.map((doc) => (
+            <DocumentCard
+              key={doc.id}
+              document={doc}
+              onUpdate={() => refetch()}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Create Document Modal */}
+      {showCreateModal && (
+        <CreateDocument
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            refetch();
+          }}
+        />
+      )}
+    </div>
+  );
+};`}
+  filename="DocumentList.tsx"
+  description="Document list component with filtering and search"
+/>
+
+#### Create Document Component
+
+<FileCollapsibleCodeBlock 
+  content={`// src/components/Document/CreateDocument.tsx
+import React, { useState, useRef } from 'react';
+import { Dialog } from '@headlessui/react';
+import { useNeuralock } from '../../hooks/useNeuralock';
+import { useContract } from '../../hooks/useContract';
+import { neuralockService } from '../../services/neuralock';
+import { ipfsService } from '../../services/ipfs';
+  DocumentIcon,
+  LockClosedIcon,
+  CloudArrowUpIcon,
+  XMarkIcon 
+} from '@heroicons/react/24/outline';
+
+interface CreateDocumentProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+export const CreateDocument: React.FC<CreateDocumentProps> = ({
+  onClose,
+  onSuccess
+}) => {
+  const [title, setTitle] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [content, setContent] = useState('');
+  const [isEncrypted, setIsEncrypted] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isInitialized } = useNeuralock();
+  const { contract } = useContract();
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setTitle(selectedFile.name.replace(/\.[^/.]+$/, ''));
+      
+      // Read file content
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setContent(e.target?.result as string);
+      };
+      reader.readAsText(selectedFile);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || (!file && !content)) return;
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // Step 1: Prepare content
+      setUploadProgress(10);
+      const documentContent = file ? await file.text() : content;
+      
+      let finalContent = documentContent;
+      let encryptedData = null;
+
+      // Step 2: Encrypt if requested
+      if (isEncrypted) {
+        if (!isInitialized) {
+          throw new Error('Neuralock not initialized');
+        }
+        
+        setUploadProgress(30);
+        const tempId = Date.now().toString();
+        encryptedData = await neuralockService.encryptDocument(
+          documentContent,
+          tempId
+        );
+        finalContent = encryptedData.ciphertext;
+      }
+
+      // Step 3: Upload to IPFS
+      setUploadProgress(60);
+      const metadata = {
+        title,
+        type: file?.type || 'text/plain',
+        size: finalContent.length,
+        encrypted: isEncrypted,
+        encryptionMetadata: encryptedData?.metadata || null,
+        createdAt: new Date().toISOString()
+      };
+
+      const ipfsHash = await ipfsService.uploadDocument(finalContent, metadata);
+
+      // Step 4: Create NFT on blockchain
+      setUploadProgress(80);
+      if (!contract) throw new Error('Contract not loaded');
+
+      const tx = await contract.createDocument(
+        title,
+        ipfsHash,
+        isEncrypted,
+        file?.type || 'text/plain',
+        finalContent.length
+      );
+
+      const receipt = await tx.wait();
+      const tokenId = receipt.events?.[0]?.args?.tokenId?.toString();
+
+      // Step 5: Update Neuralock mapping if encrypted
+      if (isEncrypted && encryptedData && tokenId) {
+        setUploadProgress(90);
+        await neuralockService.updatePermissions(tokenId, {
+          [await contract.signer.getAddress()]: 3 // Full access for creator
+        });
+      }
+
+      setUploadProgress(100);
+      onSuccess();
+    } catch (err: any) {
+      console.error('Error creating document:', err);
+      setError(err.message || 'Failed to create document');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={true}
+      onClose={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto"
+    >
+      <div className="flex items-center justify-center min-h-screen">
+        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+
+        <div className="relative bg-white rounded-lg max-w-md w-full mx-4 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <Dialog.Title className="text-xl font-semibold">
+              Create New Document
+            </Dialog.Title>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Title Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Document Title
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter document title"
+              />
+            </div>
+
+            {/* File Upload or Text Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Content
+              </label>
+              
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition"
+                >
+                  <CloudArrowUpIcon className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600">
+                    {file ? file.name : 'Click to upload file'}
+                  </p>
+                </button>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept=".txt,.md,.json,.pdf,.doc,.docx"
+                />
+
+                <div className="text-center text-sm text-gray-500">or</div>
+
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Paste or type your content here..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            {/* Encryption Toggle */}
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center">
+                <LockClosedIcon className="w-5 h-5 text-gray-600 mr-2" />
+                <span className="text-sm font-medium text-gray-700">
+                  Encrypt Document
+                </span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isEncrypted}
+                  onChange={(e) => setIsEncrypted(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            {isEncrypted && !isInitialized && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  Neuralock needs to be initialized for encryption
+                </p>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            )}
+
+            {/* Upload Progress */}
+            {isUploading && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Uploading...</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: \`\${uploadProgress}%\` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isUploading}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isUploading || !title || (!file && !content)}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUploading ? 'Creating...' : 'Create Document'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Dialog>
+  );
+};`}
+  filename="CreateDocument.tsx"
+  description="Document creation with encryption options"
+/>
+
+#### Share Document Component
+
+<FileCollapsibleCodeBlock 
+  content={`// src/components/Sharing/ShareModal.tsx
+import {
+  XMarkIcon,
+  UserPlusIcon,
+  TrashIcon,
+  ClipboardDocumentIcon
+} from '@heroicons/react/24/outline';
+
+interface ShareModalProps {
+  document: {
+    id: string;
+    title: string;
+    isEncrypted: boolean;
+  };
+  onClose: () => void;
+}
+
+interface ShareEntry {
+  address: string;
+  permission: number;
+  isNew?: boolean;
+}
+
+const PERMISSION_LEVELS = [
+  { value: 0, label: 'No Access', description: 'Revoke all access' },
+  { value: 1, label: 'Read Only', description: 'Can view and decrypt' },
+  { value: 2, label: 'Write Only', description: 'Can update document' },
+  { value: 3, label: 'Full Access', description: 'Can read and write' }
+];
+
+export const ShareModal: React.FC<ShareModalProps> = ({ document, onClose }) => {
+  const [shares, setShares] = useState<ShareEntry[]>([]);
+  const [newAddress, setNewAddress] = useState('');
+  const [newPermission, setNewPermission] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [shareLink, setShareLink] = useState('');
+  
+  const { contract } = useContract();
+
+  useEffect(() => {
+    loadExistingShares();
+  }, [document.id]);
+
+  const loadExistingShares = async () => {
+    try {
+      // In a real app, you'd fetch this from contract events or a backend
+      // For now, we'll just initialize with empty array
+      setShares([]);
+    } catch (err) {
+      console.error('Error loading shares:', err);
+    }
+  };
+
+  const handleAddShare = () => {
+    if (!newAddress || !ethers.utils.isAddress(newAddress)) {
+      setError('Please enter a valid Ethereum address');
+      return;
+    }
+
+    // Check if already shared
+    if (shares.some(s => s.address.toLowerCase() === newAddress.toLowerCase())) {
+      setError('Already shared with this address');
+      return;
+    }
+
+    setShares([...shares, {
+      address: newAddress,
+      permission: newPermission,
+      isNew: true
+    }]);
+
+    setNewAddress('');
+    setNewPermission(1);
+    setError(null);
+  };
+
+  const handleRemoveShare = (index: number) => {
+    const newShares = [...shares];
+    if (newShares[index].isNew) {
+      // Just remove if not saved yet
+      newShares.splice(index, 1);
+    } else {
+      // Mark for removal (permission 0)
+      newShares[index].permission = 0;
+    }
+    setShares(newShares);
+  };
+
+  const handleUpdatePermission = (index: number, permission: number) => {
+    const newShares = [...shares];
+    newShares[index].permission = permission;
+    setShares(newShares);
+  };
+
+  const handleSave = async () => {
+    if (!contract) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Prepare batch update
+      const addresses = shares.map(s => s.address);
+      const permissions = shares.map(s => s.permission);
+
+      // Update on-chain permissions
+      const tx = await contract.batchGrantPermissions(
+        document.id,
+        addresses,
+        permissions
+      );
+      
+      await tx.wait();
+
+      // If encrypted, update Neuralock permissions
+      if (document.isEncrypted) {
+        const neuralockPermissions: Record<string, number> = {};
+        shares.forEach(share => {
+          neuralockPermissions[share.address] = share.permission;
+        });
+
+        await neuralockService.updatePermissions(
+          document.id,
+          neuralockPermissions
+        );
+      }
+
+      onClose();
+    } catch (err: any) {
+      console.error('Error updating permissions:', err);
+      setError(err.message || 'Failed to update permissions');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateShareLink = async () => {
+    try {
+      // Generate a time-limited share link
+      const baseUrl = window.location.origin;
+      const token = ethers.utils.id(Date.now().toString()).slice(0, 16);
+      
+      // In production, you'd store this token-to-document mapping
+      const link = \`\${baseUrl}/shared/\${document.id}?token=\${token}\`;
+      
+      setShareLink(link);
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(link);
+    } catch (err) {
+      console.error('Error generating share link:', err);
+    }
+  };
+
+  return (
+    <Dialog
+      open={true}
+      onClose={onClose}
+      className="fixed inset-0 z-50 overflow-y-auto"
+    >
+      <div className="flex items-center justify-center min-h-screen">
+        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+
+        <div className="relative bg-white rounded-lg max-w-2xl w-full mx-4 p-6 max-h-[80vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <Dialog.Title className="text-xl font-semibold">
+                Share "{document.title}"
+              </Dialog.Title>
+              <p className="text-sm text-gray-600 mt-1">
+                Manage who can access this {document.isEncrypted ? 'encrypted' : ''} document
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Add New Share */}
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              Add People
+            </h3>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={newAddress}
+                onChange={(e) => setNewAddress(e.target.value)}
+                placeholder="Enter Ethereum address (0x...)"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={newPermission}
+                onChange={(e) => setNewPermission(Number(e.target.value))}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                {PERMISSION_LEVELS.slice(1).map(level => (
+                  <option key={level.value} value={level.value}>
+                    {level.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={handleAddShare}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+              >
+                <UserPlusIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Current Shares */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">
+              People with Access
+            </h3>
+            {shares.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">
+                No one else has access to this document yet
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {shares.map((share, index) => (
+                  <div
+                    key={index}
+                    className={\`flex items-center justify-between p-3 rounded-lg border \${
+                      share.permission === 0 
+                        ? 'bg-red-50 border-red-200' 
+                        : 'bg-white border-gray-200'
+                    }\`}
+                  >
+                    <div className="flex-1">
+                      <p className="font-mono text-sm">
+                        {share.address}
+                      </p>
+                      {share.isNew && (
+                        <span className="text-xs text-green-600">New</span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <select
+                        value={share.permission}
+                        onChange={(e) => handleUpdatePermission(index, Number(e.target.value))}
+                        className="text-sm px-2 py-1 border border-gray-300 rounded"
+                        disabled={share.permission === 0}
+                      >
+                        {PERMISSION_LEVELS.map(level => (
+                          <option key={level.value} value={level.value}>
+                            {level.label}
+                          </option>
+                        ))}
+                      </select>
+                      
+                      <button
+                        onClick={() => handleRemoveShare(index)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Share Link */}
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Share Link
+            </h3>
+            <p className="text-xs text-gray-600 mb-3">
+              Generate a temporary link to share this document
+            </p>
+            {shareLink ? (
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={shareLink}
+                  readOnly
+                  className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded text-sm"
+                />
+                <button
+                  onClick={() => navigator.clipboard.writeText(shareLink)}
+                  className="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  <ClipboardDocumentIcon className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={generateShareLink}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                Generate share link
+              </button>
+            )}
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isLoading || shares.length === 0}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isLoading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Dialog>
+  );
+};`}
+  filename="ShareModal.tsx"
+  description="Document sharing interface with permission management"
+/>
+
+### Hooks
+
+<FileCollapsibleCodeBlock 
+  content={`// src/hooks/useNeuralock.ts
+import { useState, useEffect, useCallback } from 'react';
+import { useAccount } from 'wagmi';
+import { neuralockService } from '../services/neuralock';
+
+export function useNeuralock() {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [sessionStatus, setSessionStatus] = useState({
+    isValid: false,
+    timeRemaining: 0
+  });
+
+  const { address, connector } = useAccount();
+
+  const initialize = useCallback(async () => {
+    if (!connector || !address) {
+      setError(new Error('Wallet not connected'));
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const provider = await connector.getProvider();
+      const ethersProvider = new ethers.providers.Web3Provider(provider);
+      const signer = ethersProvider.getSigner();
+
+      await neuralockService.initialize(signer);
+      setIsInitialized(true);
+      
+      // Start session monitoring
+      const interval = setInterval(() => {
+        const status = neuralockService.getSessionStatus();
+        setSessionStatus(status);
+        
+        if (!status.isValid) {
+          setIsInitialized(false);
+          clearInterval(interval);
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    } catch (err: any) {
+      setError(err);
+      setIsInitialized(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [connector, address]);
+
+  useEffect(() => {
+    if (address && !isInitialized && !isLoading) {
+      initialize();
+    }
+  }, [address, isInitialized, isLoading, initialize]);
+
+  const encrypt = useCallback(async (content: string, documentId: string) => {
+    if (!isInitialized) {
+      throw new Error('Neuralock not initialized');
+    }
+    return neuralockService.encryptDocument(content, documentId);
+  }, [isInitialized]);
+
+  const decrypt = useCallback(async (encrypted: any) => {
+    if (!isInitialized) {
+      throw new Error('Neuralock not initialized');
+    }
+    return neuralockService.decryptDocument(encrypted);
+  }, [isInitialized]);
+
+  const updatePermissions = useCallback(async (
+    documentId: string,
+    permissions: Record<string, number>
+  ) => {
+    if (!isInitialized) {
+      throw new Error('Neuralock not initialized');
+    }
+    return neuralockService.updatePermissions(documentId, permissions);
+  }, [isInitialized]);
+
+  return {
+    isInitialized,
+    isLoading,
+    error,
+    sessionStatus,
+    initialize,
+    encrypt,
+    decrypt,
+    updatePermissions
+  };
+}
+
+// src/hooks/useDocuments.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useContract } from './useContract';
+import { ipfsService } from '../services/ipfs';
+
+export function useDocuments(filter: 'all' | 'owned' | 'shared' = 'all') {
+  const { address } = useAccount();
+  const { contract } = useContract();
+  const queryClient = useQueryClient();
+
+  const documentsQuery = useQuery({
+    queryKey: ['documents', address, filter],
+    queryFn: async () => {
+      if (!contract || !address) return [];
+
+      // Get user's documents from contract
+      const tokenIds = await contract.getUserDocuments(address);
+      
+      // Fetch document data
+      const documents = await Promise.all(
+        tokenIds.map(async (tokenId: any) => {
+          const doc = await contract.getDocument(tokenId);
+          const metadata = await ipfsService.getMetadata(doc.ipfsHash);
+          
+          // Check permissions
+          const permission = await contract.permissions(tokenId, address);
+          
+          return {
+            id: tokenId.toString(),
+            title: doc.title,
+            type: doc.documentType,
+            size: doc.size.toNumber(),
+            createdAt: new Date(doc.createdAt.toNumber() * 1000),
+            lastModified: new Date(doc.lastModified.toNumber() * 1000),
+            isEncrypted: doc.isEncrypted,
+            creator: doc.creator,
+            ipfsHash: doc.ipfsHash,
+            shared: doc.creator !== address,
+            permissions: permission,
+            metadata
+          };
+        })
+      );
+
+      // Apply filter
+      if (filter === 'owned') {
+        return documents.filter(doc => doc.creator === address);
+      } else if (filter === 'shared') {
+        return documents.filter(doc => doc.creator !== address);
+      }
+
+      return documents;
+    },
+    enabled: !!contract && !!address,
+    refetchInterval: 30000 // Refetch every 30 seconds
+  });
+
+  const deleteDocument = useMutation({
+    mutationFn: async (documentId: string) => {
+      if (!contract) throw new Error('Contract not loaded');
+      
+      // In a real app, you might want to add a burn function
+      // For now, we'll just revoke all permissions
+      const tx = await contract.grantPermission(documentId, address, 0);
+      await tx.wait();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['documents']);
+    }
+  });
+
+  return {
+    documents: documentsQuery.data,
+    isLoading: documentsQuery.isLoading,
+    error: documentsQuery.error,
+    refetch: documentsQuery.refetch,
+    deleteDocument: deleteDocument.mutate
+  };
+}`}
+  filename="hooks.ts"
+  description="React hooks for Neuralock and document management"
+/>
+
+## User Flow
+
+<MermaidDiagram 
+  content={UserFlowSource}
+  filename="user-flow.mermaid"
+  title="User Journey"
+  description="Complete user flow from login to document sharing"
+/>
+
+## Deployment
+
+### Environment Configuration
+
+<FileCollapsibleCodeBlock 
+  content={`# .env.production
+# Neuralock Configuration
+VITE_NEURALOCK_APP_CONTRACT=0x742d35Cc6634C0532925a3b844Bc9e7595f8fA32
+VITE_NEURALOCK_REGISTRY_CONTRACT=0x5FbDB2315678afecb367f032d93F642f64180aa3
+
+# Server Configuration (Production)
+VITE_NEURALOCK_SERVERS='[{"nftId":1,"importanceFactor":1.0},{"nftId":2,"importanceFactor":0.9},{"nftId":3,"importanceFactor":0.8}]'
+
+# Network Configuration
+VITE_RPC_URL=https://mainnet.base.org
+VITE_CHAIN_ID=8453
+
+# IPFS Configuration
+VITE_IPFS_GATEWAY=https://gateway.pinata.cloud
+VITE_IPFS_API_KEY=your-pinata-api-key
+VITE_IPFS_API_SECRET=your-pinata-api-secret
+
+# Contract Addresses
+VITE_DOCUMENT_VAULT_CONTRACT=0x1234567890123456789012345678901234567890
+
+# Feature Flags
+VITE_ENABLE_ENCRYPTION=true
+VITE_ENABLE_SHARING=true
+VITE_SESSION_TTL=300`}
+  filename=".env.production"
+  description="Production environment variables"
+/>
+
+### Build and Deploy
+
+<Tabs>
+<TabItem value="vercel" label="Vercel">
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Build the project
+npm run build
+
+# Deploy to Vercel
+vercel --prod
+
+# Set environment variables
+vercel env add VITE_NEURALOCK_APP_CONTRACT production
+vercel env add VITE_NEURALOCK_SERVERS production
+# ... add all other env vars
+```
+
+</TabItem>
+<TabItem value="netlify" label="Netlify">
+
+```bash
+# Create netlify.toml
+cat > netlify.toml << EOF
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+EOF
+
+# Deploy
+netlify deploy --prod
+```
+
+</TabItem>
+<TabItem value="docker" label="Docker">
+
+<FileCollapsibleCodeBlock 
+  content={`# Dockerfile
+FROM node:18-alpine as builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM nginx:alpine
+
+# Copy built files
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]`}
+  filename="Dockerfile"
+  description="Docker configuration for production deployment"
+/>
+
+</TabItem>
+</Tabs>
+
+## Testing
+
+<FileCollapsibleCodeBlock 
+  content={`// src/__tests__/DocumentVault.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { DocumentList } from '../components/Document/DocumentList';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Mock Neuralock service
+jest.mock('../services/neuralock', () => ({
+  neuralockService: {
+    initialize: jest.fn(),
+    encryptDocument: jest.fn(),
+    decryptDocument: jest.fn(),
+    updatePermissions: jest.fn()
+  }
+}));
+
+describe('DocumentVault', () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false }
+    }
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('renders document list', async () => {
+    render(<DocumentList />, { wrapper });
+    
+    expect(screen.getByText('My Documents')).toBeInTheDocument();
+    expect(screen.getByText('New Document')).toBeInTheDocument();
+  });
+
+  test('creates encrypted document', async () => {
+    const mockEncrypt = neuralockService.encryptDocument as jest.Mock;
+    mockEncrypt.mockResolvedValue({
+      id: '1',
+      objectId: 'obj1',
+      ciphertext: 'encrypted',
+      metadata: { threshold: 2 }
+    });
+
+    render(<DocumentList />, { wrapper });
+    
+    // Click new document button
+    fireEvent.click(screen.getByText('New Document'));
+    
+    // Fill in form
+    fireEvent.change(screen.getByPlaceholderText('Enter document title'), {
+      target: { value: 'Test Document' }
+    });
+    
+    fireEvent.change(screen.getByPlaceholderText(/Paste or type/), {
+      target: { value: 'Test content' }
+    });
+    
+    // Ensure encryption is enabled
+    const encryptToggle = screen.getByRole('checkbox');
+    if (!encryptToggle.checked) {
+      fireEvent.click(encryptToggle);
+    }
+    
+    // Submit form
+    fireEvent.click(screen.getByText('Create Document'));
+    
+    await waitFor(() => {
+      expect(mockEncrypt).toHaveBeenCalledWith('Test content', expect.any(String));
+    });
+  });
+
+  test('shares document with permissions', async () => {
+    const mockUpdatePermissions = neuralockService.updatePermissions as jest.Mock;
+    mockUpdatePermissions.mockResolvedValue(true);
+
+    // ... test sharing flow
+  });
+
+  test('decrypts shared document', async () => {
+    const mockDecrypt = neuralockService.decryptDocument as jest.Mock;
+    mockDecrypt.mockResolvedValue('Decrypted content');
+
+    // ... test decryption flow
+  });
+});`}
+  filename="DocumentVault.test.tsx"
+  description="Test suite for the document vault application"
+/>
+
+## Production Considerations
+
+<Callout type="warning" title="Security Checklist">
+
+Before deploying to production:
+
+1. **Enable multi-server mode** - Never use single-server mode in production
+2. **Implement rate limiting** - Prevent abuse of encryption/decryption
+3. **Add monitoring** - Track usage patterns and detect anomalies
+4. **Set up alerts** - Monitor server health and threshold failures
+5. **Implement backups** - Regular backups of encrypted metadata
+6. **Use HTTPS only** - All API calls must be over HTTPS
+7. **Validate all inputs** - Sanitize user inputs before processing
+8. **Implement CSP** - Content Security Policy headers
+9. **Add audit logging** - Track all document access
+10. **Regular security audits** - Schedule penetration testing
+
+</Callout>
+
+## Advanced Features
+
+### Real-time Notifications
+
+<FileCollapsibleCodeBlock 
+  content={`// src/services/websocket.ts
+import { io, Socket } from 'socket.io-client';
+
+class WebSocketService {
+  private socket: Socket | null = null;
+  private listeners: Map<string, Set<Function>> = new Map();
+
+  connect(userAddress: string) {
+    this.socket = io(process.env.VITE_WS_URL || 'ws://localhost:3001', {
+      auth: {
+        address: userAddress
+      }
+    });
+
+    this.socket.on('connect', () => {
+      console.log('WebSocket connected');
+    });
+
+    this.socket.on('document:shared', (data) => {
+      this.emit('documentShared', data);
+    });
+
+    this.socket.on('permission:updated', (data) => {
+      this.emit('permissionUpdated', data);
+    });
+
+    this.socket.on('document:updated', (data) => {
+      this.emit('documentUpdated', data);
+    });
+  }
+
+  on(event: string, callback: Function) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+    this.listeners.get(event)!.add(callback);
+  }
+
+  off(event: string, callback: Function) {
+    this.listeners.get(event)?.delete(callback);
+  }
+
+  emit(event: string, data: any) {
+    this.listeners.get(event)?.forEach(callback => callback(data));
+  }
+
+  disconnect() {
+    this.socket?.disconnect();
+    this.socket = null;
+  }
+}
+
+export const wsService = new WebSocketService();
+
+// Usage in component
+useEffect(() => {
+  wsService.connect(address);
+
+  wsService.on('documentShared', (data) => {
+    toast.success(\`\${data.from} shared a document with you\`);
+    refetchDocuments();
+  });
+
+  return () => {
+    wsService.disconnect();
+  };
+}, [address]);`}
+  filename="websocket.ts"
+  description="Real-time notifications implementation"
+/>
+
+## Summary
+
+You've now built a complete document vault application with:
+
+- ✅ End-to-end encryption using Neuralock
+- ✅ Decentralized storage with IPFS
+- ✅ Blockchain-based access control
+- ✅ Secure document sharing
+- ✅ Real-time notifications
+- ✅ Production-ready architecture
+
+## Next Steps
+
+1. **Add more features**:
+   - Document versioning
+   - Collaborative editing
+   - File preview
+   - Search functionality
+
+2. **Enhance security**:
+   - Multi-factor authentication
+   - Hardware wallet support
+   - Key rotation policies
+
+3. **Scale the application**:
+   - Add caching layer
+   - Implement CDN
+   - Database optimization
+
+## Resources
+
+- [Full Source Code](https://github.com/neuralock/document-vault-example)
+- [Live Demo](https://document-vault.neuralock.io)
+- [Video Tutorial](https://youtube.com/neuralock-tutorial)
+- [Developer Forum](https://forum.neuralock.io)
+
+Happy building with Neuralock! 🚀

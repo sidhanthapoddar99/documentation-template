@@ -1,0 +1,43 @@
+graph TB
+    subgraph "Client Layer"
+        App[Application]
+        SDK[Neuralock SDK]
+    end
+    
+    subgraph "Blockchain Layer"
+        SC[Smart Contracts]
+        NFT[Server NFTs]
+        AC[Access Control]
+    end
+    
+    subgraph "Server Network"
+        S1[Server 1<br/>Key Share 1]
+        S2[Server 2<br/>Key Share 2]
+        S3[Server 3<br/>Key Share 3]
+        SN[Server N<br/>Key Share N]
+    end
+    
+    App --> SDK
+    SDK --> SC
+    SDK --> S1
+    SDK --> S2
+    SDK --> S3
+    SDK --> SN
+    
+    S1 --> AC
+    S2 --> AC
+    S3 --> AC
+    SN --> AC
+    
+    SC --> NFT
+    AC --> SC
+    
+    style App fill:#e1f5e1
+    style SDK fill:#e1f5e1
+    style SC fill:#ffe1e1
+    style NFT fill:#ffe1e1
+    style AC fill:#ffe1e1
+    style S1 fill:#e1e1ff
+    style S2 fill:#e1e1ff
+    style S3 fill:#e1e1ff
+    style SN fill:#e1e1ff

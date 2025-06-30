@@ -1,0 +1,97 @@
+graph TB
+    subgraph "Client Layer"
+        Client[Client Application]
+        Wallet[Web3 Wallet]
+        LocalCrypto[Local Cryptography]
+    end
+    
+    subgraph "Security Perimeter"
+        WAF[Web Application Firewall]
+        DDoS[DDoS Protection]
+        RateLimit[Rate Limiting]
+    end
+    
+    subgraph "Application Layer"
+        API[API Gateway]
+        Auth[Authentication Service]
+        Validator[Input Validator]
+        Session[Session Manager]
+    end
+    
+    subgraph "Cryptographic Layer"
+        KeyGen[Key Generation]
+        Shamir[Shamir's Secret Sharing]
+        ECDH[ECDH Key Exchange]
+        AES[AES-256-GCM]
+    end
+    
+    subgraph "Blockchain Layer"
+        SmartContract[Access Control Contract]
+        Registry[Server Registry]
+        Audit[Audit Contract]
+    end
+    
+    subgraph "Server Layer"
+        Server1[Server 1]
+        Server2[Server 2]
+        ServerN[Server N]
+        HSM[Hardware Security Module]
+    end
+    
+    subgraph "Monitoring"
+        IDS[Intrusion Detection]
+        SIEM[Security Monitoring]
+        AlertSystem[Alert System]
+    end
+    
+    Client --> WAF
+    Wallet --> Client
+    LocalCrypto --> Client
+    
+    WAF --> DDoS
+    DDoS --> RateLimit
+    RateLimit --> API
+    
+    API --> Auth
+    API --> Validator
+    Auth --> Session
+    Auth --> SmartContract
+    
+    Validator --> KeyGen
+    KeyGen --> Shamir
+    Shamir --> ECDH
+    ECDH --> AES
+    
+    AES --> Server1
+    AES --> Server2
+    AES --> ServerN
+    
+    Server1 --> HSM
+    Server2 --> HSM
+    ServerN --> HSM
+    
+    SmartContract --> Registry
+    SmartContract --> Audit
+    
+    API --> IDS
+    Server1 --> SIEM
+    Server2 --> SIEM
+    ServerN --> SIEM
+    IDS --> AlertSystem
+    SIEM --> AlertSystem
+    
+    classDef client fill:#e1f5fe,stroke:#01579b
+    classDef security fill:#ffebee,stroke:#c62828
+    classDef app fill:#f3e5f5,stroke:#4a148c
+    classDef crypto fill:#e8f5e9,stroke:#1b5e20
+    classDef blockchain fill:#fff3e0,stroke:#e65100
+    classDef server fill:#fce4ec,stroke:#880e4f
+    classDef monitor fill:#e0f2f1,stroke:#00695c
+    
+    class Client,Wallet,LocalCrypto client
+    class WAF,DDoS,RateLimit security
+    class API,Auth,Validator,Session app
+    class KeyGen,Shamir,ECDH,AES crypto
+    class SmartContract,Registry,Audit blockchain
+    class Server1,Server2,ServerN,HSM server
+    class IDS,SIEM,AlertSystem monitor

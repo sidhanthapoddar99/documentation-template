@@ -1,0 +1,68 @@
+graph TB
+    subgraph "Internet"
+        Client[Client Applications]
+        Blockchain[Ethereum Network]
+    end
+    
+    subgraph "Load Balancer Layer"
+        LB[Load Balancer<br/>- SSL Termination<br/>- Health Checks<br/>- Rate Limiting]
+    end
+    
+    subgraph "Application Layer"
+        Server1[Neuralock Server 1<br/>- FastAPI<br/>- Single Worker<br/>- Port 8000]
+        Server2[Neuralock Server 2<br/>- FastAPI<br/>- Single Worker<br/>- Port 8000]
+        Server3[Neuralock Server N<br/>- FastAPI<br/>- Single Worker<br/>- Port 8000]
+    end
+    
+    subgraph "Cache Layer"
+        Redis1[Redis Instance 1<br/>- Session Storage<br/>- Ephemeral Data<br/>- TTL Management]
+        Redis2[Redis Instance 2<br/>- Backup/Replica]
+    end
+    
+    subgraph "Storage Layer"
+        Level1[LevelDB 1<br/>- Encrypted Shares<br/>- Persistent Storage]
+        Level2[LevelDB 2<br/>- Encrypted Shares<br/>- Persistent Storage]
+        Level3[LevelDB N<br/>- Encrypted Shares<br/>- Persistent Storage]
+    end
+    
+    subgraph "Monitoring"
+        Prometheus[Prometheus<br/>- Metrics Collection]
+        Grafana[Grafana<br/>- Dashboards]
+        AlertManager[AlertManager<br/>- Alert Routing]
+    end
+    
+    Client -->|HTTPS| LB
+    LB -->|HTTP| Server1
+    LB -->|HTTP| Server2
+    LB -->|HTTP| Server3
+    
+    Server1 -->|Read/Write| Redis1
+    Server2 -->|Read/Write| Redis1
+    Server3 -->|Read/Write| Redis1
+    
+    Redis1 -.->|Replication| Redis2
+    
+    Server1 -->|Store Shares| Level1
+    Server2 -->|Store Shares| Level2
+    Server3 -->|Store Shares| Level3
+    
+    Server1 -->|RPC Calls| Blockchain
+    Server2 -->|RPC Calls| Blockchain
+    Server3 -->|RPC Calls| Blockchain
+    
+    Server1 -->|Metrics| Prometheus
+    Server2 -->|Metrics| Prometheus
+    Server3 -->|Metrics| Prometheus
+    
+    Prometheus --> Grafana
+    Prometheus --> AlertManager
+    
+    style Client fill:#f9f,stroke:#333,stroke-width:2px
+    style Blockchain fill:#f96,stroke:#333,stroke-width:2px
+    style LB fill:#9cf,stroke:#333,stroke-width:2px
+    style Server1 fill:#9f9,stroke:#333,stroke-width:2px
+    style Server2 fill:#9f9,stroke:#333,stroke-width:2px
+    style Server3 fill:#9f9,stroke:#333,stroke-width:2px
+    style Redis1 fill:#ff9,stroke:#333,stroke-width:2px
+    style Redis2 fill:#ff9,stroke:#333,stroke-width:2px
+    style Prometheus fill:#fcf,stroke:#333,stroke-width:2px

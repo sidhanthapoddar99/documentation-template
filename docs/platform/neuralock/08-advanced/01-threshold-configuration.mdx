@@ -1,0 +1,254 @@
+---
+title: Threshold Configuration
+description: Advanced guide to configuring and optimizing threshold settings for different deployment scenarios
+sidebar_position: 1
+---
+
+import { Card as InfoCard } from '@site/src/components/elements';
+import { Card as WarningCard } from '@site/src/components/elements';
+import { Card as TipCard } from '@site/src/components/elements';
+import { CollapsibleCodeBlock as CodePreview } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { MermaidDiagram } from '@site/src/components/elements';
+import ThresholdFlowSource from '!!raw-loader!./assets/threshold-selection-flow.mermaid';
+import MultiRegionSource from '!!raw-loader!./assets/multi-region-threshold.mermaid';
+import ThresholdTestingSource from '!!raw-loader!./assets/threshold-testing.py';
+import ConfigExampleSource from '!!raw-loader!./assets/threshold-config-example.yaml';
+import SelectionAlgorithmSource from '!!raw-loader!./assets/server-selection-algorithm.ts';
+import FlexibleThresholdSource from '!!raw-loader!./assets/flexible-threshold-implementation.ts';
+import DynamicThresholdSource from '!!raw-loader!./assets/dynamic-threshold-adjustment.ts';
+import FailoverConfigSource from '!!raw-loader!./assets/failover-configuration.yaml';
+
+# Threshold Configuration
+
+This guide covers advanced threshold configuration strategies for Neuralock deployments, including optimal settings for different security levels, performance tuning, and disaster recovery scenarios.
+
+<Card type="info">
+<strong>Prerequisites:</strong> This guide assumes you have a working understanding of Neuralock's basic architecture and Shamir's Secret Sharing. Review the <a href="/neuralock/overview/architecture">Architecture documentation</a> first if needed.
+</Card>
+
+## Understanding Threshold Parameters
+
+Threshold configuration in Neuralock uses the `k-of-n` model from Shamir's Secret Sharing:
+
+- **n**: Total number of servers in the network
+- **k**: Minimum servers required to reconstruct a secret
+- **Redundancy**: n - k (number of servers that can fail)
+
+<MermaidDiagram content={ThresholdFlowSource} filename="threshold-selection-flow.mermaid" />
+
+## Configuration Modes
+
+### 1. Development Mode (1-of-1)
+
+Single server configuration for testing and development environments.
+
+<Card type="warning">
+<strong>Security Warning:</strong> Never use 1-of-1 configuration in production. This creates a single point of failure and provides no redundancy.
+</Card>
+
+<FileCollapsibleCodeBlock content={ConfigExampleSource} filename="threshold-config-example.yaml" startLine={1} endLine={15} />
+
+**Use Cases:**
+- Local development
+- Unit testing
+- CI/CD pipelines
+- Proof of concepts
+
+### 2. Flexible Threshold Mode (2-of-5 with Importance)
+
+Production configuration with server importance factors for optimized selection.
+
+<FileCollapsibleCodeBlock content={ConfigExampleSource} filename="threshold-config-example.yaml" startLine={17} endLine={45} />
+
+**Benefits:**
+- Tolerates 3 server failures
+- Prioritizes reliable servers
+- Balanced security and performance
+- Geographic distribution support
+
+### 3. Strict Threshold Mode (3-of-5)
+
+High-security configuration requiring majority consensus.
+
+<FileCollapsibleCodeBlock content={ConfigExampleSource} filename="threshold-config-example.yaml" startLine={47} endLine={75} />
+
+**Use Cases:**
+- Financial applications
+- Healthcare records
+- Regulatory compliance
+- High-value assets
+
+### 4. Enterprise Mode (5-of-9)
+
+Enterprise-grade configuration with high redundancy.
+
+<FileCollapsibleCodeBlock content={ConfigExampleSource} filename="threshold-config-example.yaml" startLine={77} endLine={110} />
+
+## Server Selection Algorithm
+
+The server selection algorithm determines which servers to use for each operation based on availability, performance, and importance factors.
+
+<FileCollapsibleCodeBlock content={SelectionAlgorithmSource} filename="server-selection-algorithm.ts" />
+
+## Dynamic Threshold Adjustment
+
+Implement dynamic threshold adjustment based on threat levels and operational requirements.
+
+<FileCollapsibleCodeBlock content={DynamicThresholdSource} filename="dynamic-threshold-adjustment.ts" />
+
+## Multi-Region Deployment
+
+Configure threshold settings for global deployments with regional redundancy.
+
+<MermaidDiagram content={MultiRegionSource} filename="multi-region-threshold.mermaid" />
+
+### Regional Configuration
+
+<FileCollapsibleCodeBlock content={FailoverConfigSource} filename="failover-configuration.yaml" />
+
+## Flexible Threshold Implementation
+
+Advanced implementation supporting weighted server selection and importance factors.
+
+<FileCollapsibleCodeBlock content={FlexibleThresholdSource} filename="flexible-threshold-implementation.ts" />
+
+## Performance Optimization
+
+### Threshold vs Performance Trade-offs
+
+| Threshold | Security | Latency | Throughput | Availability |
+|-----------|----------|---------|------------|--------------|
+| 1-of-1 | ⚠️ Low | ✅ 50ms | ✅ 1000 ops/s | ⚠️ Low |
+| 2-of-3 | ✅ Medium | ✅ 100ms | ✅ 800 ops/s | ✅ Good |
+| 3-of-5 | ✅ High | ⚠️ 150ms | ⚠️ 600 ops/s | ✅ High |
+| 5-of-9 | ✅ Maximum | ⚠️ 250ms | ⚠️ 400 ops/s | ✅ Maximum |
+
+### Optimization Strategies
+
+1. **Geographic Distribution**
+   - Place servers near users
+   - Use regional thresholds
+   - Implement edge caching
+
+2. **Server Prioritization**
+   - Assign importance factors
+   - Monitor performance metrics
+   - Automatic failover
+
+3. **Parallel Requests**
+   - Request from k+1 servers
+   - Use fastest k responses
+   - Reduce perceived latency
+
+## Testing Threshold Configurations
+
+Comprehensive testing framework for threshold configurations.
+
+<FileCollapsibleCodeBlock content={ThresholdTestingSource} filename="threshold-testing.py" />
+
+## Security Considerations
+
+### Threshold Selection Guidelines
+
+<Card type="tip">
+<strong>Rule of Thumb:</strong> Choose k ≥ ⌈(n+1)/2⌉ for Byzantine fault tolerance. This ensures honest majority even with malicious servers.
+</Card>
+
+1. **Minimum Security**: k ≥ 2 (never use 1-of-n)
+2. **Standard Security**: k = ⌈(n+1)/2⌉ (majority)
+3. **High Security**: k = ⌈(2n+1)/3⌉ (super-majority)
+4. **Maximum Security**: k = n-1 (all but one)
+
+### Attack Resistance by Threshold
+
+| Attack Type | 2-of-3 | 3-of-5 | 5-of-9 |
+|-------------|---------|---------|---------|
+| Single Server Compromise | ✅ Safe | ✅ Safe | ✅ Safe |
+| Collusion (2 servers) | ⚠️ Vulnerable | ✅ Safe | ✅ Safe |
+| Collusion (k-1 servers) | ⚠️ Vulnerable | ⚠️ Vulnerable | ⚠️ Vulnerable |
+| DoS (n-k servers) | ⚠️ Fails | ✅ Operates | ✅ Operates |
+
+## Monitoring and Alerting
+
+### Key Metrics
+
+1. **Availability Metrics**
+   - Active server count
+   - Server response times
+   - Failed request ratio
+
+2. **Security Metrics**
+   - Threshold violations
+   - Suspicious patterns
+   - Server compromise indicators
+
+3. **Performance Metrics**
+   - Average reconstruction time
+   - Server selection efficiency
+   - Geographic distribution
+
+### Alert Thresholds
+
+```yaml
+alerts:
+  - name: insufficient_servers
+    condition: active_servers < threshold_k + 1
+    severity: critical
+    
+  - name: degraded_redundancy
+    condition: active_servers < threshold_n - 1
+    severity: warning
+    
+  - name: slow_reconstruction
+    condition: avg_reconstruction_time > 500ms
+    severity: warning
+```
+
+## Best Practices
+
+1. **Start Conservative**
+   - Begin with higher thresholds
+   - Reduce as you gain confidence
+   - Monitor performance impact
+
+2. **Plan for Growth**
+   - Design for server additions
+   - Consider future geographic expansion
+   - Maintain upgrade paths
+
+3. **Regular Testing**
+   - Simulate server failures
+   - Test recovery procedures
+   - Validate threshold changes
+
+4. **Document Decisions**
+   - Record threshold rationale
+   - Document security requirements
+   - Maintain change history
+
+<Card type="warning">
+<strong>Production Checklist:</strong>
+<ul>
+<li>✓ Threshold k ≥ 2 (no single points of failure)</li>
+<li>✓ Redundancy for expected failure rate</li>
+<li>✓ Geographic distribution considered</li>
+<li>✓ Performance requirements met</li>
+<li>✓ Monitoring and alerting configured</li>
+<li>✓ Recovery procedures tested</li>
+</ul>
+</Card>
+
+## Next Steps
+
+- Learn about [Multi-Server Setup](./02-multi-server-setup) for distributed deployments
+- Explore [Performance Optimization](./03-performance-optimization) techniques
+- Review [Troubleshooting Guide](./04-troubleshooting) for common issues
+
+## Related Resources
+
+- [Security Model](/neuralock/security/security-model)
+- [Server Setup Guide](/neuralock/server-setup/server-installation)
+- [Monitoring Best Practices](/neuralock/server-setup/monitoring)
