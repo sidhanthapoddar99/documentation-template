@@ -119,6 +119,7 @@
   position: relative;
   min-height: 0;
   padding: 2rem 1rem;
+  transition: filter 0.3s ease;
 }
 
 /* Loading overlay */
@@ -220,6 +221,21 @@
 [data-theme='dark'] .diagramContainer {
   background: var(--theme-bg-surface);
   border-color: var(--theme-border-default);
+}
+
+/* Dark mode handling with CSS filters - similar to GraphViz */
+[data-theme='dark'] .mermaidWrapper {
+  /* Apply filter to the wrapper, not the SVG directly */
+  filter: invert(1) hue-rotate(180deg);
+  
+  /* Ensure background stays dark */
+  background-color: transparent;
+}
+
+/* Double-invert images and specific elements to restore original colors */
+[data-theme='dark'] .mermaidWrapper image,
+[data-theme='dark'] .mermaidWrapper img {
+  filter: invert(1) hue-rotate(180deg);
 }
 
 /* Responsive adjustments */

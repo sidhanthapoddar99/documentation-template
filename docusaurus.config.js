@@ -297,7 +297,7 @@ const config = {
       },
 
       mermaid: {
-        theme: {light: 'neutral', dark: 'dark'},
+        theme: {light: 'neutral', dark: 'neutral'},
         options: {
           maxTextSize: 100000,
           maxEdges: 1000,
