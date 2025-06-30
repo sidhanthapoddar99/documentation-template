@@ -3,8 +3,10 @@
 
 /* Reset all navbar styles */
 .navbar {
-  all: unset !important; /* Nuclear option - removes ALL styles */
+  /* all: unset !important;  */
+  /* Nuclear option - removes ALL styles */
   
+
   /* Then add back only what you want */
   display: flex !important;
   background-color: var(--theme-bg-primary) !important;
@@ -15,6 +17,7 @@
   width: 100% !important;
   min-height: 100px ; 
   height: auto;
+  padding-top: 1rem;
 }
 
 /* Override navbar inner */

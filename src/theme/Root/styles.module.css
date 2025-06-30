@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  padding: var(--ifm-spacing-vertical) var(--ifm-spacing-horizontal);
+  padding: 0 var(--ifm-spacing-horizontal);
 
 }
 
