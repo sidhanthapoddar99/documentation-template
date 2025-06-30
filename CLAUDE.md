@@ -215,13 +215,14 @@ The documentation implements a clean sidebar hierarchy:
    - Example: `docs/overview`, `docs/platform/neuralock`
 
 2. **Level 1 Categories** (Direct children of base dirs):
-   - Non-clickable headers with bold, uppercase text
+   - Non-clickable headers with bold text
    - Must use `className: "sidebar-header"` and `collapsible: false`
    - Act as organizational labels only
+   - Use title case (first letter capitalized, not all caps)
    - Example:
    ```json
    {
-     "label": "COMPONENTS",
+     "label": "Components",
      "position": 1,
      "className": "sidebar-header",
      "collapsible": false
@@ -246,7 +247,40 @@ The documentation implements a clean sidebar hierarchy:
 
 **Important**: The custom sidebar CSS (`src/css/custom-sidebar.css`) handles the visual styling for this pattern.
 
-### 12. Common Tasks
+### 12. Documentation Writing Guidelines
+
+#### Asset Management:
+1. **Mermaid Diagrams**: 
+   - Create `.mermaid` files in `assets/` folder
+   - Use `MermaidDiagram` component with file import
+   - Example:
+   ```jsx
+   import FlowchartSource from '!!raw-loader!./assets/flowchart.mermaid';
+   <MermaidDiagram content={FlowchartSource} filename="flowchart.mermaid" />
+   ```
+
+2. **Graphviz Diagrams**:
+   - Create `.dot` files in `assets/` folder
+   - Use appropriate component with file import
+
+3. **Code Snippets**:
+   - For all code create separate files in `assets/`
+   - Use `FileCollapsibleCodeBlock` and file imports
+   - Example:
+   ```jsx
+   import ExampleCode from '!!raw-loader!./assets/<mdx_filename>/example.js';
+   <FileCollapsibleCodeBlock content={ExampleCode} filename="example.js" />
+   ```
+   - dont use code directly in MDX, always use file imports
+
+#### Parallel Documentation Creation:
+When creating large documentation sections, use parallel workers:
+1. Each worker should read all relevant source files
+2. Workers should understand the complete MDX component system
+3. Coordinate to avoid duplication
+4. Follow consistent formatting and structure
+
+### 13. Common Tasks
 
 #### Adding a new component:
 1. Create in `/src/components/elements/NewComponent/`
@@ -261,7 +295,8 @@ The documentation implements a clean sidebar hierarchy:
 #### Adding a new doc section:
 1. Create folder in `/docs/`
 2. Add MDX files
-3. Sidebar auto-generates
+3. Create assets folder for diagrams and code
+4. Sidebar auto-generates
 
 #### Creating a custom page:
 1. Add `.js` file to `/src/pages/`
