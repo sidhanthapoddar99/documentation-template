@@ -1,0 +1,540 @@
+---
+id: 02-deployment
+title: Deployment
+description: Deploy Docusaurus sites to various hosting platforms including GitHub Pages, Vercel, and Netlify
+sidebar_position: 2
+---
+
+import GitHubPagesCode from '!!raw-loader!./assets/02-deployment/github-pages-deploy.bash';
+import NetlifyCode from '!!raw-loader!./assets/02-deployment/netlify.toml';
+import VercelCode from '!!raw-loader!./assets/02-deployment/vercel.json';
+import { TabItem, Tabs } from '@theme/Tabs';
+import { Callout } from '/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '/src/components/elements/CodeBlock';
+
+# Deployment
+
+Docusaurus generates static files that can be deployed to any static hosting service. Here are the most popular deployment options and their configurations.
+
+## GitHub Pages
+
+<Callout type="info">
+**GitHub Pages**: Free hosting for public repositories with built-in CI/CD through GitHub Actions.
+</Callout>
+
+### Automatic Deployment
+
+GitHub Pages offers the simplest deployment for GitHub-hosted repositories:
+
+<FileCollapsibleCodeBlock content={GitHubPagesCode} filename="github-pages-deploy.bash" />
+
+### Configuration
+
+Configure your `docusaurus.config.js` for GitHub Pages:
+
+```javascript
+module.exports = {
+  title: 'My Documentation',
+  url: 'https://username.github.io',
+  baseUrl: '/repository-name/',
+  
+  // GitHub Pages deployment config
+  organizationName: 'username',      // GitHub org/user name
+  projectName: 'repository-name',    // Repository name
+  deploymentBranch: 'gh-pages',      // Deployment branch
+  trailingSlash: false,              // GitHub Pages requirement
+  
+  // Optional: Use SSH for deployment
+  // deploymentBranch: 'gh-pages',
+  // Usually true for organization sites
+  // trailingSlash: true,
+};
+```
+
+### GitHub Actions Workflow
+
+<Tabs>
+<TabItem value="manual" label="Manual Deploy">
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build website
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: build
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+```
+
+</TabItem>
+<TabItem value="automated" label="Auto Deploy">
+
+Use the built-in Docusaurus deployment:
+
+```json
+{
+  "scripts": {
+    "deploy": "docusaurus deploy"
+  }
+}
+```
+
+Then configure environment variables:
+```bash
+GIT_USER=<GITHUB_USERNAME>
+DEPLOYMENT_BRANCH=gh-pages
+CURRENT_BRANCH=main
+USE_SSH=true
+```
+
+</TabItem>
+</Tabs>
+
+### Custom Domain
+
+For custom domains, add a `CNAME` file to your `static/` folder:
+
+```
+// static/CNAME
+mydomain.com
+```
+
+## Vercel
+
+<Callout type="feature">
+**Vercel**: Modern hosting platform with automatic deployments, edge functions, and excellent performance.
+</Callout>
+
+### Configuration
+
+<FileCollapsibleCodeBlock content={VercelCode} filename="vercel.json" />
+
+### Vercel Deployment
+
+<Tabs>
+<TabItem value="cli" label="Vercel CLI">
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy to Vercel
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+</TabItem>
+<TabItem value="git" label="Git Integration">
+
+1. **Connect Repository**: Link your GitHub/GitLab repository
+2. **Auto Deployment**: Automatic deployments on push
+3. **Preview Deployments**: Each PR gets a preview URL
+4. **Environment Variables**: Configure in dashboard
+
+</TabItem>
+</Tabs>
+
+### Environment Variables
+
+Configure in Vercel dashboard or `vercel.json`:
+
+```json
+{
+  "env": {
+    "DOCUSAURUS_CONFIG": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
+}
+```
+
+### Custom Build Settings
+
+```json
+{
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build",
+        "buildCommand": "npm run build"
+      }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+## Netlify
+
+<Callout type="tip">
+**Netlify**: Popular JAMstack hosting with form handling, serverless functions, and easy SSL.
+</Callout>
+
+### Configuration
+
+<FileCollapsibleCodeBlock content={NetlifyCode} filename="netlify.toml" />
+
+### Netlify Features
+
+**Build Configuration:**
+```toml
+[build]
+  command = "npm run build"
+  publish = "build"
+  
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_VERSION = "8"
+  
+# Redirect rules
+[[redirects]]
+  from = "/old-path/*"
+  to = "/new-path/:splat"
+  status = 301
+  
+# Custom headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+```
+
+**Deploy Contexts:**
+```toml
+# Production settings
+[context.production.environment]
+  NODE_ENV = "production"
+  DOCUSAURUS_CONFIG = "production"
+
+# Branch deploys
+[context.branch-deploy]
+  command = "npm run build:staging"
+  
+# Deploy previews
+[context.deploy-preview]
+  command = "npm run build:preview"
+```
+
+### Netlify CLI
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Deploy to Netlify
+netlify deploy
+
+# Deploy to production
+netlify deploy --prod
+
+# Build and deploy
+netlify deploy --build
+```
+
+## Other Hosting Options
+
+### AWS S3 + CloudFront
+
+<Tabs>
+<TabItem value="s3" label="S3 Setup">
+
+```bash
+# Build the site
+npm run build
+
+# Sync to S3 bucket
+aws s3 sync build/ s3://your-bucket-name --delete
+
+# Set up CloudFront for CDN
+aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths "/*"
+```
+
+</TabItem>
+<TabItem value="script" label="Deploy Script">
+
+```bash
+#!/bin/bash
+# deploy-aws.sh
+
+# Build
+npm run build
+
+# Upload to S3
+aws s3 sync build/ s3://your-bucket --delete --exclude "*.map"
+
+# Invalidate CloudFront cache
+aws cloudfront create-invalidation \
+  --distribution-id YOUR_DISTRIBUTION_ID \
+  --paths "/*"
+
+echo "Deployment complete!"
+```
+
+</TabItem>
+</Tabs>
+
+### Firebase Hosting
+
+```bash
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Initialize Firebase
+firebase init hosting
+
+# Build and deploy
+npm run build
+firebase deploy
+```
+
+Firebase configuration (`firebase.json`):
+```json
+{
+  "hosting": {
+    "public": "build",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
+```
+
+### DigitalOcean App Platform
+
+```yaml
+# .do/app.yaml
+name: docusaurus-site
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: your-username/your-repo
+    branch: main
+  build_command: npm run build
+  output_dir: build
+  run_command: echo "Static site"
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  static_sites:
+  - name: docusaurus
+    source_dir: build
+```
+
+## Deployment Best Practices
+
+### Environment Configuration
+
+<Callout type="warning">
+**Environment Variables**: Never commit sensitive data. Use environment variables for configuration that differs between environments.
+</Callout>
+
+```javascript
+// docusaurus.config.js
+module.exports = {
+  // Use environment variables
+  url: process.env.SITE_URL || 'http://localhost:3000',
+  baseUrl: process.env.BASE_URL || '/',
+  
+  // Conditional configuration
+  ...(process.env.NODE_ENV === 'production' && {
+    plugins: [
+      [
+        '@docusaurus/plugin-google-analytics',
+        { trackingID: process.env.GA_TRACKING_ID }
+      ]
+    ]
+  }),
+};
+```
+
+### Build Optimization
+
+```json
+{
+  "scripts": {
+    "build": "docusaurus build",
+    "build:prod": "NODE_ENV=production BABEL_ENV=production docusaurus build",
+    "postbuild": "npm run optimize:images && npm run generate:sitemap",
+    "optimize:images": "imagemin build/img/* --out-dir=build/img/",
+    "generate:sitemap": "sitemap-generator-cli https://yoursite.com"
+  }
+}
+```
+
+### Security Headers
+
+Configure security headers for production:
+
+**Netlify (_headers file):**
+```
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
+```
+
+**Vercel (vercel.json):**
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Monitoring and Analytics
+
+Set up monitoring for your deployed site:
+
+```javascript
+// docusaurus.config.js
+module.exports = {
+  plugins: [
+    // Google Analytics
+    [
+      '@docusaurus/plugin-google-analytics',
+      { trackingID: process.env.GA_TRACKING_ID }
+    ],
+    
+    // Error tracking
+    [
+      '@docusaurus/plugin-sentry',
+      { dsn: process.env.SENTRY_DSN }
+    ],
+  ],
+};
+```
+
+## Troubleshooting Deployment
+
+### Common Issues
+
+<Tabs>
+<TabItem value="paths" label="Path Issues">
+
+**Broken CSS/JS paths:**
+- Check `baseUrl` configuration
+- Ensure trailing slash consistency
+- Verify relative vs absolute paths
+
+```javascript
+// Fix for GitHub Pages
+module.exports = {
+  baseUrl: '/repository-name/',
+  trailingSlash: false,
+};
+```
+
+</TabItem>
+<TabItem value="build" label="Build Failures">
+
+**Build failures in CI:**
+- Check Node.js version compatibility
+- Ensure all dependencies are in package.json
+- Verify build command in CI configuration
+
+```yaml
+# GitHub Actions
+- name: Setup Node.js
+  uses: actions/setup-node@v3
+  with:
+    node-version: '18'
+    cache: 'npm'
+- run: npm ci --prefer-offline --no-audit
+```
+
+</TabItem>
+</Tabs>
+
+### Debug Deployment
+
+```bash
+# Local build testing
+npm run build
+npm run serve
+
+# Check build output
+ls -la build/
+du -sh build/
+
+# Test specific hosting
+vercel dev        # Test Vercel locally
+netlify dev       # Test Netlify locally
+firebase serve    # Test Firebase locally
+```
+
+Choosing the right deployment platform depends on your needs: GitHub Pages for simplicity, Vercel for performance, Netlify for features, or cloud providers for enterprise requirements.

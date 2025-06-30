@@ -1,0 +1,15 @@
+{
+  "label": "Tutorial",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "title": "Tutorial Overview",
+    "description": "Learn the basics step by step",
+    "slug": "/tutorial"
+  },
+  "collapsed": false,
+  "collapsible": true,
+  "customProps": {
+    "description": "This is a tutorial category"
+  }
+}

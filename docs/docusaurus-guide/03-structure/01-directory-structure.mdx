@@ -1,0 +1,53 @@
+---
+id: 01-directory-structure
+title: Directory Structure
+description: Understanding the default Docusaurus project structure and file organization
+sidebar_position: 1
+---
+
+import { FileCollapsibleCodeBlock } from '../../../src/components/elements';
+import DefaultStructure from '!!raw-loader!./assets/01-directory-structure/default-structure.txt';
+
+# Directory Structure
+
+Understanding the Docusaurus directory structure is essential for organizing your documentation site effectively. The framework follows a **file-based routing** system where your directory structure directly maps to your site's URL structure.
+
+## Default Docusaurus Project Structure
+
+When you create a new Docusaurus project, you'll see the following directory structure:
+
+<FileCollapsibleCodeBlock 
+  content={DefaultStructure} 
+  filename="default-structure.txt" 
+  collapsed={false}
+/>
+
+## Key Directory Concepts
+
+### File-Based Routing
+
+Docusaurus automatically creates routes based on your file structure:
+
+- `docs/intro.md` → `/docs/intro`
+- `src/pages/about.js` → `/about`
+- `blog/2024-01-01-hello.md` → `/blog/hello`
+
+### Directory Hierarchy
+
+The structure follows these principles:
+
+1. **Top-level directories** serve specific purposes (docs, blog, src, static)
+2. **Nested directories** create route hierarchies
+3. **Special files** control behavior (_category_.json, index files)
+4. **Asset organization** keeps related files together
+
+## Benefits of This Structure
+
+- **Intuitive organization**: Files are where you expect them to be
+- **Automatic routing**: No need to manually configure routes
+- **Easy maintenance**: Clear separation of concerns
+- **Scalable**: Structure grows naturally with content
+
+## Next Steps
+
+Now that you understand the basic structure, let's explore the special directories and their specific purposes in the next section.

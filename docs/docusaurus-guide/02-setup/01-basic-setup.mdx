@@ -1,0 +1,127 @@
+---
+id: basic-setup
+title: Basic Setup
+description: Learn how to create and set up your first Docusaurus project with the default configuration
+sidebar_position: 1
+---
+
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import { Tabs, TabItem } from '@theme/Tabs';
+import InstallationCommands from '!!raw-loader!./assets/01-basic-setup/installation-commands.bash';
+import ProjectStructure from '!!raw-loader!./assets/01-basic-setup/project-structure.txt';
+import DirectoryExplanations from '!!raw-loader!./assets/01-basic-setup/directory-explanations.txt';
+
+# Basic Setup
+
+Getting started with Docusaurus is straightforward. This guide will walk you through creating your first Docusaurus site and understanding its structure.
+
+## Installation
+
+<FileCollapsibleCodeBlock 
+  content={InstallationCommands} 
+  filename="Installation Commands"
+  language="bash"
+/>
+
+<Callout type="info">
+**Requirements**: 
+- Node.js version 18.0 or above
+- npm or yarn package manager
+</Callout>
+
+## Project Structure
+
+After running the installation command, you'll have a project with this structure:
+
+<FileCollapsibleCodeBlock 
+  content={ProjectStructure} 
+  filename="Default Project Structure"
+  language="text"
+/>
+
+## Understanding Key Directories
+
+<FileCollapsibleCodeBlock 
+  content={DirectoryExplanations} 
+  filename="Directory Explanations"
+  language="text"
+/>
+
+## Three Types of Pages
+
+Docusaurus supports three main types of pages, each serving a different purpose:
+
+<Tabs>
+<TabItem value="docs" label="Documentation Pages">
+
+**Purpose**: Structured documentation with sidebars and navigation
+**Location**: `docs/` folder
+**Features**:
+- Automatic sidebar generation
+- Version control support
+- Category organization
+- Search integration
+
+**Example Route**: `docs/intro.md` → `/docs/intro`
+
+</TabItem>
+<TabItem value="blog" label="Blog Pages">
+
+**Purpose**: Time-based content like announcements and updates
+**Location**: `blog/` folder  
+**Features**:
+- RSS feed generation
+- Author profiles
+- Tag system
+- Archive pages
+
+**Example Route**: `blog/2024-01-01-hello.md` → `/blog/hello`
+
+</TabItem>
+<TabItem value="pages" label="Custom Pages">
+
+**Purpose**: Standalone pages like homepage, about, contact
+**Location**: `src/pages/` folder
+**Features**:
+- Full React component flexibility
+- Custom layouts
+- Direct routing
+
+**Example Route**: `src/pages/about.js` → `/about`
+
+</TabItem>
+</Tabs>
+
+## Configuration Overview
+
+The main configuration happens in `docusaurus.config.js`. This file controls:
+
+- **Site metadata** (title, description, URL)
+- **Theme configuration** (navbar, footer, colors)
+- **Plugin settings** (docs, blog, search)
+- **Deployment settings** (GitHub Pages, etc.)
+
+<Callout type="tip">
+**Directory-Based Routing**: One of Docusaurus's key features is that your file and folder structure automatically determines your site's URL structure. No need to manually configure routes!
+</Callout>
+
+## Development Workflow
+
+1. **Create Content**: Add Markdown files to `docs/` or `blog/`
+2. **Customize**: Modify `docusaurus.config.js` for site settings
+3. **Style**: Add custom CSS in `src/css/custom.css`
+4. **Preview**: Run `npm start` to see changes in real-time
+5. **Build**: Run `npm run build` to generate static files
+6. **Deploy**: Upload the `build/` folder to your hosting provider
+
+## Next Steps
+
+- **Docs Configuration**: Learn how to configure documentation settings
+- **Multiple Docs**: Set up multiple documentation sections
+- **Customization**: Explore theming and component overrides
+- **Plugins**: Add functionality with the plugin ecosystem
+
+<Callout type="success">
+**You're Ready!** With this basic setup, you have a fully functional documentation site. The rest is about customizing it to match your specific needs and content structure.
+</Callout>

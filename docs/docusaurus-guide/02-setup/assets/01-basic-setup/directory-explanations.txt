@@ -1,0 +1,24 @@
+📁 docs/ - Documentation Content
+- Contains all your documentation in Markdown/MDX
+- Automatic routing based on file structure
+- Sidebar generation and category organization
+
+📁 blog/ - Blog Content  
+- Blog posts with dates, authors, tags
+- RSS feed generation and archive pages
+- Naming: YYYY-MM-DD-slug.md format
+
+📁 src/pages/ - Custom Pages
+- React components that become routes
+- index.js becomes homepage (/)
+- Supports .js, .jsx, .tsx, .md, .mdx
+
+📁 src/theme/ - Theme Overrides
+- Override default Docusaurus components
+- Process called "swizzling"
+- Custom Navbar, Footer, Layout
+
+📁 static/ - Static Assets
+- Files served as-is without processing
+- Available at root URL
+- Example: /static/img/logo.png → /img/logo.png

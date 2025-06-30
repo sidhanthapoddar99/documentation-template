@@ -1,0 +1,15 @@
+---
+title: My Document
+---
+
+import MyComponent from '@site/src/components/MyComponent';
+
+# Regular Markdown Content
+
+This is **bold text** and this is *italic text*.
+
+## Interactive Component
+
+<MyComponent name="Docusaurus" />
+
+You can mix Markdown with React components seamlessly!

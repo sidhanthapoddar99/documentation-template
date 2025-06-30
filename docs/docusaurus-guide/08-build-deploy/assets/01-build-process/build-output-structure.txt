@@ -1,0 +1,18 @@
+build/
+├── index.html              # Homepage
+├── docs/                   # Documentation pages
+│   ├── intro/index.html
+│   └── tutorial/
+│       └── basics/index.html
+├── blog/                   # Blog pages
+│   ├── index.html         # Blog listing
+│   └── 2024/
+│       └── 01/
+│           └── 15/
+│               └── welcome/index.html
+├── assets/                 # JS/CSS bundles
+│   ├── js/
+│   └── css/
+├── img/                    # Static images
+├── sitemap.xml            # SEO sitemap
+└── 404.html               # 404 page

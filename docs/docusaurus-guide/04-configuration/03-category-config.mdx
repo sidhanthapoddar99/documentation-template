@@ -1,0 +1,349 @@
+---
+id: 03-category-config
+title: Category Configuration (_category_.json)
+description: Learn how to configure document categories using _category_.json files
+sidebar_position: 3
+---
+
+import { FileCollapsibleCodeBlock, Callout, Tabs, TabItem } from '../../../src/components/elements';
+import CategoryBasic from '!!raw-loader!./assets/03-category-config/category-basic.json';
+
+# Category Configuration (_category_.json)
+
+The `_category_.json` file is a powerful tool for configuring how directories appear in your documentation sidebar. Place this file in any documentation folder to control that category's behavior, appearance, and metadata.
+
+## Basic Category Configuration
+
+<FileCollapsibleCodeBlock 
+  content={CategoryBasic} 
+  filename="_category_.json" 
+/>
+
+## Configuration Options
+
+### Required Properties
+
+#### `label`
+The display name for the category in the sidebar.
+
+```json
+{
+  "label": "Getting Started"
+}
+```
+
+### Optional Properties
+
+#### `position`
+Controls the order of categories in the sidebar (lower numbers appear first).
+
+```json
+{
+  "position": 1
+}
+```
+
+#### `collapsible` and `collapsed`
+Control whether the category can be collapsed and its initial state.
+
+```json
+{
+  "collapsible": true,
+  "collapsed": false
+}
+```
+
+#### `className`
+Add custom CSS classes for styling.
+
+```json
+{
+  "className": "sidebar-important"
+}
+```
+
+## Link Configuration
+
+The `link` property determines what happens when users click on the category.
+
+### Generated Index Pages
+
+Create an automatic overview page that lists all items in the category:
+
+<Tabs>
+<TabItem value="generated" label="Generated Index">
+
+```json
+{
+  "label": "Tutorial",
+  "link": {
+    "type": "generated-index",
+    "title": "Tutorial Overview",
+    "description": "Learn the basics step by step",
+    "slug": "/tutorial",
+    "keywords": ["tutorial", "guide", "basics"]
+  }
+}
+```
+
+**Features:**
+- Automatically lists all documents in the category
+- Includes document descriptions from front matter
+- SEO-optimized with custom title and keywords
+- Custom URL slug
+
+</TabItem>
+<TabItem value="doc" label="Link to Document">
+
+```json
+{
+  "label": "API Reference",
+  "link": {
+    "type": "doc",
+    "id": "api/overview"
+  }
+}
+```
+
+**Use Case:**
+- When you have a main document that serves as the category introduction
+- The category name becomes clickable, linking to the specified document
+
+</TabItem>
+<TabItem value="none" label="No Link">
+
+```json
+{
+  "label": "Reference",
+  "link": null
+}
+```
+
+**Behavior:**
+- Category header is not clickable
+- Users must click on individual documents
+- Good for pure organizational categories
+
+</TabItem>
+</Tabs>
+
+## Custom Properties
+
+Add custom data that can be accessed by themes and components:
+
+```json
+{
+  "label": "Premium Features",
+  "customProps": {
+    "description": "Advanced functionality for pro users",
+    "badge": "Pro",
+    "icon": "⭐",
+    "color": "gold"
+  }
+}
+```
+
+### Accessing Custom Properties
+
+Custom properties can be used in theme components:
+
+```jsx
+// In a custom sidebar component
+function SidebarCategory({item}) {
+  const {badge, icon} = item.customProps || {};
+  
+  return (
+    <div className="sidebar-category">
+      {icon && <span className="category-icon">{icon}</span>}
+      <span className="category-label">{item.label}</span>
+      {badge && <span className="category-badge">{badge}</span>}
+    </div>
+  );
+}
+```
+
+## Common Configuration Patterns
+
+### Getting Started Section
+
+```json
+{
+  "label": "Getting Started",
+  "position": 1,
+  "collapsed": false,
+  "collapsible": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Getting Started with Our Platform",
+    "description": "Everything you need to begin your journey",
+    "slug": "/getting-started"
+  }
+}
+```
+
+### API Reference Section
+
+```json
+{
+  "label": "API Reference",
+  "position": 10,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "title": "API Documentation",
+    "description": "Complete API reference and examples",
+    "slug": "/api"
+  },
+  "customProps": {
+    "description": "RESTful API endpoints and SDKs"
+  }
+}
+```
+
+### Tutorial Series
+
+```json
+{
+  "label": "Tutorials",
+  "position": 3,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Step-by-Step Tutorials",
+    "description": "Hands-on guides to master our platform",
+    "slug": "/tutorials"
+  }
+}
+```
+
+## Advanced Patterns
+
+### Conditional Categories
+
+While `_category_.json` doesn't support JavaScript, you can use multiple category files with build-time processing:
+
+```javascript
+// In a build script
+const isDev = process.env.NODE_ENV === 'development';
+
+const categoryConfig = {
+  label: 'API Reference',
+  position: 5,
+  ...(isDev && {
+    customProps: {
+      badge: 'Dev Only',
+      description: 'Development API endpoints'
+    }
+  })
+};
+
+fs.writeFileSync(
+  'docs/api/_category_.json', 
+  JSON.stringify(categoryConfig, null, 2)
+);
+```
+
+### Localized Categories
+
+For internationalized sites, use locale-specific category files:
+
+```
+docs/
+├── tutorial/
+│   ├── _category_.json           # Default (English)
+│   ├── _category_.fr.json        # French
+│   ├── _category_.es.json        # Spanish
+│   └── introduction.md
+```
+
+## Category Hierarchy
+
+Categories can be nested, and each level can have its own `_category_.json`:
+
+```
+docs/
+├── platform/
+│   ├── _category_.json           # Platform category
+│   ├── core/
+│   │   ├── _category_.json       # Core subcategory
+│   │   ├── authentication.md
+│   │   └── permissions.md
+│   └── integrations/
+│       ├── _category_.json       # Integrations subcategory
+│       ├── webhooks.md
+│       └── api-keys.md
+```
+
+<Callout type="info" title="Hierarchy Best Practices">
+Keep category nesting to 2-3 levels maximum. Deeper nesting can make navigation confusing and reduce discoverability.
+</Callout>
+
+## Category vs Sidebar Configuration
+
+Understanding when to use `_category_.json` vs `sidebars.js`:
+
+<Tabs>
+<TabItem value="category-json" label="_category_.json">
+
+**Use When:**
+- Working with autogenerated sidebars
+- Want to keep configuration close to content
+- Need per-directory customization
+- Working with content-driven organization
+
+**Benefits:**
+- Co-located with content
+- Easy for content creators to modify
+- Works with autogenerated sidebars
+- Supports internationalization
+
+</TabItem>
+<TabItem value="sidebars-js" label="sidebars.js">
+
+**Use When:**
+- Need precise control over sidebar structure
+- Want to mix manual and auto-generated content
+- Have complex navigation requirements
+- Need conditional logic
+
+**Benefits:**
+- Full programmatic control
+- Can include external links
+- Supports complex hierarchies
+- Allows conditional logic
+
+</TabItem>
+</Tabs>
+
+## Validation and Debugging
+
+Common issues and solutions:
+
+### Invalid JSON
+```bash
+# Validate JSON syntax
+cat docs/tutorial/_category_.json | jq .
+```
+
+### Missing Properties
+```bash
+# Check for required properties
+grep -r '"label"' docs/*/._category_.json
+```
+
+### Position Conflicts
+Multiple categories with the same position number may cause unexpected ordering.
+
+<Callout type="warning" title="JSON Validation">
+Always validate your `_category_.json` files. Invalid JSON will cause build failures. Use a JSON validator or editor with JSON support.
+</Callout>
+
+## Best Practices
+
+1. **Consistent Naming**: Use clear, descriptive category labels
+2. **Logical Positioning**: Order categories by user journey
+3. **Appropriate Linking**: Choose the right link type for each category
+4. **Custom Properties**: Use sparingly and document their purpose
+5. **Regular Review**: Periodically review category organization
+
+The `_category_.json` file is essential for creating well-organized, user-friendly documentation sidebars. Use it to enhance the discoverability and navigation of your content.

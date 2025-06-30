@@ -1,0 +1,143 @@
+---
+id: 01-content-organization
+title: Content Organization
+description: Learn how to organize your documentation content effectively in Docusaurus
+sidebar_position: 1
+---
+
+import CategoryConfig from '!!raw-loader!./assets/01-content-organization/category-config.json';
+import DocumentationStructure from '!!raw-loader!./assets/01-content-organization/documentation-structure.txt';
+import Callout from '@site/src/components/elements/Callout';
+import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+
+# Content Organization
+
+Docusaurus provides powerful tools for organizing your documentation content. Understanding the file-based routing system and proper content structure is essential for creating maintainable documentation sites.
+
+## Documentation Structure
+
+Docusaurus uses a file-based routing system where your file structure directly maps to your site's navigation. Here's how content is typically organized:
+
+<FileCollapsibleCodeBlock content={DocumentationStructure} filename="documentation-structure.txt" />
+
+<Callout type="info">
+**File-Based Routing**: Each Markdown file becomes a route. The file `docs/tutorial/basics.md` becomes the URL `/docs/tutorial/basics`.
+</Callout>
+
+## Key Organization Principles
+
+### 1. Hierarchical Structure
+- **Folders** represent categories in your sidebar
+- **Files** within folders become pages under that category
+- **Nesting** creates sub-categories (but avoid going too deep)
+
+### 2. Category Configuration
+
+Every category folder can have a `_category_.json` file to configure how it appears in the sidebar:
+
+<FileCollapsibleCodeBlock content={CategoryConfig} filename="_category_.json" />
+
+### 3. File Naming Conventions
+
+<Callout type="tip">
+**Best Practices for File Names**:
+- Use kebab-case (hyphens): `getting-started.md`
+- Avoid spaces and special characters
+- Use descriptive names that indicate content
+- Consider using numeric prefixes for ordering: `01-intro.md`, `02-setup.md`
+</Callout>
+
+## Content Types
+
+### Documentation Pages
+- Located in `docs/` directory
+- Use `.md` or `.mdx` extensions
+- Support front matter for metadata
+- Automatically included in sidebar generation
+
+### Blog Posts
+- Located in `blog/` directory
+- Use date-based naming: `2024-01-15-post-title.md`
+- Support author profiles and tagging
+- Generate RSS feeds automatically
+
+### Custom Pages
+- Located in `src/pages/` directory
+- Can be React components (`.js`, `.jsx`, `.tsx`) or Markdown (`.md`, `.mdx`)
+- Create standalone pages outside the docs structure
+
+## Routing Behavior
+
+### Default Routes
+- `docs/intro.md` → `/docs/intro`
+- `docs/tutorial/basics.md` → `/docs/tutorial/basics`
+- `src/pages/about.md` → `/about`
+- `blog/2024-01-15-hello.md` → `/blog/hello`
+
+### Custom Routes
+You can customize routes using:
+- **Front matter `slug`**: Override the default URL
+- **Multiple doc instances**: Create separate documentation sections
+- **Custom base paths**: Change where docs are served from
+
+<Callout type="warning">
+**Route Conflicts**: Avoid creating files that would generate the same URL. Docusaurus will warn you about conflicts during build.
+</Callout>
+
+## Multi-Section Documentation
+
+For larger projects, you might want separate documentation sections:
+
+```javascript
+// docusaurus.config.js
+plugins: [
+  [
+    '@docusaurus/plugin-content-docs',
+    {
+      id: 'api',
+      path: 'docs/api',
+      routeBasePath: 'api',
+      sidebarPath: require.resolve('./sidebars.js'),
+    },
+  ],
+  [
+    '@docusaurus/plugin-content-docs',
+    {
+      id: 'guides',
+      path: 'docs/guides',
+      routeBasePath: 'guides',
+      sidebarPath: require.resolve('./sidebars.js'),
+    },
+  ],
+]
+```
+
+This creates separate documentation sections accessible at `/api` and `/guides` with their own sidebars.
+
+## Content Organization Best Practices
+
+### 1. Logical Grouping
+- Group related content together
+- Use consistent categorization
+- Consider your users' mental models
+
+### 2. Progressive Disclosure
+- Start with overview content
+- Move from basic to advanced topics
+- Use clear hierarchies
+
+### 3. Cross-References
+- Link between related sections
+- Create landing pages for categories
+- Use consistent linking patterns
+
+### 4. Asset Management
+- Keep images close to content
+- Use descriptive file names
+- Consider asset organization strategies
+
+<Callout type="success">
+**Pro Tip**: Use the `generated-index` link type in `_category_.json` to create automatic overview pages that list all documents in a category.
+</Callout>
+
+Understanding content organization is fundamental to creating effective documentation. The next section covers front matter configuration for fine-tuning individual pages.

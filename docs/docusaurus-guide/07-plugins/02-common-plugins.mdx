@@ -1,0 +1,368 @@
+---
+id: 02-common-plugins
+title: Common Plugins
+description: Overview of popular Docusaurus plugins and their configurations
+sidebar_position: 2
+---
+
+import GoogleAnalyticsCode from '!!raw-loader!./assets/02-common-plugins/google-analytics-plugin.js';
+import PWACode from '!!raw-loader!./assets/02-common-plugins/pwa-plugin.js';
+import SearchCode from '!!raw-loader!./assets/02-common-plugins/search-plugin.js';
+import SitemapCode from '!!raw-loader!./assets/02-common-plugins/sitemap-plugin.js';
+import { TabItem, Tabs } from '@theme/Tabs';
+import { Callout } from '/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '/src/components/elements/CodeBlock';
+
+# Common Plugins
+
+Docusaurus provides a rich ecosystem of plugins that add functionality to your documentation site. Here are the most commonly used plugins and their configurations.
+
+## Analytics Plugins
+
+### Google Analytics
+
+<Callout type="info">
+**Google Analytics Integration**: Track page views, user behavior, and site performance with Google Analytics.
+</Callout>
+
+<FileCollapsibleCodeBlock content={GoogleAnalyticsCode} filename="google-analytics-plugin.js" />
+
+**Key Options:**
+- `trackingID`: Your Google Analytics tracking ID (required)
+- `anonymizeIP`: Anonymize IP addresses for privacy compliance
+- `gtag`: Use gtag.js instead of analytics.js (recommended)
+
+### Google Tag Manager
+
+```javascript
+plugins: [
+  [
+    '@docusaurus/plugin-google-gtag',
+    {
+      trackingID: 'GTM-XXXXXXX',
+      anonymizeIP: true,
+    },
+  ],
+]
+```
+
+## Progressive Web App (PWA)
+
+<Callout type="feature">
+**PWA Features**: Transform your documentation into a Progressive Web App with offline support and app-like experience.
+</Callout>
+
+<FileCollapsibleCodeBlock content={PWACode} filename="pwa-plugin.js" />
+
+**PWA Benefits:**
+- **Offline Access** - Users can browse docs without internet
+- **App Installation** - Can be installed like a native app
+- **Fast Loading** - Cached resources load instantly
+- **Push Notifications** - Notify users of updates
+
+**Required Files:**
+- `static/manifest.json` - PWA manifest
+- `static/img/` - App icons in various sizes
+
+## Search Plugins
+
+### Local Search
+
+<FileCollapsibleCodeBlock content={SearchCode} filename="search-plugin.js" />
+
+**Features:**
+- **No External Dependencies** - Works entirely offline
+- **Multi-language Support** - Supports multiple languages
+- **Customizable** - Configure search behavior and UI
+- **Fast Performance** - Indexes content at build time
+
+### Algolia Search
+
+<Tabs>
+<TabItem value="config" label="Configuration">
+
+```javascript
+themeConfig: {
+  algolia: {
+    appId: 'YOUR_APP_ID',
+    apiKey: 'YOUR_API_KEY',
+    indexName: 'YOUR_INDEX_NAME',
+    
+    // Optional: See doc section below
+    contextualSearch: true,
+    externalUrlRegex: 'external\\.com|domain\\.com',
+    searchParameters: {},
+    facetFilters: [],
+    searchPagePath: 'search',
+  },
+}
+```
+
+</TabItem>
+<TabItem value="features" label="Features">
+
+**Algolia Features:**
+- **Instant Search** - Real-time search results
+- **Advanced Filtering** - Faceted search capabilities
+- **Analytics** - Search analytics and insights
+- **Customizable** - Extensive customization options
+
+**Requirements:**
+- Algolia account and API keys
+- DocSearch crawler configuration
+- External service dependency
+
+</TabItem>
+</Tabs>
+
+## SEO and Discovery
+
+### Sitemap Generation
+
+<FileCollapsibleCodeBlock content={SitemapCode} filename="sitemap-plugin.js" />
+
+**Sitemap Benefits:**
+- **SEO Optimization** - Helps search engines index your site
+- **Change Frequency** - Indicates how often content updates
+- **Priority Settings** - Specifies page importance
+- **Automatic Generation** - Updates with new content
+
+### Robots.txt
+
+```javascript
+plugins: [
+  [
+    '@docusaurus/plugin-robots',
+    {
+      policy: [
+        {
+          userAgent: '*',
+          allow: '/',
+          disallow: ['/search', '/tags'],
+        },
+      ],
+    },
+  ],
+]
+```
+
+## Content Enhancement
+
+### Ideal Image
+
+```javascript
+plugins: [
+  [
+    '@docusaurus/plugin-ideal-image',
+    {
+      quality: 70,
+      max: 1030,
+      min: 640,
+      steps: 2,
+      disableInDev: false,
+    },
+  ],
+]
+```
+
+**Image Optimization:**
+- **Responsive Images** - Multiple sizes for different screens
+- **WebP Support** - Modern image format with better compression
+- **Lazy Loading** - Images load as needed
+- **Quality Control** - Configurable compression settings
+
+### Client Redirects
+
+```javascript
+plugins: [
+  [
+    '@docusaurus/plugin-client-redirects',
+    {
+      redirects: [
+        {
+          to: '/new-page',
+          from: '/old-page',
+        },
+        {
+          to: '/docs/introduction',
+          from: ['/docs', '/docs/'],
+        },
+      ],
+    },
+  ],
+]
+```
+
+## Development Tools
+
+### Webpack Bundle Analyzer
+
+```javascript
+plugins: [
+  [
+    '@docusaurus/plugin-webpack-bundle-analyzer',
+    {
+      analyzerMode: 'server',
+      analyzerPort: 8888,
+      openAnalyzer: false,
+    },
+  ],
+]
+```
+
+### Debug Plugin
+
+Built-in debug information:
+
+```javascript
+plugins: [
+  [
+    '@docusaurus/plugin-debug',
+    {
+      // Enable in production for debugging
+      enabled: process.env.NODE_ENV === 'production',
+    },
+  ],
+]
+```
+
+## Social and Sharing
+
+### Open Graph
+
+```javascript
+plugins: [
+  [
+    '@docusaurus/plugin-open-graph',
+    {
+      image: 'img/docusaurus-social-card.jpg',
+      imageAlt: 'Docusaurus Social Card',
+    },
+  ],
+]
+```
+
+### Twitter Cards
+
+Automatic Twitter card generation based on front matter:
+
+```markdown
+---
+title: My Page
+description: Page description
+image: /img/page-thumbnail.jpg
+---
+```
+
+## Plugin Configuration Patterns
+
+### Environment-Specific Plugins
+
+<Callout type="tip">
+**Environment Configuration**: Use environment variables to configure plugins differently for development and production.
+</Callout>
+
+```javascript
+const isDev = process.env.NODE_ENV === 'development';
+
+module.exports = {
+  plugins: [
+    // Only in production
+    !isDev && [
+      '@docusaurus/plugin-google-analytics',
+      { trackingID: 'UA-XXXXXXXX-X' }
+    ],
+    
+    // Only in development
+    isDev && [
+      '@docusaurus/plugin-debug',
+      { enabled: true }
+    ],
+    
+    // Always enabled
+    '@docusaurus/plugin-sitemap',
+  ].filter(Boolean),
+};
+```
+
+### Conditional Plugin Loading
+
+```javascript
+const plugins = [
+  '@docusaurus/plugin-content-docs',
+  '@docusaurus/plugin-content-blog',
+];
+
+// Add analytics only if tracking ID is provided
+if (process.env.GA_TRACKING_ID) {
+  plugins.push([
+    '@docusaurus/plugin-google-analytics',
+    { trackingID: process.env.GA_TRACKING_ID }
+  ]);
+}
+
+module.exports = {
+  plugins,
+};
+```
+
+## Plugin Installation
+
+### NPM Installation
+
+```bash
+# Official plugins
+npm install @docusaurus/plugin-google-analytics
+
+# Community plugins
+npm install docusaurus-plugin-search-local
+
+# Development dependencies
+npm install --save-dev @docusaurus/plugin-debug
+```
+
+### Yarn Installation
+
+```bash
+# Official plugins
+yarn add @docusaurus/plugin-google-analytics
+
+# Community plugins
+yarn add docusaurus-plugin-search-local
+
+# Development dependencies
+yarn add --dev @docusaurus/plugin-debug
+```
+
+<Callout type="warning">
+**Plugin Compatibility**: Always check plugin compatibility with your Docusaurus version. Some plugins may require specific versions or have breaking changes.
+</Callout>
+
+## Plugin Troubleshooting
+
+### Common Issues
+
+1. **Plugin Not Loading**
+   - Check plugin installation
+   - Verify configuration syntax
+   - Ensure proper plugin naming
+
+2. **Build Errors**
+   - Review plugin options
+   - Check for conflicting plugins
+   - Validate required files exist
+
+3. **Runtime Errors**
+   - Check browser console
+   - Verify plugin dependencies
+   - Test in development mode
+
+### Debug Mode
+
+Enable debug mode to troubleshoot plugin issues:
+
+```bash
+DEBUG=docusaurus* npm start
+```
+
+This comprehensive overview covers the most popular Docusaurus plugins and their common use cases. Choose plugins based on your specific needs and always test thoroughly before deploying to production.

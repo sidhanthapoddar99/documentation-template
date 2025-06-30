@@ -1,0 +1,176 @@
+---
+id: core-concepts
+title: Core Concepts
+description: Understanding the fundamental concepts behind Docusaurus - SSG, file-based routing, and MDX
+sidebar_position: 2
+---
+
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import { Tabs, TabItem } from '@theme/Tabs';
+import FileRoutingExamples from '!!raw-loader!./assets/02-core-concepts/file-routing-examples.txt';
+import MDXExample from '!!raw-loader!./assets/02-core-concepts/mdx-example.txt';
+
+# Core Concepts
+
+Understanding these three fundamental concepts will help you get the most out of Docusaurus:
+
+## 1. Static Site Generation (SSG)
+
+Static Site Generation is the process of pre-building your website at build time rather than generating pages on-demand.
+
+<Tabs>
+<TabItem value="build-time" label="Build Time">
+
+**What happens during build:**
+- Docusaurus converts your React/Markdown files into static HTML
+- All routes are pre-rendered
+- JavaScript bundles are optimized and split
+- Assets are processed and optimized
+
+</TabItem>
+<TabItem value="runtime" label="Runtime">
+
+**What happens when users visit:**
+- Static HTML loads instantly (fast First Contentful Paint)
+- JavaScript "hydrates" the page back into an interactive React app
+- Subsequent navigation is handled by React Router (SPA behavior)
+
+</TabItem>
+</Tabs>
+
+<Callout type="success">
+**Benefits of SSG:**
+- **Fast Loading**: HTML is pre-generated, no server processing needed
+- **SEO-Friendly**: Search engines can easily crawl static HTML
+- **Reliable Hosting**: Can be hosted on any static file server
+- **Better Performance**: Reduced Time to Interactive (TTI)
+</Callout>
+
+## 2. File-Based Routing
+
+Docusaurus automatically creates routes based on your file structure. No need to manually configure routes!
+
+<FileCollapsibleCodeBlock 
+  content={FileRoutingExamples} 
+  filename="File-Based Routing Examples"
+  language="text"
+/>
+
+### How It Works
+
+<Tabs>
+<TabItem value="docs" label="Documentation">
+
+**Docs Routing:**
+- Files in `docs/` become documentation pages
+- Folder structure creates URL hierarchy
+- `_category_.json` files control sidebar organization
+- Front matter can override default URLs with `slug`
+
+</TabItem>
+<TabItem value="pages" label="Custom Pages">
+
+**Pages Routing:**
+- Files in `src/pages/` become standalone pages
+- `index.js` becomes the homepage (`/`)
+- Nested folders create nested routes
+- Supports `.js`, `.jsx`, `.tsx`, `.md`, `.mdx`
+
+</TabItem>
+<TabItem value="blog" label="Blog">
+
+**Blog Routing:**
+- Files in `blog/` become blog posts
+- Date-based naming: `YYYY-MM-DD-slug.md`
+- Automatic archive and tag pages
+- RSS feed generation
+
+</TabItem>
+</Tabs>
+
+<Callout type="tip">
+**Pro Tip**: You can override automatic routing using the `slug` field in front matter, but the default file-based approach keeps things organized and predictable.
+</Callout>
+
+## 3. MDX (Markdown + JSX)
+
+MDX allows you to write JSX directly in your Markdown files, enabling interactive documentation.
+
+<FileCollapsibleCodeBlock 
+  content={MDXExample} 
+  filename="MDX Example"
+  language="mdx"
+/>
+
+### MDX Capabilities
+
+<Tabs>
+<TabItem value="components" label="React Components">
+
+**Import and Use Components:**
+```jsx
+import MyButton from '@site/src/components/MyButton';
+
+<MyButton onClick={() => alert('Hello!')}>
+  Click me!
+</MyButton>
+```
+
+</TabItem>
+<TabItem value="styling" label="Inline Styling">
+
+**Add Custom Styling:**
+```jsx
+<div style={{
+  backgroundColor: 'var(--ifm-color-primary)',
+  color: 'white',
+  padding: '1rem',
+  borderRadius: '8px'
+}}>
+  Custom styled content
+</div>
+```
+
+</TabItem>
+<TabItem value="data" label="Dynamic Content">
+
+**Use JavaScript Expressions:**
+```jsx
+export const currentYear = new Date().getFullYear();
+
+This documentation was updated in {currentYear}.
+
+{/* Conditional rendering */}
+{process.env.NODE_ENV === 'development' && (
+  <div>This only shows in development!</div>
+)}
+```
+
+</TabItem>
+</Tabs>
+
+### MDX Best Practices
+
+<Callout type="warning">
+**Important Considerations:**
+- Keep components simple and focused
+- Avoid complex state management in MDX
+- Use regular Markdown for most content
+- Reserve JSX for truly interactive elements
+</Callout>
+
+## How These Concepts Work Together
+
+1. **Write Content**: Use Markdown/MDX with embedded React components
+2. **File Organization**: Leverage file-based routing for automatic URL structure
+3. **Build Process**: SSG converts everything to optimized static files
+4. **User Experience**: Fast loading static HTML that becomes interactive
+
+<Callout type="info">
+**The Power Combination**: File-based routing keeps your content organized, MDX makes it interactive, and SSG makes it fast and SEO-friendly. This combination is what makes Docusaurus so effective for documentation sites.
+</Callout>
+
+## Next Steps
+
+Now that you understand the core concepts, you're ready to set up your first Docusaurus project and configure it for your documentation needs.

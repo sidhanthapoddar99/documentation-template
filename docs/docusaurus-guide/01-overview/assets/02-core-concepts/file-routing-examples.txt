@@ -1,0 +1,3 @@
+docs/intro.md → /docs/intro
+src/pages/about.js → /about
+blog/2024-01-01-hello.md → /blog/hello

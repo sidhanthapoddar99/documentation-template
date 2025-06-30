@@ -1,0 +1,235 @@
+---
+id: 01-main-config
+title: Main Configuration (docusaurus.config.js)
+description: Complete guide to configuring your Docusaurus site through the main configuration file
+sidebar_position: 1
+---
+
+import { FileCollapsibleCodeBlock, Callout, Tabs, TabItem } from '../../../src/components/elements';
+import BasicConfig from '!!raw-loader!./assets/01-main-config/basic-config.js';
+import ThemeConfig from '!!raw-loader!./assets/01-main-config/theme-config.js';
+import PluginsConfig from '!!raw-loader!./assets/01-main-config/plugins-config.js';
+
+# Main Configuration (docusaurus.config.js)
+
+The `docusaurus.config.js` file is the heart of your Docusaurus site configuration. It controls everything from site metadata to theme settings, plugin configurations, and deployment options.
+
+## Configuration Structure
+
+The configuration file exports a JavaScript object with several main sections:
+
+<Tabs>
+<TabItem value="basic" label="Basic Configuration">
+
+<FileCollapsibleCodeBlock 
+  content={BasicConfig} 
+  filename="basic-config.js" 
+/>
+
+</TabItem>
+<TabItem value="theme" label="Theme Configuration">
+
+<FileCollapsibleCodeBlock 
+  content={ThemeConfig} 
+  filename="theme-config.js" 
+/>
+
+</TabItem>
+<TabItem value="plugins" label="Plugins & Custom Fields">
+
+<FileCollapsibleCodeBlock 
+  content={PluginsConfig} 
+  filename="plugins-config.js" 
+/>
+
+</TabItem>
+</Tabs>
+
+## Key Configuration Sections
+
+### Site Metadata
+
+These settings control basic site information:
+
+- **`title`**: Site name shown in browser tabs and navigation
+- **`tagline`**: Short description for SEO and social sharing
+- **`url`**: Production URL of your site
+- **`baseUrl`**: Base path for your site (usually `/`)
+- **`favicon`**: Path to your site's favicon
+
+<Callout type="info" title="URL Configuration">
+Make sure `url` and `baseUrl` are correct for your deployment environment. Incorrect values can break links and assets.
+</Callout>
+
+### Deployment Settings
+
+Configure these for automated deployment:
+
+- **`organizationName`**: GitHub organization or username
+- **`projectName`**: GitHub repository name
+- **`deploymentBranch`**: Branch for GitHub Pages deployment
+
+### Behavior Controls
+
+- **`onBrokenLinks`**: How to handle broken internal links (`'throw'`, `'warn'`, `'ignore'`)
+- **`onBrokenMarkdownLinks`**: How to handle broken Markdown links
+- **`trailingSlash`**: Whether to add trailing slashes to URLs
+
+### Internationalization (i18n)
+
+Configure multi-language support:
+
+```javascript
+i18n: {
+  defaultLocale: 'en',
+  locales: ['en', 'fr', 'es', 'de'],
+  path: 'i18n',
+  localeConfigs: {
+    en: {
+      label: 'English',
+      direction: 'ltr',
+    },
+    fr: {
+      label: 'Français',
+      direction: 'ltr',
+    },
+  },
+}
+```
+
+## Presets vs Plugins
+
+### Presets
+Presets are bundles of plugins and themes. The `'classic'` preset includes:
+- `@docusaurus/theme-classic`
+- `@docusaurus/plugin-content-docs`
+- `@docusaurus/plugin-content-blog`
+- `@docusaurus/plugin-content-pages`
+- `@docusaurus/plugin-debug`
+- `@docusaurus/plugin-google-gtag`
+- `@docusaurus/plugin-sitemap`
+
+### Individual Plugins
+You can also configure plugins individually for more control:
+
+```javascript
+plugins: [
+  [
+    '@docusaurus/plugin-content-docs',
+    {
+      id: 'api',
+      path: 'api',
+      routeBasePath: 'api',
+      sidebarPath: require.resolve('./sidebarsApi.js'),
+    },
+  ],
+]
+```
+
+## Theme Configuration
+
+The `themeConfig` section controls the appearance and behavior of your site:
+
+### Navbar Configuration
+- **Logo**: Light and dark mode versions
+- **Items**: Navigation links, dropdowns, search
+- **Positioning**: Left or right alignment
+
+### Footer Configuration
+- **Links**: Organized in columns
+- **Copyright**: Dynamic copyright notices
+- **Social links**: GitHub, Twitter, etc.
+
+### Code Highlighting
+- **Prism themes**: Light and dark syntax highlighting
+- **Additional languages**: Support for more programming languages
+
+<Callout type="tip" title="Theme Customization">
+The theme configuration is highly flexible. You can customize colors, fonts, layouts, and behavior without touching the theme files.
+</Callout>
+
+## Environment-Specific Configuration
+
+You can use environment variables and conditional logic:
+
+```javascript
+const isDev = process.env.NODE_ENV === 'development';
+
+module.exports = {
+  title: 'My Site',
+  url: isDev ? 'http://localhost:3000' : 'https://mysite.com',
+  
+  // Different configurations for dev vs prod
+  themeConfig: {
+    navbar: {
+      items: [
+        // Add debug items only in development
+        ...(isDev ? [{
+          to: '/debug',
+          label: 'Debug',
+          position: 'right',
+        }] : []),
+      ],
+    },
+  },
+};
+```
+
+## Configuration Validation
+
+Docusaurus validates your configuration and provides helpful error messages:
+
+- **Required fields**: Missing required configuration
+- **Type checking**: Incorrect data types
+- **Plugin conflicts**: Incompatible plugin combinations
+- **URL validation**: Invalid URLs or paths
+
+<Callout type="warning" title="Configuration Errors">
+Always check the console output when starting Docusaurus. Configuration errors are clearly reported with suggestions for fixes.
+</Callout>
+
+## Best Practices
+
+1. **Keep it organized**: Group related configurations together
+2. **Use comments**: Document complex configurations
+3. **Environment awareness**: Handle different deployment environments
+4. **Validation**: Test configuration changes thoroughly
+5. **Version control**: Track configuration changes in git
+
+## Common Configuration Patterns
+
+### Multiple Documentation Sections
+```javascript
+plugins: [
+  [
+    '@docusaurus/plugin-content-docs',
+    {
+      id: 'api',
+      path: 'api-docs',
+      routeBasePath: 'api',
+    },
+  ],
+  [
+    '@docusaurus/plugin-content-docs',
+    {
+      id: 'guides',
+      path: 'guides',
+      routeBasePath: 'guides',
+    },
+  ],
+]
+```
+
+### Custom Search Integration
+```javascript
+themeConfig: {
+  algolia: {
+    appId: 'YOUR_APP_ID',
+    apiKey: 'YOUR_API_KEY',
+    indexName: 'YOUR_INDEX_NAME',
+    contextualSearch: true,
+  },
+}
+```
+
+The configuration file is your control center for the entire Docusaurus site. Take time to understand each section and how they work together to create your documentation experience.

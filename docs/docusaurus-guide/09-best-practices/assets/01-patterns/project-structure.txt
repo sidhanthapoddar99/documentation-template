@@ -1,0 +1,10 @@
+✅ DO:
+- Keep related files together (docs with images)
+- Use clear, descriptive filenames
+- Follow consistent naming conventions
+- Organize docs by feature/topic
+
+❌ DON'T:
+- Mix concerns (docs in src/, components in docs/)
+- Use spaces in filenames
+- Create deep nesting (>3 levels)

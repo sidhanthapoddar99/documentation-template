@@ -1,0 +1,295 @@
+---
+id: 02-swizzling
+title: Component Swizzling
+description: Learn how to swizzle Docusaurus components for customization
+sidebar_position: 2
+---
+
+import SwizzleCommands from '!!raw-loader!./assets/02-swizzling/swizzle-commands.bash';
+import Callout from '@site/src/components/elements/Callout';
+import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs';
+
+# Component Swizzling
+
+**Swizzling** is Docusaurus's mechanism for overriding theme components. It allows you to customize specific parts of your site while maintaining the rest of the theme functionality.
+
+## What is Swizzling?
+
+Swizzling creates a copy of a theme component in your project, giving you control over its behavior and appearance. The term comes from Objective-C, where method swizzling allows runtime method replacement.
+
+<Callout type="info">
+**Key Concept**: Swizzling creates a "shadow" of the original component in your project. Your version takes precedence while the original remains available as a fallback.
+</Callout>
+
+## Swizzling Commands
+
+<FileCollapsibleCodeBlock content={SwizzleCommands} filename="swizzle-commands.bash" />
+
+## Swizzling Modes
+
+<Tabs>
+<TabItem value="eject" label="Eject Mode">
+
+**Complete Control**
+- Creates a full copy of the component
+- You maintain the entire component code
+- No automatic theme updates for that component
+- Maximum customization flexibility
+
+```bash
+npm run swizzle @docusaurus/theme-classic Navbar -- --eject
+```
+
+**When to Use:**
+- Major component restructuring needed
+- Complex custom functionality required
+- Component behavior significantly different from default
+
+**Trade-offs:**
+- ✅ Full control over component
+- ✅ Can modify any aspect
+- ❌ No automatic theme updates
+- ❌ More maintenance burden
+
+</TabItem>
+<TabItem value="wrap" label="Wrap Mode">
+
+**Extended Functionality**
+- Wraps the original component
+- Adds functionality while preserving core behavior
+- Continues to receive theme updates
+- Limited but safer customization
+
+```bash
+npm run swizzle @docusaurus/theme-classic Footer -- --wrap
+```
+
+**When to Use:**
+- Adding extra functionality
+- Minor modifications needed
+- Want to preserve theme updates
+
+**Trade-offs:**
+- ✅ Receives theme updates
+- ✅ Less maintenance
+- ✅ Safer for beginners
+- ❌ Limited customization options
+
+</TabItem>
+</Tabs>
+
+## Available Components
+
+Use the list command to see all swizzleable components:
+
+```bash
+npm run swizzle @docusaurus/theme-classic -- --list
+```
+
+### Commonly Swizzled Components
+
+#### Navigation Components
+- **`Navbar`**: Main navigation bar
+- **`NavbarItem/DefaultNavbarItem`**: Navigation menu items
+- **`NavbarItem/DropdownNavbarItem`**: Dropdown menus
+- **`MobileSidebar`**: Mobile navigation
+
+#### Layout Components
+- **`Layout`**: Main page wrapper
+- **`Footer`**: Site footer
+- **`DocPage/Layout`**: Documentation page layout
+- **`BlogPostPage`**: Blog post page layout
+
+#### Content Components
+- **`MDXComponents`**: Custom MDX component mappings
+- **`CodeBlock`**: Code syntax highlighting
+- **`Admonition`**: Callout/alert components
+- **`TOC`**: Table of contents
+
+#### Interactive Components
+- **`SearchBar`**: Search functionality
+- **`ColorModeToggle`**: Theme switcher
+- **`BackToTopButton`**: Scroll-to-top button
+
+<Callout type="tip">
+**Safety Levels**: Docusaurus marks components as "Safe" or "Unsafe" for swizzling. Safe components are less likely to have breaking changes in updates.
+</Callout>
+
+## Swizzling Examples
+
+### Example 1: Ejecting the Footer
+
+```bash
+npm run swizzle @docusaurus/theme-classic Footer -- --eject
+```
+
+This creates `src/theme/Footer/index.js` with the complete footer component. You can then modify it entirely:
+
+```jsx
+// src/theme/Footer/index.js
+import React from 'react';
+
+export default function Footer() {
+  return (
+    <footer className="custom-footer">
+      <div className="container">
+        <p>© 2024 My Custom Footer</p>
+        {/* Your custom footer content */}
+      </div>
+    </footer>
+  );
+}
+```
+
+### Example 2: Wrapping the Navbar
+
+```bash
+npm run swizzle @docusaurus/theme-classic Navbar -- --wrap
+```
+
+This creates a wrapper around the original navbar:
+
+```jsx
+// src/theme/Navbar/index.js
+import React from 'react';
+import OriginalNavbar from '@theme-original/Navbar';
+
+export default function Navbar(props) {
+  return (
+    <>
+      <div className="announcement-bar">
+        Important announcement!
+      </div>
+      <OriginalNavbar {...props} />
+    </>
+  );
+}
+```
+
+### Example 3: Custom MDX Components
+
+```bash
+npm run swizzle @docusaurus/theme-classic MDXComponents -- --eject
+```
+
+Add custom components available in all MDX files:
+
+```jsx
+// src/theme/MDXComponents/index.js
+import React from 'react';
+import MDXComponents from '@theme-original/MDXComponents';
+import CustomButton from '@site/src/components/CustomButton';
+import VideoPlayer from '@site/src/components/VideoPlayer';
+
+export default {
+  ...MDXComponents,
+  // Custom components available in MDX
+  CustomButton,
+  VideoPlayer,
+  // Override default HTML elements
+  h2: (props) => <h2 className="custom-heading" {...props} />,
+};
+```
+
+## Best Practices
+
+### 1. Start Small
+- Begin with wrap mode when possible
+- Only eject when absolutely necessary
+- Swizzle the smallest component that meets your needs
+
+### 2. Understand Dependencies
+- Some components depend on others
+- Swizzling parent may require swizzling children
+- Check component relationships before swizzling
+
+### 3. Version Management
+```bash
+# Document your swizzled components
+echo "Swizzled components:" > SWIZZLED_COMPONENTS.md
+echo "- Navbar (ejected) - v2.0.0" >> SWIZZLED_COMPONENTS.md
+echo "- Footer (wrapped) - v2.0.0" >> SWIZZLED_COMPONENTS.md
+```
+
+### 4. Testing Strategy
+- Test responsive behavior
+- Verify accessibility
+- Check dark/light mode compatibility
+- Test with different content lengths
+
+<Callout type="warning">
+**Update Considerations**: Ejected components won't receive theme updates automatically. You'll need to manually merge changes when updating Docusaurus.
+</Callout>
+
+## Troubleshooting Swizzling
+
+### Common Issues
+
+1. **Component Not Found**
+   - Verify component name with `--list`
+   - Check theme package name
+   - Ensure component is swizzleable
+
+2. **Build Errors After Swizzling**
+   - Check TypeScript if using TS
+   - Verify all imports are correct
+   - Ensure component export is default
+
+3. **Styling Issues**
+   - Import necessary CSS modules
+   - Check CSS class name conflicts
+   - Verify responsive breakpoints
+
+### Recovery Strategies
+
+```bash
+# Remove swizzled component to restore original
+rm -rf src/theme/ComponentName
+
+# Re-swizzle with different mode
+npm run swizzle @docusaurus/theme-classic ComponentName -- --wrap
+```
+
+## Advanced Swizzling Patterns
+
+### Conditional Swizzling
+```jsx
+import React from 'react';
+import OriginalComponent from '@theme-original/Component';
+import CustomComponent from './CustomComponent';
+
+export default function Component(props) {
+  const useCustom = props.customFlag || process.env.NODE_ENV === 'development';
+  
+  return useCustom ? 
+    <CustomComponent {...props} /> : 
+    <OriginalComponent {...props} />;
+}
+```
+
+### Multi-Theme Support
+```jsx
+import React from 'react';
+import OriginalNavbar from '@theme-original/Navbar';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+
+export default function Navbar(props) {
+  const {siteConfig} = useDocusaurusContext();
+  const variant = siteConfig.customFields?.navbarVariant || 'default';
+  
+  return (
+    <OriginalNavbar 
+      {...props} 
+      className={`navbar--${variant}`}
+    />
+  );
+}
+```
+
+<Callout type="success">
+**Pro Tip**: Keep a record of all swizzled components and their customization reasons. This helps with maintenance and team onboarding.
+</Callout>
+
+Swizzling is a powerful tool for Docusaurus customization. Use it thoughtfully to achieve your design goals while maintaining upgrade compatibility.

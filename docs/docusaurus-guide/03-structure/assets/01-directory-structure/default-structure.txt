@@ -1,0 +1,35 @@
+my-docusaurus-site/
+├── blog/                    # Blog posts (optional)
+│   ├── 2024-01-01-post.md
+│   └── authors.yml         # Blog authors configuration
+│
+├── docs/                    # Documentation files
+│   ├── intro.md            # /docs/intro
+│   ├── tutorial/           # /docs/tutorial/*
+│   │   ├── _category_.json # Category metadata
+│   │   └── basics.md
+│   └── api/                # /docs/api/*
+│       └── reference.md
+│
+├── src/                     # React components and custom pages
+│   ├── components/         # Reusable React components
+│   │   └── Feature.js
+│   ├── css/               # Global styles
+│   │   └── custom.css     # Your custom global CSS
+│   ├── pages/             # Custom pages (file = route)
+│   │   ├── index.js       # Homepage (/)
+│   │   ├── about.js       # /about
+│   │   └── showcase.js    # /showcase
+│   └── theme/             # Theme component overrides
+│       └── Navbar.js      # Override default Navbar
+│
+├── static/                  # Static assets (images, fonts, etc.)
+│   ├── img/                # Images accessible at /img/*
+│   ├── fonts/              # Fonts
+│   └── files/              # Downloadable files
+│
+├── docusaurus.config.js     # Main configuration file
+├── sidebars.js             # Sidebar configuration for docs
+├── package.json            # Dependencies and scripts
+├── babel.config.js         # Babel configuration
+└── README.md               # Project documentation

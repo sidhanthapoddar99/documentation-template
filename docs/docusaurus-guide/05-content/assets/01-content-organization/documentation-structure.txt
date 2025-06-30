@@ -1,0 +1,11 @@
+docs/
+├── intro.md                 # /docs/intro
+├── getting-started.md       # /docs/getting-started
+├── tutorial/               # Category
+│   ├── _category_.json     # Category config
+│   ├── basics.md          # /docs/tutorial/basics
+│   └── advanced.md        # /docs/tutorial/advanced
+└── api/                   # Another category
+    ├── _category_.json
+    ├── overview.md
+    └── reference.md

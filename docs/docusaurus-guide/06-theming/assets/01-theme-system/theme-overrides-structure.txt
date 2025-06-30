@@ -1,0 +1,10 @@
+src/theme/
+├── Navbar/              # Custom navbar
+│   └── index.js
+├── Footer/              # Custom footer
+│   └── index.js
+├── Layout/              # Custom layout wrapper
+│   └── index.js
+├── MDXComponents/       # Custom MDX components
+│   └── index.js
+└── prism-include-languages.js  # Additional Prism languages

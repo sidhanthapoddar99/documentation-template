@@ -1,0 +1,422 @@
+---
+id: 01-build-process
+title: Build Process
+description: Understanding Docusaurus build process, development mode, and production builds
+sidebar_position: 1
+---
+
+import BuildOutputCode from '!!raw-loader!./assets/01-build-process/build-output-structure.txt';
+import DevStartCode from '!!raw-loader!./assets/01-build-process/dev-start.bash';
+import ProductionBuildCode from '!!raw-loader!./assets/01-build-process/production-build.bash';
+import { TabItem, Tabs } from '@theme/Tabs';
+import { Callout } from '/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '/src/components/elements/CodeBlock';
+
+# Build Process
+
+Understanding the Docusaurus build process is crucial for optimizing performance, debugging issues, and deploying your documentation site effectively.
+
+## Development Mode
+
+<Callout type="info">
+**Development Server**: The development server provides fast rebuilds, hot module replacement, and debugging tools for efficient development.
+</Callout>
+
+### Starting Development Server
+
+<FileCollapsibleCodeBlock content={DevStartCode} filename="dev-start.bash" />
+
+### Development Mode Features
+
+**What Happens During Development:**
+
+1. **Webpack Dev Server Starts** - Serves your site locally
+2. **React Components Bundled** - Components are compiled and bundled
+3. **MDX Files Transformed** - Markdown files are converted to React components
+4. **Hot Module Replacement (HMR)** - Changes appear instantly without page refresh
+5. **Site Available** - Accessible at `http://localhost:3000`
+
+**Development Optimizations:**
+
+- **Fast Refresh** - React components update without losing state
+- **Source Maps** - Accurate debugging information
+- **Unminified Code** - Readable for debugging
+- **Development Warnings** - Helpful error messages and warnings
+
+### Development Configuration
+
+<Tabs>
+<TabItem value="basic" label="Basic Config">
+
+```javascript
+// docusaurus.config.js
+module.exports = {
+  // Development settings
+  onBrokenLinks: 'warn',        // Don't fail on broken links
+  onBrokenMarkdownLinks: 'warn', // Don't fail on broken MD links
+  
+  // Faster builds in development
+  future: {
+    experimental_faster: {
+      swcJsLoader: true,
+      swcJsMinimizer: true,
+      swcHtmlMinifier: true,
+    },
+  },
+};
+```
+
+</TabItem>
+<TabItem value="webpack" label="Webpack Config">
+
+```javascript
+// Custom webpack configuration
+module.exports = {
+  plugins: [
+    function (context, options) {
+      return {
+        name: 'custom-webpack-config',
+        configureWebpack(config, isServer) {
+          if (!isServer) {
+            return {
+              devtool: 'eval-source-map', // Faster source maps
+              optimization: {
+                splitChunks: {
+                  chunks: 'all',
+                  cacheGroups: {
+                    vendor: {
+                      test: /[\\/]node_modules[\\/]/,
+                      name: 'vendors',
+                      chunks: 'all',
+                    },
+                  },
+                },
+              },
+            };
+          }
+        },
+      };
+    },
+  ],
+};
+```
+
+</TabItem>
+</Tabs>
+
+### Development Port Configuration
+
+```javascript
+// docusaurus.config.js
+module.exports = {
+  // Custom port configuration
+  port: 3000,        // Default port
+  host: 'localhost', // Default host
+  
+  // For network access
+  host: '0.0.0.0',   // Allow external connections
+};
+```
+
+Or use command line options:
+
+```bash
+npm start -- --port 8080 --host 0.0.0.0
+```
+
+## Production Build
+
+<Callout type="warning">
+**Production Builds**: Production builds are optimized for performance and should be used for deployment. They include minification, optimization, and error checking.
+</Callout>
+
+### Building for Production
+
+<FileCollapsibleCodeBlock content={ProductionBuildCode} filename="production-build.bash" />
+
+### Build Process Steps
+
+**Detailed Build Process:**
+
+1. **Content Loading** - Read all content files (docs, blog, pages)
+2. **Plugin Execution** - Run plugin lifecycle hooks
+3. **Route Generation** - Create routes from files and plugins
+4. **React Server-Side Generation** - Generate static HTML for each route
+5. **Asset Optimization** - Minify JavaScript and CSS, optimize images
+6. **Output Generation** - Complete static site in `build/` directory
+
+### Build Configuration
+
+```javascript
+// docusaurus.config.js
+module.exports = {
+  // Production settings
+  onBrokenLinks: 'throw',          // Fail build on broken links
+  onBrokenMarkdownLinks: 'throw',   // Fail build on broken MD links
+  
+  // Build optimization
+  webpack: {
+    jsLoader: (isServer) => ({
+      loader: require.resolve('swc-loader'),
+      options: {
+        jsc: {
+          parser: {
+            syntax: 'typescript',
+            tsx: true,
+          },
+          transform: {
+            react: {
+              runtime: 'automatic',
+            },
+          },
+        },
+      },
+    }),
+  },
+};
+```
+
+### Build Environment Variables
+
+<Tabs>
+<TabItem value="env" label="Environment Variables">
+
+```bash
+# Production build with custom settings
+NODE_ENV=production npm run build
+
+# Build with bundle analysis
+ANALYZE=true npm run build
+
+# Build with debug information
+DEBUG=docusaurus* npm run build
+```
+
+</TabItem>
+<TabItem value="config" label="Config Usage">
+
+```javascript
+// Using environment variables in config
+const isProduction = process.env.NODE_ENV === 'production';
+const shouldAnalyze = process.env.ANALYZE === 'true';
+
+module.exports = {
+  plugins: [
+    // Only in production
+    isProduction && '@docusaurus/plugin-google-analytics',
+    
+    // Only when analyzing
+    shouldAnalyze && '@docusaurus/plugin-webpack-bundle-analyzer',
+  ].filter(Boolean),
+};
+```
+
+</TabItem>
+</Tabs>
+
+## Build Output Structure
+
+<Callout type="tip">
+**Build Output**: The build directory contains everything needed to deploy your static site to any web server or CDN.
+</Callout>
+
+<FileCollapsibleCodeBlock content={BuildOutputCode} filename="build-output-structure.txt" />
+
+### Output Directory Details
+
+**Key Output Files:**
+
+- **`index.html`** - Homepage with SEO meta tags
+- **`docs/`** - Documentation pages with nested routing
+- **`blog/`** - Blog posts with date-based routing
+- **`assets/`** - Optimized JavaScript and CSS bundles
+- **`img/`** - Static images from `static/img/`
+- **`sitemap.xml`** - SEO sitemap for search engines
+- **`404.html`** - Custom 404 error page
+
+### Asset Optimization
+
+**JavaScript Optimization:**
+- **Code Splitting** - Separate bundles for different pages
+- **Tree Shaking** - Remove unused code
+- **Minification** - Compress JavaScript files
+- **Source Maps** - Optional debugging information
+
+**CSS Optimization:**
+- **Critical CSS** - Inline critical styles
+- **CSS Minification** - Remove whitespace and comments
+- **Autoprefixer** - Add vendor prefixes
+- **CSS Modules** - Scoped component styles
+
+**Image Optimization:**
+- **Static Images** - Copied as-is from `static/`
+- **Imported Images** - Optimized and versioned
+- **Responsive Images** - Multiple sizes when using ideal-image plugin
+
+## Build Performance
+
+### Optimization Strategies
+
+<Callout type="performance">
+**Build Performance**: Large sites can have slow build times. Use these strategies to optimize build performance.
+</Callout>
+
+**Content Optimization:**
+```javascript
+// Reduce build size
+module.exports = {
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
+  
+  // Disable source maps in production
+  webpack: {
+    jsLoader: (isServer) => ({
+      loader: require.resolve('esbuild-loader'),
+      options: {
+        loader: 'tsx',
+        target: isServer ? 'node12' : 'es2017',
+      },
+    }),
+  },
+};
+```
+
+**Plugin Optimization:**
+```javascript
+const isDev = process.env.NODE_ENV === 'development';
+
+module.exports = {
+  plugins: [
+    // Skip expensive plugins in development
+    !isDev && '@docusaurus/plugin-sitemap',
+    !isDev && '@docusaurus/plugin-google-analytics',
+    
+    // Use faster alternatives in development
+    isDev && [
+      '@docusaurus/plugin-debug',
+      { enabled: true }
+    ],
+  ].filter(Boolean),
+};
+```
+
+### Build Caching
+
+```bash
+# Use build cache for faster rebuilds
+npm run build -- --cache
+
+# Clear build cache if needed
+npm run clear
+```
+
+### Bundle Analysis
+
+Analyze bundle size and composition:
+
+```bash
+# Install bundle analyzer
+npm install --save-dev @docusaurus/plugin-webpack-bundle-analyzer
+
+# Analyze production build
+ANALYZE=true npm run build
+```
+
+## Error Handling
+
+### Common Build Errors
+
+<Tabs>
+<TabItem value="links" label="Broken Links">
+
+**Broken Links Error:**
+```
+Error: Docusaurus found broken links!
+
+Please check the pages of your site in the list below, and make sure you don't reference any path that does not exist.
+```
+
+**Solutions:**
+- Check all internal links use correct paths
+- Verify referenced docs exist
+- Use relative paths when possible
+- Configure `onBrokenLinks: 'warn'` for development
+
+</TabItem>
+<TabItem value="memory" label="Memory Issues">
+
+**Out of Memory Error:**
+```
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+```
+
+**Solutions:**
+```bash
+# Increase Node.js memory limit
+NODE_OPTIONS="--max-old-space-size=4096" npm run build
+
+# Or use environment variable
+export NODE_OPTIONS="--max-old-space-size=4096"
+npm run build
+```
+
+</TabItem>
+</Tabs>
+
+### Debug Mode
+
+Enable detailed logging for troubleshooting:
+
+```bash
+# Enable all debug logs
+DEBUG=docusaurus* npm run build
+
+# Enable specific debug categories
+DEBUG=docusaurus:core,docusaurus:webpack npm run build
+```
+
+## Build Scripts
+
+### Custom Build Scripts
+
+```json
+{
+  "scripts": {
+    "build": "docusaurus build",
+    "build:analyze": "ANALYZE=true docusaurus build",
+    "build:prod": "NODE_ENV=production docusaurus build",
+    "build:fast": "docusaurus build --fast",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve"
+  }
+}
+```
+
+### CI/CD Integration
+
+```yaml
+# GitHub Actions example
+name: Build and Deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-files
+          path: build/
+```
+
+Understanding the build process helps you optimize performance, debug issues, and deploy your documentation site effectively. The key is knowing when to use development mode for fast iteration and production builds for deployment.

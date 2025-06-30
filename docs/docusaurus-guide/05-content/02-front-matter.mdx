@@ -1,0 +1,211 @@
+---
+id: 02-front-matter
+title: Front Matter Configuration
+description: Master front matter configuration for fine-tuning your documentation pages
+sidebar_position: 2
+---
+
+import BlogFrontMatter from '!!raw-loader!./assets/02-front-matter/blog-front-matter.md';
+import DocFrontMatter from '!!raw-loader!./assets/02-front-matter/doc-front-matter.md';
+import Callout from '@site/src/components/elements/Callout';
+import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs';
+
+# Front Matter Configuration
+
+Front matter is YAML metadata placed at the top of your Markdown files. It controls how pages are rendered, their position in navigation, SEO properties, and more.
+
+## Documentation Front Matter
+
+Every documentation page can include front matter to customize its behavior:
+
+<FileCollapsibleCodeBlock content={DocFrontMatter} filename="doc-front-matter.md" />
+
+## Front Matter Properties
+
+### Essential Properties
+
+<Tabs>
+<TabItem value="identification" label="Identification">
+
+**`id`** (string, optional)
+- Unique identifier for the document
+- Defaults to filename without extension
+- Used for cross-references and linking
+
+**`title`** (string, required)
+- Page title shown in browser tab and page header
+- Used for SEO and social sharing
+
+**`sidebar_label`** (string, optional)
+- Text shown in the sidebar navigation
+- Defaults to `title` if not specified
+- Keep concise for better sidebar appearance
+
+</TabItem>
+<TabItem value="navigation" label="Navigation">
+
+**`sidebar_position`** (number, optional)
+- Controls order in sidebar
+- Lower numbers appear first
+- Can use decimals: `1.5`, `2.1`
+
+**`slug`** (string, optional)
+- Custom URL path for the page
+- Overrides default file-based routing
+- Must start with `/` for absolute paths
+
+**`hide_table_of_contents`** (boolean, optional)
+- Hides the right sidebar TOC
+- Useful for pages with minimal headings
+
+</TabItem>
+<TabItem value="seo" label="SEO & Social">
+
+**`description`** (string, optional)
+- Meta description for search engines
+- Shown in search results
+- Recommended length: 150-160 characters
+
+**`keywords`** (array, optional)
+- SEO keywords for the page
+- Format: `[keyword1, keyword2, keyword3]`
+
+**`image`** (string, optional)
+- Social media preview image
+- Used for Open Graph and Twitter cards
+- Should be absolute URL or path from static/
+
+</TabItem>
+</Tabs>
+
+### Advanced Properties
+
+**`tags`** (array, optional)
+- Categorize content with tags
+- Creates tag pages automatically
+- Format: `[tag1, tag2, tag3]`
+
+**`toc_min_heading_level`** (number, optional)
+- Minimum heading level for TOC
+- Default: 2 (includes h2 and below)
+
+**`toc_max_heading_level`** (number, optional)
+- Maximum heading level for TOC
+- Default: 3 (stops at h3)
+
+<Callout type="info">
+**TOC Configuration**: Use heading level controls to customize the table of contents depth. This is especially useful for pages with complex heading structures.
+</Callout>
+
+## Blog Post Front Matter
+
+Blog posts have additional front matter options:
+
+<FileCollapsibleCodeBlock content={BlogFrontMatter} filename="blog-front-matter.md" />
+
+### Blog-Specific Properties
+
+**`slug`** (string, required)
+- URL-friendly version of the post title
+- Used in the post URL
+- Should be unique across all blog posts
+
+**`authors`** (array, optional)
+- Author identifiers from `blog/authors.yml`
+- Can be strings or objects with name, title, etc.
+- Supports multiple authors per post
+
+**`date`** (date, optional)
+- Publication date in YYYY-MM-DD format
+- Used for chronological ordering
+- Defaults to file creation date
+
+**`draft`** (boolean, optional)
+- Set to `true` to hide from production builds
+- Useful for work-in-progress posts
+- Still visible in development mode
+
+## Common Patterns
+
+### 1. Consistent Naming
+
+<Callout type="tip">
+**Naming Strategy**: Use consistent patterns for IDs and slugs. Consider prefixing with section names: `api-reference`, `tutorial-basics`, etc.
+</Callout>
+
+### 2. SEO Optimization
+
+```yaml
+---
+title: "Complete Guide to Docusaurus Configuration"
+description: "Learn how to configure Docusaurus for your documentation needs with this comprehensive guide covering all configuration options."
+keywords: [docusaurus, configuration, documentation, static site generator]
+image: /img/docusaurus-config-guide.png
+---
+```
+
+### 3. Navigation Control
+
+```yaml
+---
+sidebar_position: 1
+sidebar_label: "Quick Start"
+slug: /quick-start
+hide_table_of_contents: false
+---
+```
+
+### 4. Content Organization
+
+```yaml
+---
+id: advanced-features
+title: "Advanced Features"
+tags: [advanced, features, configuration]
+toc_min_heading_level: 2
+toc_max_heading_level: 4
+---
+```
+
+## Front Matter Validation
+
+<Callout type="warning">
+**Validation**: Docusaurus validates front matter during build. Invalid YAML or unsupported properties will cause build errors. Always test your changes locally.
+</Callout>
+
+### Common Issues
+
+1. **YAML Syntax Errors**: Ensure proper indentation and quote usage
+2. **Invalid Types**: Use correct data types (strings, numbers, booleans, arrays)
+3. **Reserved Names**: Avoid using reserved property names
+4. **Duplicate IDs**: Each document must have a unique ID
+
+## Best Practices
+
+### 1. Consistency
+- Use consistent front matter across similar content types
+- Establish conventions for your project
+- Document your front matter standards
+
+### 2. SEO Focus
+- Always include meaningful titles and descriptions
+- Use relevant keywords naturally
+- Optimize images for social sharing
+
+### 3. User Experience
+- Choose clear, descriptive sidebar labels
+- Use logical positioning numbers
+- Consider mobile navigation when naming
+
+### 4. Maintenance
+- Keep front matter minimal but complete
+- Review and update regularly
+- Use automation tools for consistency
+
+<Callout type="success">
+**Pro Tip**: Create front matter templates for different content types to ensure consistency and speed up content creation.
+</Callout>
+
+Front matter is a powerful tool for controlling your documentation's behavior and appearance. Master these configurations to create professional, user-friendly documentation sites.

@@ -1,0 +1,203 @@
+---
+id: 01-patterns
+title: Best Practices & Common Patterns
+description: Essential best practices for Docusaurus project organization, performance optimization, and common implementation patterns
+sidebar_position: 1
+---
+
+import Callout from '@site/src/components/elements/Callout';
+import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs';
+
+import CustomSearchCode from '!!raw-loader!./assets/01-patterns/custom-search.js';
+import MultiVersionDocsCode from '!!raw-loader!./assets/01-patterns/multi-version-docs.js';
+import MultipleDocSectionsCode from '!!raw-loader!./assets/01-patterns/multiple-doc-sections.js';
+import ProjectStructureExample from '!!raw-loader!./assets/01-patterns/project-structure.txt';
+
+# Best Practices & Common Patterns
+
+This guide covers essential best practices for organizing and optimizing your Docusaurus projects, along with common implementation patterns.
+
+## Project Organization
+
+### File Structure Guidelines
+
+Following consistent organization patterns ensures maintainable and scalable documentation projects.
+
+<FileCollapsibleCodeBlock 
+  content={ProjectStructureExample} 
+  filename="project-structure.txt" 
+/>
+
+<Callout type="tip" title="Organization Tips">
+- Group related documentation together (e.g., all API docs in one section)
+- Use consistent naming conventions across all files
+- Keep folder nesting shallow (maximum 3 levels recommended)
+- Place assets close to the content that uses them
+</Callout>
+
+### Content Structure Best Practices
+
+- **Logical Hierarchy**: Organize content from general to specific
+- **Clear Navigation**: Use descriptive sidebar labels and logical ordering
+- **Asset Management**: Keep images, diagrams, and code samples in dedicated `assets/` folders
+- **Cross-references**: Use relative links between related documentation
+
+## Performance Optimization
+
+### Image Optimization
+
+- **Format Selection**: Use WebP for web images, PNG for screenshots with text
+- **Size Optimization**: Compress images and use appropriate dimensions
+- **Lazy Loading**: Implement the `@docusaurus/plugin-ideal-image` plugin
+
+### Code Splitting
+
+- **Dynamic Imports**: Load heavy components only when needed
+- **Plugin Management**: Only include plugins you actually use
+- **Bundle Analysis**: Regularly analyze bundle size with `npm run build -- --bundle-analyzer`
+
+### Build Performance
+
+- **Incremental Builds**: Use development mode for content updates
+- **Cache Management**: Clear cache when experiencing build issues
+- **Dependency Updates**: Keep Docusaurus and plugins updated
+
+## SEO Best Practices
+
+### Meta Information
+
+- Always include meaningful `title` and `description` in front matter
+- Use structured data where appropriate
+- Create comprehensive sitemaps
+- Add proper meta tags for social sharing
+
+### Content Optimization
+
+- **Headings**: Use proper heading hierarchy (H1 → H2 → H3)
+- **Internal Linking**: Create a strong internal link structure
+- **Alt Text**: Always provide descriptive alt text for images
+- **URL Structure**: Use clean, descriptive URLs
+
+## Maintenance Guidelines
+
+### Version Control
+
+- **Content Versioning**: Track documentation changes alongside code
+- **Branching Strategy**: Use feature branches for major documentation updates
+- **Review Process**: Implement pull request reviews for content changes
+
+### Regular Maintenance
+
+- **Dependency Updates**: Keep all dependencies current
+- **Link Checking**: Regularly verify internal and external links
+- **Performance Monitoring**: Track build times and site performance
+- **Content Auditing**: Review and update outdated information
+
+## Content Guidelines
+
+### Writing Standards
+
+- **Clarity**: Write clear, concise documentation
+- **Consistency**: Use consistent formatting and terminology
+- **Examples**: Include practical code examples
+- **Visual Aids**: Add diagrams and images where helpful
+- **Front Matter**: Keep front matter organized and complete
+
+### Documentation Structure
+
+- **Introduction**: Start each section with a clear overview
+- **Step-by-Step**: Break complex processes into manageable steps
+- **Code Samples**: Provide working examples
+- **Troubleshooting**: Include common issues and solutions
+
+## Common Implementation Patterns
+
+### Multi-Version Documentation
+
+For projects that need to maintain documentation for multiple versions:
+
+<FileCollapsibleCodeBlock 
+  content={MultiVersionDocsCode} 
+  filename="multi-version-docs.js" 
+/>
+
+<Callout type="info" title="Version Management">
+This pattern is ideal for:
+- API documentation with breaking changes
+- Software with multiple supported versions
+- Products with different feature sets per version
+</Callout>
+
+### Multiple Documentation Sections
+
+Organize different types of documentation into separate sections:
+
+<FileCollapsibleCodeBlock 
+  content={MultipleDocSectionsCode} 
+  filename="multiple-doc-sections.js" 
+/>
+
+**Use Cases:**
+- Separate API reference from user guides
+- Different documentation for different user types
+- Component library with separate usage and development docs
+
+### Custom Search Integration
+
+Implement advanced search capabilities with Algolia:
+
+<FileCollapsibleCodeBlock 
+  content={CustomSearchCode} 
+  filename="custom-search.js" 
+/>
+
+<Tabs>
+<TabItem value="algolia" label="Algolia Search">
+
+**Benefits:**
+- Fast, typo-tolerant search
+- Advanced filtering and faceting
+- Analytics and insights
+- Customizable search UI
+
+</TabItem>
+<TabItem value="local" label="Local Search">
+
+**Alternative for smaller sites:**
+```javascript
+plugins: [
+  [
+    'docusaurus-lunr-search',
+    {
+      languages: ['en', 'es']
+    }
+  ]
+]
+```
+
+</TabItem>
+</Tabs>
+
+## Advanced Patterns
+
+### Custom Plugin Development
+
+For specialized functionality:
+
+- **Content Processing**: Transform content during build
+- **Custom Routes**: Add dynamic pages
+- **Integration**: Connect with external services
+- **Theme Enhancement**: Extend existing theme capabilities
+
+### Component Architecture
+
+- **Reusable Components**: Create a library of documentation components
+- **MDX Integration**: Map custom components for use in Markdown
+- **Theme Customization**: Override default components strategically
+- **Responsive Design**: Ensure mobile-friendly documentation
+
+<Callout type="warning" title="Best Practice Reminder">
+Always test your documentation site in different environments and devices. What works in development should work in production, and what works on desktop should work on mobile.
+</Callout>

@@ -1,0 +1,138 @@
+---
+id: 02-special-directories
+title: Special Directories Explained
+description: Deep dive into each special directory and its purpose in Docusaurus
+sidebar_position: 2
+---
+
+import { FileCollapsibleCodeBlock, Callout } from '../../../src/components/elements';
+import DocsStructure from '!!raw-loader!./assets/02-special-directories/docs-structure.txt';
+
+# Special Directories Explained
+
+Each directory in a Docusaurus project serves a specific purpose. Understanding these directories is crucial for organizing your content effectively.
+
+## 1. `docs/` - Documentation Content
+
+**Purpose**: Contains all your documentation files in Markdown/MDX format.
+
+### Features:
+- **Automatic routing** based on file structure
+- **Sidebar generation** from folder hierarchy
+- **Version support** for multiple documentation versions
+- **Category organization** with `_category_.json` files
+
+### Example Structure:
+
+<FileCollapsibleCodeBlock 
+  content={DocsStructure} 
+  filename="docs-structure.txt" 
+/>
+
+<Callout type="info" title="Routing Pattern">
+The `docs/` directory creates routes with the `/docs/` prefix by default. You can customize this with the `routeBasePath` configuration.
+</Callout>
+
+## 2. `blog/` - Blog Content
+
+**Purpose**: Contains blog posts with dates, authors, and tags.
+
+### Features:
+- **Date-based naming**: `YYYY-MM-DD-slug.md` format
+- **RSS feed generation**: Automatic RSS/Atom feeds
+- **Tag system**: Organize posts by topics
+- **Author profiles**: Link posts to author information
+- **Archive pages**: Automatic yearly/monthly archives
+
+### Special Files:
+- `authors.yml`: Define blog authors with profiles
+- `index.md`: Custom blog landing page
+
+<Callout type="tip" title="Blog Post Naming">
+Always use the `YYYY-MM-DD-slug.md` format for blog posts. The date determines the URL and post ordering.
+</Callout>
+
+## 3. `src/pages/` - Custom Pages
+
+**Purpose**: React components that become standalone pages.
+
+### Supported File Types:
+- `.js`, `.jsx` (React components)
+- `.tsx` (TypeScript React components)
+- `.md`, `.mdx` (Markdown with optional React)
+
+### Special Files:
+- `index.js` → Homepage (`/`)
+- `404.js` → Custom 404 error page
+- `about.js` → `/about` page
+
+### Use Cases:
+- Landing pages
+- Custom layouts
+- Interactive pages
+- Product showcases
+
+## 4. `src/theme/` - Theme Overrides
+
+**Purpose**: Override default Docusaurus theme components.
+
+### Process (Called "Swizzling"):
+1. Identify the component to override
+2. Extract it to your theme directory
+3. Customize the component
+4. Docusaurus automatically uses your version
+
+### Common Overrides:
+- `Navbar/` - Custom navigation bar
+- `Footer/` - Custom footer
+- `Layout/` - Custom page layouts
+- `MDXComponents/` - Custom MDX components
+
+<Callout type="warning" title="Theme Overrides">
+Be careful when overriding theme components. Updates to Docusaurus may break your customizations if not handled properly.
+</Callout>
+
+## 5. `static/` - Static Assets
+
+**Purpose**: Files served as-is without processing by webpack.
+
+### Characteristics:
+- **Direct access**: Files available at root URL
+- **No processing**: Images, fonts, and files served unchanged
+- **Performance**: Cached efficiently by browsers
+
+### Examples:
+- `/static/img/logo.png` → `/img/logo.png`
+- `/static/fonts/custom.woff2` → `/fonts/custom.woff2`
+- `/static/files/guide.pdf` → `/files/guide.pdf`
+
+### Best Practices:
+- Use for large files that don't need processing
+- Organize in subdirectories (`img/`, `fonts/`, `files/`)
+- Optimize images before placing in static
+
+## 6. `src/components/` - React Components
+
+**Purpose**: Reusable React components for use throughout your site.
+
+### Organization:
+- Create subdirectories for different component types
+- Include CSS modules for styling
+- Export components from index files
+
+### Usage:
+- Import in MDX files
+- Use in custom pages
+- Include in theme overrides
+
+## Directory Best Practices
+
+1. **Keep related files together**: Place images near the docs that use them
+2. **Use descriptive names**: Clear, consistent naming conventions
+3. **Organize by feature**: Group related content in subdirectories
+4. **Avoid deep nesting**: Limit to 3-4 levels of directories
+5. **Include assets**: Keep diagrams and code samples in assets folders
+
+<Callout type="success" title="Pro Tip">
+Use the `assets/` folder pattern within documentation sections to keep related files organized and maintain clean imports in your MDX files.
+</Callout>

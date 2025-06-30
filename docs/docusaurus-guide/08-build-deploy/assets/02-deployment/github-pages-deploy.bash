@@ -1,0 +1,1 @@
+GIT_USER=<GITHUB_USERNAME> npm run deploy

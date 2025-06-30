@@ -1,0 +1,236 @@
+---
+id: 01-plugin-architecture
+title: Plugin Architecture
+description: Understanding Docusaurus plugin system, types, and architecture
+sidebar_position: 1
+---
+
+import { Callout } from '/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '/src/components/elements/CodeBlock';
+import CustomPluginCode from '!!raw-loader!./assets/01-plugin-architecture/custom-plugin.js';
+
+# Plugin Architecture
+
+Docusaurus has a powerful plugin architecture that allows you to extend functionality and customize behavior. Understanding how plugins work is essential for building advanced documentation sites.
+
+## Plugin Types
+
+<Callout type="info">
+**Plugin Categories**: Docusaurus plugins fall into three main categories based on their origin and purpose.
+</Callout>
+
+### 1. Official Plugins
+
+Official plugins are maintained by the Docusaurus team and follow the naming convention `@docusaurus/plugin-*`:
+
+- **@docusaurus/plugin-content-docs** - Documentation pages
+- **@docusaurus/plugin-content-blog** - Blog functionality  
+- **@docusaurus/plugin-google-analytics** - Analytics tracking
+- **@docusaurus/plugin-pwa** - Progressive Web App features
+- **@docusaurus/plugin-sitemap** - XML sitemap generation
+- **@docusaurus/plugin-ideal-image** - Image optimization
+
+### 2. Community Plugins
+
+Community plugins are developed by third parties and typically use the naming convention `docusaurus-plugin-*`:
+
+- **docusaurus-plugin-search-local** - Local search functionality
+- **docusaurus-plugin-sass** - Sass/SCSS support
+- **docusaurus-plugin-remote-content** - Load remote content
+- **docusaurus-plugin-matomo** - Matomo analytics
+
+### 3. Local Plugins
+
+Local plugins are custom plugins you create for your specific needs:
+
+- Located in your project (e.g., `./src/plugins/my-plugin`)
+- Fully customizable to your requirements
+- Can extend or modify any aspect of the build process
+
+## Plugin Architecture Overview
+
+### Plugin Lifecycle
+
+Plugins hook into various stages of the Docusaurus build process:
+
+1. **Initialization** - Plugin is loaded and configured
+2. **Content Loading** - Plugin processes its content sources
+3. **Content Generation** - Plugin creates pages and data
+4. **Build** - Plugin participates in the build process
+5. **Rendering** - Plugin components are rendered
+
+### Plugin Capabilities
+
+Plugins can:
+
+- **Load Content** - Process files, fetch data, transform content
+- **Create Pages** - Generate routes and pages programmatically
+- **Modify Configuration** - Adjust webpack, babel, or other configs
+- **Inject Assets** - Add scripts, styles, or meta tags
+- **Extend Theme** - Provide custom components and layouts
+- **Hook into Build** - Run custom logic during build phases
+
+## Creating Custom Plugins
+
+<Callout type="warning">
+**Advanced Feature**: Custom plugin development requires understanding of the Docusaurus build process and React ecosystem.
+</Callout>
+
+### Basic Plugin Structure
+
+A plugin is a function that returns a plugin object with various lifecycle methods:
+
+<FileCollapsibleCodeBlock content={CustomPluginCode} filename="custom-plugin.js" />
+
+### Key Plugin Methods
+
+#### `configureWebpack(config, isServer, utils)`
+- Modify webpack configuration
+- Add loaders, plugins, or resolve aliases
+- Different configs for client and server builds
+
+#### `injectHtmlTags()`
+- Add HTML tags to the document head or body
+- Useful for analytics, fonts, or external scripts
+- Returns object with `headTags` and `bodyTags` arrays
+
+#### `contentLoaded({content, actions})`
+- Process loaded content and create pages
+- Access to `createData()` and `addRoute()` actions
+- Most powerful method for content-based plugins
+
+#### `loadContent()`
+- Load and process content from various sources
+- Can read files, fetch APIs, or transform data
+- Content is passed to `contentLoaded()`
+
+### Plugin Registration
+
+Add custom plugins to your `docusaurus.config.js`:
+
+```javascript
+module.exports = {
+  plugins: [
+    // Local plugin
+    require.resolve('./src/plugins/my-plugin'),
+    
+    // Local plugin with options
+    [require.resolve('./src/plugins/my-plugin'), { option: 'value' }],
+    
+    // Published plugin
+    'docusaurus-plugin-name',
+    
+    // Published plugin with options
+    ['docusaurus-plugin-name', { option: 'value' }],
+  ],
+};
+```
+
+## Plugin Development Best Practices
+
+### 1. Follow Naming Conventions
+
+- Official plugins: `@docusaurus/plugin-name`
+- Community plugins: `docusaurus-plugin-name`
+- Local plugins: descriptive names in `src/plugins/`
+
+### 2. Handle Errors Gracefully
+
+```javascript
+module.exports = function (context, options) {
+  return {
+    name: 'my-plugin',
+    async loadContent() {
+      try {
+        // Your content loading logic
+        return await fetchContent();
+      } catch (error) {
+        console.error('Plugin error:', error);
+        return null;
+      }
+    },
+  };
+};
+```
+
+### 3. Use TypeScript
+
+```typescript
+import type {Plugin} from '@docusaurus/types';
+
+export default function myPlugin(): Plugin {
+  return {
+    name: 'my-plugin',
+    // Plugin implementation
+  };
+}
+```
+
+### 4. Document Your Plugin
+
+- Provide clear installation instructions
+- Document all configuration options
+- Include usage examples
+- Explain any dependencies or requirements
+
+### 5. Test Thoroughly
+
+- Test with different Docusaurus versions
+- Test build and development modes
+- Test with various configuration options
+- Provide example projects
+
+<Callout type="tip">
+**Plugin Development Resources**: Check the official Docusaurus plugin API documentation and study existing plugins for patterns and best practices.
+</Callout>
+
+## Plugin Context and Options
+
+### Context Object
+
+The plugin function receives a context object with site information:
+
+```javascript
+module.exports = function (context, options) {
+  const {
+    siteDir,        // Site directory path
+    siteConfig,     // docusaurus.config.js content
+    outDir,         // Output directory
+    baseUrl,        // Site base URL
+    i18n,          // Internationalization config
+  } = context;
+  
+  return {
+    name: 'my-plugin',
+    // Plugin implementation
+  };
+};
+```
+
+### Options Validation
+
+Validate plugin options using Joi schemas:
+
+```javascript
+const Joi = require('joi');
+
+const pluginOptionsSchema = Joi.object({
+  apiKey: Joi.string().required(),
+  debug: Joi.boolean().default(false),
+});
+
+module.exports = function (context, options) {
+  const validatedOptions = pluginOptionsSchema.validate(options);
+  
+  if (validatedOptions.error) {
+    throw new Error(`Invalid plugin options: ${validatedOptions.error.message}`);
+  }
+  
+  return {
+    name: 'my-plugin',
+    // Use validatedOptions.value
+  };
+};
+```
+
+Understanding plugin architecture enables you to extend Docusaurus with custom functionality and integrate with external services or build processes.

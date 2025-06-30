@@ -1,0 +1,77 @@
+---
+id: what-is-docusaurus
+title: What is Docusaurus?
+description: Learn about Docusaurus, a static site generator built on React that specializes in documentation websites
+sidebar_position: 1
+---
+
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import FeaturesList from '!!raw-loader!./assets/01-what-is-docusaurus/features-list.txt';
+
+# What is Docusaurus?
+
+Docusaurus is a **static site generator** built on React that specializes in documentation websites. It's designed to make it easy to create, maintain, and deploy documentation sites with minimal configuration while providing powerful customization options.
+
+<Callout type="info">
+**Static Site Generator (SSG)**: Docusaurus converts your React/Markdown files into static HTML at build time, then "hydrates" them back into an interactive React app at runtime. This provides fast loading, SEO-friendly pages that can be hosted anywhere.
+</Callout>
+
+## Key Features
+
+Docusaurus provides a comprehensive set of features out of the box:
+
+<FileCollapsibleCodeBlock 
+  content={FeaturesList} 
+  filename="Key Features"
+  language="text"
+/>
+
+## Why Choose Docusaurus?
+
+### 🚀 **Developer Experience**
+- **Zero Configuration**: Get started with a single command
+- **Hot Reloading**: See changes instantly during development
+- **TypeScript Support**: Built with TypeScript, full type safety
+- **Modern Tooling**: Webpack, Babel, and PostCSS included
+
+### 📚 **Content Management**
+- **File-Based Routing**: Organize content with simple file structures
+- **MDX Integration**: Mix Markdown with React components
+- **Versioning**: Support multiple documentation versions
+- **Localization**: Built-in internationalization support
+
+### 🎨 **Customization**
+- **Theme System**: Extensive theming capabilities
+- **Component Swizzling**: Override any built-in component
+- **Plugin Architecture**: Extend functionality with plugins
+- **Custom Pages**: Create fully custom React pages
+
+### 🔍 **SEO & Performance**
+- **Server-Side Rendering**: Pre-rendered HTML for better SEO
+- **Optimized Builds**: Automatic code splitting and optimization
+- **Progressive Web App**: PWA support out of the box
+- **Search Integration**: Built-in search with Algolia DocSearch
+
+## Who Uses Docusaurus?
+
+Docusaurus is trusted by many popular open-source projects and organizations:
+
+- **Meta (Facebook)**: Created and maintains Docusaurus
+- **React**: Official React documentation
+- **Jest**: JavaScript testing framework documentation
+- **Prettier**: Code formatter documentation
+- **And many more...**
+
+<Callout type="tip">
+**Perfect For**: API documentation, product guides, technical tutorials, open-source project docs, and any content-heavy website that needs to be fast, maintainable, and SEO-friendly.
+</Callout>
+
+## How It Works
+
+1. **Write Content**: Create Markdown or MDX files in your `docs/` folder
+2. **Configure**: Set up navigation, themes, and plugins in config files
+3. **Build**: Docusaurus generates a static site from your content
+4. **Deploy**: Host the static files anywhere (GitHub Pages, Netlify, Vercel, etc.)
+
+The beauty of Docusaurus lies in its simplicity for basic use cases while providing the flexibility to create highly customized documentation experiences when needed.

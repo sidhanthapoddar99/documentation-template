@@ -1,0 +1,412 @@
+---
+id: 03-customization
+title: Customization Patterns
+description: Learn common patterns for customizing Docusaurus themes with CSS, React components, and MDX
+sidebar_position: 3
+---
+
+import CustomCSS from '!!raw-loader!./assets/03-customization/custom-css.css';
+import CustomPage from '!!raw-loader!./assets/03-customization/custom-page.js';
+import CustomReactComponent from '!!raw-loader!./assets/03-customization/custom-react-component.js';
+import MDXComponentMapping from '!!raw-loader!./assets/03-customization/mdx-component-mapping.js';
+import Callout from '@site/src/components/elements/Callout';
+import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs';
+
+# Customization Patterns
+
+Docusaurus provides multiple approaches for customization, from simple CSS tweaks to complex React component overrides. Understanding these patterns helps you choose the right approach for your needs.
+
+## CSS Customization
+
+### Custom CSS Variables
+
+The quickest way to customize appearance is through CSS custom properties:
+
+<FileCollapsibleCodeBlock content={CustomCSS} filename="custom.css" />
+
+<Callout type="info">
+**CSS Variables**: Docusaurus uses CSS custom properties extensively. Override these to change colors, fonts, spacing, and other design tokens across your entire site.
+</Callout>
+
+### Key CSS Variable Categories
+
+<Tabs>
+<TabItem value="colors" label="Colors">
+
+```css
+:root {
+  /* Primary brand colors */
+  --ifm-color-primary: #2e8555;
+  --ifm-color-primary-dark: #29784c;
+  --ifm-color-primary-light: #33925d;
+  
+  /* Background colors */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f7f7f7;
+  
+  /* Text colors */
+  --ifm-font-color-base: #1c1e21;
+  --ifm-font-color-secondary: #525860;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #25c2a0;
+  --ifm-background-color: #1b1b1d;
+  --ifm-font-color-base: #ffffff;
+}
+```
+
+</TabItem>
+<TabItem value="typography" label="Typography">
+
+```css
+:root {
+  /* Font families */
+  --ifm-font-family-base: 'Inter', system-ui, sans-serif;
+  --ifm-font-family-monospace: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* Font sizes */
+  --ifm-font-size-base: 16px;
+  --ifm-h1-font-size: 2rem;
+  --ifm-h2-font-size: 1.5rem;
+  
+  /* Line heights */
+  --ifm-line-height-base: 1.65;
+  --ifm-heading-line-height: 1.25;
+}
+```
+
+</TabItem>
+<TabItem value="spacing" label="Spacing & Layout">
+
+```css
+:root {
+  /* Container widths */
+  --ifm-container-width: 1140px;
+  --ifm-container-width-xl: 1320px;
+  
+  /* Spacing scale */
+  --ifm-spacing-horizontal: 1rem;
+  --ifm-spacing-vertical: 1rem;
+  
+  /* Component dimensions */
+  --ifm-navbar-height: 3.75rem;
+  --ifm-sidebar-width: 300px;
+  
+  /* Border radius */
+  --ifm-border-radius: 0.25rem;
+  --ifm-button-border-radius: 0.375rem;
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Component-Specific Styling
+
+Target specific components with CSS classes:
+
+```css
+/* Navbar customization */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar__brand {
+  font-weight: 700;
+}
+
+/* Sidebar customization */
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--ifm-border-color);
+}
+
+/* Content area */
+.theme-doc-markdown {
+  max-width: none;
+}
+
+/* Footer customization */
+.footer {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+```
+
+<Callout type="tip">
+**Inspect Element**: Use browser dev tools to identify CSS classes and understand the current styling before making changes.
+</Callout>
+
+## React Component Customization
+
+### Creating Custom Components
+
+Build reusable React components for your site:
+
+<FileCollapsibleCodeBlock content={CustomReactComponent} filename="Feature.js" />
+
+### Component Organization
+
+```
+src/components/
+├── common/              # Shared components
+│   ├── Button/
+│   ├── Card/
+│   └── Icon/
+├── layout/              # Layout components
+│   ├── Hero/
+│   ├── CTA/
+│   └── Newsletter/
+└── content/             # Content-specific components
+    ├── CodeExample/
+    ├── APIReference/
+    └── FeatureMatrix/
+```
+
+### Using Components in MDX
+
+```jsx
+// In your MDX files
+import Feature from '@site/src/components/Feature';
+
+<Feature 
+  icon="🚀"
+  title="Fast Performance"
+  description="Built with modern web technologies for optimal speed."
+/>
+```
+
+## MDX Component Mapping
+
+Map custom components to be available in all MDX files:
+
+<FileCollapsibleCodeBlock content={MDXComponentMapping} filename="MDXComponents.js" />
+
+### Global Component Benefits
+
+1. **Consistency**: Same components across all documentation
+2. **Maintenance**: Update once, applies everywhere
+3. **Authoring**: Simpler for content creators
+4. **Theming**: Consistent styling and behavior
+
+### Example Mappings
+
+```jsx
+export default {
+  ...MDXComponents,
+  // Custom elements
+  YouTube: (props) => <iframe src={`https://youtube.com/embed/${props.id}`} />,
+  Demo: (props) => <div className="demo-container">{props.children}</div>,
+  
+  // Enhanced defaults
+  img: (props) => <img {...props} loading="lazy" />,
+  a: (props) => <a {...props} target={props.href?.startsWith('http') ? '_blank' : undefined} />,
+  
+  // Code enhancements
+  pre: (props) => <pre {...props} className="custom-code-block" />,
+};
+```
+
+## Custom Pages
+
+Create standalone pages outside the documentation structure:
+
+<FileCollapsibleCodeBlock content={CustomPage} filename="showcase.js" />
+
+### Page Types
+
+<Tabs>
+<TabItem value="react" label="React Pages">
+
+```jsx
+// src/pages/team.js
+import React from 'react';
+import Layout from '@theme/Layout';
+
+export default function Team() {
+  return (
+    <Layout title="Our Team" description="Meet the team">
+      <div className="container margin-vert--lg">
+        <h1>Our Team</h1>
+        {/* Team content */}
+      </div>
+    </Layout>
+  );
+}
+```
+
+</TabItem>
+<TabItem value="mdx" label="MDX Pages">
+
+```mdx
+// src/pages/about.mdx
+import Layout from '@theme/Layout';
+
+<Layout title="About Us">
+
+# About Our Company
+
+We are a team of developers passionate about documentation...
+
+<div className="row">
+  <div className="col">
+    ## Our Mission
+    To make documentation beautiful and accessible.
+  </div>
+  <div className="col">
+    ## Our Vision
+    A world where every project has great docs.
+  </div>
+</div>
+
+</Layout>
+```
+
+</TabItem>
+</Tabs>
+
+## Advanced Customization Patterns
+
+### 1. Theme Context
+
+Access theme configuration in components:
+
+```jsx
+import React from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import {useThemeConfig} from '@docusaurus/theme-common';
+
+export default function CustomComponent() {
+  const {siteConfig} = useDocusaurusContext();
+  const {navbar, footer} = useThemeConfig();
+  
+  return (
+    <div>
+      <h1>{siteConfig.title}</h1>
+      <p>Navigation items: {navbar.items.length}</p>
+    </div>
+  );
+}
+```
+
+### 2. Responsive Components
+
+```jsx
+import React from 'react';
+import useWindowSize from '@docusaurus/useWindowSize';
+
+export default function ResponsiveComponent() {
+  const windowSize = useWindowSize();
+  const isMobile = windowSize === 'mobile';
+  
+  return (
+    <div className={isMobile ? 'mobile-layout' : 'desktop-layout'}>
+      {/* Responsive content */}
+    </div>
+  );
+}
+```
+
+### 3. Color Mode Awareness
+
+```jsx
+import React from 'react';
+import {useColorMode} from '@docusaurus/theme-common';
+
+export default function ThemedComponent() {
+  const {colorMode} = useColorMode();
+  
+  return (
+    <div className={`component--${colorMode}`}>
+      Current theme: {colorMode}
+    </div>
+  );
+}
+```
+
+### 4. Plugin Integration
+
+```jsx
+import React from 'react';
+import {usePluginData} from '@docusaurus/useGlobalData';
+
+export default function PluginDataComponent() {
+  const data = usePluginData('my-plugin');
+  
+  return (
+    <div>
+      {/* Use plugin data in your component */}
+    </div>
+  );
+}
+```
+
+## Customization Strategy
+
+### 1. Progressive Enhancement
+
+<Callout type="success">
+**Start Simple**: Begin with CSS variables, then add components as needed. This approach minimizes maintenance while maximizing impact.
+</Callout>
+
+1. **CSS Variables**: Quick wins with minimal risk
+2. **Component Creation**: Custom functionality
+3. **Component Swizzling**: Deep customization
+4. **Theme Development**: Complete control
+
+### 2. Design System Approach
+
+```css
+/* Design tokens */
+:root {
+  --brand-primary: #2563eb;
+  --brand-secondary: #7c3aed;
+  --brand-accent: #06b6d4;
+  
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 3rem;
+}
+
+/* Apply tokens to Docusaurus variables */
+:root {
+  --ifm-color-primary: var(--brand-primary);
+  --ifm-font-color-base: var(--text-primary);
+  --ifm-spacing-horizontal: var(--space-md);
+}
+```
+
+### 3. Component Library
+
+Build reusable components:
+
+```jsx
+// src/components/ui/index.js
+export {default as Button} from './Button';
+export {default as Card} from './Card';
+export {default as Badge} from './Badge';
+export {default as Alert} from './Alert';
+
+// Usage in MDX
+import {Button, Card} from '@site/src/components/ui';
+```
+
+## Testing Customizations
+
+1. **Visual Testing**: Check all breakpoints and themes
+2. **Accessibility**: Verify keyboard navigation and screen readers
+3. **Performance**: Monitor bundle size and loading times
+4. **Cross-browser**: Test in major browsers
+
+<Callout type="warning">
+**Maintenance Note**: Document all customizations and their purposes. This helps with future updates and team onboarding.
+</Callout>
+
+Effective customization balances visual impact with maintainability. Choose the right approach for each use case and always consider the long-term implications of your changes.

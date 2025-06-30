@@ -1,0 +1,379 @@
+---
+id: 02-troubleshooting
+title: Troubleshooting Common Issues
+description: Solutions to common Docusaurus problems including build failures, module errors, styling issues, and performance problems
+sidebar_position: 2
+---
+
+import Callout from '@site/src/components/elements/Callout';
+import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs';
+
+import ClearCacheCommands from '!!raw-loader!./assets/02-troubleshooting/clear-cache.bash';
+
+# Troubleshooting Common Issues
+
+This guide helps you resolve the most common problems encountered when working with Docusaurus projects.
+
+## Module Not Found Errors
+
+### Symptoms
+- `Module not found` errors during build or development
+- Components not being recognized
+- Import errors for custom components
+
+### Solutions
+
+<Tabs>
+<TabItem value="cache" label="Clear Cache">
+
+The most common solution is to clear the Docusaurus cache:
+
+<FileCollapsibleCodeBlock 
+  content={ClearCacheCommands} 
+  filename="clear-cache.bash" 
+/>
+
+</TabItem>
+<TabItem value="imports" label="Check Imports">
+
+Verify your import paths are correct:
+
+```javascript
+// ✅ Correct - using @site alias
+import MyComponent from '@site/src/components/MyComponent';
+
+// ❌ Incorrect - relative path issues
+import MyComponent from '../../../components/MyComponent';
+```
+
+</TabItem>
+<TabItem value="exports" label="Verify Exports">
+
+Ensure components are properly exported:
+
+```javascript
+// Component file
+export default function MyComponent() {
+  return <div>Hello</div>;
+}
+
+// Index file (if using)
+export { default as MyComponent } from './MyComponent';
+```
+
+</TabItem>
+</Tabs>
+
+<Callout type="tip" title="Prevention">
+Always use the `@site` alias for imports to avoid path resolution issues when your project structure changes.
+</Callout>
+
+## Build Failures
+
+### Common Causes and Solutions
+
+#### Broken Links
+
+**Problem**: Build fails due to broken internal links
+
+**Solution:**
+1. Check all internal links use correct relative paths
+2. Verify referenced documents exist
+3. Use `onBrokenLinks: 'warn'` during development
+
+```javascript
+// docusaurus.config.js
+module.exports = {
+  onBrokenLinks: 'throw', // Production
+  onBrokenMarkdownLinks: 'warn', // Development
+};
+```
+
+#### Invalid Front Matter
+
+**Problem**: YAML parsing errors in front matter
+
+**Solution:**
+- Ensure proper YAML syntax
+- Quote values with special characters
+- Check for consistent indentation
+
+```yaml
+---
+title: "My Title: With Colon"  # ✅ Quoted
+description: This is fine      # ✅ No special chars
+tags: [tag1, tag2]            # ✅ Array format
+sidebar_position: 1           # ✅ Number
+---
+```
+
+#### Duplicate Document IDs
+
+**Problem**: Multiple documents with the same ID
+
+**Solution:**
+- Ensure unique `id` values in front matter
+- Check for filename conflicts
+- Use explicit IDs when auto-generation conflicts
+
+<Callout type="warning" title="ID Conflicts">
+Docusaurus auto-generates IDs from filenames. If you have `intro.md` in multiple folders, use explicit IDs to avoid conflicts.
+</Callout>
+
+## Styling Issues
+
+### CSS Specificity Problems
+
+**Problem**: Custom styles not applying correctly
+
+**Solutions:**
+
+<Tabs>
+<TabItem value="modules" label="CSS Modules">
+
+Use CSS Modules for component-specific styles:
+
+```css
+/* MyComponent.module.css */
+.container {
+  background: var(--ifm-color-primary);
+  padding: 1rem;
+}
+```
+
+```javascript
+import styles from './MyComponent.module.css';
+
+function MyComponent() {
+  return <div className={styles.container}>Content</div>;
+}
+```
+
+</TabItem>
+<TabItem value="variables" label="CSS Variables">
+
+Use Infima CSS variables for consistent theming:
+
+```css
+.my-element {
+  color: var(--ifm-color-primary);
+  background: var(--ifm-background-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+```
+
+</TabItem>
+<TabItem value="specificity" label="Increase Specificity">
+
+When overriding theme styles, increase specificity:
+
+```css
+/* Instead of: */
+.navbar { background: red; }
+
+/* Use: */
+.navbar.navbar--primary { background: red; }
+```
+
+</TabItem>
+</Tabs>
+
+### Dark Mode Issues
+
+**Problem**: Styles not working correctly in dark mode
+
+**Solution:**
+
+```css
+:root {
+  --my-color: #333;
+}
+
+[data-theme='dark'] {
+  --my-color: #ccc;
+}
+
+.my-element {
+  color: var(--my-color);
+}
+```
+
+## Performance Problems
+
+### Slow Build Times
+
+**Causes and Solutions:**
+
+1. **Large Image Files**
+   - Optimize images before adding to `static/`
+   - Use appropriate image formats
+   - Consider lazy loading for large images
+
+2. **Too Many Plugins**
+   - Audit your plugin list
+   - Remove unused plugins
+   - Check for plugin conflicts
+
+3. **Large Bundle Size**
+   - Use dynamic imports for heavy components
+   - Analyze bundle with `--bundle-analyzer`
+   - Split large pages into smaller components
+
+### Memory Issues
+
+**Problem**: Build process runs out of memory
+
+**Solutions:**
+
+```bash
+# Increase Node.js memory limit
+NODE_OPTIONS="--max-old-space-size=4096" npm run build
+
+# Or in package.json
+{
+  "scripts": {
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' docusaurus build"
+  }
+}
+```
+
+## Plugin Issues
+
+### Plugin Configuration Errors
+
+**Common Problems:**
+- Incorrect plugin options
+- Plugin version compatibility
+- Plugin load order issues
+
+**Debugging Steps:**
+
+1. **Check Plugin Documentation**: Verify configuration matches current version
+2. **Simplify Configuration**: Start with minimal config and add options gradually
+3. **Version Compatibility**: Ensure plugin versions match your Docusaurus version
+
+```javascript
+// Debug plugin loading
+plugins: [
+  [
+    'my-plugin',
+    {
+      // Start with minimal config
+      option1: 'value1'
+    }
+  ]
+]
+```
+
+### Custom Plugin Development Issues
+
+**Common Pitfalls:**
+- Not returning proper plugin structure
+- Lifecycle hooks not implemented correctly
+- Async operations not handled properly
+
+```javascript
+// Proper plugin structure
+module.exports = function(context, options) {
+  return {
+    name: 'my-plugin',
+    async loadContent() {
+      // Load data
+    },
+    async contentLoaded({content, actions}) {
+      // Process data
+    }
+  };
+};
+```
+
+## MDX and Component Issues
+
+### Component Not Rendering
+
+**Problem**: Custom components not appearing in MDX
+
+**Solutions:**
+
+1. **Check MDX Component Mapping**:
+
+```javascript
+// src/theme/MDXComponents/index.js
+import MDXComponents from '@theme-original/MDXComponents';
+import MyComponent from '@site/src/components/MyComponent';
+
+export default {
+  ...MDXComponents,
+  MyComponent,
+};
+```
+
+2. **Verify Component Import**:
+
+```mdx
+import MyComponent from '@site/src/components/MyComponent';
+
+<MyComponent prop="value" />
+```
+
+### Hydration Mismatches
+
+**Problem**: React hydration errors in production
+
+**Solution:**
+- Ensure server-side and client-side rendering produce identical output
+- Use `useEffect` for client-only code
+- Check for dynamic content that differs between server and client
+
+<Callout type="info" title="Debug Mode">
+Enable debug mode to get more detailed error information:
+
+```bash
+DEBUG=true npm start
+```
+</Callout>
+
+## Development vs Production Issues
+
+### Works in Development, Fails in Production
+
+**Common Causes:**
+
+1. **Case Sensitivity**: Development on macOS/Windows vs Linux production
+2. **Environment Variables**: Different env vars between environments
+3. **Build-time vs Runtime**: Code that works in dev but fails in static build
+
+**Solutions:**
+
+```javascript
+// Check for browser environment
+if (typeof window !== 'undefined') {
+  // Client-side only code
+}
+
+// Use dynamic imports for client-side components
+const ClientOnlyComponent = dynamic(() => import('./ClientOnlyComponent'), {
+  ssr: false
+});
+```
+
+## Getting Help
+
+When troubleshooting doesn't resolve your issue:
+
+1. **Check Official Documentation**: [Docusaurus Docs](https://docusaurus.io/docs)
+2. **Search GitHub Issues**: Look for similar problems in the Docusaurus repository
+3. **Community Support**: Join the Docusaurus Discord or discuss on GitHub
+4. **Minimal Reproduction**: Create a minimal example that reproduces the issue
+
+<Callout type="tip" title="Effective Bug Reports">
+When reporting issues, include:
+- Docusaurus version
+- Node.js version
+- Operating system
+- Minimal reproduction steps
+- Expected vs actual behavior
+- Console error messages
+</Callout>

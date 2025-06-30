@@ -1,0 +1,7 @@
+- Pre-built components for docs, blogs, and landing pages
+- File-based routing for easy content organization
+- MDX support for mixing Markdown with React components
+- Theme system for customization
+- Plugin architecture for extensibility
+- SEO optimization out of the box
+- i18n support for multi-language sites

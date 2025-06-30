@@ -52,8 +52,32 @@ const config = {
   themes: ['@docusaurus/theme-mermaid'],
 
   plugins: [
+    
+        // Component Usage docs
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'component-usage',
+        path: 'docs/component-usage',
+        routeBasePath: 'component-usage',
+        sidebarPath: require.resolve('./sidebars.js'),
+      },
+    ],
+    
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'docusaurus-guide',
+        path: 'docs/docusaurus-guide',
+        routeBasePath: 'docusaurus-guide',
+        sidebarPath: require.resolve('./sidebars.js'),
+      },
+    ],
+    
     // Overview docs
     [
+
+      
       '@docusaurus/plugin-content-docs',
       {
         id: 'overview',
@@ -132,16 +156,7 @@ const config = {
         sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
-    // Component Usage docs
-    [
-      '@docusaurus/plugin-content-docs',
-      {
-        id: 'component-usage',
-        path: 'docs/component-usage',
-        routeBasePath: 'component-usage',
-        sidebarPath: require.resolve('./sidebars.js'),
-      },
-    ],
+
     // Developers docs
     [
       '@docusaurus/plugin-content-docs',
@@ -230,6 +245,13 @@ const config = {
             position: 'left',
             className: 'navbar__item--nav'
           },
+          {
+            label: 'docusaurus-guide',
+            to: '/docusaurus-guide/overview/what-is-docusaurus',
+            position: 'left',
+            className: 'navbar__item--nav'
+          },
+
           {
             label: 'Overview',
             to: '/overview',

@@ -1,0 +1,25 @@
+project/
+├── docs/
+│   ├── api/                    # API Documentation
+│   │   ├── introduction.md     # /api/introduction
+│   │   ├── authentication.md   # /api/authentication
+│   │   └── endpoints/
+│   │       ├── users.md        # /api/endpoints/users
+│   │       └── orders.md       # /api/endpoints/orders
+│   │
+│   ├── guides/                 # User Guides
+│   │   ├── getting-started.md  # /guides/getting-started
+│   │   ├── tutorials/
+│   │   │   ├── basic.md        # /guides/tutorials/basic
+│   │   │   └── advanced.md     # /guides/tutorials/advanced
+│   │   └── examples/
+│   │       └── use-cases.md    # /guides/examples/use-cases
+│   │
+│   └── main/                   # Main Documentation (default)
+│       ├── intro.md            # /docs/intro
+│       └── overview.md         # /docs/overview
+│
+├── sidebarsApi.js              # API sidebar config
+├── sidebarsGuides.js           # Guides sidebar config
+├── sidebars.js                 # Main docs sidebar config
+└── docusaurus.config.js

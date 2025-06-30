@@ -1,0 +1,172 @@
+---
+id: 01-theme-system
+title: Theme System Overview
+description: Understand how Docusaurus themes work and the component hierarchy
+sidebar_position: 1
+---
+
+import ComponentHierarchy from '!!raw-loader!./assets/01-theme-system/component-hierarchy.txt';
+import ThemeOverridesStructure from '!!raw-loader!./assets/01-theme-system/theme-overrides-structure.txt';
+import Callout from '@site/src/components/elements/Callout';
+import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+
+# Theme System Overview
+
+Docusaurus uses a powerful theme system that allows you to customize every aspect of your site's appearance and behavior. Understanding how themes work is essential for effective customization.
+
+## How Themes Work
+
+A **theme** in Docusaurus is a collection of React components that render your content. The default "Classic" theme provides components for:
+
+- **Navigation**: Navbar, sidebar, pagination
+- **Layout**: Page structure, containers, responsive design  
+- **Content**: Documentation pages, blog posts, landing pages
+- **Interactive Elements**: Search, theme toggle, mobile menu
+
+<Callout type="info">
+**Theme Philosophy**: Themes are designed to be composable and extensible. You can override specific components while keeping the rest of the theme intact.
+</Callout>
+
+## Component Shadow Hierarchy
+
+Docusaurus uses a "component shadowing" system that determines which component version is used when multiple exist:
+
+<FileCollapsibleCodeBlock content={ComponentHierarchy} filename="component-hierarchy.txt" />
+
+This hierarchy allows you to:
+1. **Override** any theme component by creating your own version
+2. **Extend** existing components by wrapping them
+3. **Maintain** theme updates while keeping your customizations
+
+## Theme Component Structure
+
+When you override theme components, they're placed in specific directories:
+
+<FileCollapsibleCodeBlock content={ThemeOverridesStructure} filename="theme-overrides-structure.txt" />
+
+### Key Theme Components
+
+#### Navbar Components
+- **`Navbar/index.js`**: Main navigation bar
+- **`NavbarItem/*`**: Individual navigation items
+- **`ColorModeToggle`**: Dark/light mode switcher
+- **`SearchBar`**: Search functionality
+
+#### Layout Components  
+- **`Layout/index.js`**: Main page wrapper
+- **`DocPage/*`**: Documentation page layout
+- **`BlogPostPage/*`**: Blog post layout
+- **`Footer/index.js`**: Site footer
+
+#### Content Components
+- **`MDXComponents/*`**: Custom MDX component mappings
+- **`CodeBlock/*`**: Code syntax highlighting
+- **`Admonition/*`**: Callout/alert boxes
+- **`TOC/*`**: Table of contents
+
+<Callout type="tip">
+**Discovery Tip**: Use the swizzle command with `--list` to see all available components you can override: `npm run swizzle @docusaurus/theme-classic -- --list`
+</Callout>
+
+## Theme Architecture Concepts
+
+### 1. React Context
+Themes heavily use React Context for:
+- **Site configuration**: Access to `docusaurus.config.js`
+- **Theme state**: Dark/light mode, mobile sidebar state
+- **Plugin data**: Content from docs, blog, and other plugins
+
+### 2. CSS Custom Properties
+Themes use CSS variables for:
+- **Color schemes**: Primary colors, backgrounds, text colors
+- **Typography**: Font families, sizes, line heights
+- **Spacing**: Margins, padding, component dimensions
+- **Breakpoints**: Responsive design values
+
+### 3. Component Composition
+- **Higher-Order Components**: Wrap functionality around content
+- **Render Props**: Pass rendering logic as functions
+- **Hooks**: Custom hooks for theme functionality
+
+## Theme Customization Levels
+
+### Level 1: CSS Variables
+Quick customization through CSS custom properties:
+
+```css
+:root {
+  --ifm-color-primary: #2e8555;
+  --ifm-navbar-height: 4rem;
+  --ifm-font-family-base: 'Inter', sans-serif;
+}
+```
+
+### Level 2: Component Swizzling
+Override specific React components:
+- **Eject**: Full control, no theme updates
+- **Wrap**: Extend functionality, keep theme updates
+
+### Level 3: Custom Theme
+Create entirely custom themes:
+- Build from scratch
+- Complete control over rendering
+- Maximum flexibility
+
+<Callout type="warning">
+**Update Considerations**: The more you customize, the more manual work required for theme updates. Choose the minimal level of customization needed.
+</Callout>
+
+## Theme Configuration
+
+Themes are configured in `docusaurus.config.js`:
+
+```javascript
+themeConfig: {
+  // Navbar configuration
+  navbar: {
+    title: 'My Site',
+    logo: { src: 'img/logo.svg' },
+    items: [/* navigation items */],
+  },
+  
+  // Footer configuration  
+  footer: {
+    style: 'dark',
+    links: [/* footer links */],
+  },
+  
+  // Color mode configuration
+  colorMode: {
+    defaultMode: 'light',
+    disableSwitch: false,
+    respectPrefersColorScheme: true,
+  },
+  
+  // Code highlighting
+  prism: {
+    theme: lightCodeTheme,
+    darkTheme: darkCodeTheme,
+  },
+}
+```
+
+## Working with Multiple Themes
+
+Advanced projects might use:
+- **Multiple theme packages**: Combine different theme libraries
+- **Plugin-specific themes**: Custom styling for specific plugins
+- **Conditional theming**: Different themes for different sections
+
+## Theme Development Workflow
+
+1. **Start with CSS**: Use custom CSS for basic styling
+2. **Identify components**: Find specific components to customize
+3. **Swizzle selectively**: Override only what you need
+4. **Test thoroughly**: Verify responsive design and accessibility
+5. **Document changes**: Keep track of customizations for maintenance
+
+<Callout type="success">
+**Best Practice**: Always start with the least invasive customization method. You can always increase customization levels as needs evolve.
+</Callout>
+
+The theme system provides incredible flexibility while maintaining ease of use. Understanding these concepts will help you make informed decisions about customization approaches.
