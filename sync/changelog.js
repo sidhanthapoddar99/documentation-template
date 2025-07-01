@@ -23,14 +23,14 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
         const categoryConfig = config.categories[key];
         
         if (categoryConfig.mode === 'replace') {
-          wouldReplace += data.files.changed.length + data.files.new.length;
+          wouldReplace += (data.files.changed?.length || 0) + (data.files.new?.length || 0);
         } else if (categoryConfig.mode === 'add-only') {
-          wouldAdd += data.files.new.length;
-          wouldSkip += data.files.changed.length;
+          wouldAdd += (data.files.new?.length || 0);
+          wouldSkip += (data.files.changed?.length || 0);
         } else if (categoryConfig.mode === 'merge') {
-          wouldMerge += data.files.changed.length + data.files.new.length;
+          wouldMerge += (data.files.changed?.length || 0) + (data.files.new?.length || 0);
         } else if (categoryConfig.mode === 'selective') {
-          wouldReplace += data.files.changed.length + data.files.new.length;
+          wouldReplace += (data.files.changed?.length || 0) + (data.files.new?.length || 0);
         }
       }
     }
@@ -66,7 +66,7 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
         content += `**Action**: ${getModeDescription(categoryConfig.mode)}\n\n`;
       }
       
-      if (data.files.changed.length > 0) {
+      if (data.files.changed && data.files.changed.length > 0) {
         const actionWord = isDryRun ? 'Would update' : 'Updated';
         content += `**${actionWord} files:**\n`;
         data.files.changed.forEach(file => {
@@ -74,7 +74,7 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
         });
       }
       
-      if (data.files.new.length > 0) {
+      if (data.files.new && data.files.new.length > 0) {
         const actionWord = isDryRun ? 'Would add' : 'Added';
         content += `\n**${actionWord} files:**\n`;
         data.files.new.forEach(file => {
@@ -82,7 +82,7 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
         });
       }
       
-      if (data.files.missing.length > 0 && isDryRun) {
+      if (data.files.missing && data.files.missing.length > 0 && isDryRun) {
         content += `\n**Would remove (missing in source):**\n`;
         data.files.missing.forEach(file => {
           content += `- ${file}\n`;
