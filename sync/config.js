@@ -60,7 +60,7 @@ const config = {
       name: 'Sync Tool',
       paths: ['sync'],
       mode: 'replace',
-      exclude: ['config.js'] // Don't overwrite user's config
+      // exclude: ['config.js'] // optinal to exclude this file from sync
     }
   }
 };
