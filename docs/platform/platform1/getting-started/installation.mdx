@@ -1,0 +1,119 @@
+---
+id: installation
+title: Installation
+description: How to install Platform 1
+sidebar_position: 1
+---
+
+# Installation Guide
+
+Follow these steps to install and set up Platform 1 in your development environment.
+
+## Prerequisites
+
+Before installing Platform 1, ensure you have:
+
+- **Node.js** 18.0 or higher
+- **npm** or **yarn** package manager
+- **Git** for version control
+- **[Additional requirements]** specific to your platform
+
+## Installation Methods
+
+### Method 1: Package Manager
+
+Install using npm:
+
+```bash
+npm install your-platform1-package
+```
+
+Or using yarn:
+
+```bash
+yarn add your-platform1-package
+```
+
+### Method 2: Direct Download
+
+Download the latest release from:
+- [GitHub Releases](https://github.com/yourorg/platform1/releases)
+- [Official Website](https://yourplatform.com/downloads)
+
+### Method 3: Build from Source
+
+Clone and build from source:
+
+```bash
+git clone https://github.com/yourorg/platform1.git
+cd platform1
+npm install
+npm run build
+```
+
+## Configuration
+
+### Basic Configuration
+
+Create a configuration file:
+
+```javascript
+// platform1.config.js
+module.exports = {
+  apiKey: 'your-api-key',
+  environment: 'development',
+  settings: {
+    feature1: true,
+    feature2: false,
+    timeout: 5000
+  }
+};
+```
+
+### Environment Variables
+
+Set up required environment variables:
+
+```bash
+export PLATFORM1_API_KEY=your-api-key
+export PLATFORM1_ENV=development
+export PLATFORM1_DEBUG=true
+```
+
+## Verification
+
+Verify your installation:
+
+```bash
+# Check version
+platform1 --version
+
+# Run health check
+platform1 health-check
+
+# Test basic functionality
+platform1 test
+```
+
+## Next Steps
+
+Now that Platform 1 is installed:
+
+1. Complete the [Quick Start Guide](./quick-start)
+2. Review [Basic Usage](./basic-usage)  
+3. Explore [Configuration Options](./configuration)
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue 1: Installation fails**
+- Solution: Check Node.js version and network connectivity
+
+**Issue 2: Permission errors**
+- Solution: Run with appropriate permissions or use a package manager
+
+**Issue 3: Configuration not found**
+- Solution: Ensure config file is in the correct location
+
+For more help, see our [Troubleshooting Guide](../troubleshooting/).

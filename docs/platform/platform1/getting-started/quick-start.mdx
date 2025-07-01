@@ -1,0 +1,156 @@
+---
+id: quick-start
+title: Quick Start
+description: Get started with Platform 1 in minutes
+sidebar_position: 2
+---
+
+# Quick Start Guide
+
+Get up and running with Platform 1 in just a few minutes.
+
+## Step 1: Initialize Your Project
+
+Create a new project directory and initialize Platform 1:
+
+```bash
+mkdir my-platform1-app
+cd my-platform1-app
+platform1 init
+```
+
+## Step 2: Basic Setup
+
+Configure your application:
+
+```javascript
+// app.js
+import Platform1 from 'your-platform1-package';
+
+const platform1 = new Platform1({
+  apiKey: 'your-api-key',
+  environment: 'development'
+});
+
+// Initialize
+await platform1.initialize();
+```
+
+## Step 3: Your First Implementation
+
+Create a simple example:
+
+```javascript
+// Example: Basic functionality
+async function basicExample() {
+  try {
+    // Step 1: Create a resource
+    const resource = await platform1.createResource({
+      name: 'My First Resource',
+      type: 'example',
+      properties: {
+        setting1: 'value1',
+        setting2: 'value2'
+      }
+    });
+    
+    console.log('Resource created:', resource.id);
+    
+    // Step 2: Use the resource
+    const result = await platform1.processResource(resource.id, {
+      operation: 'transform',
+      parameters: { format: 'json' }
+    });
+    
+    console.log('Processing result:', result);
+    
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
+
+// Run the example
+basicExample();
+```
+
+## Step 4: Run Your Application
+
+Execute your application:
+
+```bash
+node app.js
+```
+
+Expected output:
+```
+Resource created: res_1234567890
+Processing result: { status: 'success', data: {...} }
+```
+
+## Step 5: Explore More Features
+
+Now that you have the basics working, try:
+
+### Advanced Configuration
+```javascript
+const platform1 = new Platform1({
+  apiKey: 'your-api-key',
+  environment: 'development',
+  options: {
+    retries: 3,
+    timeout: 10000,
+    caching: true,
+    debug: true
+  }
+});
+```
+
+### Error Handling
+```javascript
+try {
+  const result = await platform1.operation();
+} catch (error) {
+  if (error.code === 'RATE_LIMIT') {
+    // Handle rate limiting
+  } else if (error.code === 'AUTH_ERROR') {
+    // Handle authentication error
+  } else {
+    // Handle other errors
+  }
+}
+```
+
+## Common Patterns
+
+### Pattern 1: Resource Management
+```javascript
+// Create, update, delete pattern
+const resource = await platform1.createResource(data);
+await platform1.updateResource(resource.id, updates);
+await platform1.deleteResource(resource.id);
+```
+
+### Pattern 2: Batch Processing
+```javascript
+// Process multiple items
+const items = ['item1', 'item2', 'item3'];
+const results = await platform1.batchProcess(items, {
+  operation: 'transform',
+  batchSize: 10
+});
+```
+
+## Next Steps
+
+Great work! You've successfully set up Platform 1. Continue learning:
+
+1. [Basic Usage Guide](./basic-usage) - Learn core concepts
+2. [API Reference](../api-reference/) - Detailed API documentation  
+3. [Examples](../examples/) - More complex examples
+4. [Best Practices](./best-practices) - Tips for production use
+
+## Need Help?
+
+- Check our [FAQ](../troubleshooting/faq)
+- Join our [Community Forum](https://community.yourplatform.com)
+- Review [Code Examples](../examples/)

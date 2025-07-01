@@ -1,100 +1,172 @@
 ---
 title: Developers Guide
-description: Complete guide for developers building on NeuraLabs
+description: Complete guide for developers building with our platform
 ---
 
 # Developers Guide
 
 ## Getting Started
 
-Welcome to the NeuraLabs developer documentation. This guide will help you build intelligent applications using our platform.
+Welcome to the developer documentation. This guide will help you build applications using our platform ecosystem.
 
 ## Prerequisites
 
 - Node.js 18+ or Python 3.9+
-- Sui wallet
-- Basic understanding of AI/ML concepts
-- Familiarity with blockchain technology
+- [Your specific requirements]
+- Basic understanding of [relevant technologies]
+- Familiarity with [relevant concepts]
 
 ## Installation
 
 ### JavaScript/TypeScript
 ```bash
-npm install @neuralabs/sdk
+npm install your-platform-sdk
 # or
-yarn add @neuralabs/sdk
+yarn add your-platform-sdk
 ```
 
 ### Python
 ```bash
-pip install neuralabs
+pip install your-platform-package
+```
+
+### Other Languages
+```bash
+# Add installation instructions for other supported languages
 ```
 
 ## Quick Start
 
 ### 1. Initialize the SDK
 ```javascript
-import { NeuraLabs } from '@neuralabs/sdk';
+import { YourPlatform } from 'your-platform-sdk';
 
-const neura = new NeuraLabs({
+const platform = new YourPlatform({
     apiKey: 'your-api-key',
-    network: 'mainnet'
-});
-```
-
-### 2. Create an Agent
-```javascript
-const agent = await neura.createAgent({
-    name: 'MyTradingBot',
-    type: 'trading',
-    model: 'transformer-v2',
-    parameters: {
-        riskTolerance: 'medium',
-        tradingPairs: ['SUI/USDC']
+    environment: 'development', // or 'production'
+    options: {
+        timeout: 5000,
+        retries: 3
     }
 });
 ```
 
-### 3. Deploy to Blockchain
+### 2. Basic Implementation
 ```javascript
-const deployment = await agent.deploy({
-    wallet: userWallet,
-    initialFunding: 1000
+const resource = await platform.createResource({
+    name: 'My Resource',
+    type: 'example',
+    configuration: {
+        setting1: 'value1',
+        setting2: 'value2'
+    }
+});
+```
+
+### 3. Process and Deploy
+```javascript
+const result = await platform.processResource(resource.id, {
+    operation: 'transform',
+    parameters: {
+        format: 'json',
+        validation: true
+    }
 });
 ```
 
 ## Development Workflow
 
-1. **Design**: Plan your agent's behavior and goals
-2. **Train**: Use Neura Synthesis to train your model
-3. **Test**: Run simulations in sandbox environment
-4. **Deploy**: Push to mainnet when ready
-5. **Monitor**: Track performance and iterate
+1. **Plan**: Define requirements and architecture
+2. **Develop**: Build using platform APIs and SDKs
+3. **Test**: Validate functionality and performance
+4. **Deploy**: Launch to production environment
+5. **Monitor**: Track performance and usage
 
 ## API Reference
 
 ### Core Classes
-- `NeuraLabs`: Main SDK client
-- `Agent`: AI agent instance
-- `Model`: Neural network model
-- `Wallet`: Blockchain wallet integration
+- `YourPlatform`: Main SDK client
+- `Resource`: Platform resource instance
+- `Service`: Service management
+- `Configuration`: Configuration management
 
 ### Key Methods
-- `createAgent()`: Create new agent
-- `trainModel()`: Train neural network
-- `deployAgent()`: Deploy to blockchain
-- `executeAction()`: Trigger agent action
+- `createResource()`: Create new resource
+- `processData()`: Process data through platform
+- `deployService()`: Deploy to platform
+- `monitorPerformance()`: Track metrics
+
+## Integration Patterns
+
+### Pattern 1: Real-time Processing
+```javascript
+// Example for real-time data processing
+const stream = platform.createStream({
+    source: 'data-source',
+    processor: 'real-time-analyzer'
+});
+
+stream.on('data', (data) => {
+    // Handle processed data
+});
+```
+
+### Pattern 2: Batch Processing
+```javascript
+// Example for batch processing
+const batchJob = await platform.submitBatch({
+    data: largeDataSet,
+    processor: 'batch-analyzer',
+    options: {
+        chunkSize: 1000,
+        parallel: true
+    }
+});
+```
 
 ## Best Practices
 
-1. **Security First**: Always validate inputs and use secure key storage
-2. **Efficient Training**: Use transfer learning when possible
-3. **Cost Optimization**: Monitor resource usage
-4. **Testing**: Thoroughly test in sandbox before mainnet
+1. **API Key Security**: Store API keys securely and rotate regularly
+2. **Error Handling**: Implement comprehensive error handling
+3. **Rate Limiting**: Respect API rate limits and implement backoff
+4. **Monitoring**: Set up monitoring and alerting for production
+5. **Testing**: Write thorough tests including integration tests
+
+## Platform Integration
+
+### Platform 1 Integration
+```javascript
+import { Platform1Client } from 'your-platform-sdk/platform1';
+
+const platform1 = new Platform1Client({
+    apiKey: 'your-api-key'
+});
+```
+
+### Platform 2 Integration
+```javascript
+import { Platform2Client } from 'your-platform-sdk/platform2';
+
+const platform2 = new Platform2Client({
+    apiKey: 'your-api-key'
+});
+```
+
+### Platform 3 Integration
+```javascript
+import { Platform3Client } from 'your-platform-sdk/platform3';
+
+const platform3 = new Platform3Client({
+    apiKey: 'your-api-key'
+});
+```
 
 ## Resources
 
 - [API Documentation](/api)
-- [Example Projects](https://github.com/neuralabs/examples)
-- [Community Forum](https://forum.neuralabs.ai)
-- [Video Tutorials](https://youtube.com/neuralabs)
+- [Platform 1 Guide](/platform1)
+- [Platform 2 Guide](/platform2)
+- [Platform 3 Guide](/platform3)
+- [Example Projects](https://github.com/yourorg/examples)
+- [Community Forum](https://community.yourplatform.com)
+- [Support Portal](https://support.yourplatform.com)

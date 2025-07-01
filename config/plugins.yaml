@@ -20,34 +20,19 @@ plugins:
     routeBasePath: 'platform-overview'
     sidebarPath: './sidebars.js'
 
-  - id: 'neuralock'
-    path: 'docs/platform/neuralock'
-    routeBasePath: 'neuralock'
+  - id: 'platform1'
+    path: 'docs/platform/platform1'
+    routeBasePath: 'platform1'
     sidebarPath: './sidebars.js'
 
-  - id: 'execution-engine'
-    path: 'docs/platform/execution-engine'
-    routeBasePath: 'execution-engine'
+  - id: 'platform2'
+    path: 'docs/platform/platform2'
+    routeBasePath: 'platform2'
     sidebarPath: './sidebars.js'
 
-  - id: 'synthesis'
-    path: 'docs/platform/synthesis'
-    routeBasePath: 'synthesis'
-    sidebarPath: './sidebars.js'
-
-  - id: 'ledger'
-    path: 'docs/platform/ledger'
-    routeBasePath: 'ledger'
-    sidebarPath: './sidebars.js'
-
-  - id: 'blockchain-integration'
-    path: 'docs/platform/blockchain-integration'
-    routeBasePath: 'blockchain-integration'
-    sidebarPath: './sidebars.js'
-
-  - id: 'synapsis'
-    path: 'docs/platform/synapsis'
-    routeBasePath: 'synapsis'
+  - id: 'platform3'
+    path: 'docs/platform/platform3'
+    routeBasePath: 'platform3'
     sidebarPath: './sidebars.js'
 
   - id: 'developers'

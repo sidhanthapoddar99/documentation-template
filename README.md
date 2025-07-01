@@ -1,6 +1,16 @@
 - [NeuraLabs Documentation](#neuralabs-documentation)
   - [Prerequisites](#prerequisites)
-  - [Quick Start](#quick-start)
+  - [Starting a New Project from This Template](#starting-a-new-project-from-this-template)
+    - [Quick Start Guide](#quick-start-guide)
+    - [Customization Steps](#customization-steps)
+  - [Component Synchronization Tool](#component-synchronization-tool)
+    - [Quick Start](#quick-start)
+    - [Key Features](#key-features)
+    - [What Gets Synced](#what-gets-synced)
+    - [What Doesn't Get Synced](#what-doesnt-get-synced)
+    - [Configuration](#configuration)
+    - [For Complete Documentation](#for-complete-documentation)
+  - [Quick Start](#quick-start-1)
     - [1. Install Docusaurus](#1-install-docusaurus)
     - [2. Install Dependencies](#2-install-dependencies)
     - [3. Local Development](#3-local-development)
@@ -32,23 +42,6 @@
     - [What We Define](#what-we-define)
     - [Layout Architecture Summary](#layout-architecture-summary)
     - [Key Concepts](#key-concepts)
-  - [Starting a New Project from This Template](#starting-a-new-project-from-this-template)
-    - [Quick Start Guide](#quick-start-guide)
-    - [Customization Steps](#customization-steps)
-  - [Component Synchronization Tool](#component-synchronization-tool)
-    - [How It Works](#how-it-works)
-    - [Configuration](#configuration)
-    - [Basic Usage](#basic-usage)
-    - [Interactive Update Process](#interactive-update-process)
-    - [Category-Specific Behaviors](#category-specific-behaviors)
-      - [Components (Replace Mode)](#components-replace-mode)
-      - [Images/Icons (Add-Only Mode)](#imagesicons-add-only-mode)
-      - [Theme (Selective Mode)](#theme-selective-mode)
-      - [Configuration Files (Merge Mode)](#configuration-files-merge-mode)
-    - [Example Workflow](#example-workflow)
-    - [Changelog](#changelog)
-    - [Best Practices](#best-practices)
-    - [Troubleshooting](#troubleshooting-1)
 
 
 # NeuraLabs Documentation
@@ -59,6 +52,139 @@ This documentation is built using [Docusaurus](https://docusaurus.io/), a modern
 
 - Node.js 18.0 or above
 - npm or yarn package manager
+
+
+
+
+
+
+## Starting a New Project from This Template
+
+### Quick Start Guide
+
+To create a new documentation project based on this template:
+
+```bash
+# 1. Clone the repository
+git clone <repository-url> my-new-docs
+
+# 2. Remove the original git history
+cd my-new-docs
+rm -rf .git
+
+# 3. Initialize a new git repository
+git init
+
+# 4. Create initial commit
+git add .
+git commit -m "Initial commit from NeuraLabs documentation template"
+
+# 5. Install dependencies
+npm install
+
+# 6. Start development
+npm run start
+```
+
+### Customization Steps
+
+1. **Update Project Info**: Edit `docusaurus.config.js` to change:
+   - Site title and tagline
+   - URL and baseUrl
+   - Organization/project name
+   - Social links
+
+2. **Update Colors**: Modify `src/theme/colors.js` and regenerate:
+   ```bash
+   node src/theme/generateColors.js
+   ```
+
+3. **Replace Content**: 
+   - Clear out example docs in `docs/`
+   - Update homepage content in `src/pages/index.js`
+   - Replace logos in `static/img/`
+
+## Component Synchronization Tool
+
+This template includes a powerful synchronization tool that allows you to pull updates from the base template while preserving your customizations.
+
+### Quick Start
+
+```bash
+# Basic sync from default repository
+npm run sync
+
+# Dry run mode (generates dryrun-changelogs.md)
+npm run sync:dry
+
+# Custom repository
+npm run sync -- --repo=https://github.com/org/repo.git
+
+# Custom branch and dry run
+npm run sync -- --branch=develop --dry-run
+```
+
+### Key Features
+
+- **Selective Updates**: Choose exactly what to sync (components, themes, configs, etc.)
+- **Smart Merging**: Intelligently merge `package.json` and `.gitignore` files
+- **Dry Run Mode**: Preview changes before applying them
+- **Detailed Changelogs**: Track all changes with `CHANGELOG.md` and `dryrun-changelogs.md`
+- **Self-Updating**: The sync tool can update itself while preserving your configuration
+
+### What Gets Synced
+
+The tool organizes updates into categories with different sync modes:
+
+- ✅ **Components** (replace) - UI components and documentation + removes obsolete files
+- ✅ **Images & Icons** (add-only) - Static assets (preserves logos)
+- ✅ **Theme** (selective) - Docusaurus theme customizations + deletion control
+- ✅ **Colors** (replace) - Color configuration file + removes obsolete files
+- ✅ **Custom CSS** (replace) - Stylesheets + removes obsolete files
+- ✅ **Configuration** (replace) - Config files including `.gitignore` + removes obsolete files
+- ✅ **VS Code Config** (replace) - Workspace settings and debugging + removes obsolete files
+- ✅ **Documentation** (replace) - README and CLAUDE files + removes obsolete files
+- ✅ **Sync Tool** (replace) - Self-update capability + removes obsolete files
+
+### What Doesn't Get Synced
+
+- ❌ **Your Content**: `docs/platform/`, `docs/overview/`, `blog/` posts
+- ❌ **Customizations**: Your sync config, logos, favicons
+- ❌ **Build Files**: `node_modules/`, cache, build output
+
+### Configuration
+
+Set your default repository in `sync/config.js`:
+
+```javascript
+const config = {
+  defaultRepo: 'https://github.com/your-org/base-template.git',
+  // ... other settings
+};
+```
+
+### For Complete Documentation
+
+📖 **See [sync/README.md](sync/README.md)** for:
+- Detailed sync mode explanations
+- Interactive workflow examples
+- Category-specific behaviors
+- Troubleshooting guide
+- Best practices
+- Tool architecture details
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Quick Start
 
@@ -446,117 +572,3 @@ themeConfig: {
 
 This architecture gives you the flexibility to create custom pages while leveraging Docusaurus's powerful documentation features.
 
-## Starting a New Project from This Template
-
-### Quick Start Guide
-
-To create a new documentation project based on this template:
-
-```bash
-# 1. Clone the repository
-git clone <repository-url> my-new-docs
-
-# 2. Remove the original git history
-cd my-new-docs
-rm -rf .git
-
-# 3. Initialize a new git repository
-git init
-
-# 4. Create initial commit
-git add .
-git commit -m "Initial commit from NeuraLabs documentation template"
-
-# 5. Install dependencies
-npm install
-
-# 6. Start development
-npm run start
-```
-
-### Customization Steps
-
-1. **Update Project Info**: Edit `docusaurus.config.js` to change:
-   - Site title and tagline
-   - URL and baseUrl
-   - Organization/project name
-   - Social links
-
-2. **Update Colors**: Modify `src/theme/colors.js` and regenerate:
-   ```bash
-   node src/theme/generateColors.js
-   ```
-
-3. **Replace Content**: 
-   - Clear out example docs in `docs/`
-   - Update homepage content in `src/pages/index.js`
-   - Replace logos in `static/img/`
-
-## Component Synchronization Tool
-
-This template includes a powerful synchronization tool that allows you to pull updates from the base template while preserving your customizations.
-
-### Quick Start
-
-```bash
-# Basic sync from default repository
-npm run sync
-
-# Dry run mode (generates dryrun-changelogs.md)
-npm run sync:dry
-
-# Custom repository
-npm run sync -- --repo=https://github.com/org/repo.git
-
-# Custom branch and dry run
-npm run sync -- --branch=develop --dry-run
-```
-
-### Key Features
-
-- **Selective Updates**: Choose exactly what to sync (components, themes, configs, etc.)
-- **Smart Merging**: Intelligently merge `package.json` and `.gitignore` files
-- **Dry Run Mode**: Preview changes before applying them
-- **Detailed Changelogs**: Track all changes with `CHANGELOG.md` and `dryrun-changelogs.md`
-- **Self-Updating**: The sync tool can update itself while preserving your configuration
-
-### What Gets Synced
-
-The tool organizes updates into categories with different sync modes:
-
-- ✅ **Components** (replace) - UI components and documentation + removes obsolete files
-- ✅ **Images & Icons** (add-only) - Static assets (preserves logos)
-- ✅ **Theme** (selective) - Docusaurus theme customizations + deletion control
-- ✅ **Colors** (replace) - Color configuration file + removes obsolete files
-- ✅ **Custom CSS** (replace) - Stylesheets + removes obsolete files
-- ✅ **Configuration** (replace) - Config files including `.gitignore` + removes obsolete files
-- ✅ **VS Code Config** (replace) - Workspace settings and debugging + removes obsolete files
-- ✅ **Documentation** (replace) - README and CLAUDE files + removes obsolete files
-- ✅ **Sync Tool** (replace) - Self-update capability + removes obsolete files
-
-### What Doesn't Get Synced
-
-- ❌ **Your Content**: `docs/platform/`, `docs/overview/`, `blog/` posts
-- ❌ **Customizations**: Your sync config, logos, favicons
-- ❌ **Build Files**: `node_modules/`, cache, build output
-
-### Configuration
-
-Set your default repository in `sync/config.js`:
-
-```javascript
-const config = {
-  defaultRepo: 'https://github.com/your-org/base-template.git',
-  // ... other settings
-};
-```
-
-### For Complete Documentation
-
-📖 **See [sync/README.md](sync/README.md)** for:
-- Detailed sync mode explanations
-- Interactive workflow examples
-- Category-specific behaviors
-- Troubleshooting guide
-- Best practices
-- Tool architecture details

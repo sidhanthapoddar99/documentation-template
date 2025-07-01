@@ -1,0 +1,8 @@
+{
+  "label": "Platform 1",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Platform 1 documentation - replace with your actual platform name and description"
+  }
+}
