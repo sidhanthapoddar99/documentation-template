@@ -1,0 +1,61 @@
+# Documentation Plugins Configuration
+plugins:
+  - id: 'component-usage'
+    path: 'docs/component-usage'
+    routeBasePath: 'component-usage'
+    sidebarPath: './sidebars.js'
+
+  - id: 'docusaurus-guide'
+    path: 'docs/docusaurus-guide'
+    routeBasePath: 'docusaurus-guide'
+    sidebarPath: './sidebars.js'
+
+  - id: 'overview'
+    path: 'docs/overview'
+    routeBasePath: 'overview'
+    sidebarPath: './sidebars.js'
+
+  - id: 'platform-overview'
+    path: 'docs/platform/platform-overview'
+    routeBasePath: 'platform-overview'
+    sidebarPath: './sidebars.js'
+
+  - id: 'neuralock'
+    path: 'docs/platform/neuralock'
+    routeBasePath: 'neuralock'
+    sidebarPath: './sidebars.js'
+
+  - id: 'execution-engine'
+    path: 'docs/platform/execution-engine'
+    routeBasePath: 'execution-engine'
+    sidebarPath: './sidebars.js'
+
+  - id: 'synthesis'
+    path: 'docs/platform/synthesis'
+    routeBasePath: 'synthesis'
+    sidebarPath: './sidebars.js'
+
+  - id: 'ledger'
+    path: 'docs/platform/ledger'
+    routeBasePath: 'ledger'
+    sidebarPath: './sidebars.js'
+
+  - id: 'blockchain-integration'
+    path: 'docs/platform/blockchain-integration'
+    routeBasePath: 'blockchain-integration'
+    sidebarPath: './sidebars.js'
+
+  - id: 'synapsis'
+    path: 'docs/platform/synapsis'
+    routeBasePath: 'synapsis'
+    sidebarPath: './sidebars.js'
+
+  - id: 'developers'
+    path: 'docs/developers'
+    routeBasePath: 'developers'
+    sidebarPath: './sidebars.js'
+
+  - id: 'roadmap'
+    path: 'docs/roadmap'
+    routeBasePath: 'roadmap'
+    sidebarPath: './sidebars.js'

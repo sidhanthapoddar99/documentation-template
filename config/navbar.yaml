@@ -1,0 +1,69 @@
+# Navbar Configuration
+navbar:
+  title: 'NeuraLabs'
+  logo:
+    alt: 'NeuraLabs Logo'
+    src: 'img/logo-light.svg'
+    srcDark: 'img/logo-dark.svg'
+  
+  items:
+    - label: 'Welcome'
+      to: '/'
+      position: 'left'
+      className: 'navbar__item--nav'
+      activeBaseRegex: '^/$'
+    
+    - label: 'Component Usage'
+      to: '/component-usage'
+      position: 'left'
+      className: 'navbar__item--nav'
+    
+    - label: 'docusaurus-guide'
+      to: '/docusaurus-guide/overview/what-is-docusaurus'
+      position: 'left'
+      className: 'navbar__item--nav'
+    
+    - label: 'Overview'
+      to: '/overview'
+      position: 'left'
+      className: 'navbar__item--nav'
+    
+    - label: 'Platform Documentation'
+      type: 'dropdown'
+      position: 'left'
+      className: 'navbar__item--nav'
+      items:
+        - label: 'Platform'
+          to: '/platform-overview'
+        - label: 'NeuraLock'
+          to: '/neuralock'
+        - label: 'Neura Execution Engine'
+          to: '/execution-engine'
+        - label: 'Neura Synthesis'
+          to: '/synthesis'
+        - label: 'Neura Ledger'
+          to: '/ledger'
+        - label: 'L1 Blockchain Integration'
+          to: '/blockchain-integration'
+        - label: 'Neura Synapsis (Coming Soon)'
+          to: '/synapsis'
+    
+    - label: 'Developers Guide'
+      to: '/developers'
+      position: 'left'
+      className: 'navbar__item--nav'
+    
+    - label: 'Blogs'
+      to: '/blog'
+      position: 'left'
+      className: 'navbar__item--nav'
+    
+    - label: 'Roadmap & Release Notes'
+      to: '/roadmap'
+      position: 'left'
+      className: 'navbar__item--nav'
+    
+    - label: 'GitHub'
+      href: 'https://github.com/neuralabs/neuralabs-sui'
+      position: 'right'
+      className: 'navbar__item--nav'

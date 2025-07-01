@@ -1,0 +1,21 @@
+# Site Information
+title: 'NeuraLabs Documentation'
+tagline: 'Decentralized AI Workflow Platform on SUI'
+favicon: 'img/logo-light.svg'
+
+# URLs and Deployment
+url: 'https://docs.neuralabs.org'
+baseUrl: '/'
+
+# GitHub pages deployment config
+organizationName: 'neuralabs'
+projectName: 'neuralabs-sui'
+
+# Error handling
+onBrokenLinks: 'throw'
+onBrokenMarkdownLinks: 'warn'
+
+# Internationalization
+i18n:
+  defaultLocale: 'en'
+  locales: ['en']
