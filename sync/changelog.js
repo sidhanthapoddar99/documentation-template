@@ -15,7 +15,7 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
 
   if (isDryRun) {
     // For dry runs, calculate what would happen based on comparison and selections
-    let wouldReplace = 0, wouldAdd = 0, wouldMerge = 0, wouldSkip = 0;
+    let wouldReplace = 0, wouldAdd = 0, wouldMerge = 0, wouldSkip = 0, wouldDelete = 0;
     
     for (const [key, selected] of Object.entries(selections)) {
       if (selected) {
@@ -24,6 +24,7 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
         
         if (categoryConfig.mode === 'replace') {
           wouldReplace += (data.files.changed?.length || 0) + (data.files.new?.length || 0);
+          wouldDelete += (data.files.missing?.length || 0);
         } else if (categoryConfig.mode === 'add-only') {
           wouldAdd += (data.files.new?.length || 0);
           wouldSkip += (data.files.changed?.length || 0);
@@ -31,21 +32,24 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
           wouldMerge += (data.files.changed?.length || 0) + (data.files.new?.length || 0);
         } else if (categoryConfig.mode === 'selective') {
           wouldReplace += (data.files.changed?.length || 0) + (data.files.new?.length || 0);
+          wouldDelete += (data.files.missing?.length || 0);
         }
       }
     }
     
     changelogEntry += `- Files that would be replaced: ${wouldReplace}
 - Files that would be added: ${wouldAdd}
+- Files that would be deleted: ${wouldDelete}
 - Files that would be merged: ${wouldMerge}
 - Files that would be skipped: ${wouldSkip}
-- Total changes planned: ${wouldReplace + wouldAdd + wouldMerge}
+- Total changes planned: ${wouldReplace + wouldAdd + wouldDelete + wouldMerge}
 
 ### Planned Changes by Category
 `;
   } else {
     changelogEntry += `- Files replaced: ${updates.replaced.length}
 - Files added: ${updates.added.length}
+- Files deleted: ${updates.deleted.length}
 - Files merged: ${updates.merged.length}
 - Files skipped: ${updates.skipped.length}
 - Errors: ${updates.errors.length}
@@ -82,11 +86,15 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
         });
       }
       
-      if (data.files.missing && data.files.missing.length > 0 && isDryRun) {
-        content += `\n**Would remove (missing in source):**\n`;
-        data.files.missing.forEach(file => {
-          content += `- ${file}\n`;
-        });
+      if (data.files.missing && data.files.missing.length > 0) {
+        const actionWord = isDryRun ? 'Would delete' : 'Deleted';
+        const categoryConfig = config.categories[key];
+        if (categoryConfig.mode === 'replace' || categoryConfig.mode === 'selective') {
+          content += `\n**${actionWord} files (missing in source):**\n`;
+          data.files.missing.forEach(file => {
+            content += `- ${file}\n`;
+          });
+        }
       }
     }
   }

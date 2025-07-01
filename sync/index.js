@@ -64,6 +64,7 @@ async function main() {
       console.log(`\n${colors.green}✓ Updates completed${colors.reset}`);
       console.log(`  Replaced: ${updates.replaced.length} files`);
       console.log(`  Added: ${updates.added.length} files`);
+      console.log(`  Deleted: ${updates.deleted.length} files`);
       console.log(`  Merged: ${updates.merged.length} files`);
       console.log(`  Skipped: ${updates.skipped.length} files`);
       

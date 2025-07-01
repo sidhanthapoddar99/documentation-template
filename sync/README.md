@@ -104,7 +104,7 @@ The tool organizes updates into these categories:
           <li><code>src/components/elements/</code> - All UI components</li>
         </ul>
       </td>
-      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites completely</em></td>
+      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites + deletes missing</em></td>
     </tr>
     <tr >
       <td style="padding: 12px; vertical-align: top;"><strong>✅ Images & Icons</strong></td>
@@ -124,7 +124,7 @@ The tool organizes updates into these categories:
           <li><strong>Excludes:</strong> <code>colors.js</code> (preserved for customization)</li>
         </ul>
       </td>
-      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Selective</strong><br/><em>Choose what to update</em></td>
+      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Selective</strong><br/><em>Choose what to update + delete</em></td>
     </tr>
     <tr >
       <td style="padding: 12px; vertical-align: top;"><strong>✅ Colors</strong></td>
@@ -133,7 +133,7 @@ The tool organizes updates into these categories:
           <li><code>src/theme/colors.js</code> - Color definitions file</li>
         </ul>
       </td>
-      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites completely</em></td>
+      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites + deletes missing</em></td>
     </tr>
     <tr>
       <td style="padding: 12px; vertical-align: top;"><strong>✅ Custom CSS</strong></td>
@@ -142,7 +142,7 @@ The tool organizes updates into these categories:
           <li><code>src/css/</code> - All CSS files including custom.css and generated-colors.css</li>
         </ul>
       </td>
-      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites completely</em></td>
+      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites + deletes missing</em></td>
     </tr>
     <tr >
       <td style="padding: 12px; vertical-align: top;"><strong>✅ Configuration</strong></td>
@@ -164,7 +164,7 @@ The tool organizes updates into these categories:
           <li><code>CLAUDE.md</code> - Project instructions</li>
         </ul>
       </td>
-      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites completely</em></td>
+      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites + deletes missing</em></td>
     </tr>
     <tr >
       <td style="padding: 12px; vertical-align: top;"><strong>✅ VS Code Config</strong></td>
@@ -173,7 +173,7 @@ The tool organizes updates into these categories:
           <li><code>.vscode/</code> - VS Code workspace settings, launch configurations, debugging setups</li>
         </ul>
       </td>
-      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Selective</strong><br/><em>Choose what to update</em></td>
+      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Selective</strong><br/><em>Choose what to update + delete</em></td>
     </tr>
     <tr>
       <td style="padding: 12px; vertical-align: top;"><strong>✅ Sync Tool</strong></td>
@@ -183,7 +183,7 @@ The tool organizes updates into these categories:
           <li><strong>Excludes:</strong> <code>config.js</code> (preserved for user settings)</li>
         </ul>
       </td>
-      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites completely</em></td>
+      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites + deletes missing</em></td>
     </tr>
   </tbody>
 </table>
@@ -256,18 +256,18 @@ myCategory: {
 
 ## Sync Modes Explained
 
-- **replace**: Overwrites local files completely with base version
-- **add-only**: Only adds new files, preserves existing ones (useful for assets)
+- **replace**: Overwrites local files completely with base version and deletes files missing in source
+- **add-only**: Only adds new files, preserves existing ones (useful for assets)  
 - **merge**: Smart merging for configuration files (currently for package.json)
-- **selective**: Interactive selection - you choose what to update
+- **selective**: Interactive selection - you choose what to update (includes deletion)
 
 ### Mode Examples
 
-- **Components** use `replace` mode - ensures you get latest UI updates
+- **Components** use `replace` mode - ensures you get latest UI updates and removes obsolete files
 - **Images** use `add-only` mode - adds new icons without overwriting your logos
-- **Theme** uses `selective` mode - lets you choose which theme files to update
+- **Theme** uses `selective` mode - lets you choose which theme files to update (includes deletion)
 - **Config files** use `merge` mode - intelligently combines package dependencies and .gitignore patterns
-- **VS Code** uses `selective` mode - you control which workspace settings to sync
+- **VS Code** uses `selective` mode - you control which workspace settings to sync (includes deletion)
 
 ## Changelog Generation
 

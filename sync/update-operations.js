@@ -51,6 +51,7 @@ async function applyUpdates(comparison, selections) {
   const updates = {
     replaced: [],
     added: [],
+    deleted: [],
     skipped: [],
     merged: [],
     errors: []
@@ -64,8 +65,9 @@ async function applyUpdates(comparison, selections) {
     
     // Handle selective updates
     let filesToProcess = {
-      changed: data.files.changed,
-      new: data.files.new
+      changed: data.files.changed || [],
+      new: data.files.new || [],
+      missing: data.files.missing || []
     };
     
     if (selected.type === 'selected') {
@@ -87,11 +89,22 @@ async function applyUpdates(comparison, selections) {
             return file.includes(`src/theme/${item}/`);
           });
         });
+        filesToProcess.missing = data.files.missing.filter(file => {
+          return selected.items.some(item => {
+            if (item === 'generateColors.js') {
+              return file.includes('generateColors.js');
+            }
+            return file.includes(`src/theme/${item}/`);
+          });
+        });
       } else if (key === 'configs') {
         filesToProcess.changed = data.files.changed.filter(file => 
           selected.items.includes(file)
         );
         filesToProcess.new = data.files.new.filter(file => 
+          selected.items.includes(file)
+        );
+        filesToProcess.missing = data.files.missing.filter(file => 
           selected.items.includes(file)
         );
       }
@@ -137,6 +150,27 @@ async function applyUpdates(comparison, selections) {
         updates.added.push(file);
       } catch (error) {
         updates.errors.push({ file, error: error.message });
+      }
+    }
+    
+    // Process missing files (delete them in replace mode)
+    if (category.mode === 'replace' || (category.mode === 'selective' && selected.type !== 'selected')) {
+      for (const file of filesToProcess.missing) {
+        try {
+          const destPath = path.join(projectRoot, file);
+          
+          // Check if file exists before trying to delete
+          try {
+            await fs.access(destPath);
+            await fs.unlink(destPath);
+            updates.deleted.push(file);
+          } catch (accessError) {
+            // File doesn't exist, skip silently
+            updates.skipped.push(file);
+          }
+        } catch (error) {
+          updates.errors.push({ file, error: error.message });
+        }
       }
     }
   }
