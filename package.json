@@ -12,7 +12,9 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "sync": "node sync/index.js",
+    "sync:dry": "node sync/index.js --dry-run"
   },
   "dependencies": {
     "@docusaurus/core": "^3.0.0",
