@@ -5,33 +5,33 @@ import './HomeFeatures.css';
 const FeatureList = [
   {
     icon: '/img/icons/ai-workflow.svg',
-    title: 'Autonomous AI Agents',
-    description: 'Create AI agents that can discover capabilities, negotiate costs, and compose workflows autonomously. Build the future of self-organizing AI systems without centralized control.'
+    title: 'Modern Architecture',
+    description: 'Built with cutting-edge technologies and industry best practices. Create scalable applications with robust architecture patterns and clean code principles.'
   },
   {
     icon: '/img/icons/blockchain.svg',
-    title: 'Blockchain-Native Infrastructure',
-    description: 'Built on SUI blockchain with NFT-based access control, zkLogin authentication, and Walrus decentralized storage. Your AI agents are truly owned by you, not controlled by corporations.'
+    title: 'Cloud-Native Infrastructure',
+    description: 'Deploy anywhere with containerized applications, microservices architecture, and cloud-native deployment strategies. Scale horizontally with confidence.'
   },
   {
     icon: '/img/icons/security.svg',
-    title: 'Privacy-Preserving Cryptography',
-    description: 'Advanced cryptographic primitives including SUI Seal for threshold encryption, zero-knowledge proofs for private computation, and VRF for verifiable randomness. Secure by design.'
+    title: 'Security First',
+    description: 'Enterprise-grade security with advanced authentication, authorization, and data protection. Built-in security scanning and vulnerability management.'
   },
   {
     icon: '/img/icons/network.svg',
-    title: 'Decentralized Execution Network',
-    description: 'Distributed HPC execution nodes with support for multiple AI providers (Anthropic, DeepSeek, AWS Bedrock). Scale your workflows globally with automatic load balancing and cost optimization.'
+    title: 'Global Distribution',
+    description: 'Deploy your applications globally with CDN integration, edge computing support, and automatic failover. Ensure low latency for users worldwide.'
   },
   {
     icon: '/img/icons/settings.svg',
-    title: 'Creator Economy',
-    description: 'Monetize your AI workflows and sub-agents through automatic micropayments. When other agents use your capabilities, you get paid instantly and fairly according to your pricing.'
+    title: 'Easy Integration',
+    description: 'Seamlessly integrate with existing systems through comprehensive APIs, webhooks, and SDK support. Connect with popular tools and services.'
   },
   {
     icon: '/img/icons/code.svg',
-    title: 'Developer-First Platform',
-    description: 'Comprehensive SDKs, APIs, and visual workflow builder. From drag-and-drop interfaces to custom code execution - build however you want with full blockchain integration.'
+    title: 'Developer Experience',
+    description: 'Comprehensive documentation, CLI tools, and development environments. From local development to production deployment - streamlined workflow.'
   }
 ];
 
@@ -40,9 +40,9 @@ export default function HomeFeatures() {
     <section className="home-features-section">
       <div className="container">
         <div className="home-features-header">
-          <h2 className="home-features-title">Why Choose NeuraLabs?</h2>
+          <h2 className="home-features-title">Why Choose Our Platform?</h2>
           <p className="home-features-subtitle">
-            The first truly decentralized platform for autonomous AI agents
+            A comprehensive solution designed for modern development teams
           </p>
         </div>
         <Features className="home-features-grid">

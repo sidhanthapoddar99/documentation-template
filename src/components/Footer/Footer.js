@@ -7,13 +7,13 @@ const Footer = () => {
   
   const footerLinks = {
     community: [
-      { label: 'Discord', href: 'https://discord.gg/neuralabs' },
-      { label: 'Twitter', href: 'https://twitter.com/neuralabs' },
-      { label: 'Forum', href: 'https://forum.neuralabs.org' },
+      { label: 'Discord', href: 'https://discord.gg/yourserver' },
+      { label: 'Twitter', href: 'https://twitter.com/yourhandle' },
+      { label: 'Forum', href: 'https://forum.yoursite.com' },
     ],
     resources: [
-      { label: 'GitHub', href: 'https://github.com/neuralabs/neuralabs-sui' },
-      { label: 'Website', href: 'https://neuralabs.org' },
+      { label: 'GitHub', href: 'https://github.com/yourorg/yourproject' },
+      { label: 'Website', href: 'https://yourwebsite.com' },
       { label: 'Documentation', to: '/overview' },
     ],
     legal: [
@@ -29,10 +29,10 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="footer-section footer-brand">
             <div className="footer-logo">
-              <img src="/img/logo-light.svg" alt="NeuraLabs" width="150" height="40" />
+              <img src="/img/logo-light.svg" alt="Your Company" width="150" height="40" />
             </div>
             <p className="footer-description">
-              Democratizing AI ownership through decentralized workflows on the SUI blockchain.
+              Building modern solutions for today's development challenges with cutting-edge technology.
             </p>
           </div>
 
@@ -85,7 +85,7 @@ const Footer = () => {
         <div className="footer-bottom">
           <div className="footer-bottom-content">
             <p className="footer-copyright">
-              © {currentYear} NeuraLabs. All rights reserved.
+              © {currentYear} Your Company. All rights reserved.
             </p>
             <p className="footer-built-with">
               Built with <span className="footer-heart">❤️</span> using Docusaurus

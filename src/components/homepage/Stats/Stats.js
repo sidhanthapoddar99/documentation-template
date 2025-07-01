@@ -4,23 +4,23 @@ import './Stats.css';
 const StatsList = [
   {
     icon: '/img/icons/ai-workflow.svg',
-    title: 'Autonomous Agents',
-    description: 'Self-organizing AI network'
+    title: 'High Performance',
+    description: 'Optimized for speed'
   },
   {
     icon: '/img/icons/security.svg',
-    title: 'Zero-Knowledge',
-    description: 'Privacy-preserving by design'
+    title: 'Secure',
+    description: 'Enterprise-grade security'
   },
   {
     icon: '/img/icons/network.svg',
-    title: 'Global Network',
-    description: 'Decentralized execution'
+    title: 'Scalable',
+    description: 'Global infrastructure'
   },
   {
     icon: '/img/icons/terminal.svg',
-    title: 'Real-time',
-    description: 'Streaming AI responses'
+    title: 'Developer Ready',
+    description: 'Modern tooling'
   }
 ];
 

@@ -1,15 +1,15 @@
 # Site Information
-title: 'NeuraLabs Documentation'
-tagline: 'Decentralized AI Workflow Platform on SUI'
+title: 'Documentation Name'
+tagline: 'Documneantion tagline goes here'
 favicon: 'img/logo-light.svg'
 
 # URLs and Deployment
-url: 'https://docs.neuralabs.org'
+url: 'https://example.com'
 baseUrl: '/'
 
 # GitHub pages deployment config
-organizationName: 'neuralabs'
-projectName: 'neuralabs-sui'
+organizationName: 'org name'
+projectName: 'project name'
 
 # Error handling
 onBrokenLinks: 'throw'

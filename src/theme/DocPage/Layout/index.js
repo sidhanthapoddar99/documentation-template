@@ -4,7 +4,7 @@ import {useWindowSize} from '@docusaurus/theme-common';
 import {useDocsSidebar} from '@docusaurus/theme-common/internal';
 import DocPageLayoutSidebar from './Sidebar';
 import DocPageLayoutMain from './Main';
-import { Footer } from '@site/src/components/elements';
+import { Footer } from '@site/src/components/Footer';
 import styles from './styles.module.css';
 
 export default function DocPageLayout({children}) {

@@ -18,8 +18,7 @@ export { CollapsibleCodeBlock, InlineCodeCard } from './CodeBlock';
 // BlogSearch component
 export { BlogSearch } from './BlogSearch';
 
-// Footer component
-export { Footer } from './Footer';
+
 
 // Visualization components
 export { CustomMermaid, FileMermaid, MermaidDiagram, GraphViz, FileGraphViz, GraphVizDiagram } from './visualizations';

@@ -1,8 +1,8 @@
 # Navbar Configuration
 navbar:
-  title: 'NeuraLabs'
+  title: 'Project Name'
   logo:
-    alt: 'NeuraLabs Logo'
+    alt: 'Project Name Alt Logo'
     src: 'img/logo-light.svg'
     srcDark: 'img/logo-dark.svg'
   

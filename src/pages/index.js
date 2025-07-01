@@ -1,7 +1,7 @@
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import { Hero, HomeFeatures, Stats } from '@site/src/components/homepage';
-import { Footer } from '@site/src/components/elements';
+import { Footer } from '@site/src/components/Footer';
 import './index.css';
 
 export default function Home() {
@@ -9,8 +9,8 @@ export default function Home() {
   
   return (
     <Layout
-      title={`${siteConfig.title} - Decentralized AI Workflow Platform`}
-      description="Build, deploy, and monetize autonomous AI agents on the decentralized SUI blockchain"
+      title={`${siteConfig.title} - Modern Development Platform`}
+      description="A comprehensive platform for modern development teams - build, deploy, and scale your applications with confidence"
       wrapperClassName="home-page"
       noFooter={true}> {/* Disable default footer */}
       <div className="home-page-wrapper">
