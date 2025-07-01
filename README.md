@@ -494,257 +494,69 @@ npm run start
 
 ## Component Synchronization Tool
 
-This template includes a powerful synchronization tool in the `sync/` directory that allows you to pull updates from the base template while preserving your customizations.
+This template includes a powerful synchronization tool that allows you to pull updates from the base template while preserving your customizations.
 
-### How It Works
+### Quick Start
 
-The sync tool:
-1. Archives the base repository to a temporary directory
-2. Compares files between base and your project
-3. Shows what's changed, new, or identical
-4. Lets you selectively update components
-5. Generates a changelog of all updates
-6. Cleans up temporary files
-7. Can even update itself!
+```bash
+# Basic sync from default repository
+npm run sync
 
-### Tool Structure
+# Dry run mode (generates dryrun-changelogs.md)
+npm run sync:dry
 
+# Custom repository
+npm run sync -- --repo=https://github.com/org/repo.git
+
+# Custom branch and dry run
+npm run sync -- --branch=develop --dry-run
 ```
-sync/
-├── index.js           # Main entry point
-├── config.js          # Configuration and categories
-├── utils.js           # Utility functions
-├── git-operations.js  # Git clone and cleanup
-├── comparison.js      # File comparison logic
-├── prompts.js         # Interactive CLI prompts
-├── update-operations.js # File update and merge logic
-├── changelog.js       # Changelog generation
-└── README.md          # Sync tool documentation
-```
+
+### Key Features
+
+- **Selective Updates**: Choose exactly what to sync (components, themes, configs, etc.)
+- **Smart Merging**: Intelligently merge `package.json` and `.gitignore` files
+- **Dry Run Mode**: Preview changes before applying them
+- **Detailed Changelogs**: Track all changes with `CHANGELOG.md` and `dryrun-changelogs.md`
+- **Self-Updating**: The sync tool can update itself while preserving your configuration
+
+### What Gets Synced
+
+The tool organizes updates into categories with different sync modes:
+
+- ✅ **Components** (replace) - UI components and documentation
+- ✅ **Images & Icons** (add-only) - Static assets (preserves logos)
+- ✅ **Theme** (selective) - Docusaurus theme customizations
+- ✅ **Colors** (replace) - Color configuration file
+- ✅ **Custom CSS** (replace) - Stylesheets
+- ✅ **Configuration** (merge) - Config files including `.gitignore`
+- ✅ **VS Code Config** (selective) - Workspace settings and debugging
+- ✅ **Documentation** (replace) - README and CLAUDE files
+- ✅ **Sync Tool** (replace) - Self-update capability
+
+### What Doesn't Get Synced
+
+- ❌ **Your Content**: `docs/platform/`, `docs/overview/`, `blog/` posts
+- ❌ **Customizations**: Your sync config, logos, favicons
+- ❌ **Build Files**: `node_modules/`, cache, build output
 
 ### Configuration
 
-Edit the default repository URL in `sync/config.js`:
+Set your default repository in `sync/config.js`:
 
 ```javascript
 const config = {
-  defaultRepo: 'https://github.com/your-org/base-template.git', // Set your base template URL
-  // ... other config
+  defaultRepo: 'https://github.com/your-org/base-template.git',
+  // ... other settings
 };
 ```
 
-### Basic Usage
+### For Complete Documentation
 
-```bash
-# Using npm scripts (recommended)
-npm run sync                                    # Sync from default repository
-npm run sync:dry                                # Dry run mode
-
-# With custom parameters (note the -- before arguments)
-npm run sync -- --repo=https://github.com/org/repo.git
-npm run sync -- --branch=develop
-npm run sync -- --repo=https://github.com/org/repo.git --branch=main --dry-run
-
-# Direct node execution (from project root)
-node sync                                       # Sync from default repository
-node sync --repo=https://github.com/org/repo.git
-node sync --branch=develop
-node sync --dry-run
-```
-
-#### Important Notes on npm Scripts
-
-**Directory handling**: No issues! When using `npm run sync`, npm automatically runs from the project root directory, so all path operations work correctly.
-
-**Parameter passing**: When using npm scripts with custom arguments, you need to use `--` to separate npm's arguments from the script's arguments:
-
-```bash
-# ✅ Correct ways to pass arguments:
-npm run sync -- --repo=https://github.com/org/repo.git
-npm run sync -- --branch=develop --dry-run
-
-# ❌ This won't work:
-npm run sync --repo=https://github.com/org/repo.git
-```
-
-The `--` tells npm to pass everything after it to the script being run.
-
-#### Quick Usage Examples
-
-1. **Simple sync**: `npm run sync`
-2. **Dry run**: `npm run sync:dry`
-3. **Custom repo**: `npm run sync -- --repo=https://github.com/org/repo.git`
-4. **All options**: `npm run sync -- --repo=https://github.com/org/repo.git --branch=main --dry-run`
-
-### Interactive Update Process
-
-When you run the sync tool, it will:
-
-1. **Show a comparison summary** of all categories:
-   ```
-   === File Comparison Summary ===
-   
-   Components:
-     ✓ Identical: 15
-     ↻ Changed: 3
-     + New: 2
-     - Deleted: 0
-   ```
-
-2. **Ask for confirmation** to proceed with updates
-
-3. **Present update options** for each category:
-   - **Components**: Update component files and documentation
-   - **Images/Icons**: Add new images (won't overwrite existing)
-   - **Theme**: Choose all, selected folders, or none
-   - **Colors**: Update the color configuration file
-   - **Custom CSS**: Update stylesheets
-   - **Config Files**: Merge package.json, update configs
-   - **Documentation**: Update README and CLAUDE.md
-   - **Sync Tool**: Update the sync tool itself (preserves your config.js)
-
-### Category-Specific Behaviors
-
-#### Components (Replace Mode)
-Updates all component files in:
-- `docs/component-usage/`
-- `docs/docusaurus-guide/`
-- `src/components/elements/`
-
-#### Images/Icons (Add-Only Mode)
-- Only adds new images to `static/img/`
-- Skips existing files
-- Excludes logo and favicon files
-
-#### Theme (Selective Mode)
-Offers three options:
-1. **All**: Update all theme files
-2. **Selected**: Choose specific folders (Navbar, DocPage, etc.)
-3. **None**: Skip theme updates
-
-Special handling for:
-- `generateColors.js` is included in updates
-- `colors.js` is a separate category for explicit control
-
-#### Configuration Files (Merge Mode)
-- **package.json**: Intelligently merges dependencies and scripts
-- **docusaurus.config.js**: Replace mode with confirmation
-- **tsconfig.json**: Add-only mode
-
-### Example Workflow
-
-```bash
-# 1. Run the sync tool
-$ node sync
-
-Component Sync Tool
-
-Using default repository: https://github.com/neuralabs/template.git
-Archiving repository...
-✓ Repository archived successfully
-
-Comparing files...
-
-=== File Comparison Summary ===
-
-Components:
-  ✓ Identical: 20
-  ↻ Changed: 5
-  + New: 3
-  Total: 28 files
-
-Theme:
-  ✓ Identical: 10
-  ↻ Changed: 2
-  + New: 1
-  Total: 13 files
-
-Proceed with updates? (y/n): y
-
-# 2. Select what to update
-Components
-  Changed files: 5
-  New files: 3
-Update Components? (y/n): y
-
-Theme
-  Changed files: 2
-  New files: 1
-How would you like to update Theme?
-  1. all
-  2. selected
-  3. none
-Select option (number): 2
-
-Select theme folders to update:
-  1. Navbar
-  2. DocPage
-  3. generateColors.js
-  4. All
-  5. None
-Select options (comma-separated numbers): 1,3
-
-# 3. Review results
-✓ Updates completed
-  Replaced: 7 files
-  Added: 4 files
-  Merged: 1 files
-  Skipped: 0 files
-
-✓ Changelog updated
-Cleaned up temporary files
-```
-
-### Changelog
-
-The tool automatically generates a `CHANGELOG.md` with details of each sync:
-
-```markdown
-## Component Sync - 2024-01-15T10:30:00.000Z
-
-### Summary
-- Files replaced: 7
-- Files added: 4
-- Files merged: 1
-- Files skipped: 0
-- Errors: 0
-
-### Categories Updated
-
-#### Components
-**Changed files:**
-- src/components/elements/Card/Card.js
-- src/components/elements/Card/Card.css
-...
-
-**New files:**
-- src/components/elements/Timeline/Timeline.js
-...
-```
-
-### Best Practices
-
-1. **Commit Before Syncing**: Always commit your current changes before running the sync tool
-2. **Review Changes**: Use `--dry-run` to preview what will be updated
-3. **Selective Updates**: Use the selective options for themes and configs to maintain customizations
-4. **Test After Sync**: Run `npm start` to ensure everything works after updates
-5. **Check the Changelog**: Review `CHANGELOG.md` to understand what was updated
-
-### Troubleshooting
-
-**Git clone fails:**
-- Ensure you have access to the repository
-- Check your git credentials
-- Verify the repository URL
-
-**Merge conflicts in package.json:**
-- The tool will prompt for each script conflict
-- Choose whether to keep your version or update
-
-**Missing dependencies after sync:**
-- Run `npm install` after syncing
-- Check for any peer dependency warnings
-
-**Styling issues after theme updates:**
-- Regenerate colors: `node src/theme/generateColors.js`
-- Check for CSS variable changes in updated files
+📖 **See [sync/README.md](sync/README.md)** for:
+- Detailed sync mode explanations
+- Interactive workflow examples
+- Category-specific behaviors
+- Troubleshooting guide
+- Best practices
+- Tool architecture details
