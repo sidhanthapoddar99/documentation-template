@@ -78,7 +78,7 @@ async function getThemeFolders(themeComparison) {
 async function promptCategory(category, comparison) {
   const data = comparison[category];
   const categoryConfig = config.categories[category];
-  const hasChanges = data.files.changed.length > 0 || data.files.new.length > 0;
+  const hasChanges = data.files.changed.length > 0 || data.files.new.length > 0 || (data.files.missing && data.files.missing.length > 0);
   
   if (!hasChanges) {
     console.log(`${colors.dim}No changes in ${data.name}${colors.reset}`);
@@ -88,6 +88,9 @@ async function promptCategory(category, comparison) {
   console.log(`\n${colors.bright}${data.name}${colors.reset}`);
   console.log(`  Changed files: ${data.files.changed.length}`);
   console.log(`  New files: ${data.files.new.length}`);
+  if (data.files.missing && data.files.missing.length > 0) {
+    console.log(`  Missing files (will be deleted): ${data.files.missing.length}`);
+  }
   
   // Handle categories with options
   if (categoryConfig.options) {

@@ -159,28 +159,20 @@ async function applyUpdates(comparison, selections) {
                                  (selected === true || (selected.type && selected.type === 'all')));
     
     if (shouldDeleteMissing) {
-      console.log(`\n${colors.blue}Debug: Processing missing files for ${data.name}${colors.reset}`);
-      console.log(`  Missing files count: ${filesToProcess.missing.length}`);
-      console.log(`  Missing files:`, filesToProcess.missing);
-      
       for (const file of filesToProcess.missing) {
         try {
           const destPath = path.join(projectRoot, file);
-          console.log(`  Checking file: ${destPath}`);
           
           // Check if file exists before trying to delete
           try {
             await fs.access(destPath);
-            console.log(`  Deleting: ${file}`);
             await fs.unlink(destPath);
             updates.deleted.push(file);
           } catch (accessError) {
-            console.log(`  File doesn't exist: ${file}`);
             // File doesn't exist, skip silently
             updates.skipped.push(file);
           }
         } catch (error) {
-          console.log(`  Error with file ${file}: ${error.message}`);
           updates.errors.push({ file, error: error.message });
         }
       }
