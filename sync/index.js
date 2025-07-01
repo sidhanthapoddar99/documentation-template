@@ -5,7 +5,7 @@ const { archiveRepository, cleanup } = require('./git-operations');
 const { compareCategories, displayComparison } = require('./comparison');
 const { prompt, promptCategory } = require('./prompts');
 const { applyUpdates } = require('./update-operations');
-const { generateChangelog } = require('./changelog');
+const { generateChangelog, generateDryRunChangelog } = require('./changelog');
 
 // Main function
 async function main() {
@@ -75,6 +75,8 @@ async function main() {
       await generateChangelog(comparison, selections, updates);
     } else {
       console.log(`\n${colors.yellow}Dry run mode - no files were modified${colors.reset}`);
+      // Generate dry run changelog
+      await generateDryRunChangelog(comparison, selections);
     }
     
   } catch (error) {

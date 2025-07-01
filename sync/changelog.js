@@ -1,14 +1,50 @@
 const fs = require('fs').promises;
-const { config, colors } = require('./config');
+const path = require('path');
+const { config, colors, projectRoot } = require('./config');
 
-// Generate changelog
-async function generateChangelog(comparison, selections, updates) {
+// Generate detailed changelog for both dry runs and actual updates
+async function generateChangelog(comparison, selections, updates, isDryRun = false) {
   const timestamp = new Date().toISOString();
-  const changelogEntry = `
-## Component Sync - ${timestamp}
+  const runType = isDryRun ? 'DRY RUN' : 'ACTUAL SYNC';
+  
+  let changelogEntry = `
+## Component Sync ${runType} - ${timestamp}
 
 ### Summary
-- Files replaced: ${updates.replaced.length}
+`;
+
+  if (isDryRun) {
+    // For dry runs, calculate what would happen based on comparison and selections
+    let wouldReplace = 0, wouldAdd = 0, wouldMerge = 0, wouldSkip = 0;
+    
+    for (const [key, selected] of Object.entries(selections)) {
+      if (selected) {
+        const data = comparison[key];
+        const categoryConfig = config.categories[key];
+        
+        if (categoryConfig.mode === 'replace') {
+          wouldReplace += data.files.changed.length + data.files.new.length;
+        } else if (categoryConfig.mode === 'add-only') {
+          wouldAdd += data.files.new.length;
+          wouldSkip += data.files.changed.length;
+        } else if (categoryConfig.mode === 'merge') {
+          wouldMerge += data.files.changed.length + data.files.new.length;
+        } else if (categoryConfig.mode === 'selective') {
+          wouldReplace += data.files.changed.length + data.files.new.length;
+        }
+      }
+    }
+    
+    changelogEntry += `- Files that would be replaced: ${wouldReplace}
+- Files that would be added: ${wouldAdd}
+- Files that would be merged: ${wouldMerge}
+- Files that would be skipped: ${wouldSkip}
+- Total changes planned: ${wouldReplace + wouldAdd + wouldMerge}
+
+### Planned Changes by Category
+`;
+  } else {
+    changelogEntry += `- Files replaced: ${updates.replaced.length}
 - Files added: ${updates.added.length}
 - Files merged: ${updates.merged.length}
 - Files skipped: ${updates.skipped.length}
@@ -16,31 +52,46 @@ async function generateChangelog(comparison, selections, updates) {
 
 ### Categories Updated
 `;
+  }
 
   let content = changelogEntry;
   
   for (const [key, selected] of Object.entries(selections)) {
     if (selected) {
       const data = comparison[key];
-      content += `\n#### ${data.name}\n`;
+      const categoryConfig = config.categories[key];
+      content += `\n#### ${data.name} (${categoryConfig.mode} mode)\n`;
+      
+      if (isDryRun) {
+        content += `**Action**: ${getModeDescription(categoryConfig.mode)}\n\n`;
+      }
       
       if (data.files.changed.length > 0) {
-        content += `**Changed files:**\n`;
+        const actionWord = isDryRun ? 'Would update' : 'Updated';
+        content += `**${actionWord} files:**\n`;
         data.files.changed.forEach(file => {
           content += `- ${file}\n`;
         });
       }
       
       if (data.files.new.length > 0) {
-        content += `\n**New files:**\n`;
+        const actionWord = isDryRun ? 'Would add' : 'Added';
+        content += `\n**${actionWord} files:**\n`;
         data.files.new.forEach(file => {
+          content += `- ${file}\n`;
+        });
+      }
+      
+      if (data.files.missing.length > 0 && isDryRun) {
+        content += `\n**Would remove (missing in source):**\n`;
+        data.files.missing.forEach(file => {
           content += `- ${file}\n`;
         });
       }
     }
   }
   
-  if (updates.errors.length > 0) {
+  if (updates && updates.errors && updates.errors.length > 0) {
     content += `\n### Errors\n`;
     updates.errors.forEach(({ file, error }) => {
       content += `- ${file}: ${error}\n`;
@@ -49,16 +100,44 @@ async function generateChangelog(comparison, selections, updates) {
   
   content += '\n---\n\n';
   
+  // Choose the appropriate changelog file
+  const changelogFile = isDryRun 
+    ? path.join(projectRoot, 'dryrun-changelogs.md')
+    : config.changelogFile;
+  
   // Prepend to existing changelog or create new one
   try {
-    const existingChangelog = await fs.readFile(config.changelogFile, 'utf-8').catch(() => '');
-    await fs.writeFile(config.changelogFile, content + existingChangelog);
-    console.log(`${colors.green}✓ Changelog updated${colors.reset}`);
+    const existingChangelog = await fs.readFile(changelogFile, 'utf-8').catch(() => '');
+    await fs.writeFile(changelogFile, content + existingChangelog);
+    const logType = isDryRun ? 'Dry run changelog' : 'Changelog';
+    console.log(`${colors.green}✓ ${logType} updated${colors.reset}`);
   } catch (error) {
     console.error(`${colors.red}Error writing changelog:${colors.reset}`, error.message);
   }
 }
 
+// Helper function to describe sync modes
+function getModeDescription(mode) {
+  switch (mode) {
+    case 'replace':
+      return 'Completely replace local files with source versions';
+    case 'add-only':
+      return 'Add new files only, preserve existing files';
+    case 'merge':
+      return 'Intelligently merge configuration files';
+    case 'selective':
+      return 'User-selected files will be replaced';
+    default:
+      return 'Unknown mode';
+  }
+}
+
+// Generate dry run changelog without updates object
+async function generateDryRunChangelog(comparison, selections) {
+  await generateChangelog(comparison, selections, { replaced: [], added: [], merged: [], skipped: [], errors: [] }, true);
+}
+
 module.exports = {
-  generateChangelog
+  generateChangelog,
+  generateDryRunChangelog
 };

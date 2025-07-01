@@ -2,3 +2,8 @@
 node_modules
 package-lock.json
 build
+git_temp/**
+
+# Sync tool generated files
+CHANGELOG.md
+dryrun-changelogs.md

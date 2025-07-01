@@ -7,7 +7,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const config = {
   tempDir: path.join(projectRoot, 'git_temp'),
   changelogFile: path.join(projectRoot, 'CHANGELOG.md'),
-  defaultRepo: '<git:repo:default>',
+  defaultRepo: 'https://github.com/sidhanthapoddar99/documentation-template',
   categories: {
     components: {
       name: 'Components',
@@ -43,7 +43,7 @@ const config = {
     },
     configs: {
       name: 'Configuration Files',
-      paths: ['docusaurus.config.js', 'package.json', 'tsconfig.json'],
+      paths: ['docusaurus.config.js', 'package.json', 'tsconfig.json', '.gitignore'],
       mode: 'merge',
       options: ['all', 'selected', 'none']
     },
@@ -57,6 +57,12 @@ const config = {
       paths: ['sync'],
       mode: 'replace',
       exclude: ['config.js'] // Don't overwrite user's config
+    },
+    vscode: {
+      name: 'VS Code Configuration',
+      paths: ['.vscode'],
+      mode: 'selective',
+      options: ['all', 'selected', 'none']
     }
   }
 };
