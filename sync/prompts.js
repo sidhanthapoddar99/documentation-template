@@ -78,6 +78,10 @@ async function getThemeFolders(themeComparison) {
 async function promptCategory(category, comparison) {
   const data = comparison[category];
   const categoryConfig = config.categories[category];
+  
+  // Debug: Check what's in the data
+  console.log(`\nDEBUG: ${category} data:`, JSON.stringify(data.files, null, 2));
+  
   const hasChanges = data.files.changed.length > 0 || data.files.new.length > 0 || (data.files.missing && data.files.missing.length > 0);
   
   if (!hasChanges) {
