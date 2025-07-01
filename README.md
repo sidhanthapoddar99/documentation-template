@@ -529,8 +529,8 @@ The tool organizes updates into categories with different sync modes:
 - ✅ **Theme** (selective) - Docusaurus theme customizations + deletion control
 - ✅ **Colors** (replace) - Color configuration file + removes obsolete files
 - ✅ **Custom CSS** (replace) - Stylesheets + removes obsolete files
-- ✅ **Configuration** (merge) - Config files including `.gitignore`
-- ✅ **VS Code Config** (selective) - Workspace settings and debugging + deletion control
+- ✅ **Configuration** (replace) - Config files including `.gitignore` + removes obsolete files
+- ✅ **VS Code Config** (replace) - Workspace settings and debugging + removes obsolete files
 - ✅ **Documentation** (replace) - README and CLAUDE files + removes obsolete files
 - ✅ **Sync Tool** (replace) - Self-update capability + removes obsolete files
 

@@ -149,12 +149,12 @@ The tool organizes updates into these categories:
       <td style="padding: 12px; vertical-align: top;">
         <ul style="margin: 0; padding-left: 20px;">
           <li><code>docusaurus.config.js</code> - Main Docusaurus configuration</li>
-          <li><code>package.json</code> - Package dependencies (smart merge)</li>
+          <li><code>package.json</code> - Package dependencies</li>
           <li><code>tsconfig.json</code> - TypeScript configuration</li>
-          <li><code>.gitignore</code> - Git ignore patterns (smart merge)</li>
+          <li><code>.gitignore</code> - Git ignore patterns</li>
         </ul>
       </td>
-      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Merge</strong><br/><em>Intelligent combining</em></td>
+      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites + deletes missing</em></td>
     </tr>
     <tr>
       <td style="padding: 12px; vertical-align: top;"><strong>✅ Documentation</strong></td>
@@ -173,7 +173,7 @@ The tool organizes updates into these categories:
           <li><code>.vscode/</code> - VS Code workspace settings, launch configurations, debugging setups</li>
         </ul>
       </td>
-      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Selective</strong><br/><em>Choose what to update + delete</em></td>
+      <td style="padding: 12px; vertical-align: top; text-align: center;"><strong>Replace</strong><br/><em>Overwrites + deletes missing</em></td>
     </tr>
     <tr>
       <td style="padding: 12px; vertical-align: top;"><strong>✅ Sync Tool</strong></td>
@@ -266,8 +266,8 @@ myCategory: {
 - **Components** use `replace` mode - ensures you get latest UI updates and removes obsolete files
 - **Images** use `add-only` mode - adds new icons without overwriting your logos
 - **Theme** uses `selective` mode - lets you choose which theme files to update (includes deletion)
-- **Config files** use `merge` mode - intelligently combines package dependencies and .gitignore patterns
-- **VS Code** uses `selective` mode - you control which workspace settings to sync (includes deletion)
+- **Config files** use `replace` mode - completely replaces configuration files including .gitignore
+- **VS Code** uses `replace` mode - completely replaces workspace settings and removes obsolete files
 
 ## Changelog Generation
 
@@ -351,11 +351,11 @@ Special handling for:
 - `generateColors.js` is included in updates
 - `colors.js` is a separate category for explicit control
 
-### Configuration Files (Merge Mode)
-- **package.json**: Intelligently merges dependencies and scripts
-- **docusaurus.config.js**: Replace mode with confirmation
-- **tsconfig.json**: Add-only mode
-- **.gitignore**: Smart merge of ignore patterns
+### Configuration Files (Replace Mode)
+- **package.json**: Completely replaces with source version
+- **docusaurus.config.js**: Completely replaces with source version
+- **tsconfig.json**: Completely replaces with source version
+- **.gitignore**: Completely replaces with source version
 
 ## Example Workflow
 

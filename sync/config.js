@@ -44,8 +44,12 @@ const config = {
     configs: {
       name: 'Configuration Files',
       paths: ['docusaurus.config.js', 'package.json', 'tsconfig.json', '.gitignore'],
-      mode: 'merge',
-      options: ['all', 'selected', 'none']
+      mode: 'replace'
+    },
+    vscode: {
+      name: 'VS Code Configuration',
+      paths: ['.vscode'],
+      mode: 'replace'
     },
     docs: {
       name: 'Documentation',
@@ -57,12 +61,6 @@ const config = {
       paths: ['sync'],
       mode: 'replace',
       exclude: ['config.js'] // Don't overwrite user's config
-    },
-    vscode: {
-      name: 'VS Code Configuration',
-      paths: ['.vscode'],
-      mode: 'selective',
-      options: ['all', 'selected', 'none']
     }
   }
 };
