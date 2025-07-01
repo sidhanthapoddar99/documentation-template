@@ -67,7 +67,7 @@ async function applyUpdates(comparison, selections) {
     let filesToProcess = {
       changed: data.files.changed || [],
       new: data.files.new || [],
-      missing: data.files.missing || []
+      deleted: data.files.deleted || []
     };
     
     if (selected.type === 'selected') {
@@ -89,7 +89,7 @@ async function applyUpdates(comparison, selections) {
             return file.includes(`src/theme/${item}/`);
           });
         });
-        filesToProcess.missing = data.files.missing.filter(file => {
+        filesToProcess.deleted = data.files.deleted.filter(file => {
           return selected.items.some(item => {
             if (item === 'generateColors.js') {
               return file.includes('generateColors.js');
@@ -104,7 +104,7 @@ async function applyUpdates(comparison, selections) {
         filesToProcess.new = data.files.new.filter(file => 
           selected.items.includes(file)
         );
-        filesToProcess.missing = data.files.missing.filter(file => 
+        filesToProcess.deleted = data.files.deleted.filter(file => 
           selected.items.includes(file)
         );
       }
@@ -159,7 +159,7 @@ async function applyUpdates(comparison, selections) {
                                  (selected === true || (selected.type && selected.type === 'all')));
     
     if (shouldDeleteMissing) {
-      for (const file of filesToProcess.missing) {
+      for (const file of filesToProcess.deleted) {
         try {
           const destPath = path.join(projectRoot, file);
           

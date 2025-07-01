@@ -24,7 +24,7 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
         
         if (categoryConfig.mode === 'replace') {
           wouldReplace += (data.files.changed?.length || 0) + (data.files.new?.length || 0);
-          wouldDelete += (data.files.missing?.length || 0);
+          wouldDelete += (data.files.deleted?.length || 0);
         } else if (categoryConfig.mode === 'add-only') {
           wouldAdd += (data.files.new?.length || 0);
           wouldSkip += (data.files.changed?.length || 0);
@@ -32,7 +32,7 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
           wouldMerge += (data.files.changed?.length || 0) + (data.files.new?.length || 0);
         } else if (categoryConfig.mode === 'selective') {
           wouldReplace += (data.files.changed?.length || 0) + (data.files.new?.length || 0);
-          wouldDelete += (data.files.missing?.length || 0);
+          wouldDelete += (data.files.deleted?.length || 0);
         }
       }
     }
@@ -86,12 +86,12 @@ async function generateChangelog(comparison, selections, updates, isDryRun = fal
         });
       }
       
-      if (data.files.missing && data.files.missing.length > 0) {
+      if (data.files.deleted && data.files.deleted.length > 0) {
         const actionWord = isDryRun ? 'Would delete' : 'Deleted';
         const categoryConfig = config.categories[key];
         if (categoryConfig.mode === 'replace' || categoryConfig.mode === 'selective') {
           content += `\n**${actionWord} files (missing in source):**\n`;
-          data.files.missing.forEach(file => {
+          data.files.deleted.forEach(file => {
             content += `- ${file}\n`;
           });
         }
