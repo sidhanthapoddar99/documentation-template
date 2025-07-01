@@ -5,7 +5,8 @@ description: Deep dive into each special directory and its purpose in Docusaurus
 sidebar_position: 2
 ---
 
-import { FileCollapsibleCodeBlock, Callout } from '../../../src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import DocsStructure from '!!raw-loader!./assets/02-special-directories/docs-structure.txt';
 
 # Special Directories Explained
@@ -27,6 +28,7 @@ Each directory in a Docusaurus project serves a specific purpose. Understanding 
 <FileCollapsibleCodeBlock 
   content={DocsStructure} 
   filename="docs-structure.txt" 
+  description="Example docs directory structure showing categories, subcategories, and organization patterns"
 />
 
 <Callout type="info" title="Routing Pattern">

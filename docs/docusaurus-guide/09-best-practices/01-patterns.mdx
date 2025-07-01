@@ -5,8 +5,8 @@ description: Essential best practices for Docusaurus project organization, perfo
 sidebar_position: 1
 ---
 
-import Callout from '@site/src/components/elements/Callout';
-import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import { Callout } from '@site/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
@@ -28,6 +28,7 @@ Following consistent organization patterns ensures maintainable and scalable doc
 <FileCollapsibleCodeBlock 
   content={ProjectStructureExample} 
   filename="project-structure.txt" 
+  description="Example project structure showing recommended file organization patterns"
 />
 
 <Callout type="tip" title="Organization Tips">
@@ -121,6 +122,7 @@ For projects that need to maintain documentation for multiple versions:
 <FileCollapsibleCodeBlock 
   content={MultiVersionDocsCode} 
   filename="multi-version-docs.js" 
+  description="Configuration for managing multiple documentation versions"
 />
 
 <Callout type="info" title="Version Management">
@@ -137,6 +139,7 @@ Organize different types of documentation into separate sections:
 <FileCollapsibleCodeBlock 
   content={MultipleDocSectionsCode} 
   filename="multiple-doc-sections.js" 
+  description="Configuration for organizing different documentation types into separate sections"
 />
 
 **Use Cases:**
@@ -151,6 +154,7 @@ Implement advanced search capabilities with Algolia:
 <FileCollapsibleCodeBlock 
   content={CustomSearchCode} 
   filename="custom-search.js" 
+  description="Implementation of custom search functionality with Algolia integration"
 />
 
 <Tabs>

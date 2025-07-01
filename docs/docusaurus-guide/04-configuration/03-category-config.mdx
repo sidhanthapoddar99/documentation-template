@@ -5,7 +5,10 @@ description: Learn how to configure document categories using _category_.json fi
 sidebar_position: 3
 ---
 
-import { FileCollapsibleCodeBlock, Callout, Tabs, TabItem } from '../../../src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import CategoryBasic from '!!raw-loader!./assets/03-category-config/category-basic.json';
 
 # Category Configuration (_category_.json)
@@ -17,6 +20,7 @@ The `_category_.json` file is a powerful tool for configuring how directories ap
 <FileCollapsibleCodeBlock 
   content={CategoryBasic} 
   filename="_category_.json" 
+  description="Basic _category_.json configuration showing essential options for organizing documentation categories"
 />
 
 ## Configuration Options

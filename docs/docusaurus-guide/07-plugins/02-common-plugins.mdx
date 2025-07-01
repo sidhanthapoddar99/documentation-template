@@ -9,9 +9,10 @@ import GoogleAnalyticsCode from '!!raw-loader!./assets/02-common-plugins/google-
 import PWACode from '!!raw-loader!./assets/02-common-plugins/pwa-plugin.js';
 import SearchCode from '!!raw-loader!./assets/02-common-plugins/search-plugin.js';
 import SitemapCode from '!!raw-loader!./assets/02-common-plugins/sitemap-plugin.js';
-import { TabItem, Tabs } from '@theme/Tabs';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import { Callout } from '/src/components/elements/Callout';
-import { FileCollapsibleCodeBlock } from '/src/components/elements/CodeBlock';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 
 # Common Plugins
 
@@ -25,7 +26,11 @@ Docusaurus provides a rich ecosystem of plugins that add functionality to your d
 **Google Analytics Integration**: Track page views, user behavior, and site performance with Google Analytics.
 </Callout>
 
-<FileCollapsibleCodeBlock content={GoogleAnalyticsCode} filename="google-analytics-plugin.js" />
+<FileCollapsibleCodeBlock 
+  content={GoogleAnalyticsCode} 
+  filename="google-analytics-plugin.js" 
+  description="Google Analytics plugin configuration with tracking ID and privacy settings"
+/>
 
 **Key Options:**
 - `trackingID`: Your Google Analytics tracking ID (required)
@@ -52,7 +57,11 @@ plugins: [
 **PWA Features**: Transform your documentation into a Progressive Web App with offline support and app-like experience.
 </Callout>
 
-<FileCollapsibleCodeBlock content={PWACode} filename="pwa-plugin.js" />
+<FileCollapsibleCodeBlock 
+  content={PWACode} 
+  filename="pwa-plugin.js" 
+  description="Progressive Web App plugin configuration with offline support"
+/>
 
 **PWA Benefits:**
 - **Offline Access** - Users can browse docs without internet
@@ -68,7 +77,11 @@ plugins: [
 
 ### Local Search
 
-<FileCollapsibleCodeBlock content={SearchCode} filename="search-plugin.js" />
+<FileCollapsibleCodeBlock 
+  content={SearchCode} 
+  filename="search-plugin.js" 
+  description="Local search plugin configuration with language support"
+/>
 
 **Features:**
 - **No External Dependencies** - Works entirely offline
@@ -119,7 +132,11 @@ themeConfig: {
 
 ### Sitemap Generation
 
-<FileCollapsibleCodeBlock content={SitemapCode} filename="sitemap-plugin.js" />
+<FileCollapsibleCodeBlock 
+  content={SitemapCode} 
+  filename="sitemap-plugin.js" 
+  description="Sitemap plugin configuration for SEO optimization"
+/>
 
 **Sitemap Benefits:**
 - **SEO Optimization** - Helps search engines index your site

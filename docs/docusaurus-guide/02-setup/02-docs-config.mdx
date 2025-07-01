@@ -5,9 +5,10 @@ description: Learn how to configure documentation and blog settings in Docusauru
 sidebar_position: 2
 ---
 
-import { FileCollapsibleCodeBlock } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import { Callout } from '@site/src/components/elements';
-import { Tabs, TabItem } from '@theme/Tabs';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import SingleDocConfig from '!!raw-loader!./assets/02-docs-config/single-doc-config.js';
 import BlogConfig from '!!raw-loader!./assets/02-docs-config/blog-config.js';
 
@@ -21,8 +22,8 @@ The most common setup uses the `classic` preset which includes docs, blog, and t
 
 <FileCollapsibleCodeBlock 
   content={SingleDocConfig} 
-  filename="Single Doc Configuration"
-  language="javascript"
+  filename="single-doc-config.js"
+  description="Configuration for a single documentation section using the classic preset"
 />
 
 ### Configuration Options Explained
@@ -66,8 +67,8 @@ You can also configure blogs separately using the blog plugin:
 
 <FileCollapsibleCodeBlock 
   content={BlogConfig} 
-  filename="Blog Configuration"
-  language="javascript"
+  filename="blog-config.js"
+  description="Separate blog plugin configuration for more control over blog settings"
 />
 
 <Callout type="info">

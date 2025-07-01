@@ -7,8 +7,8 @@ sidebar_position: 1
 
 import ComponentHierarchy from '!!raw-loader!./assets/01-theme-system/component-hierarchy.txt';
 import ThemeOverridesStructure from '!!raw-loader!./assets/01-theme-system/theme-overrides-structure.txt';
-import Callout from '@site/src/components/elements/Callout';
-import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import { Callout } from '@site/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 
 # Theme System Overview
 
@@ -31,7 +31,7 @@ A **theme** in Docusaurus is a collection of React components that render your c
 
 Docusaurus uses a "component shadowing" system that determines which component version is used when multiple exist:
 
-<FileCollapsibleCodeBlock content={ComponentHierarchy} filename="component-hierarchy.txt" />
+<FileCollapsibleCodeBlock content={ComponentHierarchy} filename="component-hierarchy.txt" description="Component shadowing hierarchy showing how Docusaurus resolves which component version to use" />
 
 This hierarchy allows you to:
 1. **Override** any theme component by creating your own version
@@ -42,7 +42,7 @@ This hierarchy allows you to:
 
 When you override theme components, they're placed in specific directories:
 
-<FileCollapsibleCodeBlock content={ThemeOverridesStructure} filename="theme-overrides-structure.txt" />
+<FileCollapsibleCodeBlock content={ThemeOverridesStructure} filename="theme-overrides-structure.txt" description="Directory structure for organizing theme component overrides in your project" />
 
 ### Key Theme Components
 

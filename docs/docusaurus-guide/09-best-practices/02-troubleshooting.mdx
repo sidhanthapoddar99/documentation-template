@@ -5,8 +5,8 @@ description: Solutions to common Docusaurus problems including build failures, m
 sidebar_position: 2
 ---
 
-import Callout from '@site/src/components/elements/Callout';
-import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import { Callout } from '@site/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
@@ -33,6 +33,7 @@ The most common solution is to clear the Docusaurus cache:
 <FileCollapsibleCodeBlock 
   content={ClearCacheCommands} 
   filename="clear-cache.bash" 
+  description="Commands to clear Docusaurus cache and resolve module loading issues"
 />
 
 </TabItem>

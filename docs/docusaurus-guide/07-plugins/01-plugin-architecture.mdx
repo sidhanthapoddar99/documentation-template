@@ -6,7 +6,7 @@ sidebar_position: 1
 ---
 
 import { Callout } from '/src/components/elements/Callout';
-import { FileCollapsibleCodeBlock } from '/src/components/elements/CodeBlock';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import CustomPluginCode from '!!raw-loader!./assets/01-plugin-architecture/custom-plugin.js';
 
 # Plugin Architecture
@@ -80,7 +80,11 @@ Plugins can:
 
 A plugin is a function that returns a plugin object with various lifecycle methods:
 
-<FileCollapsibleCodeBlock content={CustomPluginCode} filename="custom-plugin.js" />
+<FileCollapsibleCodeBlock 
+  content={CustomPluginCode} 
+  filename="custom-plugin.js" 
+  description="Basic custom plugin structure with lifecycle methods"
+/>
 
 ### Key Plugin Methods
 

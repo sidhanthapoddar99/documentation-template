@@ -5,9 +5,10 @@ description: Learn how to set up multiple independent documentation sections wit
 sidebar_position: 3
 ---
 
-import { FileCollapsibleCodeBlock } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import { Callout } from '@site/src/components/elements';
-import { Tabs, TabItem } from '@theme/Tabs';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import MultipleDocsPlugin from '!!raw-loader!./assets/03-multiple-docs/multiple-docs-plugin.js';
 import FolderStructure from '!!raw-loader!./assets/03-multiple-docs/folder-structure.txt';
 import NavbarConfig from '!!raw-loader!./assets/03-multiple-docs/navbar-config.js';
@@ -50,8 +51,8 @@ To set up multiple documentation sections, use the `@docusaurus/plugin-content-d
 
 <FileCollapsibleCodeBlock 
   content={MultipleDocsPlugin} 
-  filename="Multiple Docs Plugin Configuration"
-  language="javascript"
+  filename="multiple-docs-plugin.js"
+  description="Configuration for setting up multiple independent documentation sections"
 />
 
 ### Key Configuration Options
@@ -87,8 +88,8 @@ Here's how to organize your content for multiple docs sections:
 
 <FileCollapsibleCodeBlock 
   content={FolderStructure} 
-  filename="Multiple Docs Folder Structure"
-  language="text"
+  filename="folder-structure.txt"
+  description="Recommended folder organization for multiple documentation sections"
 />
 
 ## Sidebar Configuration
@@ -156,8 +157,8 @@ To make your multiple docs sections accessible, configure the navbar:
 
 <FileCollapsibleCodeBlock 
   content={NavbarConfig} 
-  filename="Navbar Configuration for Multiple Docs"
-  language="javascript"
+  filename="navbar-config.js"
+  description="Navbar configuration to provide navigation links to multiple documentation sections"
 />
 
 <Callout type="tip">

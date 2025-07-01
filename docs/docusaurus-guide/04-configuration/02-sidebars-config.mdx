@@ -5,7 +5,10 @@ description: Learn how to configure and customize documentation sidebars in Docu
 sidebar_position: 2
 ---
 
-import { FileCollapsibleCodeBlock, Callout, Tabs, TabItem } from '../../../src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import BasicSidebar from '!!raw-loader!./assets/02-sidebars-config/basic-sidebar.js';
 
 # Sidebar Configuration (sidebars.js)
@@ -17,6 +20,7 @@ The `sidebars.js` file controls how your documentation sidebar is structured and
 <FileCollapsibleCodeBlock 
   content={BasicSidebar} 
   filename="basic-sidebar.js" 
+  description="Complete sidebar configuration example showing different item types and organization patterns"
 />
 
 ## Sidebar Item Types

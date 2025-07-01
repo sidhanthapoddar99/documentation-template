@@ -7,8 +7,8 @@ sidebar_position: 1
 
 import CategoryConfig from '!!raw-loader!./assets/01-content-organization/category-config.json';
 import DocumentationStructure from '!!raw-loader!./assets/01-content-organization/documentation-structure.txt';
-import Callout from '@site/src/components/elements/Callout';
-import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import { Callout } from '@site/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 
 # Content Organization
 
@@ -18,7 +18,7 @@ Docusaurus provides powerful tools for organizing your documentation content. Un
 
 Docusaurus uses a file-based routing system where your file structure directly maps to your site's navigation. Here's how content is typically organized:
 
-<FileCollapsibleCodeBlock content={DocumentationStructure} filename="documentation-structure.txt" />
+<FileCollapsibleCodeBlock content={DocumentationStructure} filename="documentation-structure.txt" description="Example documentation structure showing how files and folders organize content in Docusaurus" />
 
 <Callout type="info">
 **File-Based Routing**: Each Markdown file becomes a route. The file `docs/tutorial/basics.md` becomes the URL `/docs/tutorial/basics`.
@@ -35,7 +35,7 @@ Docusaurus uses a file-based routing system where your file structure directly m
 
 Every category folder can have a `_category_.json` file to configure how it appears in the sidebar:
 
-<FileCollapsibleCodeBlock content={CategoryConfig} filename="_category_.json" />
+<FileCollapsibleCodeBlock content={CategoryConfig} filename="_category_.json" description="Category configuration file that controls sidebar appearance and ordering" />
 
 ### 3. File Naming Conventions
 

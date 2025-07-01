@@ -5,9 +5,10 @@ description: Understanding the fundamental concepts behind Docusaurus - SSG, fil
 sidebar_position: 2
 ---
 
-import { FileCollapsibleCodeBlock } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import { Callout } from '@site/src/components/elements';
-import { Tabs, TabItem } from '@theme/Tabs';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import FileRoutingExamples from '!!raw-loader!./assets/02-core-concepts/file-routing-examples.txt';
 import MDXExample from '!!raw-loader!./assets/02-core-concepts/mdx-example.txt';
 
@@ -53,8 +54,8 @@ Docusaurus automatically creates routes based on your file structure. No need to
 
 <FileCollapsibleCodeBlock 
   content={FileRoutingExamples} 
-  filename="File-Based Routing Examples"
-  language="text"
+  filename="file-routing-examples.txt"
+  description="Examples showing how file structure maps to URL routes in Docusaurus"
 />
 
 ### How It Works
@@ -99,8 +100,8 @@ MDX allows you to write JSX directly in your Markdown files, enabling interactiv
 
 <FileCollapsibleCodeBlock 
   content={MDXExample} 
-  filename="MDX Example"
-  language="mdx"
+  filename="mdx-example.mdx"
+  description="Example showing how to combine Markdown with JSX components in MDX files"
 />
 
 ### MDX Capabilities

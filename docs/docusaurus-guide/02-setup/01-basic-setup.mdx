@@ -5,9 +5,10 @@ description: Learn how to create and set up your first Docusaurus project with t
 sidebar_position: 1
 ---
 
-import { FileCollapsibleCodeBlock } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import { Callout } from '@site/src/components/elements';
-import { Tabs, TabItem } from '@theme/Tabs';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import InstallationCommands from '!!raw-loader!./assets/01-basic-setup/installation-commands.bash';
 import ProjectStructure from '!!raw-loader!./assets/01-basic-setup/project-structure.txt';
 import DirectoryExplanations from '!!raw-loader!./assets/01-basic-setup/directory-explanations.txt';
@@ -20,8 +21,8 @@ Getting started with Docusaurus is straightforward. This guide will walk you thr
 
 <FileCollapsibleCodeBlock 
   content={InstallationCommands} 
-  filename="Installation Commands"
-  language="bash"
+  filename="installation-commands.bash"
+  description="Commands to create and start your first Docusaurus project"
 />
 
 <Callout type="info">
@@ -36,16 +37,16 @@ After running the installation command, you'll have a project with this structur
 
 <FileCollapsibleCodeBlock 
   content={ProjectStructure} 
-  filename="Default Project Structure"
-  language="text"
+  filename="project-structure.txt"
+  description="Default directory and file structure of a new Docusaurus project"
 />
 
 ## Understanding Key Directories
 
 <FileCollapsibleCodeBlock 
   content={DirectoryExplanations} 
-  filename="Directory Explanations"
-  language="text"
+  filename="directory-explanations.txt"
+  description="Detailed explanation of each directory and its purpose in a Docusaurus project"
 />
 
 ## Three Types of Pages

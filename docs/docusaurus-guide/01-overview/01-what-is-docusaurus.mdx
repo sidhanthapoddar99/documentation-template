@@ -5,7 +5,7 @@ description: Learn about Docusaurus, a static site generator built on React that
 sidebar_position: 1
 ---
 
-import { FileCollapsibleCodeBlock } from '@site/src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import { Callout } from '@site/src/components/elements';
 import FeaturesList from '!!raw-loader!./assets/01-what-is-docusaurus/features-list.txt';
 
@@ -23,8 +23,8 @@ Docusaurus provides a comprehensive set of features out of the box:
 
 <FileCollapsibleCodeBlock 
   content={FeaturesList} 
-  filename="Key Features"
-  language="text"
+  filename="features-list.txt"
+  description="Key features and capabilities provided by Docusaurus out of the box"
 />
 
 ## Why Choose Docusaurus?

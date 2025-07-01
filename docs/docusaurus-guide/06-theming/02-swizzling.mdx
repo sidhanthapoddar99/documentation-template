@@ -6,8 +6,8 @@ sidebar_position: 2
 ---
 
 import SwizzleCommands from '!!raw-loader!./assets/02-swizzling/swizzle-commands.bash';
-import Callout from '@site/src/components/elements/Callout';
-import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import { Callout } from '@site/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
@@ -25,7 +25,7 @@ Swizzling creates a copy of a theme component in your project, giving you contro
 
 ## Swizzling Commands
 
-<FileCollapsibleCodeBlock content={SwizzleCommands} filename="swizzle-commands.bash" />
+<FileCollapsibleCodeBlock content={SwizzleCommands} filename="swizzle-commands.bash" description="Common swizzle commands for listing and overriding theme components" />
 
 ## Swizzling Modes
 

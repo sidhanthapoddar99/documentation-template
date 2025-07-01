@@ -7,8 +7,8 @@ sidebar_position: 2
 
 import BlogFrontMatter from '!!raw-loader!./assets/02-front-matter/blog-front-matter.md';
 import DocFrontMatter from '!!raw-loader!./assets/02-front-matter/doc-front-matter.md';
-import Callout from '@site/src/components/elements/Callout';
-import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import { Callout } from '@site/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
@@ -20,7 +20,7 @@ Front matter is YAML metadata placed at the top of your Markdown files. It contr
 
 Every documentation page can include front matter to customize its behavior:
 
-<FileCollapsibleCodeBlock content={DocFrontMatter} filename="doc-front-matter.md" />
+<FileCollapsibleCodeBlock content={DocFrontMatter} filename="doc-front-matter.md" description="Example front matter configuration for documentation pages with all available properties" />
 
 ## Front Matter Properties
 
@@ -103,7 +103,7 @@ Every documentation page can include front matter to customize its behavior:
 
 Blog posts have additional front matter options:
 
-<FileCollapsibleCodeBlock content={BlogFrontMatter} filename="blog-front-matter.md" />
+<FileCollapsibleCodeBlock content={BlogFrontMatter} filename="blog-front-matter.md" description="Example front matter configuration for blog posts with blog-specific properties" />
 
 ### Blog-Specific Properties
 

@@ -5,7 +5,7 @@ description: Understanding the default Docusaurus project structure and file org
 sidebar_position: 1
 ---
 
-import { FileCollapsibleCodeBlock } from '../../../src/components/elements';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import DefaultStructure from '!!raw-loader!./assets/01-directory-structure/default-structure.txt';
 
 # Directory Structure
@@ -19,6 +19,7 @@ When you create a new Docusaurus project, you'll see the following directory str
 <FileCollapsibleCodeBlock 
   content={DefaultStructure} 
   filename="default-structure.txt" 
+  description="Standard Docusaurus project directory structure showing all key folders and files"
   collapsed={false}
 />
 

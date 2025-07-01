@@ -5,7 +5,10 @@ description: Complete guide to configuring your Docusaurus site through the main
 sidebar_position: 1
 ---
 
-import { FileCollapsibleCodeBlock, Callout, Tabs, TabItem } from '../../../src/components/elements';
+import { Callout } from '@site/src/components/elements';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import BasicConfig from '!!raw-loader!./assets/01-main-config/basic-config.js';
 import ThemeConfig from '!!raw-loader!./assets/01-main-config/theme-config.js';
 import PluginsConfig from '!!raw-loader!./assets/01-main-config/plugins-config.js';
@@ -24,6 +27,7 @@ The configuration file exports a JavaScript object with several main sections:
 <FileCollapsibleCodeBlock 
   content={BasicConfig} 
   filename="basic-config.js" 
+  description="Basic Docusaurus configuration with essential site metadata and settings"
 />
 
 </TabItem>
@@ -32,6 +36,7 @@ The configuration file exports a JavaScript object with several main sections:
 <FileCollapsibleCodeBlock 
   content={ThemeConfig} 
   filename="theme-config.js" 
+  description="Theme configuration including navbar, footer, and UI customization options"
 />
 
 </TabItem>
@@ -40,6 +45,7 @@ The configuration file exports a JavaScript object with several main sections:
 <FileCollapsibleCodeBlock 
   content={PluginsConfig} 
   filename="plugins-config.js" 
+  description="Plugin configuration and custom fields for extending Docusaurus functionality"
 />
 
 </TabItem>

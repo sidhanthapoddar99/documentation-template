@@ -8,9 +8,10 @@ sidebar_position: 2
 import GitHubPagesCode from '!!raw-loader!./assets/02-deployment/github-pages-deploy.bash';
 import NetlifyCode from '!!raw-loader!./assets/02-deployment/netlify.toml';
 import VercelCode from '!!raw-loader!./assets/02-deployment/vercel.json';
-import { TabItem, Tabs } from '@theme/Tabs';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import { Callout } from '/src/components/elements/Callout';
-import { FileCollapsibleCodeBlock } from '/src/components/elements/CodeBlock';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 
 # Deployment
 
@@ -26,7 +27,11 @@ Docusaurus generates static files that can be deployed to any static hosting ser
 
 GitHub Pages offers the simplest deployment for GitHub-hosted repositories:
 
-<FileCollapsibleCodeBlock content={GitHubPagesCode} filename="github-pages-deploy.bash" />
+<FileCollapsibleCodeBlock 
+  content={GitHubPagesCode} 
+  filename="github-pages-deploy.bash" 
+  description="Commands to deploy Docusaurus site to GitHub Pages"
+/>
 
 ### Configuration
 
@@ -149,7 +154,11 @@ mydomain.com
 
 ### Configuration
 
-<FileCollapsibleCodeBlock content={VercelCode} filename="vercel.json" />
+<FileCollapsibleCodeBlock 
+  content={VercelCode} 
+  filename="vercel.json" 
+  description="Vercel configuration file for Docusaurus deployment"
+/>
 
 ### Vercel Deployment
 
@@ -226,7 +235,11 @@ Configure in Vercel dashboard or `vercel.json`:
 
 ### Configuration
 
-<FileCollapsibleCodeBlock content={NetlifyCode} filename="netlify.toml" />
+<FileCollapsibleCodeBlock 
+  content={NetlifyCode} 
+  filename="netlify.toml" 
+  description="Netlify configuration file for build and deployment settings"
+/>
 
 ### Netlify Features
 

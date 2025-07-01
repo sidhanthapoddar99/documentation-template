@@ -8,9 +8,10 @@ sidebar_position: 1
 import BuildOutputCode from '!!raw-loader!./assets/01-build-process/build-output-structure.txt';
 import DevStartCode from '!!raw-loader!./assets/01-build-process/dev-start.bash';
 import ProductionBuildCode from '!!raw-loader!./assets/01-build-process/production-build.bash';
-import { TabItem, Tabs } from '@theme/Tabs';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import { Callout } from '/src/components/elements/Callout';
-import { FileCollapsibleCodeBlock } from '/src/components/elements/CodeBlock';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 
 # Build Process
 
@@ -24,7 +25,11 @@ Understanding the Docusaurus build process is crucial for optimizing performance
 
 ### Starting Development Server
 
-<FileCollapsibleCodeBlock content={DevStartCode} filename="dev-start.bash" />
+<FileCollapsibleCodeBlock 
+  content={DevStartCode} 
+  filename="dev-start.bash" 
+  description="Commands to start Docusaurus development server with options"
+/>
 
 ### Development Mode Features
 
@@ -132,7 +137,11 @@ npm start -- --port 8080 --host 0.0.0.0
 
 ### Building for Production
 
-<FileCollapsibleCodeBlock content={ProductionBuildCode} filename="production-build.bash" />
+<FileCollapsibleCodeBlock 
+  content={ProductionBuildCode} 
+  filename="production-build.bash" 
+  description="Commands to build Docusaurus for production deployment"
+/>
 
 ### Build Process Steps
 
@@ -220,7 +229,11 @@ module.exports = {
 **Build Output**: The build directory contains everything needed to deploy your static site to any web server or CDN.
 </Callout>
 
-<FileCollapsibleCodeBlock content={BuildOutputCode} filename="build-output-structure.txt" />
+<FileCollapsibleCodeBlock 
+  content={BuildOutputCode} 
+  filename="build-output-structure.txt" 
+  description="Directory structure of generated build output"
+/>
 
 ### Output Directory Details
 

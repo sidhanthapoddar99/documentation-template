@@ -9,8 +9,8 @@ import CustomCSS from '!!raw-loader!./assets/03-customization/custom-css.css';
 import CustomPage from '!!raw-loader!./assets/03-customization/custom-page.js';
 import CustomReactComponent from '!!raw-loader!./assets/03-customization/custom-react-component.js';
 import MDXComponentMapping from '!!raw-loader!./assets/03-customization/mdx-component-mapping.js';
-import Callout from '@site/src/components/elements/Callout';
-import FileCollapsibleCodeBlock from '@site/src/components/elements/CodeBlock';
+import { Callout } from '@site/src/components/elements/Callout';
+import { FileCollapsibleCodeBlock } from '@site/src/components/elements/CodeBlock';
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
@@ -24,7 +24,7 @@ Docusaurus provides multiple approaches for customization, from simple CSS tweak
 
 The quickest way to customize appearance is through CSS custom properties:
 
-<FileCollapsibleCodeBlock content={CustomCSS} filename="custom.css" />
+<FileCollapsibleCodeBlock content={CustomCSS} filename="custom.css" description="Example custom CSS using CSS variables for theming and component customization" />
 
 <Callout type="info">
 **CSS Variables**: Docusaurus uses CSS custom properties extensively. Override these to change colors, fonts, spacing, and other design tokens across your entire site.
@@ -144,7 +144,7 @@ Target specific components with CSS classes:
 
 Build reusable React components for your site:
 
-<FileCollapsibleCodeBlock content={CustomReactComponent} filename="Feature.js" />
+<FileCollapsibleCodeBlock content={CustomReactComponent} filename="Feature.js" description="Example custom React component for displaying features with icon, title, and description" />
 
 ### Component Organization
 
@@ -181,7 +181,7 @@ import Feature from '@site/src/components/Feature';
 
 Map custom components to be available in all MDX files:
 
-<FileCollapsibleCodeBlock content={MDXComponentMapping} filename="MDXComponents.js" />
+<FileCollapsibleCodeBlock content={MDXComponentMapping} filename="MDXComponents.js" description="MDX component mapping configuration to make custom components globally available" />
 
 ### Global Component Benefits
 
@@ -212,7 +212,7 @@ export default {
 
 Create standalone pages outside the documentation structure:
 
-<FileCollapsibleCodeBlock content={CustomPage} filename="showcase.js" />
+<FileCollapsibleCodeBlock content={CustomPage} filename="showcase.js" description="Example custom page component showing how to create standalone pages outside the docs structure" />
 
 ### Page Types
 
