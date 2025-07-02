@@ -82,7 +82,7 @@ git init
 
 # 4. Create initial commit
 git add .
-git commit -m "Initial commit from NeuraLabs documentation template"
+git commit -m "Initial commit from documentation template"
 
 # 5. Install dependencies
 npm install
