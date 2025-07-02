@@ -61,6 +61,12 @@ const config = {
       paths: ['sync'],
       mode: 'replace',
       // exclude: ['config.js'] // optinal to exclude this file from sync
+    },
+    scripts: {
+      name: 'Scripts',
+      paths: ['scripts'],
+      mode: 'replace',
+      // exclude: ['config.js'] // optinal to exclude this file from sync
     }
   }
 };
