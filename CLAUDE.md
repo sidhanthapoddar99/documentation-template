@@ -1,7 +1,7 @@
 
 # Project Overview
 
-This is a Docusaurus-based documentation site for NeuraLabs with a custom theme system and component architecture.
+This is a Docusaurus-based documentation site with a custom theme system and component architecture.
 
 # Important Instructions
 

@@ -1,4 +1,4 @@
-- [NeuraLabs Documentation](#neuralabs-documentation)
+- [Documentation](#documentation)
   - [Prerequisites](#prerequisites)
   - [Starting a New Project from This Template](#starting-a-new-project-from-this-template)
     - [Quick Start Guide](#quick-start-guide)
@@ -44,7 +44,7 @@
     - [Key Concepts](#key-concepts)
 
 
-# NeuraLabs Documentation
+# Documentation
 
 This documentation is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
@@ -484,7 +484,7 @@ Headers (navbar) and footers are defined in `docusaurus.config.js`:
 ```javascript
 themeConfig: {
   navbar: {
-    title: 'NeuraLabs',
+    title: 'doc-title',
     logo: { src: 'img/logo.svg' },
     items: [
       { to: '/docs', label: 'Docs' },
@@ -493,7 +493,7 @@ themeConfig: {
   },
   footer: {
     links: [...],
-    copyright: '© 2024 NeuraLabs'
+    copyright: '© 2024 company-name'
   }
 }
 ```

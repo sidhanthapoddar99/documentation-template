@@ -80,7 +80,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: 'img/neuralabs-social-card.jpg',
+      image: 'img/project-social-card.jpg',
 
       // Navbar loaded from YAML configuration
       navbar,
