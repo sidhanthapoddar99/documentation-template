@@ -68,6 +68,11 @@ To create a new documentation project based on this template:
 # 1. Clone the repository
 git clone <repository-url> my-new-docs
 
+# OR
+
+git clone https://github.com/sidhanthapoddar99/documentation-template my-new-docs
+
+
 # 2. Remove the original git history
 cd my-new-docs
 rm -rf .git
