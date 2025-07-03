@@ -13,12 +13,14 @@ Example:
     python scripts/doc-init-modular.py scripts/doc-init/example.yaml scripts/doc-init/imports.mdx
 """
 
+import os
 import sys
 import argparse
 from pathlib import Path
 
-# Add the parent directory to the path to import modules
-sys.path.insert(0, str(Path(__file__).parent))
+# Add the script directory to the path to import modules
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, script_dir)
 
 from doc_init_modules import (
     ConfigLoader,
