@@ -41,8 +41,16 @@ class StructurePreview:
         print("Note: Existing MDX files will be preserved, category.json files will be updated")
         
         # Ask for confirmation
-        response = input("\nProceed with creating this structure? (y/N): ").strip().lower()
-        return response in ('y', 'yes')
+        try:
+            response = input("\nProceed with creating this structure? (y/N): ").strip().lower()
+            return response in ('y', 'yes')
+        except EOFError:
+            # Running non-interactively, check for environment variable
+            if os.environ.get('DOC_INIT_AUTO_CONFIRM') == 'yes':
+                print("Auto-confirmed via DOC_INIT_AUTO_CONFIRM=yes")
+                return True
+            print("Running non-interactively. Set DOC_INIT_AUTO_CONFIRM=yes to auto-confirm.")
+            return False
     
     def _preview_section(self, section: Dict[str, Any], index: int,
                         parent_path: str, indent: str) -> None:
