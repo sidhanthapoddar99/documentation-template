@@ -35,6 +35,11 @@ async function compareCategories() {
       
       if (tempStats && tempStats.isFile()) {
         // Handle single file
+        // Check exclusions for single file
+        if (category.exclude && category.exclude.some(excl => categoryPath.includes(excl))) {
+          continue;
+        }
+        
         if (localExists) {
           const identical = await compareFiles(tempPath, localPath);
           if (identical) {
@@ -75,6 +80,11 @@ async function compareCategories() {
         if (localExists) {
           const localFiles = await scanDirectory(localPath);
           for (const file of localFiles) {
+            // Check exclusions for deleted files
+            if (category.exclude && category.exclude.some(excl => file.includes(excl))) {
+              continue;
+            }
+            
             const fullTempPath = path.join(tempPath, file);
             const fullRelativePath = path.join(categoryPath, file);
             

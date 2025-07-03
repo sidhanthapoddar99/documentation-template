@@ -113,6 +113,12 @@ async function applyUpdates(comparison, selections) {
     // Process changed files
     for (const file of filesToProcess.changed) {
       try {
+        // Skip excluded files
+        if (category.exclude && category.exclude.some(excl => file.includes(excl))) {
+          updates.skipped.push(file);
+          continue;
+        }
+        
         const srcPath = path.join(config.tempDir, file);
         const destPath = path.join(projectRoot, file);
         
@@ -161,6 +167,12 @@ async function applyUpdates(comparison, selections) {
     if (shouldDeleteMissing) {
       for (const file of filesToProcess.deleted) {
         try {
+          // Skip excluded files from deletion
+          if (category.exclude && category.exclude.some(excl => file.includes(excl))) {
+            updates.skipped.push(file);
+            continue;
+          }
+          
           const destPath = path.join(projectRoot, file);
           
           // Check if file exists before trying to delete
