@@ -1,0 +1,82 @@
+# Simple Example Documentation Structure
+# This creates a basic documentation section with numbered folders and files
+
+section_name: "example-docs"
+
+
+sections:
+  - title: "Getting Started" 
+    label: "Getting Started"
+    create_assets: true  # Creates assets folder with placeholder
+    files:
+      - title: "Introduction"
+        description: "Welcome to the documentation"
+
+      - title: "Installation Guide" 
+        description: "How to install and set up"
+        create_assets: true  # Creates file-specific assets folder
+
+  - title: "API Reference"
+    label: "API Reference" 
+    files:
+      - title: "Overview"
+        description: "API overview and concepts"
+
+      - title: "Endpoints"
+        description: "Available API endpoints"
+
+    subsections:
+      - title: "Authentication"
+        label: "Authentication"
+        files:
+          - title: "OAuth Setup"
+            description: "Setting up OAuth authentication"
+          - title: "API Keys"
+            description: "Managing API keys"
+        
+        # Example of nested subsections
+        subsections:
+          - title: "Advanced Auth"
+            label: "Advanced Authentication"
+            files:
+              - title: "JWT Tokens"
+                description: "Working with JWT tokens"
+              - title: "Custom Auth"
+                description: "Custom authentication flows"
+
+  - title: "Examples"
+    label: "Examples"
+    create_assets: true
+    files:
+      - title: "Basic Usage"
+        description: "Simple usage examples"
+        create_assets: true
+        
+      - title: "Advanced Patterns"
+        description: "Complex implementation patterns"
+
+# Example with custom positions (optional)
+# Uncomment the section below to see how custom positioning works
+#
+#  - title: "Advanced Topics"
+#    label: "Advanced Topics"
+#    files:
+#      - title: "Configuration"
+#        description: "Advanced configuration options" 
+#        position: 2  # Will be 02-configuration.mdx (appears after subsection)
+#      
+#      - title: "Quick Reference"
+#        description: "Quick reference guide"
+#        position: 3  # Will be 03-quick-reference.mdx
+#    
+#    subsections:
+#      - title: "Deployment"
+#        label: "Deployment" 
+#        position: 1  # Will be 01-deployment/ (appears first)
+#        files:
+#          - title: "Production Setup"
+#            description: "Production deployment guide"
+#            position: 1  # Will be 01-production-setup.mdx
+#          - title: "Development Setup" 
+#            description: "Development environment setup"
+#            position: 2  # Will be 02-development-setup.mdx
