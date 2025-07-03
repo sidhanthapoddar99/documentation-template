@@ -7,3 +7,5 @@ git_temp/**
 # Sync tool generated files
 CHANGELOG.md
 dryrun-changelogs.md
+
+__pycache__

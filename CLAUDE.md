@@ -257,6 +257,8 @@ sidebar_position: 1
 
 **Important Rules:**
 - Always import all modules even if not used
-- Always use raw files for code examples  
+- Always use raw files for code examples
+- always usse .mermaid and .dot files for diagrams instead of embedded code inside mdx
+- if using jsx components always treat the code inside it as jsx example dont use `-` for list instead use <ul>/<ol> and <li> etc tags  
 - Never write code directly in MDX as it causes errors
 - Store all code examples in assets folders
