@@ -66,6 +66,7 @@ const config = {
       name: 'Scripts',
       paths: ['scripts'],
       mode: 'replace',
+      exclude: ['doc-init-custom'],
       // exclude: ['config.js'] // optinal to exclude this file from sync
     }
   }

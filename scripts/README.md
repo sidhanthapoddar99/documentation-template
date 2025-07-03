@@ -12,6 +12,10 @@ python scripts/doc-init.py scripts/doc-init/example.yaml scripts/doc-init/import
 
 # With custom base directory
 python scripts/doc-init.py scripts/doc-init/example.yaml scripts/doc-init/imports.mdx --base-docs-path custom-docs
+
+
+# With custom files
+python scripts/doc-init.py scripts/doc-init-custom/example.yaml scripts/doc-init-custom/imports.mdx --base-docs-path custom-docs 
 ```
 
 ### Interactive Preview
@@ -340,7 +344,7 @@ api-documentation/
 
 **Usage:**
 ```bash
-python scripts/doc-init.py scripts/doc-init/simple.yaml scripts/doc-init/imports.mdx
+python scripts/doc-init.py scripts/doc-init-custom/simple.yaml scripts/doc-init/imports.mdx
 ```
 
 ## Standard Imports Template
@@ -473,4 +477,6 @@ To extend the documentation initialization system:
 - `scripts/doc-init.py` - Main script
 - `scripts/doc-init/imports.mdx` - Standard imports template
 - `scripts/doc-init/example.yaml` - Simple example configuration
+- `scripts/doc-init-custom/example.yaml` - Custom example configuration
+- `scripts/doc-init-custom/imports.mdx` - Custom imports template
 - `scripts/README.md` - This documentation
