@@ -352,7 +352,6 @@ python scripts/doc-init.py scripts/doc-init-custom/simple.yaml scripts/doc-init/
 The `scripts/doc-init/imports.mdx` file contains standard imports that are included in every generated MDX file:
 
 ```jsx
-// Custom Components
 import { Card, CardHeader, CardTitle, CardDescription } from '@site/src/components/elements/Card';
 import { Callout } from '@site/src/components/elements/Callout';
 import { CollapsibleCodeBlock, InlineCodeCard, FileCollapsibleCodeBlock, FileInlineCodeCard } from '@site/src/components/elements/CodeBlock';
@@ -360,7 +359,6 @@ import { Features, Feature } from '@site/src/components/elements/Features';
 import { CustomMermaid, MermaidDiagram } from '@site/src/components/elements';
 import { GraphViz, GraphVizDiagram } from '@site/src/components/elements';
 
-// Theme Components
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CodeBlock from '@theme/CodeBlock';
