@@ -1,0 +1,36 @@
+---
+/**
+ * ConfiguredFooter - Renders the configured footer variant
+ *
+ * Reads from site.config.ts to determine whether to show footer
+ * and renders with config values.
+ */
+
+import { getPageConfig, getPageNameByUrl, getFooterConfig } from '../config';
+import { FooterDefault } from './footer';
+
+interface Props {
+  pageName?: string;
+}
+
+const { pageName } = Astro.props;
+
+// Get page name from URL if not provided
+const resolvedPageName = pageName || getPageNameByUrl(Astro.url.pathname) || 'home';
+
+// Get page config with resolved component variants
+const pageConfig = getPageConfig(resolvedPageName);
+
+// Get footer config
+const footerConfig = getFooterConfig();
+
+// Check if footer should be shown
+const showFooter = pageConfig.resolvedFooter !== 'none';
+---
+
+{showFooter && (
+  <FooterDefault
+    copyright={footerConfig.copyright}
+    links={footerConfig.links}
+  />
+)}

@@ -1,0 +1,15 @@
+{
+  "site": {
+    "name": "My Documentation",
+    "title": "Docs",
+    "description": "My awesome documentation site"
+  },
+  "theme": {
+    "primaryColor": "#3b82f6",
+    "darkMode": true
+  },
+  "navigation": {
+    "showSearch": true,
+    "showThemeToggle": true
+  }
+}

@@ -1,0 +1,297 @@
+---
+title: Site Configuration
+description: Configure your documentation site using site.config.ts
+sidebar_position: 2
+---
+
+# Site Configuration
+
+The documentation framework uses a centralized configuration file (`src/config/site.config.ts`) to control all site structure, navigation, and component selection without requiring code changes.
+
+## Configuration File
+
+The main configuration is located at `src/config/site.config.ts`:
+
+```typescript
+import type { SiteConfig } from './types';
+
+export const siteConfig: SiteConfig = {
+  site: { /* Site metadata */ },
+  defaults: { /* Global component defaults */ },
+  pages: { /* Page definitions */ },
+  navbar: [ /* Navbar structure */ ],
+  footer: { /* Footer configuration */ },
+};
+```
+
+## Site Metadata
+
+Define your site's basic information:
+
+```typescript
+site: {
+  name: 'My Docs',
+  title: 'Documentation',
+  description: 'Modern documentation framework',
+  logo: {
+    src: '/logo.svg',
+    alt: 'Logo',
+  },
+},
+```
+
+## Global Defaults
+
+Set default component variants used when pages don't specify their own:
+
+```typescript
+defaults: {
+  navbar: 'minimal',    // 'minimal' | 'style1' | 'style2' | 'style3'
+  sidebar: 'default',   // 'default' | 'none'
+  footer: 'default',    // 'default' | 'none'
+  outline: 'default',   // 'default' | 'none'
+},
+```
+
+## Page Definitions
+
+Define each page or section of your site:
+
+```typescript
+pages: {
+  home: {
+    type: 'home',
+    title: 'Home',
+    url: '/',
+    description: 'Welcome to the documentation',
+    sidebar: 'none',    // Override: no sidebar on home
+    outline: 'none',    // Override: no outline on home
+  },
+  getting_started: {
+    type: 'doc',
+    title: 'Getting Started',
+    url: '/docs/getting-started',
+    data_location: '../docs/getting-started',
+    // Uses defaults for sidebar, outline, navbar, footer
+  },
+  components: {
+    type: 'doc',
+    title: 'Components',
+    url: '/docs/components',
+    data_location: '../docs/components',
+    outline: 'none',    // Override: no outline for this section
+  },
+  github: {
+    type: 'custom',
+    title: 'GitHub',
+    url: 'https://github.com/your-org/your-repo',
+  },
+},
+```
+
+### Page Types
+
+| Type | Description |
+|------|-------------|
+| `home` | Landing page, typically no sidebar/outline |
+| `doc` | Documentation section with content from `data_location` |
+| `blog` | Blog section with posts |
+| `custom` | Custom pages or external links |
+
+### Page Properties
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `type` | Yes | Page type: `home`, `doc`, `blog`, `custom` |
+| `title` | Yes | Display title for navigation |
+| `url` | Yes | URL path or external link |
+| `description` | No | Page description for SEO |
+| `data_location` | No | Path to content folder (for `doc`/`blog` types) |
+| `navbar` | No | Override navbar variant |
+| `sidebar` | No | Override sidebar: `default` or `none` |
+| `outline` | No | Override outline/TOC: `default` or `none` |
+| `footer` | No | Override footer: `default` or `none` |
+| `layout` | No | Custom layout name |
+
+## Navbar Structure
+
+Define navigation structure using page names and groups:
+
+```typescript
+navbar: [
+  'home',                              // Direct link to home page
+  {
+    group: 'Documentation',            // Dropdown group
+    pages: ['getting_started', 'configuration', 'components'],
+  },
+  'blog',                              // Direct link
+  'github',                            // External link
+],
+```
+
+### Navbar Items
+
+- **String**: Reference a page name directly (e.g., `'home'`)
+- **Group object**: Create a dropdown with multiple pages
+
+```typescript
+{
+  group: 'Group Label',
+  pages: ['page_name_1', 'page_name_2'],
+}
+```
+
+## Footer Configuration
+
+Configure footer content:
+
+```typescript
+footer: {
+  copyright: '2024 Your Company. All rights reserved.',
+  links: [
+    { href: '/privacy', label: 'Privacy Policy' },
+    { href: '/terms', label: 'Terms of Service' },
+    { href: 'https://github.com', label: 'GitHub' },
+  ],
+},
+```
+
+## Component Variants
+
+### Navbar Variants
+
+| Variant | Description |
+|---------|-------------|
+| `minimal` | Clean, simple navbar |
+| `style1` | Navbar with logo and centered links |
+| `style2` | Full-featured navbar with dropdowns |
+| `style3` | Compact navbar variant |
+
+### Sidebar/Outline/Footer
+
+| Variant | Description |
+|---------|-------------|
+| `default` | Show the component |
+| `none` | Hide the component |
+
+## Example: Full Configuration
+
+```typescript
+export const siteConfig: SiteConfig = {
+  site: {
+    name: 'My Project',
+    title: 'Documentation',
+    description: 'Complete documentation for My Project',
+    logo: { src: '/logo.svg', alt: 'My Project' },
+  },
+
+  defaults: {
+    navbar: 'style2',
+    sidebar: 'default',
+    footer: 'default',
+    outline: 'default',
+  },
+
+  pages: {
+    home: {
+      type: 'home',
+      title: 'Home',
+      url: '/',
+      navbar: 'minimal',
+      sidebar: 'none',
+      outline: 'none',
+    },
+    docs: {
+      type: 'doc',
+      title: 'Docs',
+      url: '/docs',
+      data_location: '../docs',
+    },
+    api: {
+      type: 'doc',
+      title: 'API Reference',
+      url: '/api',
+      data_location: '../api-docs',
+      outline: 'none',
+    },
+    blog: {
+      type: 'blog',
+      title: 'Blog',
+      url: '/blog',
+      data_location: '../blog',
+      sidebar: 'none',
+    },
+    github: {
+      type: 'custom',
+      title: 'GitHub',
+      url: 'https://github.com/org/repo',
+    },
+  },
+
+  navbar: [
+    'home',
+    { group: 'Learn', pages: ['docs', 'api'] },
+    'blog',
+    'github',
+  ],
+
+  footer: {
+    copyright: '2024 My Project',
+    links: [
+      { href: '/privacy', label: 'Privacy' },
+      { href: '/terms', label: 'Terms' },
+    ],
+  },
+};
+```
+
+## Helper Functions
+
+The config system provides helper functions in `src/config/helpers.ts`:
+
+```typescript
+import {
+  getNavItems,
+  getPageConfig,
+  getPageNameByUrl,
+  getSiteMetadata,
+  getFooterConfig,
+  getDocPages,
+} from '../config';
+
+// Get navbar items formatted for components
+const navItems = getNavItems();
+
+// Get page config with resolved defaults
+const pageConfig = getPageConfig('home');
+
+// Find page name by URL path
+const pageName = getPageNameByUrl('/docs/getting-started');
+
+// Get site metadata
+const { name, title, description, logo } = getSiteMetadata();
+
+// Get footer config
+const { copyright, links } = getFooterConfig();
+
+// Get all doc-type pages
+const docPages = getDocPages();
+```
+
+## TypeScript Types
+
+Full type definitions are available in `src/config/types.ts`:
+
+```typescript
+import type {
+  SiteConfig,
+  PageConfig,
+  PageType,
+  NavbarVariant,
+  SidebarVariant,
+  FooterVariant,
+  OutlineVariant,
+  NavbarItem,
+  FooterConfig,
+} from '../config/types';
+```

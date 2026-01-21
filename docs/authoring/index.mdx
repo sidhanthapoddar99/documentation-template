@@ -1,0 +1,109 @@
+---
+title: Writing Documentation
+description: Learn how to create and structure documentation in this framework
+sidebar_position: 1
+---
+
+# Writing Documentation
+
+This guide covers everything you need to know about creating documentation in this framework. You'll learn about file formats, folder structure, frontmatter metadata, and how to organize your content effectively.
+
+## Quick Start
+
+To create a new documentation page:
+
+1. Create a `.md` or `.mdx` file in the `docs/` folder
+2. Add frontmatter at the top with at least a `title`
+3. Write your content in Markdown or MDX
+
+```markdown
+---
+title: My New Page
+description: A brief description for SEO
+sidebar_position: 1
+---
+
+# My New Page
+
+Your content here...
+```
+
+## Supported File Formats
+
+| Format | Extension | Description |
+|--------|-----------|-------------|
+| Markdown | `.md` | Standard Markdown syntax |
+| MDX | `.mdx` | Markdown with JSX components |
+
+Both formats support the same frontmatter options. Use `.mdx` when you need to embed React/Astro components in your content.
+
+## Documentation Structure
+
+```
+docs/
+├── getting-started/
+│   ├── index.mdx          # Section landing page (clickable)
+│   ├── installation.mdx   # Child page
+│   └── quick-start.mdx    # Child page
+├── configuration/
+│   ├── index.mdx          # Section landing page
+│   ├── themes.mdx
+│   └── assets/            # Assets folder (not rendered)
+│       └── example.ts
+├── api/                   # Folder without index (not clickable)
+│   ├── endpoints.mdx      # Shows as grouped items
+│   └── authentication.mdx
+└── standalone-page.mdx    # Top-level page
+```
+
+## Key Concepts
+
+### Folders with Index
+
+A folder containing an `index.md` or `index.mdx` file becomes a **clickable section**:
+- The index file serves as the section's landing page
+- Child files appear nested under it in the sidebar
+- Clicking the section name navigates to the index page
+
+### Folders without Index
+
+A folder without an index file becomes a **non-clickable group**:
+- Acts as a visual divider/category in the sidebar
+- Child files are grouped under the folder name
+- The folder name itself is not a link
+
+### Assets Folder
+
+Any folder named `assets` is **excluded from rendering**:
+- Use it to store code snippets, images, or other files
+- Reference these files in your MDX using imports
+- Keeps your content organized without cluttering the sidebar
+
+## Page Ordering
+
+Pages are ordered by:
+
+1. **`sidebar_position`** (highest priority) - Explicit numeric position
+2. **Filename** (fallback) - Alphabetical order
+
+```markdown
+---
+title: First Page
+sidebar_position: 1    # Appears first
+---
+```
+
+```markdown
+---
+title: Second Page
+sidebar_position: 2    # Appears second
+---
+```
+
+Pages without `sidebar_position` are sorted alphabetically after positioned pages.
+
+## Next Steps
+
+- [Folder Structure](/docs/authoring/folder-structure) - Detailed guide on organizing content
+- [Frontmatter Reference](/docs/authoring/frontmatter) - All available metadata options
+- [Using Assets](/docs/authoring/assets) - How to include code and media files

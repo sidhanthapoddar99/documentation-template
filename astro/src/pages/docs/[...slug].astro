@@ -1,11 +1,13 @@
 ---
 /**
  * Dynamic documentation page route
- * Loads MDX content from the external docs folder via content collections
+ * Loads MD/MDX content from the external docs folder via content collections
+ * Uses site.config.ts for component selection
  */
 
 import { getCollection, render } from 'astro:content';
 import DocsLayout from '../../layouts/docs/DocsLayout.astro';
+import { getPageNameByUrl } from '../../config';
 
 export async function getStaticPaths() {
   const docs = await getCollection('docs');
@@ -21,6 +23,10 @@ const { Content, headings } = await render(doc);
 
 // Get current section from doc id (e.g., "configuration/themes" -> "configuration")
 const currentSection = doc.id.split('/')[0];
+
+// Determine which page config to use based on URL
+const currentPath = Astro.url.pathname;
+const pageName = getPageNameByUrl(currentPath);
 
 // Build sidebar from docs collection, filtered by current section
 const allDocs = await getCollection('docs');
@@ -87,6 +93,7 @@ function buildSidebar(docs: typeof allDocs, section: string) {
   description={doc.data.description}
   sidebarItems={sidebarItems}
   headings={headings}
+  pageName={pageName || undefined}
 >
   <article class="prose prose-zinc dark:prose-invert max-w-none">
     <Content />

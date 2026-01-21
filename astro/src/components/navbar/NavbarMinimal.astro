@@ -1,6 +1,6 @@
 ---
 /**
- * NavbarMinimal - Clean, shadcn-inspired navigation
+ * NavbarMinimal - Clean, shadcn-inspired navigation with dropdown support
  */
 
 import { ThemeToggle } from '../ThemeToggle';
@@ -9,6 +9,7 @@ interface NavItem {
   label: string;
   href: string;
   external?: boolean;
+  children?: NavItem[];
 }
 
 interface Props {
@@ -24,6 +25,12 @@ const defaultItems: NavItem[] = [
 ];
 
 const { items = defaultItems, currentPath = Astro.url.pathname } = Astro.props;
+
+// Helper to check if any child is active
+function isChildActive(item: NavItem): boolean {
+  if (!item.children) return false;
+  return item.children.some(child => currentPath.startsWith(child.href));
+}
 ---
 
 <header class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -41,22 +48,65 @@ const { items = defaultItems, currentPath = Astro.url.pathname } = Astro.props;
     <!-- Navigation -->
     <nav class="flex flex-1 items-center space-x-6 text-sm font-medium">
       {items.map((item) => (
-        <a
-          href={item.href}
-          class:list={[
-            'transition-colors hover:text-foreground/80',
-            currentPath.startsWith(item.href) ? 'text-foreground' : 'text-foreground/60',
-          ]}
-          target={item.external ? '_blank' : undefined}
-          rel={item.external ? 'noopener noreferrer' : undefined}
-        >
-          {item.label}
-          {item.external && (
-            <svg class="ml-1 inline-block h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-            </svg>
-          )}
-        </a>
+        item.children ? (
+          <!-- Dropdown group -->
+          <div class="relative group">
+            <button
+              class:list={[
+                'flex items-center gap-1 transition-colors hover:text-foreground/80',
+                isChildActive(item) ? 'text-foreground' : 'text-foreground/60',
+              ]}
+              data-dropdown-trigger
+            >
+              {item.label}
+              <svg class="h-4 w-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            <!-- Dropdown menu -->
+            <div class="absolute left-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div class="bg-background border border-border rounded-md shadow-lg py-1 min-w-[160px]">
+                {item.children.map((child) => (
+                  <a
+                    href={child.href}
+                    class:list={[
+                      'block px-4 py-2 text-sm transition-colors hover:bg-accent',
+                      currentPath.startsWith(child.href) ? 'text-foreground bg-accent/50' : 'text-foreground/60',
+                    ]}
+                    target={child.external ? '_blank' : undefined}
+                    rel={child.external ? 'noopener noreferrer' : undefined}
+                  >
+                    {child.label}
+                    {child.external && (
+                      <svg class="ml-1 inline-block h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                      </svg>
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <!-- Direct link -->
+          <a
+            href={item.href}
+            class:list={[
+              'transition-colors hover:text-foreground/80',
+              currentPath.startsWith(item.href) && item.href !== '/' ? 'text-foreground' :
+              currentPath === item.href ? 'text-foreground' : 'text-foreground/60',
+            ]}
+            target={item.external ? '_blank' : undefined}
+            rel={item.external ? 'noopener noreferrer' : undefined}
+          >
+            {item.label}
+            {item.external && (
+              <svg class="ml-1 inline-block h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+            )}
+          </a>
+        )
       ))}
     </nav>
 
@@ -81,13 +131,34 @@ const { items = defaultItems, currentPath = Astro.url.pathname } = Astro.props;
   <div class="hidden md:hidden border-t border-border" data-mobile-menu>
     <nav class="container px-4 py-3 space-y-1">
       {items.map((item) => (
-        <a
-          href={item.href}
-          class="block py-2 text-sm text-foreground/60 hover:text-foreground"
-          target={item.external ? '_blank' : undefined}
-        >
-          {item.label}
-        </a>
+        item.children ? (
+          <!-- Mobile dropdown group -->
+          <div class="py-2">
+            <span class="block text-sm font-medium text-foreground mb-1">{item.label}</span>
+            <div class="pl-4 space-y-1 border-l border-border/50">
+              {item.children.map((child) => (
+                <a
+                  href={child.href}
+                  class:list={[
+                    'block py-1 text-sm hover:text-foreground',
+                    currentPath.startsWith(child.href) ? 'text-foreground' : 'text-foreground/60',
+                  ]}
+                  target={child.external ? '_blank' : undefined}
+                >
+                  {child.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <a
+            href={item.href}
+            class="block py-2 text-sm text-foreground/60 hover:text-foreground"
+            target={item.external ? '_blank' : undefined}
+          >
+            {item.label}
+          </a>
+        )
       ))}
     </nav>
   </div>

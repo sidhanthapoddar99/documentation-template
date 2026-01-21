@@ -1,0 +1,66 @@
+---
+/**
+ * ConfiguredNavbar - Renders the configured navbar variant
+ *
+ * Reads from site.config.ts to determine which navbar to show
+ * and transforms the navbar structure into NavItem[] format.
+ */
+
+import { getNavItems, getPageConfig, getPageNameByUrl, getSiteMetadata } from '../config';
+import { NavbarMinimal, NavbarStyle1, NavbarStyle2, NavbarStyle3 } from './navbar';
+
+interface Props {
+  pageName?: string;
+}
+
+const { pageName } = Astro.props;
+
+// Get page name from URL if not provided
+const resolvedPageName = pageName || getPageNameByUrl(Astro.url.pathname) || 'home';
+
+// Get page config with resolved component variants
+const pageConfig = getPageConfig(resolvedPageName);
+
+// Get navigation items from config
+const navItems = getNavItems();
+
+// Get site metadata for logo
+const siteMetadata = getSiteMetadata();
+
+// Current path for active state
+const currentPath = Astro.url.pathname;
+
+// Map variant name to component
+const navbarVariant = pageConfig.resolvedNavbar;
+---
+
+{navbarVariant === 'minimal' && (
+  <NavbarMinimal
+    items={navItems}
+    currentPath={currentPath}
+  />
+)}
+
+{navbarVariant === 'style1' && (
+  <NavbarStyle1
+    items={navItems}
+    currentPath={currentPath}
+    logo={siteMetadata.logo}
+  />
+)}
+
+{navbarVariant === 'style2' && (
+  <NavbarStyle2
+    items={navItems}
+    currentPath={currentPath}
+    logo={siteMetadata.logo}
+  />
+)}
+
+{navbarVariant === 'style3' && (
+  <NavbarStyle3
+    items={navItems}
+    currentPath={currentPath}
+    logo={siteMetadata.logo}
+  />
+)}

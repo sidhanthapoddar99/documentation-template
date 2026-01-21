@@ -10,7 +10,7 @@ Welcome to the Astro Documentation Framework configuration guide. This section c
 
 ## Quick Start
 
-1. **Environment Variables**: Set your docs path and site configuration in `.env`
+1. **Site Configuration**: Define your site structure in `src/config/site.config.ts`
 2. **Themes**: Customize colors and typography in `src/theme/`
 3. **Layouts**: Choose or create page layouts in `src/layouts/`
 4. **Components**: Use built-in MDX components or create your own
@@ -19,28 +19,48 @@ Welcome to the Astro Documentation Framework configuration guide. This section c
 
 | File | Purpose |
 |------|---------|
-| `.env` | Environment variables (docs path, site URL, features) |
-| `astro.config.mjs` | Astro configuration |
+| `src/config/site.config.ts` | **Main configuration** - site structure, pages, navbar, footer |
+| `src/config/types.ts` | TypeScript type definitions |
+| `src/config/helpers.ts` | Helper functions for accessing config |
+| `astro.config.mjs` | Astro framework configuration |
 | `src/theme/*.css` | Color and typography customization |
-| `src/hooks/useNavigation.ts` | Page registry and navigation |
 
-## Environment Variables
+## Site Configuration
 
-The documentation framework uses environment variables for configuration:
+The framework uses a centralized TypeScript configuration file for all site settings:
 
-```bash
-# .env
-DOCS_PATH=../docs          # Path to documentation content
-SITE_URL=http://localhost:4321
-SITE_TITLE=My Documentation
-SITE_DESCRIPTION=Documentation for my project
-
-# Feature flags
-ENABLE_SEARCH=true
-ENABLE_DARK_MODE=true
+```typescript
+// src/config/site.config.ts
+export const siteConfig: SiteConfig = {
+  site: {
+    name: 'My Docs',
+    title: 'Documentation',
+    description: 'My documentation site',
+  },
+  defaults: {
+    navbar: 'minimal',
+    sidebar: 'default',
+    footer: 'default',
+    outline: 'default',
+  },
+  pages: {
+    home: { type: 'home', title: 'Home', url: '/' },
+    docs: { type: 'doc', title: 'Docs', url: '/docs', data_location: '../docs' },
+  },
+  navbar: ['home', 'docs'],
+  footer: { copyright: '2024 Your Company' },
+};
 ```
 
+[Learn more about site configuration →](/docs/configuration/site-config)
+
 ## Configuration Sections
+
+### Site Configuration
+
+Control your entire site from a single TypeScript file - pages, navigation, components, and more.
+
+[Learn about site configuration →](/docs/configuration/site-config)
 
 ### Themes
 
