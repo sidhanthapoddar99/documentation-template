@@ -1,11 +1,15 @@
-.docusaurus
+# Docusaurus
+docusaurus/.docusaurus
+docusaurus/node_modules
+docusaurus/package-lock.json
+docusaurus/build
+
+# General
 node_modules
-package-lock.json
 build
 git_temp/**
+__pycache__
 
 # Sync tool generated files
 CHANGELOG.md
 dryrun-changelogs.md
-
-__pycache__
