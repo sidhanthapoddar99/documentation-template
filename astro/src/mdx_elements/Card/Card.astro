@@ -1,0 +1,79 @@
+---
+/**
+ * Card - Content card for MDX documentation
+ */
+
+interface Props {
+  title?: string;
+  icon?: string;
+  href?: string;
+}
+
+const { title, icon, href } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag class:list={['card', { 'card-link': !!href }]} href={href}>
+  {(icon || title) && (
+    <div class="card-header">
+      {icon && <span class="card-icon">{icon}</span>}
+      {title && <h3 class="card-title">{title}</h3>}
+    </div>
+  )}
+  <div class="card-content">
+    <slot />
+  </div>
+</Tag>
+
+<style>
+  .card {
+    display: block;
+    background-color: var(--theme-card-bg);
+    border: 1px solid var(--theme-card-border);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    margin: 1rem 0;
+  }
+
+  .card-link {
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .card-link:hover {
+    border-color: var(--color-brand-primary);
+    box-shadow: var(--theme-shadow-md);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-icon {
+    font-size: 1.25rem;
+  }
+
+  .card-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--theme-text-heading);
+    margin: 0;
+  }
+
+  .card-content {
+    color: var(--theme-text-secondary);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+  }
+
+  .card-content :global(p:first-child) {
+    margin-top: 0;
+  }
+
+  .card-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

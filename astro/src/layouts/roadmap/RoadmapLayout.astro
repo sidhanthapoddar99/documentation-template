@@ -1,0 +1,68 @@
+---
+/**
+ * RoadmapLayout - Layout for roadmap/changelog pages
+ */
+
+import BaseLayout from '../BaseLayout.astro';
+import { NavbarStyle1 } from '../../components/navbar';
+import { FooterDefault } from '../../components/footer';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'Roadmap', description } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <NavbarStyle1 />
+
+  <main class="roadmap-main">
+    <div class="roadmap-container">
+      <header class="roadmap-header">
+        <h1 class="roadmap-title">{title}</h1>
+        {description && <p class="roadmap-description">{description}</p>}
+      </header>
+
+      <div class="roadmap-content">
+        <slot />
+      </div>
+    </div>
+  </main>
+
+  <FooterDefault />
+</BaseLayout>
+
+<style>
+  .roadmap-main {
+    min-height: calc(100vh - 3.5rem - 4rem);
+    padding: 3rem 1.5rem;
+  }
+
+  .roadmap-container {
+    max-width: 64rem;
+    margin: 0 auto;
+  }
+
+  .roadmap-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .roadmap-title {
+    font-size: var(--text-4xl);
+    font-weight: var(--font-bold);
+    color: var(--theme-text-heading);
+    margin-bottom: 0.5rem;
+  }
+
+  .roadmap-description {
+    font-size: var(--text-lg);
+    color: var(--theme-text-secondary);
+  }
+
+  .roadmap-content {
+    /* Timeline styling can be added here */
+  }
+</style>

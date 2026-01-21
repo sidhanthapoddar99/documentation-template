@@ -1,0 +1,118 @@
+---
+/**
+ * Sidebar - Documentation navigation sidebar
+ */
+
+interface SidebarItem {
+  title: string;
+  href?: string;
+  children?: SidebarItem[];
+}
+
+interface Props {
+  items: SidebarItem[];
+  currentPath?: string;
+}
+
+const { items, currentPath = '' } = Astro.props;
+---
+
+<aside class="sidebar">
+  <nav class="sidebar-nav">
+    {items.map(item => (
+      <div class="sidebar-section">
+        {item.href ? (
+          <a
+            href={item.href}
+            class:list={['sidebar-link', { active: currentPath === item.href }]}
+          >
+            {item.title}
+          </a>
+        ) : (
+          <span class="sidebar-header">{item.title}</span>
+        )}
+
+        {item.children && (
+          <ul class="sidebar-list">
+            {item.children.map(child => (
+              <li>
+                <a
+                  href={child.href}
+                  class:list={['sidebar-link', { active: currentPath === child.href }]}
+                >
+                  {child.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    ))}
+  </nav>
+</aside>
+
+<style>
+  .sidebar {
+    width: 16rem;
+    flex-shrink: 0;
+    padding: 1.5rem 1rem;
+    border-right: 1px solid var(--theme-border-default);
+    background-color: var(--theme-sidebar-bg);
+    height: calc(100vh - 3.5rem);
+    overflow-y: auto;
+    position: sticky;
+    top: 3.5rem;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .sidebar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .sidebar-header {
+    font-size: var(--text-xs);
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    color: var(--theme-text-muted);
+    padding: 0.25rem 0.5rem;
+  }
+
+  .sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sidebar-link {
+    display: block;
+    padding: 0.375rem 0.75rem;
+    font-size: var(--text-sm);
+    color: var(--theme-text-secondary);
+    text-decoration: none;
+    border-radius: 0.25rem;
+    transition: all 0.15s ease;
+  }
+
+  .sidebar-link:hover {
+    color: var(--theme-text-primary);
+    background-color: var(--theme-bg-tertiary);
+  }
+
+  .sidebar-link.active {
+    color: var(--color-brand-primary);
+    background-color: var(--color-info-light);
+    font-weight: var(--font-medium);
+  }
+
+  :global([data-theme="dark"]) .sidebar-link.active {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+</style>

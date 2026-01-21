@@ -1,0 +1,64 @@
+---
+title: Getting Started
+description: Learn how to get started with the documentation framework
+sidebar_position: 1
+---
+
+# Getting Started
+
+Welcome to the documentation framework! This guide will help you get up and running quickly.
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- Node.js 18 or higher
+- npm or pnpm
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/your-org/your-repo.git
+cd your-repo/astro
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Configure environment:
+
+```bash
+cp .env.example .env
+```
+
+4. Start the development server:
+
+```bash
+npm run dev
+```
+
+## Project Structure
+
+The documentation content lives outside the Astro application for easy management:
+
+```
+/project-root/
+├── docs/           # Your documentation content
+│   ├── getting-started/
+│   ├── guides/
+│   └── api/
+└── astro/          # Astro application
+    ├── src/
+    └── ...
+```
+
+## Next Steps
+
+- Read the [Configuration Guide](/docs/guides/configuration) to customize your site
+- Learn about [Writing Content](/docs/guides/content) with MDX
+- Explore the [Component Library](/docs/guides/components)

@@ -1,0 +1,121 @@
+---
+/**
+ * Blog listing page
+ */
+
+import { HomeLayout1 } from '../../layouts/home';
+
+// Placeholder blog posts - in production, load from content collection
+const posts = [
+  {
+    title: 'Getting Started with Astro',
+    description: 'Learn how to build fast websites with Astro.',
+    date: new Date('2024-01-15'),
+    slug: 'getting-started',
+  },
+  {
+    title: 'Understanding MDX',
+    description: 'A deep dive into MDX and component-driven documentation.',
+    date: new Date('2024-01-10'),
+    slug: 'understanding-mdx',
+  },
+];
+---
+
+<HomeLayout1 title="Blog" description="Latest articles and updates">
+  <section class="blog-list-section">
+    <div class="blog-list-container">
+      <header class="blog-list-header">
+        <h1>Blog</h1>
+        <p>Latest articles and updates</p>
+      </header>
+
+      <div class="blog-posts">
+        {posts.map(post => (
+          <article class="blog-post-card">
+            <a href={`/blog/${post.slug}`}>
+              <h2>{post.title}</h2>
+              <p>{post.description}</p>
+              <time datetime={post.date.toISOString()}>
+                {new Intl.DateTimeFormat('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }).format(post.date)}
+              </time>
+            </a>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</HomeLayout1>
+
+<style>
+  .blog-list-section {
+    padding: 4rem 1.5rem;
+  }
+
+  .blog-list-container {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  .blog-list-header {
+    margin-bottom: 3rem;
+  }
+
+  .blog-list-header h1 {
+    font-size: var(--text-4xl);
+    font-weight: var(--font-bold);
+    color: var(--theme-text-heading);
+    margin-bottom: 0.5rem;
+  }
+
+  .blog-list-header p {
+    font-size: var(--text-lg);
+    color: var(--theme-text-secondary);
+  }
+
+  .blog-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .blog-post-card {
+    padding: 1.5rem;
+    background-color: var(--theme-card-bg);
+    border: 1px solid var(--theme-card-border);
+    border-radius: 0.5rem;
+    transition: box-shadow 0.15s ease;
+  }
+
+  .blog-post-card:hover {
+    box-shadow: var(--theme-shadow-md);
+  }
+
+  .blog-post-card a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .blog-post-card h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    color: var(--theme-text-heading);
+    margin-bottom: 0.5rem;
+  }
+
+  .blog-post-card p {
+    font-size: var(--text-sm);
+    color: var(--theme-text-secondary);
+    margin-bottom: 0.75rem;
+    line-height: var(--leading-relaxed);
+  }
+
+  .blog-post-card time {
+    font-size: var(--text-xs);
+    color: var(--theme-text-muted);
+  }
+</style>

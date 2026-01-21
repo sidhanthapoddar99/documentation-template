@@ -1,0 +1,114 @@
+---
+/**
+ * NavbarStyle1 - Minimal navbar with logo and navigation links
+ */
+
+interface Props {
+  logo?: string;
+  links?: Array<{ href: string; label: string }>;
+}
+
+const {
+  logo = '/logo.svg',
+  links = [
+    { href: '/docs', label: 'Docs' },
+    { href: '/blog', label: 'Blog' },
+  ]
+} = Astro.props;
+---
+
+<nav class="navbar">
+  <div class="navbar-container">
+    <a href="/" class="navbar-logo">
+      <img src={logo} alt="Logo" />
+    </a>
+
+    <div class="navbar-links">
+      {links.map(link => (
+        <a href={link.href} class="navbar-link">{link.label}</a>
+      ))}
+    </div>
+
+    <div class="navbar-actions">
+      <button id="theme-toggle" class="btn btn-ghost" aria-label="Toggle theme">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--theme-navbar-bg);
+    border-bottom: 1px solid var(--theme-navbar-border);
+  }
+
+  .navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .navbar-logo img {
+    height: 2rem;
+    width: auto;
+  }
+
+  .navbar-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .navbar-link {
+    color: var(--theme-text-secondary);
+    text-decoration: none;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    transition: color 0.15s ease;
+  }
+
+  .navbar-link:hover {
+    color: var(--theme-text-primary);
+  }
+
+  .navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  #theme-toggle {
+    padding: 0.5rem;
+  }
+
+  .icon-moon {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .icon-sun {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .icon-moon {
+    display: inline;
+  }
+</style>
+
+<script>
+  const toggle = document.getElementById('theme-toggle');
+
+  toggle?.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  });
+</script>

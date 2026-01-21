@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "puppeteer": {
+      "type": "stdio",
+      "command": "mcp-server-puppeteer",
+      "args": [],
+      "env": {}
+    }
+  }
+}

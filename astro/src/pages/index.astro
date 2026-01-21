@@ -1,0 +1,173 @@
+---
+/**
+ * Homepage
+ */
+
+import { HomeLayout1 } from '../layouts/home';
+---
+
+<HomeLayout1 title="Home" description="Welcome to the documentation">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-container">
+      <h1 class="hero-title">Documentation Framework</h1>
+      <p class="hero-description">
+        A modern, flexible documentation system built with Astro.
+        Fast, customizable, and easy to use.
+      </p>
+      <div class="hero-actions">
+        <a href="/docs" class="btn btn-primary btn-lg">Get Started</a>
+        <a href="https://github.com" class="btn btn-secondary btn-lg">GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="features-container">
+      <h2 class="features-title">Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">⚡</span>
+          <h3 class="feature-title">Lightning Fast</h3>
+          <p class="feature-description">
+            Built on Astro with zero JavaScript by default. Ships only what you need.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">🎨</span>
+          <h3 class="feature-title">Fully Customizable</h3>
+          <p class="feature-description">
+            Modular components and centralized theming. Make it your own.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">📝</span>
+          <h3 class="feature-title">MDX Support</h3>
+          <p class="feature-description">
+            Write documentation with MDX. Use custom components inline.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">🌙</span>
+          <h3 class="feature-title">Dark Mode</h3>
+          <p class="feature-description">
+            Built-in dark mode with smooth transitions. Respects system preference.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</HomeLayout1>
+
+<style>
+  /* Hero Section */
+  .hero {
+    padding: 6rem 1.5rem;
+    text-align: center;
+    background: linear-gradient(
+      to bottom,
+      var(--theme-bg-secondary),
+      var(--theme-bg-primary)
+    );
+  }
+
+  .hero-container {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: var(--text-5xl);
+    font-weight: var(--font-bold);
+    color: var(--theme-text-heading);
+    margin-bottom: 1.5rem;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .hero-description {
+    font-size: var(--text-xl);
+    color: var(--theme-text-secondary);
+    margin-bottom: 2rem;
+    line-height: var(--leading-relaxed);
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Features Section */
+  .features {
+    padding: 5rem 1.5rem;
+  }
+
+  .features-container {
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+
+  .features-title {
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+    color: var(--theme-text-heading);
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem;
+    background-color: var(--theme-card-bg);
+    border: 1px solid var(--theme-card-border);
+    border-radius: 0.5rem;
+    transition: box-shadow 0.15s ease;
+  }
+
+  .feature-card:hover {
+    box-shadow: var(--theme-shadow-md);
+  }
+
+  .feature-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .feature-card h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--theme-text-heading);
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-card p {
+    font-size: var(--text-sm);
+    color: var(--theme-text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      padding: 4rem 1rem;
+    }
+
+    .hero-title {
+      font-size: var(--text-3xl);
+    }
+
+    .hero-description {
+      font-size: var(--text-lg);
+    }
+  }
+</style>

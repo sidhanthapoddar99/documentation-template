@@ -1,0 +1,84 @@
+---
+/**
+ * BlogLayout - Layout for blog posts
+ */
+
+import BaseLayout from '../BaseLayout.astro';
+import { NavbarStyle1 } from '../../components/navbar';
+import { FooterDefault } from '../../components/footer';
+
+interface Props {
+  title: string;
+  description?: string;
+  date?: Date;
+  author?: string;
+}
+
+const { title, description, date, author } = Astro.props;
+
+const formattedDate = date ? new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+}).format(date) : null;
+---
+
+<BaseLayout title={title} description={description}>
+  <NavbarStyle1 />
+
+  <main class="blog-main">
+    <article class="blog-article">
+      <header class="blog-header">
+        <h1 class="blog-title">{title}</h1>
+        {(date || author) && (
+          <div class="blog-meta">
+            {formattedDate && <time datetime={date?.toISOString()}>{formattedDate}</time>}
+            {author && <span class="blog-author">by {author}</span>}
+          </div>
+        )}
+      </header>
+
+      <div class="blog-content prose">
+        <slot />
+      </div>
+    </article>
+  </main>
+
+  <FooterDefault />
+</BaseLayout>
+
+<style>
+  .blog-main {
+    min-height: calc(100vh - 3.5rem - 4rem);
+    padding: 3rem 1.5rem;
+  }
+
+  .blog-article {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  .blog-header {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--theme-border-default);
+  }
+
+  .blog-title {
+    font-size: var(--text-4xl);
+    font-weight: var(--font-bold);
+    color: var(--theme-text-heading);
+    margin-bottom: 1rem;
+  }
+
+  .blog-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: var(--text-sm);
+    color: var(--theme-text-muted);
+  }
+
+  .blog-content {
+    max-width: none;
+  }
+</style>

@@ -1,0 +1,64 @@
+---
+/**
+ * Dynamic documentation page route
+ *
+ * Handles all /docs/* routes by loading MDX from the docs folder
+ */
+
+import { DocsLayout } from '../../layouts/docs';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Get docs path from environment
+const docsPath = import.meta.env.DOCS_PATH || '../docs';
+const resolvedDocsPath = path.isAbsolute(docsPath)
+  ? docsPath
+  : path.resolve(process.cwd(), docsPath);
+
+export async function getStaticPaths() {
+  // TODO: Implement MDX file discovery from docs folder
+  // This is a placeholder that returns empty paths
+  // In production, scan the docs folder and generate paths
+
+  return [
+    { params: { slug: undefined }, props: { title: 'Documentation', content: 'Welcome to the documentation.' } },
+  ];
+}
+
+const { slug } = Astro.params;
+const { title, content } = Astro.props;
+
+// Placeholder sidebar items - in production, generate from folder structure
+const sidebarItems = [
+  {
+    title: 'Getting Started',
+    children: [
+      { title: 'Introduction', href: '/docs' },
+      { title: 'Installation', href: '/docs/installation' },
+      { title: 'Configuration', href: '/docs/configuration' },
+    ]
+  },
+  {
+    title: 'Guides',
+    children: [
+      { title: 'Writing Content', href: '/docs/guides/content' },
+      { title: 'Using Components', href: '/docs/guides/components' },
+    ]
+  }
+];
+---
+
+<DocsLayout
+  title={title}
+  description="Documentation page"
+  sidebarItems={sidebarItems}
+  headings={[]}
+>
+  <h1>{title}</h1>
+  <p>{content}</p>
+
+  <p>
+    <strong>Note:</strong> This is a placeholder page. Configure MDX integration
+    and implement the content loading logic to display actual documentation.
+  </p>
+</DocsLayout>

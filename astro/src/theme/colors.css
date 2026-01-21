@@ -1,0 +1,141 @@
+/* ==============================================================================
+   COLOR SYSTEM
+   ==============================================================================
+
+   All colors are defined as CSS custom properties.
+   Light mode is default, dark mode uses [data-theme="dark"] selector.
+*/
+
+:root {
+  /* --------------------------------------------------------------------------
+     Base Colors
+     -------------------------------------------------------------------------- */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* --------------------------------------------------------------------------
+     Gray Scale
+     -------------------------------------------------------------------------- */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f4f4f5;
+  --color-gray-200: #e4e4e7;
+  --color-gray-300: #d4d4d8;
+  --color-gray-400: #a1a1aa;
+  --color-gray-500: #71717a;
+  --color-gray-600: #52525b;
+  --color-gray-700: #3f3f46;
+  --color-gray-800: #27272a;
+  --color-gray-900: #18181b;
+  --color-gray-950: #09090b;
+
+  /* --------------------------------------------------------------------------
+     Brand Colors
+     -------------------------------------------------------------------------- */
+  --color-brand-primary: #3b82f6;
+  --color-brand-primary-hover: #2563eb;
+  --color-brand-secondary: #8b5cf6;
+  --color-brand-accent: #06b6d4;
+
+  /* --------------------------------------------------------------------------
+     Status Colors
+     -------------------------------------------------------------------------- */
+  --color-success: #22c55e;
+  --color-success-light: #dcfce7;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-danger: #ef4444;
+  --color-danger-light: #fee2e2;
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
+
+  /* --------------------------------------------------------------------------
+     Semantic Theme Colors (Light Mode)
+     -------------------------------------------------------------------------- */
+
+  /* Backgrounds */
+  --theme-bg-primary: var(--color-white);
+  --theme-bg-secondary: var(--color-gray-50);
+  --theme-bg-tertiary: var(--color-gray-100);
+  --theme-bg-elevated: var(--color-white);
+  --theme-bg-code: var(--color-gray-100);
+
+  /* Text */
+  --theme-text-primary: var(--color-gray-900);
+  --theme-text-secondary: var(--color-gray-600);
+  --theme-text-muted: var(--color-gray-500);
+  --theme-text-heading: var(--color-gray-900);
+  --theme-text-link: var(--color-brand-primary);
+  --theme-text-link-hover: var(--color-brand-primary-hover);
+
+  /* Borders */
+  --theme-border-default: var(--color-gray-200);
+  --theme-border-subtle: var(--color-gray-100);
+  --theme-border-strong: var(--color-gray-300);
+
+  /* Shadows */
+  --theme-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --theme-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --theme-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+  /* Components */
+  --theme-navbar-bg: var(--color-white);
+  --theme-navbar-border: var(--color-gray-200);
+  --theme-sidebar-bg: var(--color-gray-50);
+  --theme-card-bg: var(--color-white);
+  --theme-card-border: var(--color-gray-200);
+
+  /* Code */
+  --theme-code-bg: var(--color-gray-100);
+  --theme-code-text: var(--color-gray-800);
+  --theme-code-block-bg: var(--color-gray-900);
+  --theme-code-block-text: var(--color-gray-100);
+
+  /* Icon filter (for SVG icons) */
+  --theme-icon-filter: none;
+}
+
+/* --------------------------------------------------------------------------
+   Dark Mode
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  /* Backgrounds */
+  --theme-bg-primary: var(--color-gray-900);
+  --theme-bg-secondary: var(--color-gray-800);
+  --theme-bg-tertiary: var(--color-gray-700);
+  --theme-bg-elevated: var(--color-gray-800);
+  --theme-bg-code: var(--color-gray-800);
+
+  /* Text */
+  --theme-text-primary: var(--color-gray-100);
+  --theme-text-secondary: var(--color-gray-400);
+  --theme-text-muted: var(--color-gray-500);
+  --theme-text-heading: var(--color-white);
+  --theme-text-link: #60a5fa;
+  --theme-text-link-hover: #93c5fd;
+
+  /* Borders */
+  --theme-border-default: var(--color-gray-700);
+  --theme-border-subtle: var(--color-gray-800);
+  --theme-border-strong: var(--color-gray-600);
+
+  /* Shadows */
+  --theme-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --theme-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --theme-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+
+  /* Components */
+  --theme-navbar-bg: var(--color-gray-900);
+  --theme-navbar-border: var(--color-gray-700);
+  --theme-sidebar-bg: var(--color-gray-800);
+  --theme-card-bg: var(--color-gray-800);
+  --theme-card-border: var(--color-gray-700);
+
+  /* Code */
+  --theme-code-bg: var(--color-gray-800);
+  --theme-code-text: var(--color-gray-200);
+  --theme-code-block-bg: var(--color-gray-950);
+  --theme-code-block-text: var(--color-gray-100);
+
+  /* Icon filter (invert for dark mode) */
+  --theme-icon-filter: invert(1);
+}

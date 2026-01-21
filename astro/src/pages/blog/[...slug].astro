@@ -1,0 +1,28 @@
+---
+/**
+ * Dynamic blog post route
+ */
+
+import { BlogLayout } from '../../layouts/blog';
+
+export async function getStaticPaths() {
+  // TODO: Load from content collection
+  return [
+    {
+      params: { slug: 'getting-started' },
+      props: {
+        title: 'Getting Started with Astro',
+        date: new Date('2024-01-15'),
+        author: 'Documentation Team',
+        content: 'This is a placeholder blog post. Configure content collections to load actual posts.'
+      }
+    },
+  ];
+}
+
+const { title, date, author, content } = Astro.props;
+---
+
+<BlogLayout title={title} date={date} author={author}>
+  <p>{content}</p>
+</BlogLayout>

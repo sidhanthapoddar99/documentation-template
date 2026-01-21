@@ -1,0 +1,15 @@
+---
+/**
+ * TabItem - Individual tab panel
+ */
+
+interface Props {
+  label: string;
+}
+
+const { label } = Astro.props;
+---
+
+<div data-tab-item data-label={label}>
+  <slot />
+</div>

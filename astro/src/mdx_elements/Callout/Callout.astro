@@ -1,0 +1,119 @@
+---
+/**
+ * Callout - Info/warning/danger callouts for MDX
+ */
+
+interface Props {
+  type?: 'info' | 'warning' | 'danger' | 'success' | 'note';
+  title?: string;
+}
+
+const { type = 'info', title } = Astro.props;
+
+const icons: Record<string, string> = {
+  info: 'ℹ️',
+  warning: '⚠️',
+  danger: '🚨',
+  success: '✅',
+  note: '📝',
+};
+
+const defaultTitles: Record<string, string> = {
+  info: 'Info',
+  warning: 'Warning',
+  danger: 'Danger',
+  success: 'Success',
+  note: 'Note',
+};
+---
+
+<aside class:list={['callout', `callout-${type}`]}>
+  <div class="callout-header">
+    <span class="callout-icon">{icons[type]}</span>
+    <span class="callout-title">{title || defaultTitles[type]}</span>
+  </div>
+  <div class="callout-content">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .callout {
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid;
+  }
+
+  .callout-info {
+    background-color: var(--color-info-light);
+    border-left-color: var(--color-info);
+  }
+
+  .callout-warning {
+    background-color: var(--color-warning-light);
+    border-left-color: var(--color-warning);
+  }
+
+  .callout-danger {
+    background-color: var(--color-danger-light);
+    border-left-color: var(--color-danger);
+  }
+
+  .callout-success {
+    background-color: var(--color-success-light);
+    border-left-color: var(--color-success);
+  }
+
+  .callout-note {
+    background-color: var(--theme-bg-secondary);
+    border-left-color: var(--theme-border-strong);
+  }
+
+  :global([data-theme="dark"]) .callout-info {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+
+  :global([data-theme="dark"]) .callout-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+  }
+
+  :global([data-theme="dark"]) .callout-danger {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+
+  :global([data-theme="dark"]) .callout-success {
+    background-color: rgba(34, 197, 94, 0.1);
+  }
+
+  .callout-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .callout-icon {
+    font-size: 1rem;
+  }
+
+  .callout-title {
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
+    color: var(--theme-text-heading);
+  }
+
+  .callout-content {
+    font-size: var(--text-sm);
+    color: var(--theme-text-primary);
+    line-height: var(--leading-relaxed);
+  }
+
+  .callout-content :global(p:first-child) {
+    margin-top: 0;
+  }
+
+  .callout-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

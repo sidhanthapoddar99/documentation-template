@@ -1,0 +1,77 @@
+---
+/**
+ * FooterDefault - Simple footer with copyright and links
+ */
+
+interface Props {
+  copyright?: string;
+  links?: Array<{ href: string; label: string }>;
+}
+
+const currentYear = new Date().getFullYear();
+
+const {
+  copyright = `© ${currentYear} Your Company. All rights reserved.`,
+  links = [
+    { href: '/privacy', label: 'Privacy' },
+    { href: '/terms', label: 'Terms' },
+  ]
+} = Astro.props;
+---
+
+<footer class="footer">
+  <div class="footer-container">
+    <p class="footer-copyright">{copyright}</p>
+
+    <nav class="footer-links">
+      {links.map(link => (
+        <a href={link.href} class="footer-link">{link.label}</a>
+      ))}
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background-color: var(--theme-bg-secondary);
+    border-top: 1px solid var(--theme-border-default);
+  }
+
+  .footer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .footer-copyright {
+    font-size: var(--text-sm);
+    color: var(--theme-text-muted);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .footer-link {
+    font-size: var(--text-sm);
+    color: var(--theme-text-secondary);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .footer-link:hover {
+    color: var(--theme-text-primary);
+  }
+
+  @media (max-width: 640px) {
+    .footer-container {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+  }
+</style>

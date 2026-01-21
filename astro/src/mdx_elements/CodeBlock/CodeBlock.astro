@@ -1,0 +1,156 @@
+---
+/**
+ * CodeBlock - Enhanced code block with copy button
+ */
+
+interface Props {
+  code: string;
+  lang?: string;
+  filename?: string;
+  showLineNumbers?: boolean;
+}
+
+const { code, lang = 'text', filename, showLineNumbers = false } = Astro.props;
+
+// Generate unique ID for this code block
+const id = `code-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div class="code-block">
+  {filename && (
+    <div class="code-header">
+      <span class="code-filename">{filename}</span>
+      <button class="copy-btn" data-code-id={id} aria-label="Copy code">
+        <span class="copy-icon">📋</span>
+        <span class="copied-icon">✓</span>
+      </button>
+    </div>
+  )}
+  <pre class:list={['code-pre', { 'with-header': !!filename, 'line-numbers': showLineNumbers }]}>
+    <code id={id} class={`language-${lang}`} set:html={code} />
+  </pre>
+  {!filename && (
+    <button class="copy-btn floating" data-code-id={id} aria-label="Copy code">
+      <span class="copy-icon">📋</span>
+      <span class="copied-icon">✓</span>
+    </button>
+  )}
+</div>
+
+<style>
+  .code-block {
+    position: relative;
+    margin: 1.5rem 0;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-gray-800);
+    border-radius: 0.5rem 0.5rem 0 0;
+    border: 1px solid var(--color-gray-700);
+    border-bottom: none;
+  }
+
+  .code-filename {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-gray-400);
+  }
+
+  .code-pre {
+    margin: 0;
+    padding: 1rem;
+    background-color: var(--theme-code-block-bg);
+    border-radius: 0.5rem;
+    overflow-x: auto;
+  }
+
+  .code-pre.with-header {
+    border-radius: 0 0 0.5rem 0.5rem;
+    border: 1px solid var(--color-gray-700);
+    border-top: none;
+  }
+
+  .code-pre code {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--theme-code-block-text);
+    line-height: var(--leading-relaxed);
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.5rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  .copy-btn:hover {
+    background-color: var(--color-gray-700);
+  }
+
+  .copy-btn.floating {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: var(--color-gray-700);
+  }
+
+  .copied-icon {
+    display: none;
+    color: var(--color-success);
+  }
+
+  .copy-btn.copied .copy-icon {
+    display: none;
+  }
+
+  .copy-btn.copied .copied-icon {
+    display: inline;
+  }
+
+  /* Line numbers */
+  .line-numbers code {
+    counter-reset: line;
+  }
+
+  .line-numbers code > span {
+    display: block;
+  }
+
+  .line-numbers code > span::before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    width: 2rem;
+    margin-right: 1rem;
+    text-align: right;
+    color: var(--color-gray-600);
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const codeId = btn.getAttribute('data-code-id');
+      const codeEl = document.getElementById(codeId!);
+
+      if (codeEl) {
+        await navigator.clipboard.writeText(codeEl.textContent || '');
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.classList.remove('copied');
+        }, 2000);
+      }
+    });
+  });
+</script>

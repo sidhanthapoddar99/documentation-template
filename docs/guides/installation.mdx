@@ -1,0 +1,64 @@
+---
+title: Installation
+description: Detailed installation instructions
+sidebar_position: 1
+---
+
+# Installation
+
+This guide provides detailed installation instructions for the documentation framework.
+
+## System Requirements
+
+- **Node.js**: Version 18.0 or higher
+- **Package Manager**: npm, pnpm, or yarn
+- **Operating System**: Windows, macOS, or Linux
+
+## Quick Start
+
+The fastest way to get started is using the npm create command:
+
+```bash
+# Navigate to the astro directory
+cd astro
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+## Environment Configuration
+
+Copy the example environment file and configure it:
+
+```bash
+cp .env.example .env
+```
+
+### Required Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DOCS_PATH` | Path to documentation content | `../docs` |
+| `SITE_URL` | Base URL for the site | `http://localhost:4321` |
+| `SITE_TITLE` | Site title | `My Documentation` |
+
+### Optional Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ENABLE_SEARCH` | Enable search functionality | `true` |
+| `ENABLE_DARK_MODE` | Enable dark mode toggle | `true` |
+| `ENABLE_ANALYTICS` | Enable analytics tracking | `false` |
+
+## Verifying Installation
+
+After starting the development server, open your browser to:
+
+```
+http://localhost:4321
+```
+
+You should see the documentation homepage.

@@ -1,0 +1,89 @@
+---
+/**
+ * DocsLayout - Layout for documentation pages
+ *
+ * Features: Sidebar, Main content area, Outline (TOC)
+ */
+
+import BaseLayout from '../BaseLayout.astro';
+import { NavbarStyle1 } from '../../components/navbar';
+import { FooterDefault } from '../../components/footer';
+import { Sidebar } from '../../components/sidebar';
+import { Outline } from '../../components/outline';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface SidebarItem {
+  title: string;
+  href?: string;
+  children?: SidebarItem[];
+}
+
+interface Props {
+  title: string;
+  description?: string;
+  headings?: Heading[];
+  sidebarItems?: SidebarItem[];
+}
+
+const { title, description, headings = [], sidebarItems = [] } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={title} description={description}>
+  <NavbarStyle1 />
+
+  <div class="docs-container">
+    <Sidebar items={sidebarItems} currentPath={currentPath} />
+
+    <main class="docs-main">
+      <article class="docs-content prose">
+        <slot />
+      </article>
+    </main>
+
+    <Outline headings={headings} />
+  </div>
+
+  <FooterDefault />
+</BaseLayout>
+
+<style>
+  .docs-container {
+    display: flex;
+    max-width: 1536px;
+    margin: 0 auto;
+    min-height: calc(100vh - 3.5rem - 4rem); /* minus navbar and footer */
+  }
+
+  .docs-main {
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+    padding: 2rem;
+  }
+
+  .docs-content {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 1280px) {
+    .docs-container :global(.outline) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .docs-container :global(.sidebar) {
+      display: none;
+    }
+
+    .docs-main {
+      padding: 1.5rem;
+    }
+  }
+</style>

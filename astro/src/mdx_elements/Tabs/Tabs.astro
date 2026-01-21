@@ -1,0 +1,110 @@
+---
+/**
+ * Tabs - Tabbed content container
+ *
+ * Usage:
+ * <Tabs>
+ *   <TabItem label="Tab 1">Content 1</TabItem>
+ *   <TabItem label="Tab 2">Content 2</TabItem>
+ * </Tabs>
+ */
+
+interface Props {
+  defaultTab?: number;
+}
+
+const { defaultTab = 0 } = Astro.props;
+const id = `tabs-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div class="tabs" data-tabs-id={id} data-default-tab={defaultTab}>
+  <div class="tabs-list" role="tablist">
+    <!-- Tab buttons will be inserted by JavaScript -->
+  </div>
+  <div class="tabs-panels">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .tabs {
+    margin: 1.5rem 0;
+  }
+
+  .tabs-list {
+    display: flex;
+    border-bottom: 1px solid var(--theme-border-default);
+    gap: 0;
+  }
+
+  .tabs-list :global(button) {
+    padding: 0.75rem 1rem;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--theme-text-secondary);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .tabs-list :global(button:hover) {
+    color: var(--theme-text-primary);
+  }
+
+  .tabs-list :global(button[aria-selected="true"]) {
+    color: var(--color-brand-primary);
+    border-bottom-color: var(--color-brand-primary);
+  }
+
+  .tabs-panels {
+    padding: 1rem 0;
+  }
+
+  .tabs-panels :global([role="tabpanel"]) {
+    display: none;
+  }
+
+  .tabs-panels :global([role="tabpanel"].active) {
+    display: block;
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.tabs').forEach(tabsContainer => {
+    const tabsList = tabsContainer.querySelector('.tabs-list');
+    const panels = tabsContainer.querySelectorAll('[data-tab-item]');
+    const defaultTab = parseInt(tabsContainer.getAttribute('data-default-tab') || '0');
+
+    // Create tab buttons
+    panels.forEach((panel, index) => {
+      const label = panel.getAttribute('data-label') || `Tab ${index + 1}`;
+      const button = document.createElement('button');
+      button.textContent = label;
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-selected', index === defaultTab ? 'true' : 'false');
+      button.setAttribute('data-tab-index', index.toString());
+
+      button.addEventListener('click', () => {
+        // Update buttons
+        tabsList?.querySelectorAll('button').forEach(btn => {
+          btn.setAttribute('aria-selected', 'false');
+        });
+        button.setAttribute('aria-selected', 'true');
+
+        // Update panels
+        panels.forEach((p, i) => {
+          p.classList.toggle('active', i === index);
+        });
+      });
+
+      tabsList?.appendChild(button);
+
+      // Set initial state
+      panel.setAttribute('role', 'tabpanel');
+      panel.classList.toggle('active', index === defaultTab);
+    });
+  });
+</script>

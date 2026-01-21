@@ -1,0 +1,32 @@
+---
+/**
+ * HomeLayout1 - Clean homepage layout with hero section
+ */
+
+import BaseLayout from '../../BaseLayout.astro';
+import { NavbarStyle1 } from '../../../components/navbar';
+import { FooterDefault } from '../../../components/footer';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'Home', description } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <NavbarStyle1 />
+
+  <main class="home-main">
+    <slot />
+  </main>
+
+  <FooterDefault />
+</BaseLayout>
+
+<style>
+  .home-main {
+    min-height: calc(100vh - 3.5rem - 4rem);
+  }
+</style>

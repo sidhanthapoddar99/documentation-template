@@ -4,6 +4,12 @@ docusaurus/node_modules
 docusaurus/package-lock.json
 docusaurus/build
 
+# Astro
+astro/node_modules
+astro/dist
+astro/.astro
+astro/.env
+
 # General
 node_modules
 build
