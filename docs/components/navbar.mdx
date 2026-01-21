@@ -1,0 +1,245 @@
+---
+title: Navbar
+description: Site navigation header components
+sidebar_position: 2
+---
+
+# Navbar Components
+
+The framework includes three navbar variants designed for different documentation needs.
+
+## NavbarStyle1 (Minimal)
+
+Clean, flat navigation for simple sites.
+
+### Features
+
+- Logo with optional link
+- Flat navigation links
+- Theme toggle button
+- External link icons
+- Mobile hamburger menu
+- Active state highlighting
+
+### Usage
+
+```astro
+---
+import { NavbarStyle1 } from '../components/navbar';
+
+const navItems = [
+  { label: 'Home', href: '/', tag: 'home', order: 1 },
+  { label: 'Docs', href: '/docs', tag: 'doc', order: 2 },
+  { label: 'Blog', href: '/blog', tag: 'blog', order: 3 },
+  { label: 'GitHub', href: 'https://github.com/...', tag: 'external', order: 4 },
+];
+---
+
+<NavbarStyle1
+  logo={{ src: '/logo.svg', alt: 'My Site', href: '/' }}
+  items={navItems}
+  currentPath={Astro.url.pathname}
+/>
+```
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `logo` | `{ src, alt, href? }` | Required | Logo configuration |
+| `items` | `NavItem[]` | `[]` | Navigation items |
+| `currentPath` | `string` | Auto | Current page path |
+| `class` | `string` | `''` | Additional CSS classes |
+
+### Styling
+
+```css
+.navbar-style1 {
+  --theme-navbar-bg: var(--theme-bg-primary);
+  --theme-navbar-border: var(--theme-border-default);
+}
+```
+
+## NavbarStyle2 (Dropdown)
+
+Navigation with dropdown menus for organizing sections.
+
+### Features
+
+- Click-to-open dropdown menus
+- Animated chevron indicators
+- Expandable mobile sections
+- Close on outside click
+- Hover states for all items
+
+### Usage
+
+```astro
+---
+import { NavbarStyle2 } from '../components/navbar';
+
+const navItems = [
+  { label: 'Home', href: '/', tag: 'home', order: 1 },
+  {
+    label: 'Documentation',
+    href: '/docs',
+    tag: 'doc',
+    order: 2,
+    children: [
+      { label: 'Getting Started', href: '/docs/getting-started', order: 1 },
+      { label: 'Configuration', href: '/docs/configuration', order: 2 },
+      { label: 'Components', href: '/docs/components', order: 3 },
+    ]
+  },
+];
+---
+
+<NavbarStyle2
+  logo={{ src: '/logo.svg', alt: 'My Site' }}
+  items={navItems}
+/>
+```
+
+### Props
+
+Same as NavbarStyle1.
+
+### Dropdown Behavior
+
+- Dropdowns open on click
+- Only one dropdown open at a time
+- Clicking outside closes dropdowns
+- Dropdown position is below trigger
+
+## NavbarStyle3 (Mega Menu)
+
+Full-width mega menus for large documentation sites.
+
+### Features
+
+- Full-width mega menu panels
+- Nested section organization
+- Built-in search button with ⌘K shortcut
+- "View all" links for large sections
+- CTA footer in mega menu
+- Icon links for external services
+
+### Usage
+
+```astro
+---
+import { NavbarStyle3 } from '../components/navbar';
+
+const navItems = [
+  { label: 'Home', href: '/', tag: 'home', order: 1 },
+  {
+    label: 'Documentation',
+    href: '/docs',
+    tag: 'doc',
+    order: 2,
+    children: [
+      {
+        label: 'Getting Started',
+        href: '/docs/getting-started',
+        order: 1,
+        children: [
+          { label: 'Installation', href: '/docs/getting-started/installation', order: 1 },
+          { label: 'Quick Start', href: '/docs/getting-started/quick-start', order: 2 },
+        ]
+      },
+      {
+        label: 'Configuration',
+        href: '/docs/configuration',
+        order: 2,
+        children: [
+          { label: 'Themes', href: '/docs/configuration/themes', order: 1 },
+          { label: 'Layouts', href: '/docs/configuration/layouts', order: 2 },
+        ]
+      },
+    ]
+  },
+];
+---
+
+<NavbarStyle3
+  logo={{ src: '/logo.svg', alt: 'My Site' }}
+  items={navItems}
+  showSearch={true}
+/>
+```
+
+### Additional Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `showSearch` | `boolean` | `true` | Show search button |
+
+### Mega Menu Structure
+
+The mega menu displays:
+
+1. Section headers (clickable)
+2. Up to 5 items per section
+3. "View all →" link for overflow
+4. Footer with "Browse all" CTA
+
+## NavItem Type
+
+```typescript
+interface NavItem {
+  label: string;        // Display text
+  href: string;         // Navigation URL
+  tag: PageTag;         // 'home' | 'doc' | 'blog' | 'roadmap' | 'external'
+  order: number;        // Sort order
+  children?: NavItem[]; // Nested items for dropdowns/mega menu
+}
+
+type PageTag = 'home' | 'doc' | 'blog' | 'roadmap' | 'external';
+```
+
+## Mobile Behavior
+
+All navbar variants include mobile responsiveness:
+
+### Breakpoints
+
+- NavbarStyle1/2: 768px
+- NavbarStyle3: 1024px
+
+### Mobile Features
+
+- Hamburger menu toggle
+- Full-width mobile menu
+- Collapsible sections
+- Touch-friendly tap targets
+- Smooth open/close animations
+
+## Theme Integration
+
+Navbars include the ThemeToggle component:
+
+```astro
+<ThemeToggle size="md" />
+```
+
+The toggle switches between light and dark modes and persists the preference to localStorage.
+
+## Active States
+
+Links automatically highlight when the current path matches:
+
+```astro
+class:list={[
+  'navbar-link',
+  { 'navbar-link--active': currentPath === item.href ||
+    (item.href !== '/' && currentPath.startsWith(item.href)) }
+]}
+```
+
+## Choosing a Navbar Style
+
+| Style | Best For |
+|-------|----------|
+| NavbarStyle1 | Small sites, simple navigation |
+| NavbarStyle2 | Medium sites, organized sections |
+| NavbarStyle3 | Large sites, many documentation sections |

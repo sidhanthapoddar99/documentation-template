@@ -1,0 +1,202 @@
+---
+/**
+ * CollapsibleCodeBlock - Expandable code block
+ *
+ * Usage:
+ * <CollapsibleCodeBlock
+ *   code="const x = 1;"
+ *   lang="javascript"
+ *   filename="example.js"
+ *   title="Click to expand"
+ * />
+ */
+
+export interface Props {
+  code: string;
+  lang?: string;
+  filename?: string;
+  title?: string;
+  open?: boolean;
+}
+
+const {
+  code,
+  lang = 'text',
+  filename,
+  title = 'Show code',
+  open = false,
+} = Astro.props;
+
+const id = `code-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<details class="collapsible-code" open={open}>
+  <summary class="collapsible-code__summary">
+    <svg class="collapsible-code__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+    <span class="collapsible-code__title">{title}</span>
+    {filename && <span class="collapsible-code__filename">{filename}</span>}
+  </summary>
+  <div class="collapsible-code__content">
+    <div class="collapsible-code__header">
+      {filename && <span class="collapsible-code__file">{filename}</span>}
+      <button class="collapsible-code__copy" data-code-id={id} aria-label="Copy code">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        <span class="collapsible-code__copy-text">Copy</span>
+      </button>
+    </div>
+    <pre class="collapsible-code__pre"><code id={id} class={`language-${lang}`} set:html={code} /></pre>
+  </div>
+</details>
+
+<style>
+  .collapsible-code {
+    margin: 1.5rem 0;
+    border: 1px solid var(--theme-border-default);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .collapsible-code__summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--theme-bg-secondary);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    font-size: 0.875rem;
+    color: var(--theme-text-secondary);
+  }
+
+  .collapsible-code__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .collapsible-code__summary:hover {
+    background-color: var(--theme-bg-tertiary);
+  }
+
+  .collapsible-code__chevron {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .collapsible-code[open] .collapsible-code__chevron {
+    transform: rotate(180deg);
+  }
+
+  .collapsible-code__title {
+    flex: 1;
+    font-weight: 500;
+  }
+
+  .collapsible-code__filename {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    color: var(--theme-text-muted);
+    padding: 0.125rem 0.5rem;
+    background-color: var(--theme-bg-tertiary);
+    border-radius: 0.25rem;
+  }
+
+  .collapsible-code__content {
+    border-top: 1px solid var(--theme-border-default);
+  }
+
+  .collapsible-code__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-gray-800);
+    border-bottom: 1px solid var(--color-gray-700);
+  }
+
+  .collapsible-code__file {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    color: var(--color-gray-400);
+  }
+
+  .collapsible-code__copy {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    color: var(--color-gray-400);
+    background: transparent;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .collapsible-code__copy:hover {
+    background-color: var(--color-gray-700);
+    color: var(--color-gray-200);
+  }
+
+  .collapsible-code__copy svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .collapsible-code__copy.copied {
+    color: var(--color-success);
+  }
+
+  .collapsible-code__copy.copied .collapsible-code__copy-text::after {
+    content: 'd!';
+  }
+
+  .collapsible-code__pre {
+    margin: 0;
+    padding: 1rem;
+    background-color: var(--theme-code-block-bg);
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .collapsible-code__pre code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.875rem;
+    color: var(--theme-code-block-text);
+    line-height: 1.6;
+  }
+</style>
+
+<script>
+  function initCollapsibleCode() {
+    document.querySelectorAll('.collapsible-code__copy').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const codeId = btn.getAttribute('data-code-id');
+        const codeEl = document.getElementById(codeId!);
+
+        if (codeEl) {
+          await navigator.clipboard.writeText(codeEl.textContent || '');
+          btn.classList.add('copied');
+          const textEl = btn.querySelector('.collapsible-code__copy-text');
+          if (textEl) textEl.textContent = 'Copied!';
+
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            if (textEl) textEl.textContent = 'Copy';
+          }, 2000);
+        }
+      });
+    });
+  }
+
+  initCollapsibleCode();
+  document.addEventListener('astro:page-load', initCollapsibleCode);
+</script>

@@ -1,0 +1,409 @@
+---
+title: Pages
+description: Create and organize documentation pages
+sidebar_position: 8
+---
+
+# Pages
+
+Learn how to create, organize, and configure documentation pages using Astro and MDX.
+
+## File Structure
+
+Pages are organized in the docs folder outside the Astro project:
+
+```
+docs/
+├── index.mdx              # Documentation home
+├── getting-started/
+│   ├── index.mdx         # Section overview
+│   ├── installation.mdx
+│   └── quick-start.mdx
+├── configuration/
+│   ├── index.mdx
+│   ├── themes.mdx
+│   └── layouts.mdx
+└── components/
+    ├── index.mdx
+    └── cards.mdx
+```
+
+## Creating Pages
+
+### Basic MDX Page
+
+```mdx
+---
+title: Page Title
+description: Brief description for SEO
+sidebar_position: 1
+---
+
+# Page Title
+
+Page content using Markdown and MDX components.
+```
+
+### Frontmatter Options
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `title` | `string` | Page title (required) |
+| `description` | `string` | Meta description |
+| `sidebar_position` | `number` | Order in sidebar |
+| `sidebar_label` | `string` | Custom sidebar text |
+| `draft` | `boolean` | Hide from production |
+| `tags` | `string[]` | Page tags for filtering |
+
+### Full Frontmatter Example
+
+```yaml
+---
+title: Configuration Guide
+description: Complete guide to configuring the documentation framework
+sidebar_position: 2
+sidebar_label: Config
+tags:
+  - configuration
+  - setup
+draft: false
+---
+```
+
+## Page Types
+
+### Documentation Page
+
+Standard documentation with sidebar navigation:
+
+```mdx
+---
+title: Getting Started
+description: Get up and running quickly
+sidebar_position: 1
+---
+
+# Getting Started
+
+Follow these steps to set up your documentation site.
+
+## Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+## Installation
+
+...
+```
+
+### Section Index Page
+
+Overview page for a documentation section:
+
+```mdx
+---
+title: Components
+description: UI components for your documentation
+sidebar_position: 3
+---
+
+# Components
+
+This section covers all available UI components.
+
+<CardGrid cols={2}>
+  <Card title="Cards" href="/docs/components/cards">
+    Content containers and feature cards
+  </Card>
+  <Card title="Callouts" href="/docs/components/callouts">
+    Alerts and highlighted notices
+  </Card>
+</CardGrid>
+```
+
+### Tutorial Page
+
+Step-by-step guide format:
+
+```mdx
+---
+title: Build Your First Page
+description: Tutorial for creating documentation pages
+sidebar_position: 2
+---
+
+# Build Your First Page
+
+<Callout type="info">
+  This tutorial takes about 10 minutes to complete.
+</Callout>
+
+## Step 1: Create the File
+
+Create a new file in the docs folder:
+
+```bash
+touch docs/my-page.mdx
+```
+
+## Step 2: Add Frontmatter
+
+...
+```
+
+## Page Routing
+
+### Automatic Routes
+
+Files automatically become routes based on their path:
+
+| File Path | URL |
+|-----------|-----|
+| `docs/index.mdx` | `/docs` |
+| `docs/getting-started.mdx` | `/docs/getting-started` |
+| `docs/guides/setup.mdx` | `/docs/guides/setup` |
+
+### Dynamic Routes
+
+Create pages with parameters:
+
+```astro
+---
+// src/pages/docs/[...slug].astro
+import { getCollection } from 'astro:content';
+import DocsLayout from '../../layouts/docs/DocsLayout.astro';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('docs');
+  return docs.map(doc => ({
+    params: { slug: doc.slug },
+    props: { doc },
+  }));
+}
+
+const { doc } = Astro.props;
+const { Content, headings } = await doc.render();
+---
+
+<DocsLayout title={doc.data.title} headings={headings}>
+  <Content />
+</DocsLayout>
+```
+
+## Sidebar Configuration
+
+### Automatic Sidebar
+
+Sidebar is auto-generated from folder structure:
+
+```
+docs/
+├── index.mdx           # Position 1 (from frontmatter)
+├── getting-started/
+│   └── index.mdx       # Position 2
+└── configuration/
+    └── index.mdx       # Position 3
+```
+
+### Custom Sidebar Order
+
+Control order with `sidebar_position` in frontmatter:
+
+```yaml
+# docs/getting-started.mdx
+---
+title: Getting Started
+sidebar_position: 1
+---
+
+# docs/configuration.mdx
+---
+title: Configuration
+sidebar_position: 2
+---
+```
+
+### Sidebar Groups
+
+Organize pages into collapsible groups:
+
+```
+docs/
+├── guides/
+│   ├── _category.json    # Group config
+│   ├── beginner.mdx
+│   └── advanced.mdx
+```
+
+```json
+// docs/guides/_category.json
+{
+  "label": "Guides",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": false
+}
+```
+
+## Using MDX Components
+
+### Importing Components
+
+```mdx
+---
+title: My Page
+---
+
+import { Card, Callout } from '../mdx_elements';
+
+# My Page
+
+<Callout type="info">
+  This page uses MDX components.
+</Callout>
+
+<Card title="Feature">
+  Card content here.
+</Card>
+```
+
+### Code Examples
+
+````mdx
+## Code Example
+
+```typescript
+const config = {
+  title: 'My Docs',
+  theme: 'dark',
+};
+```
+
+With tabs for multiple languages:
+
+<CodeTabs
+  tabs={[
+    { label: 'TypeScript', lang: 'ts', code: 'const x: number = 1;' },
+    { label: 'JavaScript', lang: 'js', code: 'const x = 1;' },
+  ]}
+/>
+````
+
+## Content Collections
+
+### Defining the Collection
+
+```typescript
+// src/content/config.ts
+import { defineCollection, z } from 'astro:content';
+
+const docs = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    sidebar_position: z.number().optional(),
+    draft: z.boolean().optional().default(false),
+    tags: z.array(z.string()).optional(),
+  }),
+});
+
+export const collections = { docs };
+```
+
+### Querying Content
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+// Get all published docs
+const docs = await getCollection('docs', ({ data }) => !data.draft);
+
+// Sort by sidebar position
+const sorted = docs.sort((a, b) =>
+  (a.data.sidebar_position ?? 99) - (b.data.sidebar_position ?? 99)
+);
+---
+```
+
+## Navigation Links
+
+### Previous/Next Navigation
+
+Add navigation between pages:
+
+```astro
+---
+import { getPrevNextItems } from '../hooks/useNavigation';
+
+const { prev, next } = getPrevNextItems(Astro.url.pathname, docs);
+---
+
+<nav class="page-nav">
+  {prev && <a href={prev.href}>← {prev.title}</a>}
+  {next && <a href={next.href}>{next.title} →</a>}
+</nav>
+```
+
+### Breadcrumbs
+
+Show current location:
+
+```astro
+---
+import { getBreadcrumbs } from '../hooks/useNavigation';
+
+const breadcrumbs = getBreadcrumbs(Astro.url.pathname);
+---
+
+<nav aria-label="Breadcrumb">
+  <ol>
+    {breadcrumbs.map((item, i) => (
+      <li>
+        {i < breadcrumbs.length - 1 ? (
+          <a href={item.href}>{item.label}</a>
+        ) : (
+          <span aria-current="page">{item.label}</span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
+```
+
+## Table of Contents
+
+Generate from page headings:
+
+```astro
+---
+// In DocsLayout.astro
+const { headings } = Astro.props;
+---
+
+<aside class="toc">
+  <nav>
+    <h4>On this page</h4>
+    <ul>
+      {headings
+        .filter(h => h.depth <= 3)
+        .map(h => (
+          <li style={`margin-left: ${(h.depth - 2) * 1}rem`}>
+            <a href={`#${h.slug}`}>{h.text}</a>
+          </li>
+        ))}
+    </ul>
+  </nav>
+</aside>
+```
+
+## Best Practices
+
+1. **Consistent structure** - Use similar frontmatter across pages
+2. **Descriptive titles** - Clear, searchable page titles
+3. **Section overview pages** - Index pages for each section
+4. **Logical ordering** - Use sidebar_position thoughtfully
+5. **Link related content** - Cross-reference related pages
+6. **Use components** - Leverage MDX for rich content

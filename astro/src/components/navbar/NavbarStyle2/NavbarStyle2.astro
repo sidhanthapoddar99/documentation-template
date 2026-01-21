@@ -1,0 +1,490 @@
+---
+/**
+ * NavbarStyle2 - Dropdown Navbar
+ *
+ * A navbar with dropdown menus for sections:
+ * - Logo on the left
+ * - Dropdown menus for doc sections
+ * - Theme toggle on the right
+ * - Mobile responsive with expandable sections
+ */
+
+import { ThemeToggle } from '../../ThemeToggle';
+import type { NavItem } from '../../../hooks/useNavigation';
+
+export interface Props {
+  logo?: {
+    src: string;
+    alt: string;
+    href?: string;
+  };
+  items?: NavItem[];
+  currentPath?: string;
+  class?: string;
+}
+
+const {
+  logo = { src: '/logo.svg', alt: 'Logo', href: '/' },
+  items = [],
+  currentPath = Astro.url.pathname,
+  class: className = '',
+} = Astro.props;
+
+// Separate items with children (dropdowns) from flat links
+const dropdownItems = items.filter(item => item.children && item.children.length > 0);
+const flatItems = items.filter(item => !item.children || item.children.length === 0);
+---
+
+<nav class:list={['navbar-style2', className]} aria-label="Main navigation">
+  <div class="navbar-style2__container">
+    <!-- Logo -->
+    <a href={logo.href || '/'} class="navbar-style2__logo">
+      <img src={logo.src} alt={logo.alt} />
+    </a>
+
+    <!-- Navigation Links -->
+    <div class="navbar-style2__links">
+      {flatItems.filter(i => i.tag === 'home').map((item) => (
+        <a
+          href={item.href}
+          class:list={[
+            'navbar-style2__link',
+            { 'navbar-style2__link--active': currentPath === item.href }
+          ]}
+        >
+          {item.label}
+        </a>
+      ))}
+
+      {dropdownItems.map((item) => (
+        <div class="navbar-style2__dropdown" data-dropdown>
+          <button
+            class:list={[
+              'navbar-style2__dropdown-trigger',
+              { 'navbar-style2__dropdown-trigger--active': currentPath.startsWith(item.href) }
+            ]}
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            {item.label}
+            <svg class="navbar-style2__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="navbar-style2__dropdown-menu">
+            {item.children?.map((child) => (
+              <a
+                href={child.href}
+                class:list={[
+                  'navbar-style2__dropdown-item',
+                  { 'navbar-style2__dropdown-item--active': currentPath === child.href }
+                ]}
+              >
+                {child.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {flatItems.filter(i => i.tag !== 'home' && i.tag !== 'external').map((item) => (
+        <a
+          href={item.href}
+          class:list={[
+            'navbar-style2__link',
+            { 'navbar-style2__link--active': currentPath === item.href || currentPath.startsWith(item.href + '/') }
+          ]}
+        >
+          {item.label}
+        </a>
+      ))}
+
+      {flatItems.filter(i => i.tag === 'external').map((item) => (
+        <a
+          href={item.href}
+          class="navbar-style2__link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {item.label}
+          <svg class="navbar-style2__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </a>
+      ))}
+    </div>
+
+    <!-- Right Section -->
+    <div class="navbar-style2__right">
+      <ThemeToggle size="md" />
+
+      <button class="navbar-style2__mobile-toggle" aria-label="Toggle menu" data-mobile-toggle>
+        <svg class="navbar-style2__menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+        <svg class="navbar-style2__close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="navbar-style2__mobile-menu" data-mobile-menu>
+    {flatItems.filter(i => i.tag === 'home').map((item) => (
+      <a href={item.href} class="navbar-style2__mobile-link">{item.label}</a>
+    ))}
+
+    {dropdownItems.map((item) => (
+      <div class="navbar-style2__mobile-section" data-mobile-section>
+        <button class="navbar-style2__mobile-section-trigger">
+          {item.label}
+          <svg class="navbar-style2__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="navbar-style2__mobile-section-items">
+          {item.children?.map((child) => (
+            <a href={child.href} class="navbar-style2__mobile-sublink">{child.label}</a>
+          ))}
+        </div>
+      </div>
+    ))}
+
+    {flatItems.filter(i => i.tag !== 'home').map((item) => (
+      <a
+        href={item.href}
+        class="navbar-style2__mobile-link"
+        target={item.external ? '_blank' : undefined}
+      >
+        {item.label}
+      </a>
+    ))}
+  </div>
+</nav>
+
+<style>
+  .navbar-style2 {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--theme-navbar-bg);
+    border-bottom: 1px solid var(--theme-navbar-border);
+  }
+
+  .navbar-style2__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0.75rem 1.5rem;
+    gap: 2rem;
+  }
+
+  .navbar-style2__logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .navbar-style2__logo img {
+    height: 2rem;
+    width: auto;
+  }
+
+  .navbar-style2__links {
+    display: none;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .navbar-style2__links {
+      display: flex;
+    }
+  }
+
+  .navbar-style2__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--theme-text-secondary);
+    text-decoration: none;
+    border-radius: 0.375rem;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .navbar-style2__link:hover {
+    color: var(--theme-text-primary);
+    background-color: var(--theme-bg-tertiary);
+  }
+
+  .navbar-style2__link--active {
+    color: var(--color-brand-primary);
+  }
+
+  .navbar-style2__external-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    opacity: 0.5;
+  }
+
+  /* Dropdown */
+  .navbar-style2__dropdown {
+    position: relative;
+  }
+
+  .navbar-style2__dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--theme-text-secondary);
+    background: none;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .navbar-style2__dropdown-trigger:hover {
+    color: var(--theme-text-primary);
+    background-color: var(--theme-bg-tertiary);
+  }
+
+  .navbar-style2__dropdown-trigger--active {
+    color: var(--color-brand-primary);
+  }
+
+  .navbar-style2__chevron {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.15s ease;
+  }
+
+  .navbar-style2__dropdown[data-open="true"] .navbar-style2__chevron {
+    transform: rotate(180deg);
+  }
+
+  .navbar-style2__dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    background-color: var(--theme-bg-elevated);
+    border: 1px solid var(--theme-border-default);
+    border-radius: 0.5rem;
+    box-shadow: var(--theme-shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-0.5rem);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+  }
+
+  .navbar-style2__dropdown[data-open="true"] .navbar-style2__dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .navbar-style2__dropdown-item {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--theme-text-secondary);
+    text-decoration: none;
+    border-radius: 0.375rem;
+    transition: color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .navbar-style2__dropdown-item:hover {
+    color: var(--theme-text-primary);
+    background-color: var(--theme-bg-tertiary);
+  }
+
+  .navbar-style2__dropdown-item--active {
+    color: var(--color-brand-primary);
+    background-color: var(--theme-bg-secondary);
+  }
+
+  /* Right Section */
+  .navbar-style2__right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Mobile Toggle */
+  .navbar-style2__mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--theme-text-primary);
+    cursor: pointer;
+    border-radius: 0.375rem;
+  }
+
+  @media (min-width: 768px) {
+    .navbar-style2__mobile-toggle {
+      display: none;
+    }
+  }
+
+  .navbar-style2__menu-icon,
+  .navbar-style2__close-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .navbar-style2__close-icon {
+    display: none;
+  }
+
+  .navbar-style2[data-mobile-open="true"] .navbar-style2__menu-icon {
+    display: none;
+  }
+
+  .navbar-style2[data-mobile-open="true"] .navbar-style2__close-icon {
+    display: block;
+  }
+
+  /* Mobile Menu */
+  .navbar-style2__mobile-menu {
+    display: none;
+    flex-direction: column;
+    padding: 0.5rem 1rem 1rem;
+    border-top: 1px solid var(--theme-border-default);
+  }
+
+  .navbar-style2[data-mobile-open="true"] .navbar-style2__mobile-menu {
+    display: flex;
+  }
+
+  @media (min-width: 768px) {
+    .navbar-style2__mobile-menu {
+      display: none !important;
+    }
+  }
+
+  .navbar-style2__mobile-link {
+    padding: 0.75rem;
+    font-size: 1rem;
+    color: var(--theme-text-secondary);
+    text-decoration: none;
+    border-radius: 0.375rem;
+  }
+
+  .navbar-style2__mobile-link:hover {
+    color: var(--theme-text-primary);
+    background-color: var(--theme-bg-tertiary);
+  }
+
+  .navbar-style2__mobile-section-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    color: var(--theme-text-secondary);
+    background: none;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .navbar-style2__mobile-section-trigger:hover {
+    color: var(--theme-text-primary);
+    background-color: var(--theme-bg-tertiary);
+  }
+
+  .navbar-style2__mobile-section[data-open="true"] .navbar-style2__chevron {
+    transform: rotate(180deg);
+  }
+
+  .navbar-style2__mobile-section-items {
+    display: none;
+    flex-direction: column;
+    padding-left: 1rem;
+  }
+
+  .navbar-style2__mobile-section[data-open="true"] .navbar-style2__mobile-section-items {
+    display: flex;
+  }
+
+  .navbar-style2__mobile-sublink {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--theme-text-muted);
+    text-decoration: none;
+    border-radius: 0.375rem;
+  }
+
+  .navbar-style2__mobile-sublink:hover {
+    color: var(--theme-text-primary);
+    background-color: var(--theme-bg-tertiary);
+  }
+</style>
+
+<script>
+  function initNavbar2() {
+    // Desktop dropdowns
+    document.querySelectorAll('.navbar-style2 [data-dropdown]').forEach((dropdown) => {
+      const trigger = dropdown.querySelector('.navbar-style2__dropdown-trigger');
+
+      trigger?.addEventListener('click', () => {
+        const isOpen = dropdown.getAttribute('data-open') === 'true';
+        // Close all other dropdowns
+        document.querySelectorAll('.navbar-style2 [data-dropdown]').forEach(d => d.setAttribute('data-open', 'false'));
+        dropdown.setAttribute('data-open', String(!isOpen));
+      });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!(e.target as Element).closest('[data-dropdown]')) {
+        document.querySelectorAll('.navbar-style2 [data-dropdown]').forEach(d => d.setAttribute('data-open', 'false'));
+      }
+    });
+
+    // Mobile toggle
+    document.querySelectorAll('.navbar-style2 [data-mobile-toggle]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const navbar = button.closest('.navbar-style2');
+        if (navbar) {
+          const isOpen = navbar.getAttribute('data-mobile-open') === 'true';
+          navbar.setAttribute('data-mobile-open', String(!isOpen));
+        }
+      });
+    });
+
+    // Mobile section toggles
+    document.querySelectorAll('.navbar-style2 [data-mobile-section]').forEach((section) => {
+      const trigger = section.querySelector('.navbar-style2__mobile-section-trigger');
+      trigger?.addEventListener('click', () => {
+        const isOpen = section.getAttribute('data-open') === 'true';
+        section.setAttribute('data-open', String(!isOpen));
+      });
+    });
+  }
+
+  initNavbar2();
+  document.addEventListener('astro:page-load', initNavbar2);
+</script>

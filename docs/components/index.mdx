@@ -1,0 +1,190 @@
+---
+title: Components
+description: UI components for building documentation sites
+sidebar_position: 1
+---
+
+# Components Overview
+
+The framework provides a comprehensive set of UI components for building documentation sites. Components are organized into categories based on their purpose.
+
+## Component Categories
+
+### Navigation Components
+
+Components for site navigation and wayfinding.
+
+| Component | Purpose |
+|-----------|---------|
+| [Navbar](/docs/components/navbar) | Site-wide navigation header |
+| [Sidebar](/docs/components/sidebar) | Documentation navigation panel |
+| [Outline](/docs/components/sidebar) | Table of contents for current page |
+
+### Layout Components
+
+Components for page structure and organization.
+
+| Component | Purpose |
+|-----------|---------|
+| [Footer](/docs/components/footer) | Site-wide footer |
+| ThemeToggle | Dark/light mode toggle button |
+
+### Content Components
+
+Components for presenting documentation content (see [MDX Components](/docs/configuration/mdx-components)).
+
+| Component | Purpose |
+|-----------|---------|
+| Card, CardGrid, FeatureCard | Content organization |
+| Callout, Tip | Alerts and notices |
+| CodeBlock, CodeTabs | Code display |
+| Tabs, TabItem | Tabbed content |
+
+## Component Architecture
+
+All components follow a consistent architecture:
+
+```
+src/components/
+├── navbar/
+│   ├── NavbarStyle1/
+│   │   ├── NavbarStyle1.astro
+│   │   └── index.ts
+│   ├── NavbarStyle2/
+│   ├── NavbarStyle3/
+│   └── index.ts          # Barrel export
+├── sidebar/
+│   ├── Sidebar.astro
+│   └── index.ts
+├── outline/
+│   ├── Outline.astro
+│   └── index.ts
+├── footer/
+│   ├── FooterDefault/
+│   └── index.ts
+└── ThemeToggle/
+    ├── ThemeToggle.astro
+    └── index.ts
+```
+
+## Using Components
+
+### Importing
+
+Import components using barrel exports:
+
+```astro
+---
+import { NavbarStyle1 } from '../components/navbar';
+import { Sidebar } from '../components/sidebar';
+import { FooterDefault } from '../components/footer';
+---
+```
+
+### Props
+
+All components use TypeScript interfaces for props:
+
+```typescript
+interface Props {
+  items: NavItem[];
+  currentPath?: string;
+  class?: string;
+}
+```
+
+### Theming
+
+Components use CSS custom properties for consistent theming:
+
+```css
+.component {
+  background: var(--theme-bg-primary);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border-default);
+}
+```
+
+## Common Patterns
+
+### Current Path Highlighting
+
+Navigation components accept `currentPath` to highlight the active item:
+
+```astro
+<NavbarStyle1
+  items={navItems}
+  currentPath={Astro.url.pathname}
+/>
+```
+
+### Responsive Behavior
+
+All components include responsive breakpoints:
+
+- **Mobile**: Below 640px
+- **Tablet**: 641px - 1023px
+- **Desktop**: 1024px and above
+
+### Accessibility
+
+Components include accessibility features:
+
+- Semantic HTML elements
+- ARIA attributes where needed
+- Keyboard navigation support
+- Focus indicators
+
+## Creating Custom Components
+
+To create a new component:
+
+1. Create the component folder:
+
+```
+src/components/my-component/
+├── MyComponent.astro
+└── index.ts
+```
+
+2. Define the component:
+
+```astro
+---
+// MyComponent.astro
+interface Props {
+  title: string;
+  variant?: 'default' | 'primary';
+}
+
+const { title, variant = 'default' } = Astro.props;
+---
+
+<div class:list={['my-component', `my-component--${variant}`]}>
+  <h3>{title}</h3>
+  <slot />
+</div>
+
+<style>
+  .my-component {
+    padding: 1rem;
+    background: var(--theme-bg-secondary);
+    border-radius: 0.5rem;
+  }
+</style>
+```
+
+3. Export from index:
+
+```typescript
+// index.ts
+export { default as MyComponent } from './MyComponent.astro';
+```
+
+## Best Practices
+
+1. **Use semantic HTML** - Choose appropriate elements
+2. **Support dark mode** - Use CSS variables for colors
+3. **Include responsive styles** - Test at all breakpoints
+4. **Document props** - Use TypeScript interfaces
+5. **Export from index** - Maintain clean imports

@@ -1,15 +1,12 @@
 ---
 /**
- * DocsLayout - Layout for documentation pages
+ * DocsLayout - Clean, minimal documentation layout
  *
- * Features: Sidebar, Main content area, Outline (TOC)
+ * Features: Sidebar navigation, Main content area, Table of contents
  */
 
 import BaseLayout from '../BaseLayout.astro';
-import { NavbarStyle1 } from '../../components/navbar';
-import { FooterDefault } from '../../components/footer';
-import { Sidebar } from '../../components/sidebar';
-import { Outline } from '../../components/outline';
+import { NavbarMinimal } from '../../components/navbar';
 
 interface Heading {
   depth: number;
@@ -20,7 +17,7 @@ interface Heading {
 interface SidebarItem {
   title: string;
   href?: string;
-  children?: SidebarItem[];
+  children?: { title: string; href: string; order?: number }[];
 }
 
 interface Props {
@@ -32,58 +29,84 @@ interface Props {
 
 const { title, description, headings = [], sidebarItems = [] } = Astro.props;
 const currentPath = Astro.url.pathname;
+
+// Filter headings for TOC (h2 and h3 only)
+const tocHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
 ---
 
 <BaseLayout title={title} description={description}>
-  <NavbarStyle1 />
+  <NavbarMinimal />
 
-  <div class="docs-container">
-    <Sidebar items={sidebarItems} currentPath={currentPath} />
+  <div class="container mx-auto flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10">
+    <!-- Sidebar -->
+    <aside class="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
+      <div class="h-full py-6 pr-6 lg:py-8 overflow-y-auto">
+        <nav class="space-y-6">
+          {sidebarItems.map((section) => (
+            <div>
+              <h4 class="mb-1 rounded-md px-2 py-1 text-sm font-semibold text-foreground">
+                {section.title}
+              </h4>
+              {section.children && (
+                <div class="grid grid-flow-row auto-rows-max text-sm">
+                  {section.children.map((item) => (
+                    <a
+                      href={item.href}
+                      class:list={[
+                        'group flex w-full items-center rounded-md border border-transparent px-2 py-1 hover:underline',
+                        currentPath === item.href
+                          ? 'font-medium text-foreground'
+                          : 'text-muted-foreground',
+                      ]}
+                    >
+                      {item.title}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </nav>
+      </div>
+    </aside>
 
-    <main class="docs-main">
-      <article class="docs-content prose">
-        <slot />
-      </article>
+    <!-- Main content -->
+    <main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_200px]">
+      <div class="mx-auto w-full min-w-0">
+        <div class="mb-4">
+          <h1 class="scroll-m-20 text-4xl font-bold tracking-tight">{title}</h1>
+          {description && (
+            <p class="text-lg text-muted-foreground mt-2">{description}</p>
+          )}
+        </div>
+
+        <div class="pb-12 pt-8">
+          <slot />
+        </div>
+      </div>
+
+      <!-- Table of Contents -->
+      {tocHeadings.length > 0 && (
+        <div class="hidden text-sm xl:block">
+          <div class="sticky top-16 -mt-10 pt-4">
+            <div class="space-y-2">
+              <p class="font-medium">On This Page</p>
+              <ul class="m-0 list-none space-y-2 text-muted-foreground">
+                {tocHeadings.map((heading) => (
+                  <li class:list={[heading.depth === 3 && 'ml-4']}>
+                    <a
+                      href={`#${heading.slug}`}
+                      class="inline-block no-underline hover:text-foreground transition-colors"
+                    >
+                      {heading.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
-
-    <Outline headings={headings} />
   </div>
-
-  <FooterDefault />
 </BaseLayout>
-
-<style>
-  .docs-container {
-    display: flex;
-    max-width: 1536px;
-    margin: 0 auto;
-    min-height: calc(100vh - 3.5rem - 4rem); /* minus navbar and footer */
-  }
-
-  .docs-main {
-    flex: 1;
-    min-width: 0; /* Allow shrinking */
-    padding: 2rem;
-  }
-
-  .docs-content {
-    max-width: 48rem;
-    margin: 0 auto;
-  }
-
-  @media (max-width: 1280px) {
-    .docs-container :global(.outline) {
-      display: none;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    .docs-container :global(.sidebar) {
-      display: none;
-    }
-
-    .docs-main {
-      padding: 1.5rem;
-    }
-  }
-</style>

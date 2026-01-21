@@ -1,173 +1,159 @@
 ---
 /**
- * Homepage
+ * Homepage - Clean, minimal landing page
  */
 
-import { HomeLayout1 } from '../layouts/home';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { NavbarMinimal } from '../components/navbar';
 ---
 
-<HomeLayout1 title="Home" description="Welcome to the documentation">
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="hero-container">
-      <h1 class="hero-title">Documentation Framework</h1>
-      <p class="hero-description">
-        A modern, flexible documentation system built with Astro.
-        Fast, customizable, and easy to use.
+<BaseLayout title="Home" description="Modern documentation framework built with Astro">
+  <NavbarMinimal />
+
+  <main class="flex-1">
+    <!-- Hero -->
+    <section class="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
+      <div class="container flex max-w-[64rem] flex-col items-center gap-4 text-center mx-auto px-4">
+        <a
+          href="/docs/getting-started"
+          class="rounded-2xl bg-muted px-4 py-1.5 text-sm font-medium"
+        >
+          Get started with docs
+        </a>
+
+        <h1 class="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
+          Build beautiful docs with Astro
+        </h1>
+
+        <p class="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
+          A modern, fast documentation framework. Built with Astro, styled with Tailwind CSS.
+          Simple, clean, and fully customizable.
+        </p>
+
+        <div class="space-x-4">
+          <a
+            href="/docs/getting-started"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
+          >
+            Get Started
+          </a>
+          <a
+            href="https://github.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8"
+          >
+            GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="container space-y-6 py-8 md:py-12 lg:py-24 mx-auto px-4">
+      <div class="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
+        <h2 class="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl font-bold">
+          Features
+        </h2>
+        <p class="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
+          Everything you need to build modern documentation.
+        </p>
+      </div>
+
+      <div class="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
+        <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+          <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <div class="space-y-2">
+              <h3 class="font-bold">Lightning Fast</h3>
+              <p class="text-sm text-muted-foreground">
+                Built on Astro for zero JS by default. Ships only what you need.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+          <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+            </svg>
+            <div class="space-y-2">
+              <h3 class="font-bold">Fully Customizable</h3>
+              <p class="text-sm text-muted-foreground">
+                Tailwind CSS for styling. Easy to customize and extend.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+          <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+            <div class="space-y-2">
+              <h3 class="font-bold">Dark Mode</h3>
+              <p class="text-sm text-muted-foreground">
+                Built-in dark mode with smooth transitions.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+          <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <div class="space-y-2">
+              <h3 class="font-bold">MDX Support</h3>
+              <p class="text-sm text-muted-foreground">
+                Write docs in MDX with custom components.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+          <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+            </svg>
+            <div class="space-y-2">
+              <h3 class="font-bold">Multiple Layouts</h3>
+              <p class="text-sm text-muted-foreground">
+                Pre-built layouts for docs, blogs, and more.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+          <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+            <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <div class="space-y-2">
+              <h3 class="font-bold">Search Ready</h3>
+              <p class="text-sm text-muted-foreground">
+                Integrate search with Pagefind or Algolia.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-6 md:px-8 md:py-0 border-t">
+    <div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row mx-auto px-4">
+      <p class="text-center text-sm leading-loose text-muted-foreground md:text-left">
+        Built with Astro and Tailwind CSS.
       </p>
-      <div class="hero-actions">
-        <a href="/docs" class="btn btn-primary btn-lg">Get Started</a>
-        <a href="https://github.com" class="btn btn-secondary btn-lg">GitHub</a>
-      </div>
     </div>
-  </section>
-
-  <!-- Features Section -->
-  <section class="features">
-    <div class="features-container">
-      <h2 class="features-title">Features</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <span class="feature-icon">⚡</span>
-          <h3 class="feature-title">Lightning Fast</h3>
-          <p class="feature-description">
-            Built on Astro with zero JavaScript by default. Ships only what you need.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <span class="feature-icon">🎨</span>
-          <h3 class="feature-title">Fully Customizable</h3>
-          <p class="feature-description">
-            Modular components and centralized theming. Make it your own.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <span class="feature-icon">📝</span>
-          <h3 class="feature-title">MDX Support</h3>
-          <p class="feature-description">
-            Write documentation with MDX. Use custom components inline.
-          </p>
-        </div>
-
-        <div class="feature-card">
-          <span class="feature-icon">🌙</span>
-          <h3 class="feature-title">Dark Mode</h3>
-          <p class="feature-description">
-            Built-in dark mode with smooth transitions. Respects system preference.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-</HomeLayout1>
-
-<style>
-  /* Hero Section */
-  .hero {
-    padding: 6rem 1.5rem;
-    text-align: center;
-    background: linear-gradient(
-      to bottom,
-      var(--theme-bg-secondary),
-      var(--theme-bg-primary)
-    );
-  }
-
-  .hero-container {
-    max-width: 48rem;
-    margin: 0 auto;
-  }
-
-  .hero-title {
-    font-size: var(--text-5xl);
-    font-weight: var(--font-bold);
-    color: var(--theme-text-heading);
-    margin-bottom: 1.5rem;
-    letter-spacing: var(--tracking-tight);
-  }
-
-  .hero-description {
-    font-size: var(--text-xl);
-    color: var(--theme-text-secondary);
-    margin-bottom: 2rem;
-    line-height: var(--leading-relaxed);
-  }
-
-  .hero-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  /* Features Section */
-  .features {
-    padding: 5rem 1.5rem;
-  }
-
-  .features-container {
-    max-width: 72rem;
-    margin: 0 auto;
-  }
-
-  .features-title {
-    font-size: var(--text-3xl);
-    font-weight: var(--font-bold);
-    color: var(--theme-text-heading);
-    text-align: center;
-    margin-bottom: 3rem;
-  }
-
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .feature-card {
-    padding: 1.5rem;
-    background-color: var(--theme-card-bg);
-    border: 1px solid var(--theme-card-border);
-    border-radius: 0.5rem;
-    transition: box-shadow 0.15s ease;
-  }
-
-  .feature-card:hover {
-    box-shadow: var(--theme-shadow-md);
-  }
-
-  .feature-icon {
-    font-size: 2rem;
-    margin-bottom: 0.75rem;
-    display: block;
-  }
-
-  .feature-card h3 {
-    font-size: var(--text-lg);
-    font-weight: var(--font-semibold);
-    color: var(--theme-text-heading);
-    margin-bottom: 0.5rem;
-  }
-
-  .feature-card p {
-    font-size: var(--text-sm);
-    color: var(--theme-text-secondary);
-    line-height: var(--leading-relaxed);
-  }
-
-  @media (max-width: 640px) {
-    .hero {
-      padding: 4rem 1rem;
-    }
-
-    .hero-title {
-      font-size: var(--text-3xl);
-    }
-
-    .hero-description {
-      font-size: var(--text-lg);
-    }
-  }
-</style>
+  </footer>
+</BaseLayout>

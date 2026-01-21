@@ -1,0 +1,294 @@
+---
+title: Footer
+description: Site footer components
+sidebar_position: 4
+---
+
+# Footer Component
+
+The footer component provides a consistent site-wide footer with copyright and navigation links.
+
+## FooterDefault
+
+A simple, clean footer with copyright text and links.
+
+### Features
+
+- Automatic current year in copyright
+- Configurable link list
+- Responsive layout
+- Dark/light mode support
+- Centered on mobile
+
+### Usage
+
+```astro
+---
+import { FooterDefault } from '../components/footer';
+---
+
+<FooterDefault
+  copyright="© 2024 Acme Inc. All rights reserved."
+  links={[
+    { href: '/privacy', label: 'Privacy Policy' },
+    { href: '/terms', label: 'Terms of Service' },
+    { href: '/contact', label: 'Contact' },
+  ]}
+/>
+```
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `copyright` | `string` | Auto-generated | Copyright text |
+| `links` | `Link[]` | Default links | Footer navigation links |
+
+### Link Type
+
+```typescript
+interface Link {
+  href: string;   // URL
+  label: string;  // Display text
+}
+```
+
+### Default Values
+
+```typescript
+// Default copyright (auto-generates year)
+const currentYear = new Date().getFullYear();
+const copyright = `© ${currentYear} Your Company. All rights reserved.`;
+
+// Default links
+const links = [
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
+];
+```
+
+### Minimal Usage
+
+Use defaults for quick setup:
+
+```astro
+<FooterDefault />
+```
+
+### Customizing Copyright
+
+Include company name and additional text:
+
+```astro
+<FooterDefault
+  copyright="© 2024 My Company. Built with Astro. All rights reserved."
+/>
+```
+
+### Customizing Links
+
+Add social links, documentation links, etc:
+
+```astro
+<FooterDefault
+  links={[
+    { href: '/docs', label: 'Documentation' },
+    { href: '/blog', label: 'Blog' },
+    { href: 'https://github.com/myorg', label: 'GitHub' },
+    { href: 'https://twitter.com/myorg', label: 'Twitter' },
+    { href: '/privacy', label: 'Privacy' },
+    { href: '/terms', label: 'Terms' },
+  ]}
+/>
+```
+
+## Styling
+
+The footer uses CSS custom properties:
+
+```css
+.footer {
+  background-color: var(--theme-bg-secondary);
+  border-top: 1px solid var(--theme-border-default);
+}
+
+.footer-copyright {
+  color: var(--theme-text-muted);
+  font-size: var(--text-sm);
+}
+
+.footer-link {
+  color: var(--theme-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.footer-link:hover {
+  color: var(--theme-text-primary);
+}
+```
+
+### Customizing Appearance
+
+Override default styles:
+
+```astro
+<FooterDefault copyright="..." links={[...]} />
+
+<style is:global>
+  .footer {
+    background-color: var(--color-gray-900);
+    border-top: none;
+  }
+
+  .footer-copyright {
+    color: var(--color-gray-400);
+  }
+
+  .footer-link {
+    color: var(--color-gray-400);
+  }
+
+  .footer-link:hover {
+    color: white;
+  }
+</style>
+```
+
+## Responsive Behavior
+
+The footer adjusts on mobile:
+
+- **Desktop**: Horizontal layout with copyright left, links right
+- **Mobile**: Stacked layout, centered text
+
+```css
+@media (max-width: 640px) {
+  .footer-container {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+```
+
+## Layout Integration
+
+Add footer to your base layout:
+
+```astro
+---
+// BaseLayout.astro
+import { FooterDefault } from '../components/footer';
+---
+
+<!DOCTYPE html>
+<html>
+  <head>...</head>
+  <body>
+    <slot />
+    <FooterDefault />
+  </body>
+</html>
+```
+
+### With Main Content
+
+Ensure footer stays at bottom:
+
+```astro
+<body>
+  <div class="page-wrapper">
+    <main>
+      <slot />
+    </main>
+    <FooterDefault />
+  </div>
+</body>
+
+<style>
+  .page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  main {
+    flex: 1;
+  }
+</style>
+```
+
+## Creating Custom Footers
+
+For more complex footers, create a custom component:
+
+```astro
+---
+// FooterMultiColumn.astro
+interface Props {
+  columns: Array<{
+    title: string;
+    links: Array<{ href: string; label: string }>;
+  }>;
+}
+
+const { columns } = Astro.props;
+---
+
+<footer class="footer-multi">
+  <div class="footer-grid">
+    {columns.map(column => (
+      <div class="footer-column">
+        <h4>{column.title}</h4>
+        <ul>
+          {column.links.map(link => (
+            <li><a href={link.href}>{link.label}</a></li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+
+  <div class="footer-bottom">
+    <p>© {new Date().getFullYear()} Your Company</p>
+  </div>
+</footer>
+```
+
+### Usage
+
+```astro
+<FooterMultiColumn
+  columns={[
+    {
+      title: 'Product',
+      links: [
+        { href: '/features', label: 'Features' },
+        { href: '/pricing', label: 'Pricing' },
+      ]
+    },
+    {
+      title: 'Resources',
+      links: [
+        { href: '/docs', label: 'Documentation' },
+        { href: '/blog', label: 'Blog' },
+      ]
+    },
+    {
+      title: 'Company',
+      links: [
+        { href: '/about', label: 'About' },
+        { href: '/contact', label: 'Contact' },
+      ]
+    },
+  ]}
+/>
+```
+
+## Best Practices
+
+1. **Keep it simple** - Don't overload with links
+2. **Include legal links** - Privacy policy, terms of service
+3. **Add social links** - GitHub, Twitter, Discord
+4. **Use consistent styling** - Match site theme
+5. **Test responsiveness** - Verify on all screen sizes

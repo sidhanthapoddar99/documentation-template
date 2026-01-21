@@ -1,0 +1,214 @@
+---
+title: Tabs
+description: Tab components for organizing content into switchable panels
+sidebar_position: 5
+---
+
+# Tab Components
+
+Tabs organize content into multiple panels, showing one at a time. Use tabs when you have related content that users might want to compare or switch between.
+
+## Tabs
+
+The main tab container component.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `defaultTab` | `number` | `0` | Index of the initially active tab (0-based) |
+
+### Basic Usage
+
+```astro
+<Tabs>
+  <TabItem label="First Tab">
+    Content for the first tab.
+  </TabItem>
+  <TabItem label="Second Tab">
+    Content for the second tab.
+  </TabItem>
+</Tabs>
+```
+
+### Three Tabs Example
+
+```astro
+<Tabs>
+  <TabItem label="Overview">
+    General information about the topic.
+  </TabItem>
+  <TabItem label="Installation">
+    Step-by-step installation instructions.
+  </TabItem>
+  <TabItem label="Configuration">
+    Configuration options and examples.
+  </TabItem>
+</Tabs>
+```
+
+### Default to Different Tab
+
+```astro
+<Tabs defaultTab={1}>
+  <TabItem label="Basic">
+    Simple usage example.
+  </TabItem>
+  <TabItem label="Advanced">
+    This tab is shown by default.
+  </TabItem>
+</Tabs>
+```
+
+---
+
+## TabItem
+
+Individual tab panel component. Must be used inside a `Tabs` container.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `label` | `string` | **Required** | Text shown on the tab button |
+
+### Rich Content
+
+TabItems can contain any content including code blocks, images, and other components.
+
+---
+
+## Use Cases
+
+### Platform-Specific Instructions
+
+Show different instructions for different operating systems:
+
+```astro
+<Tabs>
+  <TabItem label="macOS">
+    1. Open Terminal
+    2. Run brew install package
+  </TabItem>
+  <TabItem label="Windows">
+    1. Open PowerShell as Administrator
+    2. Run choco install package
+  </TabItem>
+  <TabItem label="Linux">
+    1. Open your terminal
+    2. Run sudo apt install package
+  </TabItem>
+</Tabs>
+```
+
+### Package Manager Options
+
+Display installation commands for different package managers:
+
+```astro
+<Tabs>
+  <TabItem label="npm">
+    npm install my-package
+  </TabItem>
+  <TabItem label="yarn">
+    yarn add my-package
+  </TabItem>
+  <TabItem label="pnpm">
+    pnpm add my-package
+  </TabItem>
+</Tabs>
+```
+
+### Code Comparison
+
+Compare before/after implementations:
+
+```astro
+<Tabs>
+  <TabItem label="Before">
+    Old implementation that had performance issues.
+  </TabItem>
+  <TabItem label="After">
+    New optimized implementation.
+  </TabItem>
+</Tabs>
+```
+
+### Framework Examples
+
+Show the same concept in different frameworks:
+
+```astro
+<Tabs>
+  <TabItem label="React">
+    React-specific implementation details.
+  </TabItem>
+  <TabItem label="Vue">
+    Vue-specific implementation details.
+  </TabItem>
+  <TabItem label="Svelte">
+    Svelte-specific implementation details.
+  </TabItem>
+</Tabs>
+```
+
+---
+
+## Styling
+
+Tabs use these CSS variables:
+
+| Variable | Purpose |
+|----------|---------|
+| `--theme-border-default` | Tab list bottom border |
+| `--theme-text-secondary` | Inactive tab text |
+| `--theme-text-primary` | Hover tab text |
+| `--color-brand-primary` | Active tab text and border |
+
+### Visual Behavior
+
+- Active tab has a colored bottom border
+- Inactive tabs have muted text color
+- Hover highlights the tab text
+- Smooth transitions between states
+
+---
+
+## Accessibility
+
+The Tabs component follows WAI-ARIA patterns:
+
+- Tab list has `role="tablist"`
+- Tab buttons have `role="tab"`
+- Tab panels have `role="tabpanel"`
+- Active tab has `aria-selected="true"`
+- Keyboard navigation between tabs
+
+### Keyboard Controls
+
+| Key | Action |
+|-----|--------|
+| Tab | Move focus to the active tab |
+| Left/Right Arrow | Switch between tabs (when tab button is focused) |
+| Enter/Space | Activate focused tab |
+
+---
+
+## Tabs vs CodeTabs
+
+| Feature | Tabs | CodeTabs |
+|---------|------|----------|
+| Content type | Any content | Code only |
+| Syntax highlighting | No (use CodeBlock inside) | Yes, built-in |
+| Copy button | No | Yes, per panel |
+| Best for | General tabbed content | Multi-language code |
+
+**Use Tabs when:**
+- You need to show different types of content
+- You want to include components other than code
+- You're comparing non-code content
+
+**Use CodeTabs when:**
+- All tabs contain code
+- You want built-in syntax highlighting
+- You want copy functionality per tab

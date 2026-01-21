@@ -1,0 +1,85 @@
+---
+title: Configuration
+description: Learn how to configure and customize the Astro documentation framework
+sidebar_position: 1
+---
+
+# Configuration Overview
+
+Welcome to the Astro Documentation Framework configuration guide. This section covers everything you need to know to customize your documentation site.
+
+## Quick Start
+
+1. **Environment Variables**: Set your docs path and site configuration in `.env`
+2. **Themes**: Customize colors and typography in `src/theme/`
+3. **Layouts**: Choose or create page layouts in `src/layouts/`
+4. **Components**: Use built-in MDX components or create your own
+
+## Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `.env` | Environment variables (docs path, site URL, features) |
+| `astro.config.mjs` | Astro configuration |
+| `src/theme/*.css` | Color and typography customization |
+| `src/hooks/useNavigation.ts` | Page registry and navigation |
+
+## Environment Variables
+
+The documentation framework uses environment variables for configuration:
+
+```bash
+# .env
+DOCS_PATH=../docs          # Path to documentation content
+SITE_URL=http://localhost:4321
+SITE_TITLE=My Documentation
+SITE_DESCRIPTION=Documentation for my project
+
+# Feature flags
+ENABLE_SEARCH=true
+ENABLE_DARK_MODE=true
+```
+
+## Configuration Sections
+
+### Themes
+
+Configure colors, typography, and visual styling.
+
+[Learn about themes →](/docs/configuration/themes)
+
+### Layouts
+
+Create and customize page layouts for different content types.
+
+[Learn about layouts →](/docs/configuration/layouts)
+
+### Navbar
+
+Configure navigation with multiple navbar styles.
+
+[Learn about navbar →](/docs/configuration/navbar)
+
+### MDX Components
+
+Use and customize built-in MDX components.
+
+[Learn about MDX components →](/docs/configuration/mdx-components)
+
+### Modules
+
+Add search, analytics, and other features.
+
+[Learn about modules →](/docs/configuration/modules)
+
+### Backend Integration
+
+Connect to APIs and external services.
+
+[Learn about backend →](/docs/configuration/backend)
+
+### Pages
+
+Create and organize documentation pages.
+
+[Learn about pages →](/docs/configuration/pages)

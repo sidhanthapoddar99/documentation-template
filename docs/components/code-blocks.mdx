@@ -1,0 +1,256 @@
+---
+title: Code Blocks
+description: Code block components with syntax highlighting and copy functionality
+sidebar_position: 4
+---
+
+# Code Block Components
+
+Enhanced code blocks with syntax highlighting, copy buttons, and various display modes.
+
+## CodeBlock
+
+The default code block with syntax highlighting and copy functionality.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `code` | `string` | **Required** | The code content to display |
+| `lang` | `string` | `'text'` | Language for syntax highlighting |
+| `filename` | `string` | - | Optional filename header |
+| `showLineNumbers` | `boolean` | `false` | Show line numbers |
+
+### Basic Usage
+
+```astro
+<CodeBlock
+  code="const greeting = 'Hello, World!';"
+  lang="javascript"
+/>
+```
+
+### With Filename Header
+
+```astro
+<CodeBlock
+  code="export default function App() {\n  return <div>Hello</div>;\n}"
+  lang="jsx"
+  filename="App.jsx"
+/>
+```
+
+### With Line Numbers
+
+```astro
+<CodeBlock
+  code="function add(a, b) {\n  return a + b;\n}\n\nconsole.log(add(2, 3));"
+  lang="javascript"
+  showLineNumbers
+/>
+```
+
+### Supported Languages
+
+Common languages include:
+- `javascript`, `typescript`, `jsx`, `tsx`
+- `python`, `ruby`, `go`, `rust`
+- `html`, `css`, `scss`
+- `json`, `yaml`, `toml`
+- `bash`, `shell`
+- `sql`, `graphql`
+- And many more via Shiki
+
+---
+
+## CollapsibleCodeBlock
+
+Expandable code block for long code snippets.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `code` | `string` | **Required** | The code content |
+| `lang` | `string` | `'text'` | Language for highlighting |
+| `filename` | `string` | - | Optional filename |
+| `title` | `string` | `'Show code'` | Summary text when collapsed |
+| `open` | `boolean` | `false` | Start expanded |
+
+### Basic Usage
+
+```astro
+<CollapsibleCodeBlock
+  code="// Long code example\nfunction complexFunction() {\n  // Many lines...\n}"
+  lang="javascript"
+  title="View full implementation"
+/>
+```
+
+### With Filename
+
+```astro
+<CollapsibleCodeBlock
+  code="import React from 'react';\n\nexport default function Component() {\n  return <div>...</div>;\n}"
+  lang="tsx"
+  filename="Component.tsx"
+  title="Show Component code"
+/>
+```
+
+### Initially Open
+
+```astro
+<CollapsibleCodeBlock
+  code="const config = {\n  theme: 'dark',\n  lang: 'en'\n};"
+  lang="javascript"
+  open
+/>
+```
+
+---
+
+## CodeTabs
+
+Tabbed interface for showing the same concept in multiple languages or variations.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `tabs` | `CodeTab[]` | **Required** | Array of tab configurations |
+| `defaultTab` | `number` | `0` | Index of initially active tab |
+
+### CodeTab Interface
+
+```typescript
+interface CodeTab {
+  label: string;      // Tab button text
+  lang?: string;      // Language for highlighting
+  code: string;       // Code content
+  filename?: string;  // Optional filename
+}
+```
+
+### Basic Usage
+
+```astro
+<CodeTabs
+  tabs={[
+    { label: 'JavaScript', lang: 'javascript', code: 'const x = 1;' },
+    { label: 'TypeScript', lang: 'typescript', code: 'const x: number = 1;' },
+  ]}
+/>
+```
+
+### Multiple Languages Example
+
+```astro
+<CodeTabs
+  tabs={[
+    {
+      label: 'npm',
+      lang: 'bash',
+      code: 'npm install astro'
+    },
+    {
+      label: 'yarn',
+      lang: 'bash',
+      code: 'yarn add astro'
+    },
+    {
+      label: 'pnpm',
+      lang: 'bash',
+      code: 'pnpm add astro'
+    }
+  ]}
+/>
+```
+
+### With Filenames
+
+```astro
+<CodeTabs
+  tabs={[
+    {
+      label: 'React',
+      lang: 'jsx',
+      filename: 'Button.jsx',
+      code: 'export function Button({ children }) {\n  return <button>{children}</button>;\n}'
+    },
+    {
+      label: 'Vue',
+      lang: 'vue',
+      filename: 'Button.vue',
+      code: '<template>\n  <button><slot /></button>\n</template>'
+    }
+  ]}
+/>
+```
+
+### Default to Second Tab
+
+```astro
+<CodeTabs
+  tabs={[
+    { label: 'Before', lang: 'javascript', code: '// old code' },
+    { label: 'After', lang: 'javascript', code: '// new code' }
+  ]}
+  defaultTab={1}
+/>
+```
+
+---
+
+## Copy Functionality
+
+All code block variants include a copy button:
+
+1. **CodeBlock** - Floating button in top-right corner (or in header if filename provided)
+2. **CollapsibleCodeBlock** - Copy button in the code header
+3. **CodeTabs** - Copy button for each tab panel
+
+When clicked:
+- Code is copied to clipboard
+- Button shows a checkmark or "Copied!" feedback
+- Returns to normal state after 2 seconds
+
+---
+
+## Styling
+
+Code blocks use these CSS variables:
+
+```css
+/* Background and text */
+--theme-code-block-bg
+--theme-code-block-text
+
+/* Header (for filename) */
+--color-gray-800  /* header bg */
+--color-gray-700  /* header border */
+--color-gray-400  /* filename text */
+
+/* Copy button */
+--color-success   /* copied state */
+```
+
+### Max Height
+
+CollapsibleCodeBlock and CodeTabs have a max-height of 400px with scroll:
+
+```css
+.collapsible-code__pre,
+.code-tabs__pre {
+  max-height: 400px;
+  overflow-y: auto;
+}
+```
+
+---
+
+## Accessibility
+
+- Copy buttons have `aria-label="Copy code"`
+- Tab interfaces use proper ARIA roles (`role="tablist"`, `role="tab"`, `role="tabpanel"`)
+- Keyboard navigation supported for tabs

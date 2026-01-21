@@ -1,0 +1,87 @@
+---
+/**
+ * CardGrid - Grid layout for multiple cards
+ *
+ * Usage:
+ * <CardGrid cols={3}>
+ *   <Card>...</Card>
+ *   <Card>...</Card>
+ *   <Card>...</Card>
+ * </CardGrid>
+ */
+
+export interface Props {
+  cols?: 2 | 3 | 4;
+  gap?: 'sm' | 'md' | 'lg';
+  class?: string;
+}
+
+const { cols = 3, gap = 'md', class: className = '' } = Astro.props;
+---
+
+<div class:list={['card-grid', `card-grid--cols-${cols}`, `card-grid--gap-${gap}`, className]}>
+  <slot />
+</div>
+
+<style>
+  .card-grid {
+    display: grid;
+    width: 100%;
+    margin: 1.5rem 0;
+  }
+
+  /* Column variants */
+  .card-grid--cols-2 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .card-grid--cols-3 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .card-grid--cols-4 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  @media (min-width: 640px) {
+    .card-grid--cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card-grid--cols-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card-grid--cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .card-grid--cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card-grid--cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* Gap variants */
+  .card-grid--gap-sm {
+    gap: 0.75rem;
+  }
+
+  .card-grid--gap-md {
+    gap: 1rem;
+  }
+
+  .card-grid--gap-lg {
+    gap: 1.5rem;
+  }
+
+  /* Ensure cards in grid don't have extra margin */
+  .card-grid :global(.card) {
+    margin: 0;
+  }
+</style>

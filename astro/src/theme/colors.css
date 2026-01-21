@@ -92,6 +92,34 @@
 
   /* Icon filter (for SVG icons) */
   --theme-icon-filter: none;
+
+  /* --------------------------------------------------------------------------
+     Callout Colors (Light Mode)
+     -------------------------------------------------------------------------- */
+  --callout-info-bg: #dbeafe;
+  --callout-info-border: #3b82f6;
+  --callout-info-text: #1e40af;
+  --callout-info-icon: #3b82f6;
+
+  --callout-warning-bg: #fef3c7;
+  --callout-warning-border: #f59e0b;
+  --callout-warning-text: #92400e;
+  --callout-warning-icon: #f59e0b;
+
+  --callout-success-bg: #dcfce7;
+  --callout-success-border: #22c55e;
+  --callout-success-text: #166534;
+  --callout-success-icon: #22c55e;
+
+  --callout-danger-bg: #fee2e2;
+  --callout-danger-border: #ef4444;
+  --callout-danger-text: #991b1b;
+  --callout-danger-icon: #ef4444;
+
+  --callout-tip-bg: #f0fdf4;
+  --callout-tip-border: #10b981;
+  --callout-tip-text: #065f46;
+  --callout-tip-icon: #10b981;
 }
 
 /* --------------------------------------------------------------------------
@@ -138,4 +166,32 @@
 
   /* Icon filter (invert for dark mode) */
   --theme-icon-filter: invert(1);
+
+  /* --------------------------------------------------------------------------
+     Callout Colors (Dark Mode)
+     -------------------------------------------------------------------------- */
+  --callout-info-bg: #1e3a5f;
+  --callout-info-border: #3b82f6;
+  --callout-info-text: #93c5fd;
+  --callout-info-icon: #60a5fa;
+
+  --callout-warning-bg: #451a03;
+  --callout-warning-border: #f59e0b;
+  --callout-warning-text: #fde68a;
+  --callout-warning-icon: #fbbf24;
+
+  --callout-success-bg: #052e16;
+  --callout-success-border: #22c55e;
+  --callout-success-text: #86efac;
+  --callout-success-icon: #4ade80;
+
+  --callout-danger-bg: #450a0a;
+  --callout-danger-border: #ef4444;
+  --callout-danger-text: #fecaca;
+  --callout-danger-icon: #f87171;
+
+  --callout-tip-bg: #022c22;
+  --callout-tip-border: #10b981;
+  --callout-tip-text: #6ee7b7;
+  --callout-tip-icon: #34d399;
 }

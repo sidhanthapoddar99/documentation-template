@@ -1,20 +1,27 @@
 ---
 /**
- * Callout - Info/warning/danger callouts for MDX
+ * Callout - Info/warning/danger/success/tip callouts for MDX
+ *
+ * Usage:
+ * <Callout type="info" title="Note">
+ *   This is an info callout.
+ * </Callout>
  */
 
-interface Props {
-  type?: 'info' | 'warning' | 'danger' | 'success' | 'note';
+export interface Props {
+  type?: 'info' | 'warning' | 'danger' | 'success' | 'tip' | 'note';
   title?: string;
+  class?: string;
 }
 
-const { type = 'info', title } = Astro.props;
+const { type = 'info', title, class: className = '' } = Astro.props;
 
 const icons: Record<string, string> = {
   info: 'ℹ️',
   warning: '⚠️',
-  danger: '🚨',
+  danger: '❌',
   success: '✅',
+  tip: '💡',
   note: '📝',
 };
 
@@ -23,16 +30,17 @@ const defaultTitles: Record<string, string> = {
   warning: 'Warning',
   danger: 'Danger',
   success: 'Success',
+  tip: 'Tip',
   note: 'Note',
 };
 ---
 
-<aside class:list={['callout', `callout-${type}`]}>
-  <div class="callout-header">
-    <span class="callout-icon">{icons[type]}</span>
-    <span class="callout-title">{title || defaultTitles[type]}</span>
+<aside class:list={['callout', `callout--${type}`, className]} role="note">
+  <div class="callout__header">
+    <span class="callout__icon" aria-hidden="true">{icons[type]}</span>
+    <span class="callout__title">{title || defaultTitles[type]}</span>
   </div>
-  <div class="callout-content">
+  <div class="callout__content">
     <slot />
   </div>
 </aside>
@@ -45,75 +53,81 @@ const defaultTitles: Record<string, string> = {
     border-left: 4px solid;
   }
 
-  .callout-info {
-    background-color: var(--color-info-light);
-    border-left-color: var(--color-info);
-  }
-
-  .callout-warning {
-    background-color: var(--color-warning-light);
-    border-left-color: var(--color-warning);
-  }
-
-  .callout-danger {
-    background-color: var(--color-danger-light);
-    border-left-color: var(--color-danger);
-  }
-
-  .callout-success {
-    background-color: var(--color-success-light);
-    border-left-color: var(--color-success);
-  }
-
-  .callout-note {
-    background-color: var(--theme-bg-secondary);
-    border-left-color: var(--theme-border-strong);
-  }
-
-  :global([data-theme="dark"]) .callout-info {
-    background-color: rgba(59, 130, 246, 0.1);
-  }
-
-  :global([data-theme="dark"]) .callout-warning {
-    background-color: rgba(245, 158, 11, 0.1);
-  }
-
-  :global([data-theme="dark"]) .callout-danger {
-    background-color: rgba(239, 68, 68, 0.1);
-  }
-
-  :global([data-theme="dark"]) .callout-success {
-    background-color: rgba(34, 197, 94, 0.1);
-  }
-
-  .callout-header {
+  .callout__header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.5rem;
   }
 
-  .callout-icon {
-    font-size: 1rem;
+  .callout__icon {
+    font-size: 1.125rem;
+    line-height: 1;
   }
 
-  .callout-title {
-    font-weight: var(--font-semibold);
-    font-size: var(--text-sm);
-    color: var(--theme-text-heading);
+  .callout__title {
+    font-weight: 600;
+    font-size: 0.875rem;
   }
 
-  .callout-content {
-    font-size: var(--text-sm);
-    color: var(--theme-text-primary);
-    line-height: var(--leading-relaxed);
+  .callout__content {
+    font-size: 0.875rem;
+    line-height: 1.625;
   }
 
-  .callout-content :global(p:first-child) {
+  .callout__content :global(p:first-child) {
     margin-top: 0;
   }
 
-  .callout-content :global(p:last-child) {
+  .callout__content :global(p:last-child) {
     margin-bottom: 0;
+  }
+
+  /* Info */
+  .callout--info {
+    background-color: var(--callout-info-bg);
+    border-left-color: var(--callout-info-border);
+    color: var(--callout-info-text);
+  }
+
+  /* Warning */
+  .callout--warning {
+    background-color: var(--callout-warning-bg);
+    border-left-color: var(--callout-warning-border);
+    color: var(--callout-warning-text);
+  }
+
+  /* Danger */
+  .callout--danger {
+    background-color: var(--callout-danger-bg);
+    border-left-color: var(--callout-danger-border);
+    color: var(--callout-danger-text);
+  }
+
+  /* Success */
+  .callout--success {
+    background-color: var(--callout-success-bg);
+    border-left-color: var(--callout-success-border);
+    color: var(--callout-success-text);
+  }
+
+  /* Tip */
+  .callout--tip {
+    background-color: var(--callout-tip-bg);
+    border-left-color: var(--callout-tip-border);
+    color: var(--callout-tip-text);
+  }
+
+  /* Note */
+  .callout--note {
+    background-color: var(--theme-bg-secondary);
+    border-left-color: var(--theme-border-strong);
+    color: var(--theme-text-primary);
+  }
+
+  @media (max-width: 640px) {
+    .callout {
+      padding: 0.875rem 1rem;
+    }
   }
 </style>

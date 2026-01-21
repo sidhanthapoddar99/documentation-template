@@ -1,0 +1,234 @@
+---
+/**
+ * CodeTabs - Tabbed code blocks for multiple languages/files
+ *
+ * Usage:
+ * <CodeTabs
+ *   tabs={[
+ *     { label: 'JavaScript', lang: 'javascript', code: 'const x = 1;' },
+ *     { label: 'TypeScript', lang: 'typescript', code: 'const x: number = 1;' },
+ *   ]}
+ * />
+ */
+
+export interface CodeTab {
+  label: string;
+  lang?: string;
+  code: string;
+  filename?: string;
+}
+
+export interface Props {
+  tabs: CodeTab[];
+  defaultTab?: number;
+  class?: string;
+}
+
+const { tabs, defaultTab = 0, class: className = '' } = Astro.props;
+const groupId = `codetabs-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div class:list={['code-tabs', className]} data-code-tabs data-group-id={groupId}>
+  <div class="code-tabs__header" role="tablist">
+    {tabs.map((tab, index) => (
+      <button
+        class:list={['code-tabs__tab', { 'code-tabs__tab--active': index === defaultTab }]}
+        role="tab"
+        aria-selected={index === defaultTab ? 'true' : 'false'}
+        data-tab-index={index}
+        data-group={groupId}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+  <div class="code-tabs__content">
+    {tabs.map((tab, index) => {
+      const codeId = `${groupId}-code-${index}`;
+      return (
+        <div
+          class:list={['code-tabs__panel', { 'code-tabs__panel--active': index === defaultTab }]}
+          role="tabpanel"
+          data-tab-panel={index}
+          data-group={groupId}
+          hidden={index !== defaultTab}
+        >
+          <div class="code-tabs__panel-header">
+            {tab.filename && <span class="code-tabs__filename">{tab.filename}</span>}
+            <button class="code-tabs__copy" data-code-id={codeId} aria-label="Copy code">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+          <pre class="code-tabs__pre"><code id={codeId} class={`language-${tab.lang || 'text'}`} set:html={tab.code} /></pre>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+<style>
+  .code-tabs {
+    margin: 1.5rem 0;
+    border: 1px solid var(--theme-border-default);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .code-tabs__header {
+    display: flex;
+    gap: 0;
+    background-color: var(--theme-bg-secondary);
+    border-bottom: 1px solid var(--theme-border-default);
+    overflow-x: auto;
+  }
+
+  .code-tabs__tab {
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--theme-text-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .code-tabs__tab:hover {
+    color: var(--theme-text-primary);
+  }
+
+  .code-tabs__tab--active {
+    color: var(--color-brand-primary);
+    border-bottom-color: var(--color-brand-primary);
+  }
+
+  .code-tabs__content {
+    position: relative;
+  }
+
+  .code-tabs__panel {
+    display: none;
+  }
+
+  .code-tabs__panel--active {
+    display: block;
+  }
+
+  .code-tabs__panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-gray-800);
+    border-bottom: 1px solid var(--color-gray-700);
+  }
+
+  .code-tabs__filename {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    color: var(--color-gray-400);
+  }
+
+  .code-tabs__copy {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem;
+    color: var(--color-gray-400);
+    background: transparent;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .code-tabs__copy:hover {
+    background-color: var(--color-gray-700);
+    color: var(--color-gray-200);
+  }
+
+  .code-tabs__copy svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .code-tabs__copy.copied {
+    color: var(--color-success);
+  }
+
+  .code-tabs__pre {
+    margin: 0;
+    padding: 1rem;
+    background-color: var(--theme-code-block-bg);
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .code-tabs__pre code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.875rem;
+    color: var(--theme-code-block-text);
+    line-height: 1.6;
+  }
+</style>
+
+<script>
+  function initCodeTabs() {
+    document.querySelectorAll('[data-code-tabs]').forEach((container) => {
+      const groupId = container.getAttribute('data-group-id');
+      const tabs = container.querySelectorAll(`[data-group="${groupId}"][role="tab"]`);
+      const panels = container.querySelectorAll(`[data-group="${groupId}"][role="tabpanel"]`);
+
+      tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const index = tab.getAttribute('data-tab-index');
+
+          // Update tabs
+          tabs.forEach((t) => {
+            t.classList.remove('code-tabs__tab--active');
+            t.setAttribute('aria-selected', 'false');
+          });
+          tab.classList.add('code-tabs__tab--active');
+          tab.setAttribute('aria-selected', 'true');
+
+          // Update panels
+          panels.forEach((panel) => {
+            const panelIndex = panel.getAttribute('data-tab-panel');
+            if (panelIndex === index) {
+              panel.classList.add('code-tabs__panel--active');
+              panel.removeAttribute('hidden');
+            } else {
+              panel.classList.remove('code-tabs__panel--active');
+              panel.setAttribute('hidden', '');
+            }
+          });
+        });
+      });
+    });
+
+    // Copy buttons
+    document.querySelectorAll('.code-tabs__copy').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const codeId = btn.getAttribute('data-code-id');
+        const codeEl = document.getElementById(codeId!);
+
+        if (codeEl) {
+          await navigator.clipboard.writeText(codeEl.textContent || '');
+          btn.classList.add('copied');
+
+          setTimeout(() => {
+            btn.classList.remove('copied');
+          }, 2000);
+        }
+      });
+    });
+  }
+
+  initCodeTabs();
+  document.addEventListener('astro:page-load', initCodeTabs);
+</script>

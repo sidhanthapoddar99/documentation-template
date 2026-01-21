@@ -1,0 +1,261 @@
+---
+title: Layouts
+description: Create and customize page layouts for different content types
+sidebar_position: 3
+---
+
+# Layouts
+
+Layouts define the structure of your pages. The framework includes several pre-built layouts and supports custom layouts.
+
+## Layout Structure
+
+```
+src/layouts/
+├── BaseLayout.astro       # Root layout (HTML, head, body)
+├── home/
+│   ├── HomeLayout1/       # Hero + features layout
+│   └── HomeLayout2/       # Alternative home layout
+├── docs/
+│   └── DocsLayout.astro   # Documentation with sidebar
+├── blog/
+│   └── BlogLayout.astro   # Blog post layout
+└── roadmap/
+    └── RoadmapLayout.astro
+```
+
+## BaseLayout
+
+The root layout wraps all pages with common HTML structure:
+
+```astro
+---
+// src/layouts/BaseLayout.astro
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <!-- Theme styles -->
+    <style is:global>
+      @import '../theme/index.css';
+    </style>
+    <!-- Dark mode script (prevents flash) -->
+    <script is:inline>
+      // Theme initialization
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
+## Home Layouts
+
+### HomeLayout1
+
+Full-featured home layout with hero, features, and footer:
+
+```astro
+---
+import BaseLayout from '../BaseLayout.astro';
+import { NavbarStyle1 } from '../../components/navbar';
+import { FooterDefault } from '../../components/footer';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <NavbarStyle1 items={navItems} />
+  <main>
+    <slot />
+  </main>
+  <FooterDefault />
+</BaseLayout>
+```
+
+### Usage
+
+```astro
+---
+// src/pages/index.astro
+import { HomeLayout1 } from '../layouts/home';
+---
+
+<HomeLayout1 title="Home">
+  <section class="hero">
+    <h1>Welcome</h1>
+  </section>
+</HomeLayout1>
+```
+
+## Docs Layout
+
+Documentation layout with sidebar and table of contents:
+
+```astro
+---
+import BaseLayout from '../BaseLayout.astro';
+import { NavbarStyle2 } from '../../components/navbar';
+import { Sidebar } from '../../components/sidebar';
+import { Outline } from '../../components/outline';
+
+interface Props {
+  title: string;
+  description?: string;
+  headings?: { text: string; slug: string; depth: number }[];
+}
+
+const { title, description, headings = [] } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <NavbarStyle2 items={navItems} />
+  <div class="docs-container">
+    <Sidebar currentPath={Astro.url.pathname} />
+    <main class="docs-content">
+      <slot />
+    </main>
+    <Outline headings={headings} />
+  </div>
+</BaseLayout>
+
+<style>
+  .docs-container {
+    display: grid;
+    grid-template-columns: 250px 1fr 200px;
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: 2rem;
+    padding: 2rem 1rem;
+  }
+
+  @media (max-width: 1024px) {
+    .docs-container {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+```
+
+## Blog Layout
+
+Blog post layout with author and date:
+
+```astro
+---
+import BaseLayout from '../BaseLayout.astro';
+
+interface Props {
+  title: string;
+  date: Date;
+  author?: string;
+}
+
+const { title, date, author } = Astro.props;
+---
+
+<BaseLayout title={title}>
+  <article class="blog-post">
+    <header>
+      <h1>{title}</h1>
+      <div class="meta">
+        {author && <span class="author">{author}</span>}
+        <time datetime={date.toISOString()}>
+          {date.toLocaleDateString()}
+        </time>
+      </div>
+    </header>
+    <div class="content">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+```
+
+## Creating Custom Layouts
+
+### 1. Create the Layout File
+
+```astro
+---
+// src/layouts/custom/CustomLayout.astro
+import BaseLayout from '../BaseLayout.astro';
+
+interface Props {
+  title: string;
+  // Add your props
+}
+
+const { title } = Astro.props;
+---
+
+<BaseLayout title={title}>
+  <header>
+    <!-- Custom header -->
+  </header>
+  <main>
+    <slot />
+  </main>
+  <footer>
+    <!-- Custom footer -->
+  </footer>
+</BaseLayout>
+
+<style>
+  /* Scoped styles */
+</style>
+```
+
+### 2. Export from Index
+
+```typescript
+// src/layouts/custom/index.ts
+export { default as CustomLayout } from './CustomLayout.astro';
+```
+
+### 3. Use in Pages
+
+```astro
+---
+import { CustomLayout } from '../layouts/custom';
+---
+
+<CustomLayout title="My Page">
+  <h1>Content here</h1>
+</CustomLayout>
+```
+
+## Layout Props
+
+Common props across layouts:
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `title` | `string` | Page title |
+| `description` | `string` | Meta description |
+| `headings` | `TOCItem[]` | For table of contents |
+| `currentPath` | `string` | Active route path |
+
+## Best Practices
+
+1. **Extend BaseLayout** for consistent HTML structure
+2. **Use slots** for flexible content injection
+3. **Keep styles scoped** to prevent leakage
+4. **Export from index** for clean imports
+5. **Document props** with TypeScript interfaces

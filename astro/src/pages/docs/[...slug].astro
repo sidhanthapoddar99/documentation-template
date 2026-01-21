@@ -1,64 +1,94 @@
 ---
 /**
  * Dynamic documentation page route
- *
- * Handles all /docs/* routes by loading MDX from the docs folder
+ * Loads MDX content from the external docs folder via content collections
  */
 
-import { DocsLayout } from '../../layouts/docs';
-import fs from 'node:fs';
-import path from 'node:path';
-
-// Get docs path from environment
-const docsPath = import.meta.env.DOCS_PATH || '../docs';
-const resolvedDocsPath = path.isAbsolute(docsPath)
-  ? docsPath
-  : path.resolve(process.cwd(), docsPath);
+import { getCollection, render } from 'astro:content';
+import DocsLayout from '../../layouts/docs/DocsLayout.astro';
 
 export async function getStaticPaths() {
-  // TODO: Implement MDX file discovery from docs folder
-  // This is a placeholder that returns empty paths
-  // In production, scan the docs folder and generate paths
+  const docs = await getCollection('docs');
 
-  return [
-    { params: { slug: undefined }, props: { title: 'Documentation', content: 'Welcome to the documentation.' } },
-  ];
+  return docs.map((doc) => ({
+    params: { slug: doc.id },
+    props: { doc },
+  }));
 }
 
-const { slug } = Astro.params;
-const { title, content } = Astro.props;
+const { doc } = Astro.props;
+const { Content, headings } = await render(doc);
 
-// Placeholder sidebar items - in production, generate from folder structure
-const sidebarItems = [
-  {
-    title: 'Getting Started',
-    children: [
-      { title: 'Introduction', href: '/docs' },
-      { title: 'Installation', href: '/docs/installation' },
-      { title: 'Configuration', href: '/docs/configuration' },
-    ]
-  },
-  {
-    title: 'Guides',
-    children: [
-      { title: 'Writing Content', href: '/docs/guides/content' },
-      { title: 'Using Components', href: '/docs/guides/components' },
-    ]
+// Get current section from doc id (e.g., "configuration/themes" -> "configuration")
+const currentSection = doc.id.split('/')[0];
+
+// Build sidebar from docs collection, filtered by current section
+const allDocs = await getCollection('docs');
+
+// Filter docs to only those in the same top-level section
+const sectionDocs = allDocs.filter((d) => d.id.startsWith(currentSection + '/') || d.id === currentSection);
+
+// Group docs by their parent folder within the section
+const sidebarItems = buildSidebar(sectionDocs, currentSection);
+
+function buildSidebar(docs: typeof allDocs, section: string) {
+  const groups: Record<string, { title: string; children: { title: string; href: string; order: number }[] }> = {};
+
+  // Create the main section group
+  const sectionTitle = section.charAt(0).toUpperCase() + section.slice(1).replace(/-/g, ' ');
+
+  for (const doc of docs) {
+    const parts = doc.id.split('/');
+    const title = doc.data.title || parts[parts.length - 1];
+
+    // Determine which group this doc belongs to
+    let groupKey = sectionTitle;
+    let groupName = sectionTitle;
+
+    // If the doc is in a sub-folder (e.g., components/cards), group by sub-folder
+    if (parts.length > 2) {
+      groupKey = parts[1];
+      groupName = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).replace(/-/g, ' ');
+    }
+
+    if (!groups[groupKey]) {
+      groups[groupKey] = {
+        title: groupName,
+        children: [],
+      };
+    }
+
+    groups[groupKey].children.push({
+      title,
+      href: `/docs/${doc.id}`,
+      order: doc.data.sidebar_position || 99,
+    });
   }
-];
+
+  // Sort children by order within each group
+  for (const group of Object.values(groups)) {
+    group.children.sort((a, b) => a.order - b.order);
+  }
+
+  // Return groups, with the main section first if it exists
+  const result = [];
+  if (groups[sectionTitle]) {
+    result.push(groups[sectionTitle]);
+    delete groups[sectionTitle];
+  }
+  result.push(...Object.values(groups));
+
+  return result;
+}
 ---
 
 <DocsLayout
-  title={title}
-  description="Documentation page"
+  title={doc.data.title}
+  description={doc.data.description}
   sidebarItems={sidebarItems}
-  headings={[]}
+  headings={headings}
 >
-  <h1>{title}</h1>
-  <p>{content}</p>
-
-  <p>
-    <strong>Note:</strong> This is a placeholder page. Configure MDX integration
-    and implement the content loading logic to display actual documentation.
-  </p>
+  <article class="prose prose-zinc dark:prose-invert max-w-none">
+    <Content />
+  </article>
 </DocsLayout>

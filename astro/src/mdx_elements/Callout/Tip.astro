@@ -1,0 +1,69 @@
+---
+/**
+ * Tip - Simplified tip/hint callout
+ *
+ * A lightweight version of Callout specifically for tips.
+ *
+ * Usage:
+ * <Tip>This is a helpful tip!</Tip>
+ * <Tip title="Pro Tip">Advanced tip content.</Tip>
+ */
+
+export interface Props {
+  title?: string;
+  class?: string;
+}
+
+const { title = 'Tip', class: className = '' } = Astro.props;
+---
+
+<div class:list={['tip', className]}>
+  <div class="tip__icon" aria-hidden="true">💡</div>
+  <div class="tip__body">
+    {title && <strong class="tip__title">{title}:</strong>}
+    <span class="tip__content"><slot /></span>
+  </div>
+</div>
+
+<style>
+  .tip {
+    display: flex;
+    gap: 0.75rem;
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    background-color: var(--callout-tip-bg);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .tip__icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+
+  .tip__body {
+    flex: 1;
+    color: var(--callout-tip-text);
+  }
+
+  .tip__title {
+    margin-right: 0.25rem;
+  }
+
+  .tip__content :global(p) {
+    display: inline;
+    margin: 0;
+  }
+
+  .tip__content :global(code) {
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.8125rem;
+  }
+
+  :global([data-theme="dark"]) .tip__content :global(code) {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+</style>

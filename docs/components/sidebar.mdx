@@ -1,0 +1,340 @@
+---
+title: Sidebar & Outline
+description: Navigation sidebar and table of contents components
+sidebar_position: 3
+---
+
+# Sidebar & Outline Components
+
+Components for in-page navigation: the sidebar for documentation navigation and the outline for table of contents.
+
+## Sidebar
+
+The sidebar component provides hierarchical navigation for documentation pages.
+
+### Features
+
+- Hierarchical navigation structure
+- Section headers for organization
+- Active state highlighting
+- Sticky positioning
+- Scrollable for long menus
+- Dark/light mode support
+
+### Usage
+
+```astro
+---
+import { Sidebar } from '../components/sidebar';
+
+const sidebarItems = [
+  {
+    title: 'Getting Started',
+    children: [
+      { title: 'Installation', href: '/docs/installation' },
+      { title: 'Quick Start', href: '/docs/quick-start' },
+    ]
+  },
+  {
+    title: 'Configuration',
+    children: [
+      { title: 'Themes', href: '/docs/configuration/themes' },
+      { title: 'Layouts', href: '/docs/configuration/layouts' },
+    ]
+  },
+];
+---
+
+<Sidebar items={sidebarItems} currentPath={Astro.url.pathname} />
+```
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `items` | `SidebarItem[]` | Required | Navigation items |
+| `currentPath` | `string` | `''` | Current page path |
+
+### SidebarItem Type
+
+```typescript
+interface SidebarItem {
+  title: string;           // Display text
+  href?: string;           // Navigation URL (omit for header)
+  children?: SidebarItem[]; // Nested items
+}
+```
+
+### Item Types
+
+1. **Header (no href)**: Uppercase label for grouping
+2. **Link (with href)**: Clickable navigation item
+3. **Nested items**: Children appear indented
+
+### Example Structure
+
+```typescript
+const items = [
+  // Header with children
+  {
+    title: 'Getting Started',  // Header (no href)
+    children: [
+      { title: 'Installation', href: '/docs/installation' },
+      { title: 'Quick Start', href: '/docs/quick-start' },
+    ]
+  },
+  // Direct link
+  {
+    title: 'API Reference',
+    href: '/docs/api'
+  }
+];
+```
+
+### Styling
+
+The sidebar uses CSS custom properties:
+
+```css
+.sidebar {
+  width: 16rem;
+  background-color: var(--theme-sidebar-bg);
+  border-right: 1px solid var(--theme-border-default);
+}
+
+.sidebar-header {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  color: var(--theme-text-muted);
+}
+
+.sidebar-link {
+  color: var(--theme-text-secondary);
+}
+
+.sidebar-link.active {
+  color: var(--color-brand-primary);
+  background-color: var(--color-info-light);
+}
+```
+
+### Customizing
+
+Override default styles:
+
+```astro
+<Sidebar items={items} currentPath={path} />
+
+<style is:global>
+  .sidebar {
+    width: 14rem;  /* Narrower sidebar */
+  }
+
+  .sidebar-link.active {
+    border-left: 3px solid var(--color-brand-primary);
+  }
+</style>
+```
+
+## Outline
+
+The outline component displays a table of contents for the current page.
+
+### Features
+
+- Extracts headings from page content
+- Shows h2 and h3 headings
+- Scroll-spy highlights current section
+- Sticky positioning
+- Smooth scroll on click
+
+### Usage
+
+```astro
+---
+import { Outline } from '../components/outline';
+
+// Headings are typically provided by Astro's content collections
+const { headings } = Astro.props;
+---
+
+<Outline headings={headings} title="On this page" />
+```
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `headings` | `Heading[]` | Required | Page headings |
+| `title` | `string` | `'On this page'` | Section title |
+
+### Heading Type
+
+```typescript
+interface Heading {
+  depth: number;  // 1-6 (h1-h6)
+  slug: string;   // URL-safe ID
+  text: string;   // Heading text
+}
+```
+
+### How It Works
+
+1. Filters headings to h2 and h3 only
+2. Renders links with `#slug` anchors
+3. Indents h3 items under h2
+4. Uses IntersectionObserver for scroll-spy
+5. Highlights current section on scroll
+
+### Getting Headings
+
+From Astro content collections:
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+const doc = await getEntry('docs', 'getting-started');
+const { Content, headings } = await doc.render();
+---
+
+<Content />
+<Outline headings={headings} />
+```
+
+From MDX files:
+
+```astro
+---
+// Astro automatically extracts headings from MDX
+export async function getStaticPaths() {
+  const docs = await Astro.glob('../docs/**/*.mdx');
+  return docs.map(doc => ({
+    params: { slug: doc.url },
+    props: { headings: doc.getHeadings() },
+  }));
+}
+---
+```
+
+### Styling
+
+```css
+.outline {
+  width: 14rem;
+  position: sticky;
+  top: 3.5rem;  /* Below navbar */
+}
+
+.outline-title {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  color: var(--theme-text-muted);
+}
+
+.outline-link {
+  color: var(--theme-text-secondary);
+  border-left: 2px solid transparent;
+}
+
+.outline-link.active {
+  color: var(--color-brand-primary);
+  border-left-color: var(--color-brand-primary);
+}
+```
+
+### Scroll-Spy Behavior
+
+The outline uses IntersectionObserver:
+
+```javascript
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      // Highlight corresponding link
+    }
+  });
+}, {
+  rootMargin: '-80px 0px -80% 0px',
+  threshold: 0
+});
+```
+
+## Layout Integration
+
+Combine sidebar and outline in a docs layout:
+
+```astro
+---
+// DocsLayout.astro
+import { Sidebar } from '../components/sidebar';
+import { Outline } from '../components/outline';
+
+const { headings, sidebarItems } = Astro.props;
+---
+
+<div class="docs-layout">
+  <Sidebar items={sidebarItems} currentPath={Astro.url.pathname} />
+
+  <main class="docs-content">
+    <slot />
+  </main>
+
+  <Outline headings={headings} />
+</div>
+
+<style>
+  .docs-layout {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .docs-content {
+    flex: 1;
+    min-width: 0;
+    padding: 2rem;
+  }
+</style>
+```
+
+## Responsive Behavior
+
+### Mobile Sidebar
+
+The sidebar hides on mobile and shows in an overlay:
+
+```css
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}
+```
+
+### Mobile Outline
+
+The outline typically hides on mobile:
+
+```css
+@media (max-width: 1024px) {
+  .outline {
+    display: none;
+  }
+}
+```
+
+## Best Practices
+
+1. **Keep sidebar organized** - Group related pages under headers
+2. **Limit nesting depth** - Avoid more than 2 levels
+3. **Use descriptive titles** - Clear, scannable labels
+4. **Include all key pages** - Don't hide important navigation
+5. **Test scroll-spy** - Ensure outline highlights correctly

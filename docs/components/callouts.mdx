@@ -1,0 +1,195 @@
+---
+title: Callouts
+description: Callout components for highlighting important information
+sidebar_position: 3
+---
+
+# Callout Components
+
+Callouts draw attention to important information with distinct visual styling. The framework provides three callout variants.
+
+## Callout
+
+The default Callout component supports six different types with customizable titles.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `'info' \| 'warning' \| 'danger' \| 'success' \| 'tip' \| 'note'` | `'info'` | Callout style variant |
+| `title` | `string` | Auto | Custom title (defaults to type name) |
+
+### Type Variants
+
+#### Info
+
+```astro
+<Callout type="info">
+  This is informational content that provides context.
+</Callout>
+```
+
+#### Warning
+
+```astro
+<Callout type="warning">
+  Be careful! This action may have unintended consequences.
+</Callout>
+```
+
+#### Danger
+
+```astro
+<Callout type="danger">
+  Critical warning: This action cannot be undone.
+</Callout>
+```
+
+#### Success
+
+```astro
+<Callout type="success">
+  Operation completed successfully.
+</Callout>
+```
+
+#### Tip
+
+```astro
+<Callout type="tip">
+  Pro tip: Use keyboard shortcuts for faster navigation.
+</Callout>
+```
+
+#### Note
+
+```astro
+<Callout type="note">
+  Note: This feature is available in version 2.0+.
+</Callout>
+```
+
+### Custom Title
+
+```astro
+<Callout type="warning" title="Deprecation Notice">
+  This API will be removed in the next major version.
+</Callout>
+```
+
+---
+
+## CalloutCollapsible
+
+Expandable callout that hides content until clicked.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `'info' \| 'warning' \| 'danger' \| 'success' \| 'tip' \| 'note'` | `'info'` | Callout style variant |
+| `title` | `string` | `'Details'` | Summary text shown when collapsed |
+| `open` | `boolean` | `false` | Whether to start expanded |
+
+### Basic Usage
+
+```astro
+<CalloutCollapsible type="info" title="Click to learn more">
+  This content is hidden by default and revealed when clicked.
+</CalloutCollapsible>
+```
+
+### Initially Open
+
+```astro
+<CalloutCollapsible type="warning" title="Important Details" open>
+  This content is visible immediately but can be collapsed.
+</CalloutCollapsible>
+```
+
+### With Long Content
+
+```astro
+<CalloutCollapsible type="note" title="Full API Reference">
+  Detailed API documentation that would clutter the page
+  if shown by default. Includes method signatures,
+  parameter descriptions, and return values.
+</CalloutCollapsible>
+```
+
+---
+
+## Tip
+
+A simplified, lightweight component specifically for tips.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | `'Tip'` | Label before the tip content |
+
+### Basic Usage
+
+```astro
+<Tip>
+  Use Ctrl+K to open the command palette.
+</Tip>
+```
+
+### Custom Title
+
+```astro
+<Tip title="Pro Tip">
+  You can chain multiple commands with && for sequential execution.
+</Tip>
+```
+
+### Inline Code in Tips
+
+```astro
+<Tip>
+  Run `npm run build` to create a production build.
+</Tip>
+```
+
+---
+
+## Visual Styling
+
+Each callout type has distinct colors that work in both light and dark modes:
+
+| Type | Light Background | Dark Background | Border Color |
+|------|------------------|-----------------|--------------|
+| info | Light blue | Dark blue | Blue |
+| warning | Light yellow | Dark amber | Yellow |
+| danger | Light red | Dark red | Red |
+| success | Light green | Dark green | Green |
+| tip | Light purple | Dark purple | Purple |
+| note | Light gray | Dark gray | Gray |
+
+### CSS Variables
+
+Callouts use these CSS variables for customization:
+
+```css
+/* Info */
+--callout-info-bg
+--callout-info-border
+--callout-info-text
+
+/* Warning */
+--callout-warning-bg
+--callout-warning-border
+--callout-warning-text
+
+/* And similar patterns for danger, success, tip */
+```
+
+---
+
+## Accessibility
+
+- Callouts use `role="note"` for screen readers
+- Icons include `aria-hidden="true"` to prevent redundant announcements
+- CollapsibleCallout uses native `<details>` for keyboard accessibility

@@ -1,0 +1,295 @@
+---
+title: MDX Components
+description: Built-in components for MDX documentation files
+sidebar_position: 5
+---
+
+# MDX Components
+
+The framework provides a library of pre-built components for use in MDX documentation files. All components support dark/light mode through CSS custom properties.
+
+## Available Components
+
+| Component | Purpose |
+|-----------|---------|
+| Card, CardGrid, FeatureCard | Content organization |
+| Callout, CalloutCollapsible, Tip | Alerts and notices |
+| CodeBlock, CollapsibleCodeBlock, CodeTabs | Code display |
+| Tabs, TabItem | Tabbed content |
+
+## Importing Components
+
+Import components from the MDX elements index:
+
+```astro
+---
+import { Card, Callout, CodeBlock, Tabs, TabItem } from '../mdx_elements';
+---
+```
+
+## Card Components
+
+### Card
+
+Basic content card with optional title and icon.
+
+```mdx
+<Card title="Getting Started" icon="🚀">
+  Learn how to set up your documentation site.
+</Card>
+
+<Card href="/docs/installation">
+  Click this card to navigate
+</Card>
+```
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `title` | `string` | Card heading |
+| `icon` | `string` | Emoji or icon |
+| `href` | `string` | Makes card clickable |
+
+### CardGrid
+
+Grid layout for displaying multiple cards.
+
+```mdx
+<CardGrid cols={3}>
+  <Card title="Card 1">Content</Card>
+  <Card title="Card 2">Content</Card>
+  <Card title="Card 3">Content</Card>
+</CardGrid>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `cols` | `2 \| 3 \| 4` | `2` | Number of columns |
+
+### FeatureCard
+
+Card with prominent icon, title, and description for feature showcases.
+
+```mdx
+<FeatureCard
+  icon="⚡"
+  title="Fast Builds"
+  description="Sub-second hot reload during development"
+/>
+```
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `icon` | `string` | Large display icon |
+| `title` | `string` | Feature name |
+| `description` | `string` | Feature description |
+
+## Callout Components
+
+### Callout
+
+Highlighted notices with different severity levels.
+
+```mdx
+<Callout type="info" title="Note">
+  This is an informational message.
+</Callout>
+
+<Callout type="warning">
+  This action cannot be undone.
+</Callout>
+
+<Callout type="danger" title="Critical">
+  Do not run this in production.
+</Callout>
+
+<Callout type="success">
+  Your changes have been saved.
+</Callout>
+
+<Callout type="tip">
+  Use keyboard shortcuts for faster navigation.
+</Callout>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `'info' \| 'warning' \| 'danger' \| 'success' \| 'tip' \| 'note'` | `'info'` | Callout style |
+| `title` | `string` | Auto from type | Custom title |
+
+**Default Titles and Icons:**
+
+| Type | Icon | Default Title |
+|------|------|---------------|
+| info | ℹ️ | Info |
+| warning | ⚠️ | Warning |
+| danger | ❌ | Danger |
+| success | ✅ | Success |
+| tip | 💡 | Tip |
+| note | 📝 | Note |
+
+### CalloutCollapsible
+
+Expandable callout with details/summary pattern.
+
+```mdx
+<CalloutCollapsible type="info" title="Click to expand">
+  This content is hidden by default.
+</CalloutCollapsible>
+```
+
+### Tip
+
+Lightweight inline tip for quick hints.
+
+```mdx
+<Tip>Press Cmd+K to open search</Tip>
+```
+
+## Code Components
+
+### CodeBlock
+
+Enhanced code block with copy button and optional filename.
+
+```mdx
+<CodeBlock
+  code="const greeting = 'Hello World';"
+  lang="javascript"
+  filename="example.js"
+  showLineNumbers={true}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `code` | `string` | Required | Code content |
+| `lang` | `string` | `'text'` | Language for highlighting |
+| `filename` | `string` | - | Display filename header |
+| `showLineNumbers` | `boolean` | `false` | Show line numbers |
+
+### CollapsibleCodeBlock
+
+Expandable code block for long code examples.
+
+```mdx
+<CollapsibleCodeBlock
+  code={longCodeExample}
+  lang="typescript"
+  title="Click to see full implementation"
+  maxHeight="200px"
+/>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `code` | `string` | Required | Code content |
+| `lang` | `string` | `'text'` | Language |
+| `title` | `string` | `'Show code'` | Toggle label |
+| `maxHeight` | `string` | `'150px'` | Collapsed height |
+
+### CodeTabs
+
+Tabbed code blocks for showing code in multiple languages.
+
+```mdx
+<CodeTabs
+  tabs={[
+    { label: 'npm', lang: 'bash', code: 'npm install package' },
+    { label: 'yarn', lang: 'bash', code: 'yarn add package' },
+    { label: 'pnpm', lang: 'bash', code: 'pnpm add package' },
+  ]}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `tabs` | `Array<{ label, lang, code }>` | Tab definitions |
+| `defaultTab` | `number` | Default selected index |
+
+## Tab Components
+
+### Tabs & TabItem
+
+General-purpose tabbed content container.
+
+```mdx
+<Tabs>
+  <TabItem label="macOS">
+    Instructions for macOS users.
+  </TabItem>
+  <TabItem label="Windows">
+    Instructions for Windows users.
+  </TabItem>
+  <TabItem label="Linux">
+    Instructions for Linux users.
+  </TabItem>
+</Tabs>
+```
+
+**Tabs Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `defaultTab` | `number` | `0` | Initially selected tab |
+
+**TabItem Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `label` | `string` | Tab button text |
+
+## Customizing Components
+
+### CSS Variables
+
+Components use theme variables for consistent styling:
+
+```css
+/* Card styling */
+--theme-card-bg: var(--theme-bg-secondary);
+--theme-card-border: var(--theme-border-default);
+
+/* Callout colors */
+--callout-info-bg: #dbeafe;
+--callout-info-border: #3b82f6;
+--callout-info-text: #1e40af;
+```
+
+### Overriding Styles
+
+Add custom styles with the `class` prop where available:
+
+```mdx
+<Callout type="info" class="custom-callout">
+  Custom styled callout
+</Callout>
+
+<style>
+  .custom-callout {
+    border-radius: 1rem;
+    border-left-width: 8px;
+  }
+</style>
+```
+
+## Best Practices
+
+1. **Use semantic callout types** - `danger` for breaking changes, `warning` for gotchas
+2. **Keep card content concise** - Cards work best with brief descriptions
+3. **Group related cards** - Use CardGrid for feature comparisons
+4. **Provide code filenames** - Helps users understand context
+5. **Use tabs for alternatives** - Platform-specific or framework-specific code

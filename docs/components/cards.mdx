@@ -1,0 +1,154 @@
+---
+title: Cards
+description: Card components for displaying content in visually distinct containers
+sidebar_position: 2
+---
+
+# Card Components
+
+Cards provide visually distinct containers for grouping related content. The framework includes three card variants for different use cases.
+
+## Card
+
+The default Card component displays content in a bordered container with optional title and icon.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | - | Card heading text |
+| `icon` | `string` | - | Emoji or icon for the header |
+| `href` | `string` | - | Makes the card clickable and links to this URL |
+
+### Basic Usage
+
+```astro
+<Card title="Getting Started">
+  Learn how to set up your documentation site.
+</Card>
+```
+
+### Card with Icon
+
+```astro
+<Card title="Fast Performance" icon="⚡">
+  Built on Astro for zero-JS by default.
+</Card>
+```
+
+### Clickable Card
+
+```astro
+<Card title="View Documentation" icon="📚" href="/docs">
+  Click to explore the full documentation.
+</Card>
+```
+
+---
+
+## CardGrid
+
+CardGrid arranges multiple cards in a responsive grid layout.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `cols` | `2 \| 3 \| 4` | `3` | Number of columns at desktop width |
+| `gap` | `'sm' \| 'md' \| 'lg'` | `'md'` | Spacing between cards |
+
+### Basic Usage
+
+```astro
+<CardGrid cols={3}>
+  <Card title="Feature 1">Description of feature 1.</Card>
+  <Card title="Feature 2">Description of feature 2.</Card>
+  <Card title="Feature 3">Description of feature 3.</Card>
+</CardGrid>
+```
+
+### Two Column Grid
+
+```astro
+<CardGrid cols={2} gap="lg">
+  <Card title="Left Card">Content on the left.</Card>
+  <Card title="Right Card">Content on the right.</Card>
+</CardGrid>
+```
+
+### Responsive Behavior
+
+- **Mobile (< 640px)**: Single column
+- **Tablet (640px - 1024px)**: 2 columns
+- **Desktop (> 1024px)**: Full column count (2, 3, or 4)
+
+---
+
+## FeatureCard
+
+FeatureCard is designed for feature highlights with prominent icons, titles, and descriptions.
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `icon` | `string` | - | Large emoji or icon |
+| `title` | `string` | **Required** | Feature title |
+| `description` | `string` | - | Short description text |
+| `href` | `string` | - | Optional link destination |
+
+### Basic Usage
+
+```astro
+<FeatureCard
+  icon="🚀"
+  title="Lightning Fast"
+  description="Zero-JS by default with Astro"
+/>
+```
+
+### Clickable Feature Card
+
+```astro
+<FeatureCard
+  icon="📖"
+  title="Great Documentation"
+  description="Comprehensive guides and examples"
+  href="/docs/getting-started"
+/>
+```
+
+### Feature Grid Example
+
+```astro
+<CardGrid cols={3}>
+  <FeatureCard
+    icon="⚡"
+    title="Fast"
+    description="Instant page loads"
+  />
+  <FeatureCard
+    icon="🎨"
+    title="Beautiful"
+    description="Clean, modern design"
+  />
+  <FeatureCard
+    icon="🔧"
+    title="Flexible"
+    description="Fully customizable"
+  />
+</CardGrid>
+```
+
+---
+
+## Styling
+
+All card components use CSS variables for theming:
+
+- `--theme-card-bg` - Card background color
+- `--theme-card-border` - Card border color
+- `--color-brand-primary` - Hover accent color
+- `--theme-shadow-md` - Hover shadow effect
+
+Cards automatically adapt to light and dark modes.

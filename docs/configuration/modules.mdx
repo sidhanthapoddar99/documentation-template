@@ -1,0 +1,284 @@
+---
+title: Modules
+description: Add search, analytics, AI, and other features
+sidebar_position: 6
+---
+
+# Modules
+
+Modules provide optional features that can be enabled through environment variables. Each module is self-contained and can integrate with various third-party services.
+
+## Available Modules
+
+| Module | Purpose | Environment Variable |
+|--------|---------|---------------------|
+| Search | Full-text documentation search | `ENABLE_SEARCH` |
+| Analytics | Page views and event tracking | `ENABLE_ANALYTICS` |
+| AI | AI-powered documentation assistant | `AI_API_KEY` |
+
+## Search Module
+
+Provides full-text search functionality for your documentation.
+
+### Configuration
+
+```bash
+# .env
+ENABLE_SEARCH=true
+SEARCH_PROVIDER=pagefind  # pagefind, algolia, custom
+```
+
+### Usage
+
+```typescript
+import { search, initSearch } from '../modules/search';
+
+// Initialize on page load
+await initSearch();
+
+// Perform search
+const results = await search('getting started', { limit: 10 });
+```
+
+### SearchResult Type
+
+```typescript
+interface SearchResult {
+  title: string;    // Page title
+  url: string;      // Page URL
+  excerpt: string;  // Matching text excerpt
+  section?: string; // Documentation section
+}
+```
+
+### Search Options
+
+```typescript
+interface SearchOptions {
+  limit?: number;    // Max results (default: 10)
+  section?: string;  // Filter by section
+}
+```
+
+### Integrating with Pagefind
+
+[Pagefind](https://pagefind.app/) is the recommended search solution for static sites.
+
+```bash
+# Install Pagefind
+npm install pagefind
+
+# Build search index after site build
+npx pagefind --site dist
+```
+
+### Integrating with Algolia
+
+For larger documentation sites, Algolia provides scalable search:
+
+```bash
+# .env
+SEARCH_PROVIDER=algolia
+ALGOLIA_APP_ID=your-app-id
+ALGOLIA_API_KEY=your-api-key
+ALGOLIA_INDEX=your-index
+```
+
+## Analytics Module
+
+Track page views and custom events for understanding documentation usage.
+
+### Configuration
+
+```bash
+# .env
+ENABLE_ANALYTICS=true
+ANALYTICS_PROVIDER=plausible  # ga4, plausible, umami
+ANALYTICS_ID=your-site-id
+```
+
+### Usage
+
+```typescript
+import { trackPageView, trackEvent, initAnalytics } from '../modules/analytics';
+
+// Initialize on app startup
+initAnalytics();
+
+// Track page view
+trackPageView('/docs/getting-started', 'Getting Started');
+
+// Track custom event
+trackEvent({
+  name: 'copy_code',
+  properties: {
+    page: '/docs/configuration',
+    language: 'typescript',
+  },
+});
+```
+
+### AnalyticsEvent Type
+
+```typescript
+interface AnalyticsEvent {
+  name: string;
+  properties?: Record<string, string | number | boolean>;
+}
+```
+
+### Common Events to Track
+
+| Event | Description | Properties |
+|-------|-------------|------------|
+| `search` | User searches docs | `query`, `results_count` |
+| `copy_code` | User copies code block | `page`, `language` |
+| `feedback` | User gives feedback | `page`, `helpful` |
+| `external_link` | User clicks external link | `url`, `text` |
+
+### Provider Setup
+
+**Google Analytics 4:**
+
+```bash
+ANALYTICS_PROVIDER=ga4
+GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+**Plausible:**
+
+```bash
+ANALYTICS_PROVIDER=plausible
+PLAUSIBLE_DOMAIN=docs.yoursite.com
+```
+
+**Umami:**
+
+```bash
+ANALYTICS_PROVIDER=umami
+UMAMI_WEBSITE_ID=your-website-id
+UMAMI_SCRIPT_URL=https://analytics.yoursite.com/umami.js
+```
+
+## AI Module
+
+Add an AI-powered documentation assistant that can answer questions based on your documentation content.
+
+### Configuration
+
+```bash
+# .env
+AI_API_KEY=your-api-key
+AI_PROVIDER=anthropic  # openai, anthropic
+AI_MODEL=claude-3-sonnet
+```
+
+### Usage
+
+```typescript
+import { askAI, isAIEnabled } from '../modules/ai';
+
+if (isAIEnabled()) {
+  const response = await askAI(
+    'How do I configure dark mode?',
+    relevantDocsContext,
+    { maxTokens: 500 }
+  );
+
+  console.log(response.answer);
+  console.log('Sources:', response.sources);
+}
+```
+
+### AIResponse Type
+
+```typescript
+interface AIResponse {
+  answer: string;      // AI-generated answer
+  sources?: string[];  // URLs of source documents
+  confidence?: number; // Confidence score 0-1
+}
+```
+
+### AIOptions
+
+```typescript
+interface AIOptions {
+  model?: string;      // Model name
+  maxTokens?: number;  // Max response length
+  temperature?: number; // Response creativity (0-1)
+}
+```
+
+### Building Context
+
+For effective AI responses, provide relevant documentation context:
+
+```typescript
+// Get relevant pages based on user question
+const relevantPages = await search(question, { limit: 3 });
+
+// Combine page content for context
+const context = relevantPages
+  .map(page => `${page.title}:\n${page.content}`)
+  .join('\n\n');
+
+const response = await askAI(question, context);
+```
+
+## Creating Custom Modules
+
+Add new modules in `src/modules/`:
+
+```
+src/modules/
+├── search/index.ts
+├── analytics/index.ts
+├── ai/index.ts
+└── my-module/
+    ├── index.ts
+    └── types.ts
+```
+
+### Module Structure
+
+```typescript
+// src/modules/my-module/index.ts
+
+export interface MyModuleOptions {
+  // Configuration options
+}
+
+export function isModuleEnabled(): boolean {
+  return !!import.meta.env.MY_MODULE_KEY;
+}
+
+export async function initModule(): Promise<void> {
+  if (!isModuleEnabled()) return;
+  // Initialization logic
+}
+
+export async function doSomething(): Promise<void> {
+  if (!isModuleEnabled()) return;
+  // Module functionality
+}
+```
+
+### Environment Variables
+
+Add environment variables for your module:
+
+```bash
+# .env.example
+MY_MODULE_KEY=your-api-key
+MY_MODULE_OPTION=value
+```
+
+## Best Practices
+
+1. **Check enabled state** before executing module code
+2. **Graceful degradation** - site works without modules
+3. **Environment variables** for all sensitive configuration
+4. **Type definitions** for module interfaces
+5. **Initialization functions** for setup tasks
+6. **Console logging** in development for debugging

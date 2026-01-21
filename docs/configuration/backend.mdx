@@ -1,0 +1,356 @@
+---
+title: Backend Integration
+description: Connect to APIs and external services
+sidebar_position: 7
+---
+
+# Backend Integration
+
+Connect your documentation site to APIs, databases, and external services for dynamic content.
+
+## Server-Side Endpoints
+
+Astro supports server-side endpoints for API routes.
+
+### Creating an API Endpoint
+
+```typescript
+// src/pages/api/example.ts
+import type { APIRoute } from 'astro';
+
+export const GET: APIRoute = async ({ request }) => {
+  const data = { message: 'Hello from API' };
+
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
+export const POST: APIRoute = async ({ request }) => {
+  const body = await request.json();
+
+  // Process the request
+  return new Response(JSON.stringify({ received: body }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};
+```
+
+### API Route Structure
+
+```
+src/pages/api/
+├── example.ts           # /api/example
+├── users/
+│   ├── index.ts         # /api/users
+│   └── [id].ts          # /api/users/:id
+└── search.ts            # /api/search
+```
+
+## Fetching Data
+
+### Server-Side Fetching
+
+Fetch data during build or on request:
+
+```astro
+---
+// src/pages/docs/[slug].astro
+const response = await fetch(`${import.meta.env.API_URL}/docs/${Astro.params.slug}`);
+const doc = await response.json();
+---
+
+<article>
+  <h1>{doc.title}</h1>
+  <div set:html={doc.content} />
+</article>
+```
+
+### Client-Side Fetching
+
+For dynamic content after page load:
+
+```astro
+<div id="comments"></div>
+
+<script>
+  async function loadComments() {
+    const response = await fetch('/api/comments');
+    const comments = await response.json();
+
+    const container = document.getElementById('comments');
+    container.innerHTML = comments
+      .map(c => `<div class="comment">${c.text}</div>`)
+      .join('');
+  }
+
+  loadComments();
+</script>
+```
+
+## Environment Configuration
+
+### API Keys and Secrets
+
+Store sensitive data in environment variables:
+
+```bash
+# .env
+API_URL=https://api.example.com
+API_KEY=your-secret-key
+DATABASE_URL=postgresql://...
+```
+
+### Accessing in Server Code
+
+```typescript
+// Server-side only
+const apiKey = import.meta.env.API_KEY;
+
+// Available client-side (prefixed with PUBLIC_)
+const publicUrl = import.meta.env.PUBLIC_API_URL;
+```
+
+### Type Safety
+
+Define environment variable types:
+
+```typescript
+// env.d.ts
+/// <reference types="astro/client" />
+
+interface ImportMetaEnv {
+  readonly API_URL: string;
+  readonly API_KEY: string;
+  readonly PUBLIC_SITE_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+## Database Integration
+
+### Using Prisma
+
+```typescript
+// src/lib/db.ts
+import { PrismaClient } from '@prisma/client';
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: ['query'],
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+```
+
+### Querying Data
+
+```astro
+---
+import { prisma } from '../lib/db';
+
+const posts = await prisma.post.findMany({
+  where: { published: true },
+  orderBy: { createdAt: 'desc' },
+});
+---
+
+<ul>
+  {posts.map(post => (
+    <li><a href={`/blog/${post.slug}`}>{post.title}</a></li>
+  ))}
+</ul>
+```
+
+## Authentication
+
+### Session-Based Auth
+
+```typescript
+// src/pages/api/auth/login.ts
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = async ({ request, cookies }) => {
+  const { email, password } = await request.json();
+
+  // Validate credentials
+  const user = await validateUser(email, password);
+
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+      status: 401,
+    });
+  }
+
+  // Set session cookie
+  cookies.set('session', createSession(user.id), {
+    httpOnly: true,
+    secure: true,
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+  });
+
+  return new Response(JSON.stringify({ success: true }));
+};
+```
+
+### Protected Routes
+
+```astro
+---
+// src/pages/admin/index.astro
+const session = Astro.cookies.get('session')?.value;
+const user = session ? await validateSession(session) : null;
+
+if (!user) {
+  return Astro.redirect('/login');
+}
+---
+
+<h1>Welcome, {user.name}</h1>
+```
+
+## External Services
+
+### Content Management (CMS)
+
+Connect to headless CMS providers:
+
+```typescript
+// src/lib/cms.ts
+import { createClient } from '@sanity/client';
+
+export const sanity = createClient({
+  projectId: import.meta.env.SANITY_PROJECT_ID,
+  dataset: 'production',
+  apiVersion: '2024-01-01',
+  useCdn: true,
+});
+
+// Fetch content
+export async function getDocs() {
+  return sanity.fetch(`*[_type == "doc"] | order(order asc)`);
+}
+```
+
+### GitHub Integration
+
+Fetch repository data or issues:
+
+```typescript
+// src/lib/github.ts
+const GITHUB_TOKEN = import.meta.env.GITHUB_TOKEN;
+
+export async function getRepoInfo(owner: string, repo: string) {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}`,
+    {
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+    }
+  );
+
+  return response.json();
+}
+```
+
+## Caching
+
+### Response Caching
+
+```typescript
+// src/pages/api/cached.ts
+export const GET: APIRoute = async () => {
+  const data = await fetchData();
+
+  return new Response(JSON.stringify(data), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=3600', // 1 hour
+    },
+  });
+};
+```
+
+### In-Memory Caching
+
+```typescript
+// src/lib/cache.ts
+const cache = new Map<string, { data: any; expires: number }>();
+
+export async function cached<T>(
+  key: string,
+  fn: () => Promise<T>,
+  ttl = 300000 // 5 minutes
+): Promise<T> {
+  const now = Date.now();
+  const entry = cache.get(key);
+
+  if (entry && entry.expires > now) {
+    return entry.data;
+  }
+
+  const data = await fn();
+  cache.set(key, { data, expires: now + ttl });
+
+  return data;
+}
+```
+
+## Error Handling
+
+### API Error Responses
+
+```typescript
+export const GET: APIRoute = async ({ params }) => {
+  try {
+    const data = await fetchData(params.id);
+
+    if (!data) {
+      return new Response(JSON.stringify({ error: 'Not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('API Error:', error);
+
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+};
+```
+
+## Best Practices
+
+1. **Use environment variables** for all configuration
+2. **Validate inputs** on all API endpoints
+3. **Handle errors gracefully** with appropriate status codes
+4. **Cache expensive operations** when possible
+5. **Keep secrets server-side** - never expose in client code
+6. **Use TypeScript** for type-safe API contracts

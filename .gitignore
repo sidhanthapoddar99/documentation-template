@@ -19,3 +19,5 @@ __pycache__
 # Sync tool generated files
 CHANGELOG.md
 dryrun-changelogs.md
+
+logs/

@@ -1,0 +1,199 @@
+---
+title: Themes
+description: Configure colors, typography, and visual styling
+sidebar_position: 2
+---
+
+# Theme Configuration
+
+The theme system provides centralized control over colors, typography, and visual styling with full dark/light mode support.
+
+## File Structure
+
+```
+src/theme/
+├── colors.css      # Color variables
+├── text.css        # Typography
+├── text_md.css     # Markdown typography
+├── elements.css    # UI element styles
+└── index.css       # Master import file
+```
+
+## Color System
+
+### Base Colors
+
+Colors are defined as CSS custom properties in `colors.css`:
+
+```css
+:root {
+  /* Gray scale */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f4f4f5;
+  --color-gray-200: #e4e4e7;
+  /* ... */
+  --color-gray-900: #18181b;
+
+  /* Brand colors */
+  --color-brand-primary: #3b82f6;
+  --color-brand-primary-hover: #2563eb;
+
+  /* Status colors */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+}
+```
+
+### Semantic Variables
+
+Semantic variables map to different values in light/dark modes:
+
+```css
+:root {
+  /* Light mode (default) */
+  --theme-bg-primary: var(--color-white);
+  --theme-text-primary: var(--color-gray-900);
+  --theme-border-default: var(--color-gray-200);
+}
+
+[data-theme="dark"] {
+  /* Dark mode */
+  --theme-bg-primary: var(--color-gray-900);
+  --theme-text-primary: var(--color-gray-100);
+  --theme-border-default: var(--color-gray-700);
+}
+```
+
+### Available Theme Variables
+
+| Variable | Description |
+|----------|-------------|
+| `--theme-bg-primary` | Primary background |
+| `--theme-bg-secondary` | Secondary background |
+| `--theme-bg-tertiary` | Tertiary background |
+| `--theme-text-primary` | Primary text |
+| `--theme-text-secondary` | Secondary text |
+| `--theme-text-muted` | Muted text |
+| `--theme-border-default` | Default borders |
+| `--theme-card-bg` | Card backgrounds |
+| `--theme-navbar-bg` | Navbar background |
+
+## Dark Mode
+
+### Automatic Detection
+
+The theme system respects system preference by default:
+
+```javascript
+// Checks system preference
+window.matchMedia('(prefers-color-scheme: dark)').matches
+```
+
+### Theme Toggle
+
+Use the `useTheme` hook for programmatic control:
+
+```typescript
+import { getTheme, setTheme, toggleTheme } from '../hooks/useTheme';
+
+// Get current theme
+const theme = getTheme(); // 'light' | 'dark' | 'system'
+
+// Set theme
+setTheme('dark');
+
+// Toggle between light/dark
+toggleTheme();
+```
+
+### LocalStorage Persistence
+
+Theme preference is saved to localStorage:
+
+```javascript
+localStorage.setItem('theme-preference', 'dark');
+```
+
+## Customizing Colors
+
+### Adding New Colors
+
+1. Add to `colors.css`:
+
+```css
+:root {
+  --color-custom-primary: #8b5cf6;
+  --color-custom-light: #a78bfa;
+}
+```
+
+2. Add semantic mapping:
+
+```css
+:root {
+  --theme-custom: var(--color-custom-primary);
+}
+
+[data-theme="dark"] {
+  --theme-custom: var(--color-custom-light);
+}
+```
+
+### Callout Colors
+
+Callout components use dedicated color variables:
+
+```css
+:root {
+  /* Info callout */
+  --callout-info-bg: #dbeafe;
+  --callout-info-border: #3b82f6;
+  --callout-info-text: #1e40af;
+
+  /* Warning callout */
+  --callout-warning-bg: #fef3c7;
+  --callout-warning-border: #f59e0b;
+  --callout-warning-text: #92400e;
+
+  /* Add more as needed */
+}
+```
+
+## Typography
+
+Typography is configured in `text.css`:
+
+```css
+:root {
+  /* Font families */
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fira Code', monospace;
+
+  /* Font sizes */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Line heights */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+}
+```
+
+## Best Practices
+
+1. **Use semantic variables** instead of raw colors
+2. **Test both modes** when customizing
+3. **Maintain contrast ratios** for accessibility
+4. **Keep the master import** in `index.css` updated
