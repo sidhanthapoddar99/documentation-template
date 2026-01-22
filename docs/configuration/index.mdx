@@ -4,102 +4,103 @@ description: Learn how to configure and customize the Astro documentation framew
 sidebar_position: 1
 ---
 
-# Configuration Overview
+# Configuration
 
-Welcome to the Astro Documentation Framework configuration guide. This section covers everything you need to know to customize your documentation site.
+Welcome to the configuration guide. This section covers everything you need to customize your documentation site.
+
+## Configuration Structure
+
+```
+Configuration
+├── Site Configuration     # Main config file (site.config.ts)
+├── Themes                 # Colors, typography, dark mode
+├── Navigation/            # Navbar and footer
+│   ├── Navbar            # Navigation bar variants
+│   └── Footer            # Site footer
+├── Layouts/               # Page layouts
+│   └── Layout Details    # DocsLayout, HomeLayout, etc.
+├── Components/            # MDX components
+│   └── Component Reference  # Cards, Callouts, Code blocks
+└── Modules/               # Optional features
+    └── Module Reference   # Search, Analytics, AI
+```
 
 ## Quick Start
 
-1. **Site Configuration**: Define your site structure in `src/config/site.config.ts`
-2. **Themes**: Customize colors and typography in `src/theme/`
-3. **Layouts**: Choose or create page layouts in `src/layouts/`
-4. **Components**: Use built-in MDX components or create your own
+1. **Site Configuration** - Define your site in `src/config/site.config.ts`
+2. **Themes** - Customize colors in `src/theme/`
+3. **Navigation** - Configure navbar and footer
+4. **Layouts** - Choose page layouts per section
+5. **Modules** - Enable search, analytics, etc.
 
-## Configuration Files
-
-| File | Purpose |
-|------|---------|
-| `src/config/site.config.ts` | **Main configuration** - site structure, pages, navbar, footer |
-| `src/config/types.ts` | TypeScript type definitions |
-| `src/config/helpers.ts` | Helper functions for accessing config |
-| `astro.config.mjs` | Astro framework configuration |
-| `src/theme/*.css` | Color and typography customization |
-
-## Site Configuration
-
-The framework uses a centralized TypeScript configuration file for all site settings:
-
-```typescript
-// src/config/site.config.ts
-export const siteConfig: SiteConfig = {
-  site: {
-    name: 'My Docs',
-    title: 'Documentation',
-    description: 'My documentation site',
-  },
-  defaults: {
-    navbar: 'minimal',
-    sidebar: 'default',
-    footer: 'default',
-    outline: 'default',
-  },
-  pages: {
-    home: { type: 'home', title: 'Home', url: '/' },
-    docs: { type: 'doc', title: 'Docs', url: '/docs', data_location: '../docs' },
-  },
-  navbar: ['home', 'docs'],
-  footer: { copyright: '2024 Your Company' },
-};
-```
-
-[Learn more about site configuration →](/docs/configuration/site-config)
-
-## Configuration Sections
+## Sections
 
 ### Site Configuration
 
-Control your entire site from a single TypeScript file - pages, navigation, components, and more.
+The central configuration file that controls your entire site structure, pages, and navigation.
 
-[Learn about site configuration →](/docs/configuration/site-config)
+```typescript
+// src/config/site.config.ts
+export const siteConfig = {
+  site: { name: 'My Docs', title: 'Documentation' },
+  pages: { home: { type: 'home', url: '/' } },
+  navbar: ['home', 'docs'],
+  footer: { copyright: '2024' },
+};
+```
+
+[Site Configuration →](/docs/configuration/site-config)
 
 ### Themes
 
-Configure colors, typography, and visual styling.
+Colors, typography, and dark/light mode customization.
 
-[Learn about themes →](/docs/configuration/themes)
+[Themes →](/docs/configuration/themes)
+
+### Navigation
+
+Configure the navbar (multiple styles available) and footer.
+
+| Component | Variants |
+|-----------|----------|
+| Navbar | `minimal`, `style1`, `style2`, `style3` |
+| Footer | `default`, `none` |
+
+[Navigation →](/docs/configuration/navigation)
 
 ### Layouts
 
-Create and customize page layouts for different content types.
+Page layouts for different content types.
 
-[Learn about layouts →](/docs/configuration/layouts)
+| Layout | Use Case |
+|--------|----------|
+| DocsLayout | Documentation with sidebar |
+| HomeLayout | Landing pages |
+| BlogLayout | Blog posts |
 
-### Navbar
-
-Configure navigation with multiple navbar styles.
-
-[Learn about navbar →](/docs/configuration/navbar)
+[Layouts →](/docs/configuration/layouts)
 
 ### MDX Components
 
-Use and customize built-in MDX components.
+Built-in components for documentation.
 
-[Learn about MDX components →](/docs/configuration/mdx-components)
+| Category | Components |
+|----------|------------|
+| Cards | Card, CardGrid, FeatureCard |
+| Callouts | Callout, Tip, Warning |
+| Code | CodeBlock, CodeTabs |
+| Tabs | Tabs, TabItem |
+
+[Components →](/docs/configuration/components)
 
 ### Modules
 
-Add search, analytics, and other features.
+Optional features like search, analytics, and AI.
 
-[Learn about modules →](/docs/configuration/modules)
+| Module | Purpose |
+|--------|---------|
+| Search | Full-text search |
+| Analytics | Usage tracking |
+| AI | Documentation assistant |
 
-### Backend Integration
-
-Connect to APIs and external services.
-
-[Learn about backend →](/docs/configuration/backend)
-
-### Pages
-
-Create and organize documentation pages.
-
-[Learn about pages →](/docs/configuration/pages)
+[Modules →](/docs/configuration/modules)

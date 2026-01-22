@@ -1,0 +1,105 @@
+---
+title: Examples
+description: Complete and minimal frontmatter examples
+sidebar_position: 8
+---
+
+# Examples
+
+## Complete Example
+
+Here's a comprehensive example using multiple frontmatter options:
+
+```yaml
+---
+title: Building Your First Component
+description: A step-by-step guide to creating custom React components in the documentation framework
+keywords:
+  - react
+  - components
+  - tutorial
+image: /images/components-tutorial.png
+
+sidebar_position: 2
+sidebar_label: First Component
+
+tags:
+  - beginner
+  - react
+  - tutorial
+category: tutorials
+
+draft: false
+published_at: 2024-01-15
+updated_at: 2024-06-20
+
+hide_title: false
+hide_toc: false
+full_width: false
+---
+
+# Building Your First Component
+
+In this tutorial, you'll learn...
+```
+
+## Minimal Example
+
+For simple pages, you only need:
+
+```yaml
+---
+title: Quick Start
+---
+```
+
+## Common Patterns
+
+### Tutorial Page
+
+```yaml
+---
+title: Getting Started Tutorial
+description: Learn the basics in 10 minutes
+sidebar_position: 1
+tags:
+  - beginner
+  - tutorial
+category: tutorials
+---
+```
+
+### API Reference Page
+
+```yaml
+---
+title: Authentication API
+description: API endpoints for user authentication
+sidebar_position: 3
+sidebar_label: Authentication
+tags:
+  - api
+  - authentication
+---
+```
+
+### Landing Page
+
+```yaml
+---
+title: Welcome
+hide_title: true
+hide_toc: true
+full_width: true
+---
+```
+
+### Work in Progress
+
+```yaml
+---
+title: Upcoming Feature
+description: Documentation for the new feature
+draft: true
+---
+```

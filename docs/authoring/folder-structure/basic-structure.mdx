@@ -1,0 +1,31 @@
+---
+title: Basic Structure
+description: Fundamental documentation folder organization
+sidebar_position: 1
+---
+
+# Basic Structure
+
+The basic structure of a documentation site follows a simple pattern:
+
+```
+docs/
+├── section-name/              # A documentation section
+│   ├── index.mdx              # Section landing page
+│   ├── page-one.mdx           # Child page
+│   ├── page-two.mdx           # Child page
+│   └── assets/                # Assets (excluded from sidebar)
+│       ├── example.ts
+│       └── diagram.png
+├── another-section/
+│   └── ...
+└── standalone.mdx             # Top-level page
+```
+
+## Key Points
+
+- Each folder represents a documentation section
+- The `index.mdx` file serves as the section's landing page
+- Child `.mdx` files appear nested under the section in the sidebar
+- The `assets/` folder is excluded from the sidebar
+- Top-level `.mdx` files are standalone pages

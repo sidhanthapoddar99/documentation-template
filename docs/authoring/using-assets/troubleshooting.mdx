@@ -1,0 +1,95 @@
+---
+title: Troubleshooting
+description: Fixing common asset import issues
+sidebar_position: 7
+---
+
+# Troubleshooting
+
+Common issues when working with assets and how to fix them.
+
+## Import Not Found
+
+```
+Error: Can't resolve './assets/example.tsx'
+```
+
+**Solutions:**
+- Check the file path is correct
+- Ensure the file exists
+- Verify the file extension
+- Check for typos in the path
+
+```mdx
+// Check these things:
+import Code from '!!raw-loader!./assets/example.tsx';
+//                              ↑ correct folder?
+//                                      ↑ correct filename?
+//                                              ↑ correct extension?
+```
+
+## Raw Loader Issues
+
+```
+Error: Module parse failed: Unexpected token
+```
+
+This happens when you try to import code without the raw-loader prefix.
+
+```mdx
+// ✗ Wrong - will try to execute as JS
+import Code from './assets/example.tsx';
+
+// ✓ Correct - imports as string
+import Code from '!!raw-loader!./assets/example.tsx';
+```
+
+Make sure to use the `!!raw-loader!` prefix for code files.
+
+## Image Not Displaying
+
+**Check these common issues:**
+
+1. **File path** - Is the path correct?
+2. **File format** - Is it a supported format (png, jpg, svg, gif)?
+3. **Import syntax** - Images don't use raw-loader
+
+```mdx
+// ✓ Correct for images
+import Screenshot from './assets/screenshot.png';
+
+// ✗ Wrong - don't use raw-loader for images
+import Screenshot from '!!raw-loader!./assets/screenshot.png';
+```
+
+## Build Errors with Assets
+
+```
+Error: Cannot find module './assets/code.ts'
+```
+
+If the file exists but the build fails:
+
+1. **Clear the cache** - Run `npm run clear` or delete `.docusaurus/`
+2. **Restart dev server** - Stop and restart `npm run start`
+3. **Check file encoding** - Ensure files are UTF-8 encoded
+
+## Syntax Highlighting Not Working
+
+If code isn't highlighted correctly:
+
+1. **Specify the language** explicitly:
+```mdx
+<CodeBlock language="typescript">{Code}</CodeBlock>
+```
+
+2. **Check file extension** matches content type
+3. **Verify the language is supported** by the syntax highlighter
+
+## Large File Warnings
+
+If you get warnings about large files:
+
+1. **Split large examples** into smaller files
+2. **Use collapsible blocks** for long code
+3. **Consider linking** to external files instead of embedding

@@ -1,0 +1,84 @@
+---
+title: MDX Components
+description: Built-in components for use in MDX documentation files
+sidebar_position: 1
+---
+
+# MDX Components
+
+The framework provides a library of pre-built components for use in MDX documentation files. All components support dark/light mode through CSS custom properties.
+
+## Component Categories
+
+### Cards & Containers
+
+Organize and highlight content with card-based layouts.
+
+| Component | Purpose |
+|-----------|---------|
+| `Card` | Basic content card with optional title and icon |
+| `CardGrid` | Grid layout for multiple cards |
+| `FeatureCard` | Prominent card for feature showcases |
+
+### Callouts & Alerts
+
+Draw attention to important information.
+
+| Component | Purpose |
+|-----------|---------|
+| `Callout` | Highlighted notices (info, warning, danger, etc.) |
+| `CalloutCollapsible` | Expandable callout |
+| `Tip` | Lightweight inline tip |
+
+### Code Display
+
+Show code examples with syntax highlighting.
+
+| Component | Purpose |
+|-----------|---------|
+| `CodeBlock` | Enhanced code block with copy button |
+| `CollapsibleCodeBlock` | Expandable code block for long examples |
+| `CodeTabs` | Tabbed code for multiple languages |
+
+### Tabs & Navigation
+
+Organize content into tabbed sections.
+
+| Component | Purpose |
+|-----------|---------|
+| `Tabs` | Container for tabbed content |
+| `TabItem` | Individual tab panel |
+
+## Quick Usage
+
+Import components in your MDX files:
+
+```mdx
+---
+title: My Page
+---
+
+import { Card, Callout, Tabs, TabItem } from '@components/mdx';
+
+<Callout type="info">
+  This is an informational message.
+</Callout>
+
+<Card title="Getting Started" icon="🚀">
+  Learn how to set up your documentation.
+</Card>
+
+<Tabs>
+  <TabItem label="npm">npm install package</TabItem>
+  <TabItem label="yarn">yarn add package</TabItem>
+</Tabs>
+```
+
+## Detailed Documentation
+
+For full props reference and advanced usage:
+
+- [Cards & Containers →](/docs/configuration/components/cards)
+- [Callouts & Alerts →](/docs/configuration/components/callouts)
+- [Code Display →](/docs/configuration/components/code)
+- [Tabs →](/docs/configuration/components/tabs)

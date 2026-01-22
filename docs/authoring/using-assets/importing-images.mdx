@@ -1,0 +1,72 @@
+---
+title: Importing Images
+description: How to import and display images in your documentation
+sidebar_position: 3
+---
+
+# Importing Images
+
+Images are imported differently from code files - they don't need the raw-loader prefix.
+
+## Standard Import
+
+```mdx
+import Screenshot from './assets/screenshot.png';
+
+<img src={Screenshot} alt="Feature screenshot" />
+```
+
+## With Custom Styling
+
+```mdx
+import Diagram from './assets/architecture-diagram.png';
+
+<figure>
+  <img
+    src={Diagram}
+    alt="System architecture"
+    className="rounded-lg border"
+  />
+  <figcaption>Figure 1: System Architecture</figcaption>
+</figure>
+```
+
+## Responsive Images
+
+```mdx
+import ResponsiveImage from './assets/hero.png';
+
+<img
+  src={ResponsiveImage}
+  alt="Hero image"
+  style={{ maxWidth: '100%', height: 'auto' }}
+/>
+```
+
+## SVG Images
+
+SVGs can be imported and used like regular images:
+
+```mdx
+import Logo from './assets/logo.svg';
+
+<img src={Logo} alt="Company logo" width="200" />
+```
+
+Or imported as React components (if your build supports it):
+
+```mdx
+import { ReactComponent as Icon } from './assets/icon.svg';
+
+<Icon className="icon-class" />
+```
+
+## Image Best Practices
+
+1. **Use descriptive alt text** for accessibility
+2. **Optimize images** before adding to the repo
+3. **Use appropriate formats**:
+   - PNG for screenshots and graphics with transparency
+   - JPG for photographs
+   - SVG for icons and logos
+4. **Consider dark mode** - use images that work in both themes

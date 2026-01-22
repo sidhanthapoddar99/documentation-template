@@ -1,0 +1,76 @@
+---
+title: Navigation
+description: Configure navbar and footer components for your documentation site
+sidebar_position: 1
+---
+
+# Navigation
+
+The framework includes pre-built navigation components that can be configured through `site.config.ts`. This section covers the available navbar and footer variants.
+
+## Components Overview
+
+| Component | Description | Variants |
+|-----------|-------------|----------|
+| **Navbar** | Top navigation bar | `minimal`, `style1`, `style2`, `style3` |
+| **Footer** | Site footer | `default`, `none` |
+
+## Configuration
+
+Navigation components are controlled through `site.config.ts`:
+
+```typescript
+// src/config/site.config.ts
+export const siteConfig = {
+  defaults: {
+    navbar: 'minimal',  // Default navbar variant
+    footer: 'default',  // Default footer variant
+  },
+
+  pages: {
+    home: {
+      // Override for specific pages
+      navbar: 'style1',
+      footer: 'default',
+    },
+  },
+
+  // Navbar structure
+  navbar: [
+    'home',
+    { group: 'Docs', pages: ['getting_started', 'configuration'] },
+    'github',
+  ],
+
+  // Footer configuration
+  footer: {
+    copyright: '2024 Your Company',
+    links: [
+      { href: '/privacy', label: 'Privacy' },
+    ],
+  },
+};
+```
+
+## Sections
+
+### Navbar
+
+Multiple navbar styles for different site types - from minimal documentation navbars to full-featured mega menus.
+
+[View Navbar Documentation →](/docs/configuration/navigation/navbar)
+
+### Footer
+
+Configurable footer with copyright, links, and optional sections.
+
+[View Footer Documentation →](/docs/configuration/navigation/footer)
+
+## Quick Selection Guide
+
+| Your Need | Recommended |
+|-----------|-------------|
+| Simple docs site | `navbar: 'minimal'` |
+| Site with sections | `navbar: 'style2'` (dropdowns) |
+| Large site with many pages | `navbar: 'style3'` (mega menu) |
+| Landing page only | `navbar: 'style1'` |

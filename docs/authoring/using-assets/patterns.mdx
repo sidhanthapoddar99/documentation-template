@@ -1,0 +1,82 @@
+---
+title: Common Patterns
+description: Asset organization patterns for different documentation types
+sidebar_position: 6
+---
+
+# Common Patterns
+
+Here are recommended asset structures for different types of documentation.
+
+## Component Documentation
+
+```
+components/tabs/
+├── index.mdx
+└── assets/
+    ├── tabs-basic.tsx         # Basic usage
+    ├── tabs-controlled.tsx    # Controlled state
+    ├── tabs-with-icons.tsx    # With icons
+    └── tabs-vertical.tsx      # Vertical layout
+```
+
+Each file demonstrates a specific variant or use case.
+
+## API Documentation
+
+```
+api/endpoints/
+├── users.mdx
+└── assets/
+    ├── users-list-request.sh      # curl example
+    ├── users-list-response.json   # Response example
+    ├── users-create-request.json  # Request body
+    └── users-create-response.json # Response example
+```
+
+Pair requests with responses, name clearly by operation.
+
+## Configuration Guide
+
+```
+configuration/
+├── themes.mdx
+└── assets/
+    ├── theme-config.ts       # TypeScript config
+    ├── theme-config.json     # JSON alternative
+    └── custom-theme.css      # CSS variables
+```
+
+Show the same configuration in multiple formats.
+
+## Tutorial with Steps
+
+```
+tutorials/build-app/
+├── index.mdx
+└── assets/
+    ├── step-01-setup.tsx
+    ├── step-02-component.tsx
+    ├── step-03-styles.css
+    ├── step-04-final.tsx
+    └── screenshots/
+        ├── step-01-result.png
+        ├── step-02-result.png
+        └── final-result.png
+```
+
+Number files to match tutorial steps.
+
+## Diagrams and Visuals
+
+```
+architecture/
+├── overview.mdx
+└── assets/
+    ├── system-diagram.mermaid
+    ├── flow-chart.mermaid
+    ├── class-diagram.dot
+    └── sequence-diagram.mermaid
+```
+
+Keep diagram source files alongside documentation.

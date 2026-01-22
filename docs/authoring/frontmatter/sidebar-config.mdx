@@ -1,0 +1,87 @@
+---
+title: Sidebar Configuration
+description: Frontmatter fields for controlling sidebar appearance
+sidebar_position: 4
+---
+
+# Sidebar Configuration
+
+These fields control how your page appears in the sidebar navigation.
+
+## sidebar_position
+
+Numeric position in the sidebar. Lower numbers appear first.
+
+```yaml
+sidebar_position: 1
+```
+
+- **Type:** `number`
+- **Required:** No
+- **Default:** Alphabetical order by filename
+- Pages with `sidebar_position` appear before those without
+
+### Ordering Example
+
+```yaml
+# First page
+---
+title: Introduction
+sidebar_position: 1
+---
+```
+
+```yaml
+# Second page
+---
+title: Installation
+sidebar_position: 2
+---
+```
+
+```yaml
+# Third page
+---
+title: Configuration
+sidebar_position: 3
+---
+```
+
+### Gaps in Numbers
+
+You can leave gaps to make inserting new pages easier:
+
+```yaml
+sidebar_position: 10  # First
+sidebar_position: 20  # Second
+sidebar_position: 30  # Third
+# Room to add 15, 25, etc. later
+```
+
+## sidebar_label
+
+Custom label for the sidebar (different from title).
+
+```yaml
+title: Application Programming Interface Reference
+sidebar_label: API Reference
+```
+
+- **Type:** `string`
+- **Required:** No
+- **Default:** Uses `title`
+- Useful when the title is too long for the sidebar
+
+### When to Use
+
+Use `sidebar_label` when:
+- The full title is too long for the sidebar
+- You want a shorter, scannable label
+- The sidebar needs a different phrasing than the page title
+
+```yaml
+---
+title: Comprehensive Guide to Authentication Methods
+sidebar_label: Authentication
+---
+```

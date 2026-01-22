@@ -1,0 +1,85 @@
+---
+title: Publishing Control
+description: Managing drafts and publication dates in frontmatter
+sidebar_position: 6
+---
+
+# Publishing Control
+
+These fields control the publication state and timing of your documentation.
+
+## draft
+
+Mark a page as a draft to exclude it from production builds.
+
+```yaml
+draft: true
+```
+
+- **Type:** `boolean`
+- **Required:** No
+- **Default:** `false`
+- Draft pages are visible in development but excluded from production
+
+### When to Use Drafts
+
+Use `draft: true` when:
+- Content is work-in-progress
+- You want to preview before publishing
+- Collaborating on content that isn't ready
+
+```yaml
+---
+title: New Feature Documentation
+draft: true  # Remove when ready to publish
+---
+```
+
+## published_at
+
+Original publication date.
+
+```yaml
+published_at: 2024-01-15
+```
+
+- **Type:** `date`
+- **Required:** No
+- Format: `YYYY-MM-DD` or full ISO date
+
+### Date Formats
+
+```yaml
+# Simple date
+published_at: 2024-01-15
+
+# Full ISO date with time
+published_at: 2024-01-15T10:30:00Z
+```
+
+## updated_at
+
+Last update date.
+
+```yaml
+updated_at: 2024-06-20
+```
+
+- **Type:** `date`
+- **Required:** No
+- Format: `YYYY-MM-DD` or full ISO date
+- Useful for showing "Last updated" on pages
+
+### Tracking Updates
+
+Some documentation sites display "Last updated" to help readers know if content is current:
+
+```yaml
+---
+title: API Reference
+published_at: 2024-01-15
+updated_at: 2024-06-20
+---
+```
+
+This tells readers the content was originally published in January but has been updated as recently as June.

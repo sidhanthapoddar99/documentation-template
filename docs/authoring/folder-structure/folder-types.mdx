@@ -1,0 +1,134 @@
+---
+title: Folder Types
+description: Understanding clickable and non-clickable folder sections
+sidebar_position: 2
+---
+
+# Folder Types
+
+There are two main types of folder structures in documentation: folders with an index file (clickable) and folders without (non-clickable).
+
+## Folder with Index (Clickable Section)
+
+When a folder contains an `index.md` or `index.mdx` file, it becomes a **clickable section** in the sidebar.
+
+```
+components/
+├── index.mdx          # ← This makes "Components" clickable
+├── buttons.mdx
+├── cards.mdx
+└── forms.mdx
+```
+
+**Sidebar appears as:**
+```
+▼ Components          ← Clickable, links to index.mdx
+    Buttons
+    Cards
+    Forms
+```
+
+The index file typically contains:
+- An overview of the section
+- Links to child pages
+- Summary of what's covered
+
+```markdown
+---
+title: Components
+description: UI component documentation
+sidebar_position: 1
+---
+
+# Components
+
+This section covers all available UI components.
+
+## Available Components
+
+- [Buttons](/docs/components/buttons) - Button variants and usage
+- [Cards](/docs/components/cards) - Card layouts
+- [Forms](/docs/components/forms) - Form elements
+```
+
+## Folder without Index (Non-Clickable Group)
+
+When a folder has **no index file**, it becomes a non-clickable category label.
+
+```
+api-reference/
+├── authentication.mdx
+├── endpoints.mdx
+└── errors.mdx
+```
+
+**Sidebar appears as:**
+```
+▾ Api Reference       ← Not clickable, just a label
+    Authentication
+    Endpoints
+    Errors
+```
+
+Use this pattern when:
+- The section doesn't need an overview page
+- You just want to group related pages visually
+- The first child page serves as the introduction
+
+## Non-Clickable Folder with Metadata (index.json)
+
+If you want a non-clickable folder but still need to control its metadata (like sidebar position or label), use an `index.json` file instead of `index.mdx`.
+
+```
+api-reference/
+├── index.json         # ← Metadata only, folder stays non-clickable
+├── authentication.mdx
+├── endpoints.mdx
+└── errors.mdx
+```
+
+**index.json contents:**
+```json
+{
+  "label": "API Reference",
+  "position": 3,
+  "className": "sidebar-header"
+}
+```
+
+**Sidebar appears as:**
+```
+▾ API Reference       ← Not clickable, but positioned at 3
+    Authentication
+    Endpoints
+    Errors
+```
+
+### Available index.json Options
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `label` | string | Custom sidebar label for the folder |
+| `position` | number | Sidebar position (like `sidebar_position`) |
+| `className` | string | CSS class to apply to the sidebar item |
+| `collapsible` | boolean | Whether the folder can be collapsed |
+| `collapsed` | boolean | Whether to start collapsed |
+
+### When to Use index.json
+
+Use `index.json` when:
+- You need to control folder position without a landing page
+- You want a custom label different from the folder name
+- You need to apply CSS classes (like `sidebar-header`)
+- You want to control collapsibility settings
+
+```json
+{
+  "label": "Components",
+  "position": 1,
+  "className": "sidebar-header",
+  "collapsible": false
+}
+```
+
+This creates a non-clickable, non-collapsible header that acts as a section divider in the sidebar

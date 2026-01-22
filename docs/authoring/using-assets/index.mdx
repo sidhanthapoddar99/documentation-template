@@ -1,0 +1,43 @@
+---
+title: Using Assets
+description: How to organize and reference code snippets, images, and other assets in your documentation
+sidebar_position: 4
+---
+
+# Using Assets
+
+Assets are supporting files like code snippets, images, configuration examples, and diagrams that you reference in your documentation. This guide explains how to organize and use them effectively.
+
+## Overview
+
+This section covers:
+
+- [Importing Code](./importing-code) - Using raw-loader for code snippets
+- [File Types](./file-types) - Supported file extensions
+- [Importing Images](./importing-images) - Adding images and media
+- [Organizing Assets](./organizing) - Folder structure for large sections
+- [Best Practices](./best-practices) - Naming and organization tips
+- [Common Patterns](./patterns) - Examples for different documentation types
+- [Troubleshooting](./troubleshooting) - Fixing common issues
+
+## The Assets Folder
+
+Every documentation section can have an `assets` folder that is **automatically excluded** from the sidebar and routing.
+
+```
+components/
+├── index.mdx
+├── buttons.mdx
+├── cards.mdx
+└── assets/              # ← Not shown in sidebar
+    ├── button-example.tsx
+    ├── card-example.tsx
+    └── screenshot.png
+```
+
+## Why Use Assets?
+
+1. **Keep code separate** - Easier to maintain and syntax-highlight
+2. **Avoid MDX escaping issues** - Raw files don't need escaping
+3. **Reuse across pages** - Import the same asset in multiple files
+4. **Clean organization** - Supporting files don't clutter the sidebar

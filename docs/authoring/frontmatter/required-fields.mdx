@@ -1,0 +1,50 @@
+---
+title: Required Fields
+description: The required title field in frontmatter
+sidebar_position: 2
+---
+
+# Required Fields
+
+## title
+
+The page title displayed in the sidebar, browser tab, and as the main heading.
+
+```yaml
+title: Getting Started
+```
+
+- **Type:** `string`
+- **Required:** Yes
+- Used for: Sidebar label, `<title>` tag, `<h1>` if not overridden
+
+### Usage Notes
+
+The `title` is the only truly required field. Every documentation page must have a title.
+
+```yaml
+---
+title: Quick Start
+---
+```
+
+### Title vs Heading
+
+The `title` in frontmatter sets:
+- The sidebar label
+- The browser tab title
+- The default `<h1>` if you don't add one in content
+
+You can override the page heading by adding your own `# Heading` in the content:
+
+```markdown
+---
+title: Quick Start Guide
+---
+
+# Getting Started Quickly
+
+This heading overrides the title for display purposes.
+```
+
+In this case, the sidebar shows "Quick Start Guide" but the page displays "Getting Started Quickly" as the main heading.

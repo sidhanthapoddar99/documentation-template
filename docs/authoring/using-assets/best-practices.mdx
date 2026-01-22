@@ -1,0 +1,90 @@
+---
+title: Best Practices
+description: Guidelines for organizing and naming asset files
+sidebar_position: 5
+---
+
+# Best Practices
+
+Follow these guidelines to keep your assets organized and maintainable.
+
+## 1. Name Files Descriptively
+
+```
+# Good
+assets/
+├── button-primary-example.tsx
+├── button-disabled-state.tsx
+└── form-validation-schema.ts
+
+# Avoid
+assets/
+├── code1.tsx
+├── code2.tsx
+└── example.ts
+```
+
+## 2. Keep Assets Close to Content
+
+Place assets in the same section as the content that uses them:
+
+```
+components/
+├── buttons.mdx        # References button assets
+└── assets/
+    └── button-*.tsx   # Button-related assets
+```
+
+## 3. Use Consistent Naming
+
+Follow a pattern: `[component]-[variant]-[purpose].[ext]`
+
+```
+button-primary-example.tsx
+button-secondary-disabled.tsx
+card-image-with-actions.tsx
+```
+
+## 4. Document Complex Examples
+
+Add comments in your asset files:
+
+```tsx
+// assets/form-example.tsx
+
+/**
+ * Example: Form with validation
+ *
+ * This example demonstrates:
+ * - Field validation
+ * - Error messages
+ * - Submit handling
+ */
+export function FormExample() {
+  // ...
+}
+```
+
+## 5. Version Control Friendly
+
+Keep assets small and focused. If an example file is getting too long, split it into multiple files.
+
+```
+# Instead of one large file
+assets/
+└── complete-example.tsx  # 500 lines
+
+# Split into focused pieces
+assets/
+├── example-component.tsx
+├── example-styles.css
+├── example-hooks.ts
+└── example-utils.ts
+```
+
+## 6. Clean Up Unused Assets
+
+When removing or refactoring documentation:
+- Delete assets that are no longer referenced
+- Check for orphaned files periodically
+- Use your IDE's "find references" feature

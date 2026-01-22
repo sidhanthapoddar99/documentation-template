@@ -1,0 +1,41 @@
+---
+title: File Naming Conventions
+description: Guidelines for naming documentation files and folders
+sidebar_position: 4
+---
+
+# File Naming Conventions
+
+Consistent file naming helps maintain a clean, navigable documentation structure.
+
+## Allowed Characters
+
+- Lowercase letters: `a-z`
+- Numbers: `0-9`
+- Hyphens: `-` (preferred for word separation)
+- Underscores: `_` (alternative to hyphens)
+
+## Naming Best Practices
+
+| Good | Avoid |
+|------|-------|
+| `getting-started.mdx` | `Getting Started.mdx` |
+| `api-reference.mdx` | `API Reference.mdx` |
+| `01-introduction.mdx` | `1. Introduction.mdx` |
+
+## URL Generation
+
+Filenames become URL segments:
+
+| File | URL |
+|------|-----|
+| `docs/getting-started/index.mdx` | `/docs/getting-started` |
+| `docs/getting-started/installation.mdx` | `/docs/getting-started/installation` |
+| `docs/api/endpoints.mdx` | `/docs/api/endpoints` |
+
+## Tips
+
+- Use **hyphens** to separate words for better URL readability
+- Keep names **short but descriptive**
+- Avoid **special characters** and spaces
+- Use **lowercase** consistently

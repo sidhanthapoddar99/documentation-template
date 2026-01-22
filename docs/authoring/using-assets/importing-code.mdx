@@ -1,0 +1,76 @@
+---
+title: Importing Code Snippets
+description: How to import and display code files in your documentation
+sidebar_position: 1
+---
+
+# Importing Code Snippets
+
+Use the `raw-loader` to import code files as strings and display them in your documentation.
+
+## Basic Import
+
+Use the `!!raw-loader!` prefix to import code files as strings:
+
+```mdx
+import ButtonCode from '!!raw-loader!./assets/button-example.tsx';
+
+<CodeBlock language="tsx">{ButtonCode}</CodeBlock>
+```
+
+## With Collapsible Code Block
+
+For longer code examples, use a collapsible block:
+
+```mdx
+import ConfigExample from '!!raw-loader!./assets/config-example.json';
+
+<CollapsibleCodeBlock title="Configuration Example" language="json">
+  {ConfigExample}
+</CollapsibleCodeBlock>
+```
+
+## Multiple Files
+
+Import and display multiple code files:
+
+```mdx
+import ComponentCode from '!!raw-loader!./assets/component.tsx';
+import StylesCode from '!!raw-loader!./assets/styles.css';
+import UsageCode from '!!raw-loader!./assets/usage.tsx';
+
+## Component
+
+<CodeBlock language="tsx">{ComponentCode}</CodeBlock>
+
+## Styles
+
+<CodeBlock language="css">{StylesCode}</CodeBlock>
+
+## Usage
+
+<CodeBlock language="tsx">{UsageCode}</CodeBlock>
+```
+
+## File-Based Components
+
+Use the file-based code block components for cleaner syntax:
+
+```mdx
+import ExampleCode from '!!raw-loader!./assets/example.tsx';
+
+<FileCollapsibleCodeBlock content={ExampleCode} filename="example.tsx" />
+```
+
+```mdx
+import ConfigCode from '!!raw-loader!./assets/config.yaml';
+
+<FileInlineCodeCard content={ConfigCode} filename="config.yaml" />
+```
+
+## Important Notes
+
+- Always use `!!raw-loader!` prefix for code files
+- The `!!` at the start disables other loaders
+- Path is relative to the MDX file
+- File extension determines syntax highlighting

@@ -1,0 +1,86 @@
+---
+title: Validation & Best Practices
+description: Frontmatter validation and tips for effective usage
+sidebar_position: 9
+---
+
+# Validation & Best Practices
+
+## Frontmatter Validation
+
+The framework validates frontmatter at build time. Invalid values will cause build errors:
+
+```
+Error: Invalid frontmatter in docs/my-page.mdx
+  - "sidebar_position" expected number, received string
+```
+
+### Common Validation Errors
+
+- Missing required `title` field
+- Wrong type (string instead of number, etc.)
+- Invalid date format
+- Unrecognized field names (typos)
+
+### Fixing Validation Errors
+
+```yaml
+# Wrong - sidebar_position should be a number
+sidebar_position: "1"
+
+# Correct
+sidebar_position: 1
+```
+
+```yaml
+# Wrong - invalid date format
+published_at: January 15, 2024
+
+# Correct
+published_at: 2024-01-15
+```
+
+## Tips & Best Practices
+
+### 1. Always Include `title`
+
+It's the only required field and ensures your page has proper metadata.
+
+### 2. Add `description`
+
+Improves SEO and appears in search results. Keep it between 150-160 characters.
+
+### 3. Use `sidebar_position`
+
+Provides predictable ordering instead of relying on alphabetical sorting.
+
+### 4. Keep `sidebar_label` Short
+
+Sidebar space is limited. Use short, scannable labels.
+
+### 5. Use `draft: true` for WIP
+
+Mark work-in-progress content as drafts to prevent accidental publishing.
+
+### 6. Consistent Date Format
+
+Always use `YYYY-MM-DD` for dates to avoid ambiguity.
+
+### 7. Don't Over-Specify
+
+You don't need to include every field. Use only what's necessary:
+
+```yaml
+# Unnecessary - these are all defaults
+hide_title: false
+hide_toc: false
+full_width: false
+draft: false
+
+# Better - only specify what you need
+---
+title: My Page
+description: A useful description
+sidebar_position: 1
+---
+```

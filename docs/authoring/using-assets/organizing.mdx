@@ -1,0 +1,80 @@
+---
+title: Organizing Assets
+description: How to structure assets folders for large documentation sections
+sidebar_position: 4
+---
+
+# Organizing Assets
+
+For sections with many assets, use sub-folders and consistent naming conventions.
+
+## Sub-Folders by Topic
+
+Create sub-folders to organize assets by topic:
+
+```
+components/
+├── index.mdx
+├── buttons.mdx
+├── cards.mdx
+└── assets/
+    ├── buttons/
+    │   ├── primary.tsx
+    │   ├── secondary.tsx
+    │   └── icon-button.tsx
+    ├── cards/
+    │   ├── basic-card.tsx
+    │   └── image-card.tsx
+    └── shared/
+        └── types.ts
+```
+
+Import with the full path:
+
+```mdx
+import PrimaryButton from '!!raw-loader!./assets/buttons/primary.tsx';
+import SharedTypes from '!!raw-loader!./assets/shared/types.ts';
+```
+
+## Page-Specific Assets
+
+For assets used by a single page, create a folder matching the page name:
+
+```
+configuration/
+├── themes.mdx
+├── layouts.mdx
+└── assets/
+    ├── themes/              # Assets for themes.mdx
+    │   ├── dark-theme.css
+    │   └── light-theme.css
+    └── layouts/             # Assets for layouts.mdx
+        ├── sidebar-layout.tsx
+        └── full-width-layout.tsx
+```
+
+This pattern:
+- Makes it clear which assets belong to which page
+- Simplifies cleanup when pages are removed
+- Keeps related files together
+
+## Shared Assets
+
+For assets used across multiple pages, use a `shared/` or `common/` folder:
+
+```
+docs/
+├── getting-started/
+│   ├── index.mdx
+│   └── assets/
+│       └── shared/
+│           ├── types.ts
+│           └── utils.ts
+```
+
+## When to Split Assets
+
+Consider splitting assets when:
+- A single `assets/` folder has more than 10-15 files
+- Files are clearly related to specific pages
+- You have shared utilities used across multiple pages

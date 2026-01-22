@@ -1,0 +1,82 @@
+---
+title: Modules
+description: Optional features like search, analytics, and AI assistance
+sidebar_position: 1
+---
+
+# Modules
+
+Modules provide optional features that can be enabled through environment variables. Each module is self-contained and integrates with various third-party services.
+
+## Available Modules
+
+| Module | Purpose | Enable With |
+|--------|---------|-------------|
+| **Search** | Full-text documentation search | `ENABLE_SEARCH=true` |
+| **Analytics** | Page views and event tracking | `ENABLE_ANALYTICS=true` |
+| **AI Assistant** | AI-powered documentation help | `AI_API_KEY=...` |
+
+## Quick Setup
+
+### Search
+
+Enable full-text search across your documentation:
+
+```bash
+# .env
+ENABLE_SEARCH=true
+SEARCH_PROVIDER=pagefind  # pagefind, algolia
+```
+
+**Supported Providers:**
+- **Pagefind** - Static search, no external service (recommended)
+- **Algolia** - Scalable hosted search
+
+### Analytics
+
+Track documentation usage and user behavior:
+
+```bash
+# .env
+ENABLE_ANALYTICS=true
+ANALYTICS_PROVIDER=plausible  # ga4, plausible, umami
+ANALYTICS_ID=your-site-id
+```
+
+**Supported Providers:**
+- **Google Analytics 4** - Full-featured analytics
+- **Plausible** - Privacy-focused, lightweight
+- **Umami** - Self-hosted analytics
+
+### AI Assistant
+
+Add an AI-powered documentation assistant:
+
+```bash
+# .env
+AI_API_KEY=your-api-key
+AI_PROVIDER=anthropic  # openai, anthropic
+AI_MODEL=claude-3-sonnet
+```
+
+**Supported Providers:**
+- **Anthropic** - Claude models
+- **OpenAI** - GPT models
+
+## Design Principles
+
+All modules follow these principles:
+
+1. **Optional** - Site works without any modules enabled
+2. **Graceful degradation** - Missing config doesn't break the site
+3. **Environment-based** - Configuration via environment variables
+4. **Type-safe** - Full TypeScript support
+
+## Detailed Documentation
+
+For full configuration options and API reference:
+
+- [Search Module →](/docs/configuration/modules/search)
+- [Analytics Module →](/docs/configuration/modules/analytics)
+- [AI Module →](/docs/configuration/modules/ai)
+- [Creating Custom Modules →](/docs/configuration/modules/custom)

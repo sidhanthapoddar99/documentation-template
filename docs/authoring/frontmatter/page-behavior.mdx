@@ -1,0 +1,91 @@
+---
+title: Page Behavior
+description: Controlling page display and layout with frontmatter
+sidebar_position: 7
+---
+
+# Page Behavior
+
+These fields control how the page is rendered and displayed.
+
+## hide_title
+
+Hide the automatic title heading on the page.
+
+```yaml
+hide_title: true
+```
+
+- **Type:** `boolean`
+- **Required:** No
+- **Default:** `false`
+- Use when you want a custom hero section or landing page
+
+### When to Hide Title
+
+Hide the title when:
+- Creating a custom landing page
+- Using a hero component that includes the title
+- The page design doesn't need a standard heading
+
+```yaml
+---
+title: Welcome to Our Docs
+hide_title: true
+---
+
+<HeroSection title="Welcome to Our Docs" subtitle="..." />
+
+Content below the custom hero...
+```
+
+## hide_toc
+
+Hide the table of contents (outline) on this page.
+
+```yaml
+hide_toc: true
+```
+
+- **Type:** `boolean`
+- **Required:** No
+- **Default:** `false`
+- Useful for pages with minimal headings or custom layouts
+
+### When to Hide TOC
+
+Hide the TOC when:
+- The page has very few headings
+- Using a custom layout
+- The page is short and doesn't need navigation
+
+## full_width
+
+Render the page at full width without sidebar constraints.
+
+```yaml
+full_width: true
+```
+
+- **Type:** `boolean`
+- **Required:** No
+- **Default:** `false`
+- Useful for landing pages or wide content like tables
+
+### When to Use Full Width
+
+Use full width for:
+- Landing pages and marketing content
+- Wide tables or diagrams
+- Dashboards or data-heavy pages
+- Custom layouts that need more space
+
+```yaml
+---
+title: System Architecture
+full_width: true
+hide_toc: true
+---
+
+<ArchitectureDiagram />
+```

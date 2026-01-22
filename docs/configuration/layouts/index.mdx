@@ -1,0 +1,106 @@
+---
+title: Layouts
+description: Page layouts for different content types
+sidebar_position: 1
+---
+
+# Layouts
+
+Layouts define the structure and components used on different page types. The framework includes several pre-built layouts that can be selected through configuration.
+
+## Available Layouts
+
+| Layout | Use Case | Features |
+|--------|----------|----------|
+| **BaseLayout** | Root layout | HTML structure, head, body |
+| **DocsLayout** | Documentation | Sidebar, content, outline |
+| **HomeLayout** | Landing pages | Hero, features, full-width |
+| **BlogLayout** | Blog posts | Author, date, reading time |
+
+## Layout Structure
+
+```
+src/layouts/
+├── BaseLayout.astro       # Root layout (all pages extend this)
+├── docs/
+│   └── DocsLayout.astro   # Documentation pages
+├── home/
+│   └── HomeLayout.astro   # Home/landing pages
+└── blog/
+    └── BlogLayout.astro   # Blog posts
+```
+
+## Configuration
+
+Layouts are selected based on page type in `site.config.ts`:
+
+```typescript
+pages: {
+  home: {
+    type: 'home',        // Uses HomeLayout
+  },
+  docs: {
+    type: 'doc',         // Uses DocsLayout
+  },
+  blog: {
+    type: 'blog',        // Uses BlogLayout
+  },
+  custom: {
+    type: 'custom',      // Custom layout
+    layout: 'roadmap',   // Specify layout name
+  },
+},
+```
+
+## Layout Components
+
+### BaseLayout
+
+The root layout that all other layouts extend:
+
+- HTML document structure
+- Meta tags and SEO
+- Theme initialization
+- Global styles
+
+### DocsLayout
+
+Documentation layout with three-column structure:
+
+- **Sidebar** - Navigation for current section
+- **Content** - Main documentation content
+- **Outline** - Table of contents (TOC)
+
+Controlled by config:
+```typescript
+{
+  sidebar: 'default' | 'none',
+  outline: 'default' | 'none',
+}
+```
+
+### HomeLayout
+
+Full-width layout for landing pages:
+
+- No sidebar or outline
+- Hero sections
+- Feature grids
+- Call-to-action areas
+
+### BlogLayout
+
+Blog post layout with metadata:
+
+- Author information
+- Publication date
+- Reading time estimate
+- Related posts
+
+## Customizing Layouts
+
+See the detailed documentation for each layout type:
+
+- [DocsLayout Details →](/docs/configuration/layouts/docs-layout)
+- [HomeLayout Details →](/docs/configuration/layouts/home-layout)
+- [Creating Custom Layouts →](/docs/configuration/layouts/custom)

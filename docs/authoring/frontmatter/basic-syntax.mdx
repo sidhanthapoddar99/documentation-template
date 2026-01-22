@@ -1,0 +1,84 @@
+---
+title: Basic Syntax
+description: How to write frontmatter in documentation files
+sidebar_position: 1
+---
+
+# Basic Syntax
+
+Frontmatter must be:
+- At the **very beginning** of the file
+- Enclosed between triple dashes `---`
+- Valid YAML syntax
+
+```markdown
+---
+title: Page Title
+description: A brief description
+sidebar_position: 1
+---
+
+# Page Content
+
+Your markdown content starts here...
+```
+
+## YAML Basics
+
+Frontmatter uses YAML syntax. Here are the common patterns:
+
+### Strings
+
+```yaml
+title: My Page Title
+description: A longer description with spaces
+```
+
+### Numbers
+
+```yaml
+sidebar_position: 1
+```
+
+### Booleans
+
+```yaml
+draft: true
+hide_toc: false
+```
+
+### Arrays
+
+```yaml
+keywords:
+  - documentation
+  - tutorial
+  - guide
+```
+
+### Dates
+
+```yaml
+published_at: 2024-01-15
+updated_at: 2024-06-20
+```
+
+## Common Mistakes
+
+```yaml
+# Wrong - missing quotes around colons in values
+title: My Page: A Guide  # Will fail
+
+# Correct - quote strings with special characters
+title: "My Page: A Guide"
+```
+
+```yaml
+# Wrong - incorrect indentation
+keywords:
+- item1  # Should be indented
+
+# Correct
+keywords:
+  - item1
+```

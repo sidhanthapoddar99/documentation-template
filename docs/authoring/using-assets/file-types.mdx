@@ -1,0 +1,62 @@
+---
+title: Supported File Types
+description: File types you can store in assets folders
+sidebar_position: 2
+---
+
+# Supported File Types
+
+You can store any file type in the assets folder. Here are the common categories.
+
+## Code Files
+
+| Extension | Language | Use Case |
+|-----------|----------|----------|
+| `.ts`, `.tsx` | TypeScript | React/TypeScript examples |
+| `.js`, `.jsx` | JavaScript | JavaScript examples |
+| `.py` | Python | Python code snippets |
+| `.go` | Go | Go examples |
+| `.rs` | Rust | Rust examples |
+| `.css` | CSS | Style examples |
+| `.json` | JSON | Configuration files |
+| `.yaml`, `.yml` | YAML | Configuration files |
+| `.sh`, `.bash` | Shell | Command examples |
+| `.sql` | SQL | Database queries |
+
+## Media Files
+
+| Extension | Type | Use Case |
+|-----------|------|----------|
+| `.png`, `.jpg`, `.gif` | Images | Screenshots, diagrams |
+| `.svg` | Vector | Icons, logos |
+| `.mp4`, `.webm` | Video | Demo videos |
+
+## Diagram Files
+
+| Extension | Use Case |
+|-----------|----------|
+| `.mermaid` | Mermaid diagram source |
+| `.dot` | Graphviz diagram source |
+
+## Other Files
+
+| Extension | Use Case |
+|-----------|----------|
+| `.md` | Markdown snippets |
+| `.env.example` | Environment templates |
+| `.xml` | XML configuration |
+| `.html` | HTML snippets |
+
+## Language Detection
+
+The file extension determines syntax highlighting:
+
+```mdx
+// Automatically highlighted as TypeScript
+import Code from '!!raw-loader!./assets/example.ts';
+<CodeBlock language="ts">{Code}</CodeBlock>
+
+// Automatically highlighted as Python
+import PyCode from '!!raw-loader!./assets/script.py';
+<CodeBlock language="python">{PyCode}</CodeBlock>
+```

@@ -1,0 +1,63 @@
+---
+title: Ordering Pages
+description: How to control page order in the sidebar
+sidebar_position: 5
+---
+
+# Ordering Pages
+
+There are two main ways to control the order of pages in the sidebar.
+
+## Using sidebar_position
+
+The most reliable way to order pages:
+
+```markdown
+---
+title: Introduction
+sidebar_position: 1
+---
+```
+
+```markdown
+---
+title: Installation
+sidebar_position: 2
+---
+```
+
+```markdown
+---
+title: Configuration
+sidebar_position: 3
+---
+```
+
+## Using Filename Prefixes
+
+Alternative approach using numeric prefixes:
+
+```
+getting-started/
+├── 01-introduction.mdx
+├── 02-installation.mdx
+├── 03-configuration.mdx
+└── 04-first-steps.mdx
+```
+
+Note: `sidebar_position` always takes precedence over filename ordering.
+
+## Mixed Ordering
+
+When some pages have `sidebar_position` and others don't:
+
+1. Pages with `sidebar_position` appear first, in numeric order
+2. Pages without `sidebar_position` appear after, in alphabetical order
+
+## Best Practice
+
+Use `sidebar_position` in frontmatter for explicit control. This approach:
+
+- Is more explicit and readable
+- Doesn't require filename changes when reordering
+- Works consistently across different sorting implementations

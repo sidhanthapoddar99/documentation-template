@@ -1,0 +1,55 @@
+---
+title: Complete Example
+description: A full documentation structure example
+sidebar_position: 7
+---
+
+# Complete Example
+
+Here's a comprehensive example of a well-organized documentation structure:
+
+```
+docs/
+├── index.mdx                      # Docs home
+├── getting-started/
+│   ├── index.mdx                  # sidebar_position: 1
+│   ├── installation.mdx           # sidebar_position: 2
+│   └── quick-start.mdx            # sidebar_position: 3
+├── guides/                        # No index (non-clickable)
+│   ├── basic-usage.mdx
+│   ├── advanced-topics.mdx
+│   └── assets/
+│       └── example-config.json
+├── components/
+│   ├── index.mdx
+│   ├── buttons.mdx
+│   ├── cards.mdx
+│   └── assets/
+│       ├── button-example.tsx
+│       └── card-example.tsx
+├── api-reference/
+│   ├── index.mdx
+│   ├── authentication.mdx
+│   ├── endpoints.mdx
+│   └── errors.mdx
+└── changelog.mdx                  # Standalone page
+```
+
+## Structure Breakdown
+
+| Path | Type | Description |
+|------|------|-------------|
+| `index.mdx` | Landing page | Documentation home |
+| `getting-started/` | Clickable section | Has index, ordered children |
+| `guides/` | Non-clickable group | No index, just groups pages |
+| `components/` | Clickable section | Has assets folder |
+| `api-reference/` | Clickable section | Standard section |
+| `changelog.mdx` | Standalone page | Top-level page |
+
+## What Makes This Structure Good
+
+1. **Clear hierarchy** - Logical groupings
+2. **Consistent patterns** - Sections use similar structures
+3. **Assets organized** - Supporting files in `assets/` folders
+4. **Explicit ordering** - `sidebar_position` for predictable order
+5. **Mix of patterns** - Both clickable and non-clickable sections

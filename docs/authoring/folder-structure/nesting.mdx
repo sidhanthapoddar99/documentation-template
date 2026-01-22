@@ -1,0 +1,45 @@
+---
+title: Nesting Depth
+description: How deep you can nest folders in documentation
+sidebar_position: 6
+---
+
+# Nesting Depth
+
+You can nest folders multiple levels deep:
+
+```
+docs/
+└── platform/
+    └── features/
+        └── authentication/
+            ├── index.mdx
+            ├── oauth.mdx
+            └── jwt.mdx
+```
+
+URL: `/docs/platform/features/authentication/oauth`
+
+## Recommendations
+
+**Keep nesting to 2-3 levels maximum** for better navigation.
+
+Deep nesting can cause:
+- Long, unwieldy URLs
+- Difficult sidebar navigation
+- Confusion about content location
+- Mobile usability issues
+
+## When to Use Deep Nesting
+
+Deep nesting makes sense when:
+- Content has a natural hierarchical structure
+- Users expect to drill down through categories
+- The top-level categories are too broad otherwise
+
+## Alternatives to Deep Nesting
+
+Instead of deep nesting, consider:
+- **Flat structure with tags** - Use frontmatter tags for categorization
+- **Separate doc sections** - Create independent plugin routes
+- **Landing pages with links** - Use index pages to link related content

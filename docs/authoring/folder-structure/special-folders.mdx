@@ -1,0 +1,40 @@
+---
+title: Special Folders
+description: Understanding the assets folder and other special directories
+sidebar_position: 3
+---
+
+# Special Folders
+
+Certain folder names have special behavior in the documentation framework.
+
+## Assets Folder
+
+Any folder named `assets` is **completely excluded** from the sidebar and routing:
+
+```
+configuration/
+├── index.mdx
+├── themes.mdx
+└── assets/           # ← Excluded from sidebar
+    ├── theme-example.css
+    ├── config-sample.json
+    └── screenshot.png
+```
+
+Use assets folders for:
+- Code snippets to import into MDX
+- Images and diagrams
+- Configuration examples
+- Any supporting files
+
+See [Using Assets](/docs/authoring/using-assets) for details on importing these files.
+
+## Why Assets Are Excluded
+
+The `assets` folder exclusion allows you to:
+
+1. **Keep supporting files organized** alongside the content that uses them
+2. **Avoid sidebar clutter** from non-documentation files
+3. **Reference files easily** with relative imports
+4. **Maintain clean URLs** without asset paths showing up as routes

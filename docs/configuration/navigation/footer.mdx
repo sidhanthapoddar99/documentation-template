@@ -1,0 +1,132 @@
+---
+title: Footer
+description: Configure the site footer with copyright and links
+sidebar_position: 3
+---
+
+# Footer Configuration
+
+The footer component displays at the bottom of every page and can be configured through `site.config.ts`.
+
+## Configuration
+
+```typescript
+// src/config/site.config.ts
+export const siteConfig = {
+  footer: {
+    copyright: '2024 Your Company. All rights reserved.',
+    links: [
+      { href: '/privacy', label: 'Privacy Policy' },
+      { href: '/terms', label: 'Terms of Service' },
+      { href: 'https://github.com/your-org', label: 'GitHub' },
+    ],
+  },
+};
+```
+
+## Footer Variants
+
+| Variant | Description |
+|---------|-------------|
+| `default` | Standard footer with copyright and links |
+| `none` | No footer (hide on specific pages) |
+
+## Per-Page Configuration
+
+Hide the footer on specific pages:
+
+```typescript
+pages: {
+  home: {
+    footer: 'default',  // Show footer
+  },
+  landing: {
+    footer: 'none',     // Hide footer
+  },
+},
+```
+
+## Footer Props
+
+### FooterDefault Component
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `copyright` | `string` | Copyright text |
+| `links` | `FooterLink[]` | Array of footer links |
+
+### FooterLink Type
+
+```typescript
+interface FooterLink {
+  href: string;   // Link URL
+  label: string;  // Link text
+}
+```
+
+## Usage Examples
+
+### Basic Footer
+
+```typescript
+footer: {
+  copyright: '2024 Acme Inc.',
+},
+```
+
+### Footer with Links
+
+```typescript
+footer: {
+  copyright: '2024 Acme Inc.',
+  links: [
+    { href: '/docs', label: 'Documentation' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/contact', label: 'Contact' },
+  ],
+},
+```
+
+### Footer with External Links
+
+```typescript
+footer: {
+  copyright: '2024 Acme Inc.',
+  links: [
+    { href: 'https://twitter.com/acme', label: 'Twitter' },
+    { href: 'https://github.com/acme', label: 'GitHub' },
+    { href: 'https://discord.gg/acme', label: 'Discord' },
+  ],
+},
+```
+
+## Styling
+
+The footer uses theme variables for consistent styling:
+
+```css
+.footer {
+  background: var(--theme-bg-secondary);
+  border-top: 1px solid var(--theme-border-default);
+  color: var(--theme-text-secondary);
+}
+
+.footer a:hover {
+  color: var(--theme-text-primary);
+}
+```
+
+### Custom Styles
+
+Override footer styles in your theme:
+
+```css
+/* src/theme/custom.css */
+.footer {
+  padding: 3rem 0;
+}
+
+.footer-links {
+  gap: 2rem;
+}
+```

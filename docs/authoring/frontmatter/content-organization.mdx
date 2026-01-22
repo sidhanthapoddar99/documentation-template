@@ -1,0 +1,78 @@
+---
+title: Content Organization
+description: Using tags and categories in frontmatter
+sidebar_position: 5
+---
+
+# Content Organization
+
+These fields help organize and categorize your documentation content.
+
+## tags
+
+Categorize content with tags for filtering and organization.
+
+```yaml
+tags:
+  - beginner
+  - tutorial
+  - react
+```
+
+- **Type:** `string[]`
+- **Required:** No
+- Can be used for filtering, tag pages, or related content
+
+### Tag Best Practices
+
+- Use lowercase, hyphenated tags
+- Be consistent across your documentation
+- Don't over-tag (3-5 tags per page is usually enough)
+
+```yaml
+# Good
+tags:
+  - getting-started
+  - installation
+  - beginner
+
+# Avoid - too many, inconsistent
+tags:
+  - Getting Started
+  - beginner
+  - Beginner
+  - intro
+  - introduction
+  - setup
+  - install
+```
+
+## category
+
+Assign a primary category to the page.
+
+```yaml
+category: tutorials
+```
+
+- **Type:** `string`
+- **Required:** No
+- Used for grouping and filtering content
+
+### Category vs Tags
+
+- **Category**: Single, primary classification
+- **Tags**: Multiple, secondary classifications
+
+```yaml
+---
+title: Building a REST API
+category: tutorials
+tags:
+  - api
+  - backend
+  - intermediate
+---
+```
+
+In this example, the page is primarily a tutorial (category) but also relates to API and backend topics (tags).

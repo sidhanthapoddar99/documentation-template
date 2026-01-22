@@ -1,0 +1,75 @@
+---
+title: SEO & Metadata Fields
+description: Frontmatter fields for SEO and social sharing
+sidebar_position: 3
+---
+
+# SEO & Metadata Fields
+
+These fields control how your pages appear in search results and social media shares.
+
+## description
+
+A brief description for SEO and social sharing.
+
+```yaml
+description: Learn how to install and configure the documentation framework
+```
+
+- **Type:** `string`
+- **Required:** No
+- Used for: `<meta name="description">`, Open Graph description
+- **Recommendation:** Keep between 150-160 characters
+
+### Good Descriptions
+
+```yaml
+# Good - concise and informative
+description: Step-by-step guide to installing and configuring the framework
+
+# Avoid - too vague
+description: Documentation page
+
+# Avoid - too long (will be truncated in search results)
+description: This is a comprehensive guide that covers every aspect of installation...
+```
+
+## keywords
+
+An array of keywords for SEO.
+
+```yaml
+keywords:
+  - documentation
+  - getting started
+  - installation
+```
+
+- **Type:** `string[]`
+- **Required:** No
+- Used for: `<meta name="keywords">`
+
+### Usage Tips
+
+- Include 3-7 relevant keywords
+- Use terms users might search for
+- Don't keyword-stuff
+
+## image
+
+Path to an image for social sharing (Open Graph).
+
+```yaml
+image: /images/getting-started-cover.png
+```
+
+- **Type:** `string`
+- **Required:** No
+- Used for: `<meta property="og:image">`
+- Should be an absolute path from the site root
+
+### Image Recommendations
+
+- Use 1200x630 pixels for optimal display
+- Keep important content in the center
+- Include text that summarizes the page
