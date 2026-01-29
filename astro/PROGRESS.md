@@ -152,6 +152,31 @@
 - Added "Writing Docs" to navbar under Learn dropdown
 - All authoring pages return 200 OK
 
+### Iteration 6
+- Restructured `docs/configuration/` into organized folder hierarchy:
+  ```
+  configuration/
+  ├── index.mdx              # Overview with structure diagram
+  ├── site-config.mdx        # Site configuration (position 1)
+  ├── themes.mdx             # Themes (position 2)
+  ├── navigation/            # Navigation section
+  │   ├── index.mdx          # Navigation overview
+  │   ├── navbar.mdx         # Navbar variants
+  │   └── footer.mdx         # Footer configuration
+  ├── layouts/               # Layouts section
+  │   ├── index.mdx          # Layouts overview
+  │   └── details.mdx        # Layout details
+  ├── components/            # MDX Components section
+  │   ├── index.mdx          # Components overview
+  │   └── details.mdx        # Component reference
+  └── modules/               # Modules section
+      ├── index.mdx          # Modules overview
+      └── details.mdx        # Module reference
+  ```
+- Each section has an index with overview and links to details
+- Removed old flat files (backend.mdx, pages.mdx)
+- All 12 configuration pages return 200 OK
+
 ---
 
 ## Files Created
