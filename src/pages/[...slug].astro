@@ -46,6 +46,7 @@ export async function getStaticPaths() {
       const content = await loadContent(dataPath, {
         pattern: '**/*.{md,mdx}',
         sort: 'position',
+        requirePositionPrefix: true, // Docs require XX_ prefix for ordering
       });
 
       paths.push({

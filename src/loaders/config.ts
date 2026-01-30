@@ -14,10 +14,6 @@ export interface SiteMetadata {
   name: string;
   title: string;
   description: string;
-  logo?: {
-    src: string;
-    alt: string;
-  };
 }
 
 export type PageType = 'docs' | 'blog' | 'custom';
@@ -37,14 +33,16 @@ export interface SiteConfig {
 export interface NavItem {
   label: string;
   href?: string;
-  page?: string;
-  children?: NavItem[];
-  external?: boolean;
-  icon?: string;
+  items?: NavItem[];
+}
+
+export interface NavbarLogo {
+  src?: string;
+  alt?: string;
 }
 
 export interface NavbarConfig {
-  layout: string;
+  logo?: NavbarLogo;
   items: NavItem[];
 }
 
@@ -122,7 +120,7 @@ export function loadNavbarConfig(): NavbarConfig {
   if (!config) {
     // Return default config
     return {
-      layout: '@navbar/style1',
+      logo: { alt: 'Docs' },
       items: [],
     };
   }

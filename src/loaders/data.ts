@@ -9,6 +9,106 @@ import { glob } from 'glob';
 import { getDataPath, paths } from './paths';
 
 // ============================================
+// Asset Embedding - [[type, path]] syntax
+// ============================================
+
+// Map file extensions to language identifiers for syntax highlighting
+const extToLang: Record<string, string> = {
+  'py': 'python',
+  'js': 'javascript',
+  'ts': 'typescript',
+  'jsx': 'jsx',
+  'tsx': 'tsx',
+  'cpp': 'cpp',
+  'c': 'c',
+  'h': 'c',
+  'hpp': 'cpp',
+  'java': 'java',
+  'go': 'go',
+  'rs': 'rust',
+  'rb': 'ruby',
+  'php': 'php',
+  'sh': 'bash',
+  'bash': 'bash',
+  'zsh': 'bash',
+  'yaml': 'yaml',
+  'yml': 'yaml',
+  'json': 'json',
+  'xml': 'xml',
+  'html': 'html',
+  'css': 'css',
+  'scss': 'scss',
+  'sass': 'sass',
+  'less': 'less',
+  'sql': 'sql',
+  'md': 'markdown',
+  'mdx': 'mdx',
+  'toml': 'toml',
+  'ini': 'ini',
+  'env': 'bash',
+  'dockerfile': 'dockerfile',
+  'graphql': 'graphql',
+  'gql': 'graphql',
+};
+
+function getLanguageFromExtension(filePath: string): string {
+  const ext = path.extname(filePath).slice(1).toLowerCase();
+  return extToLang[ext] || ext || 'text';
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * Process [[type, path]] asset embeds in content
+ */
+function processAssetEmbeds(content: string, fileDir: string): string {
+  // Match [[type, path]] patterns on their own line
+  const assetPattern = /^\[\[(\w+),\s*(.+)\]\]$/gm;
+
+  return content.replace(assetPattern, (match, type, assetPath) => {
+    const trimmedPath = assetPath.trim();
+    const absolutePath = path.resolve(fileDir, trimmedPath);
+
+    try {
+      if (type === 'code') {
+        if (!fs.existsSync(absolutePath)) {
+          console.warn(`[asset-embed] File not found: ${absolutePath}`);
+          return match; // Return original if file not found
+        }
+
+        const fileContent = fs.readFileSync(absolutePath, 'utf-8');
+        const lang = getLanguageFromExtension(trimmedPath);
+        const filename = path.basename(trimmedPath);
+
+        // Return markdown code block that will be processed by the markdown renderer
+        return `\`\`\`${lang} title="${filename}"\n${fileContent.trimEnd()}\n\`\`\``;
+
+      } else if (type === 'img') {
+        const altText = path.basename(trimmedPath);
+        return `![${altText}](${trimmedPath})`;
+
+      } else if (type === 'video') {
+        return `<video controls src="${trimmedPath}" style="max-width: 100%; height: auto;"></video>`;
+
+      } else {
+        console.warn(`[asset-embed] Unknown asset type: ${type}`);
+        return match;
+      }
+    } catch (error) {
+      console.error(`[asset-embed] Error processing asset: ${trimmedPath}`, error);
+      return match;
+    }
+  });
+}
+
+// ============================================
 // Type Definitions
 // ============================================
 
@@ -53,6 +153,9 @@ export interface LoadOptions {
 
   // Depth limit
   maxDepth?: number;
+
+  // Require XX_ prefix for position sorting (throws error if missing)
+  requirePositionPrefix?: boolean;
 }
 
 export interface ContentSettings {
@@ -121,16 +224,60 @@ function getFileType(filePath: string): 'mdx' | 'md' | 'yaml' | 'json' | null {
 // Content Parsing
 // ============================================
 
+/**
+ * Extract position from XX_ prefix in filename
+ * e.g., "01_getting-started.mdx" -> { position: 1, cleanName: "getting-started" }
+ */
+function extractPositionFromFilename(filename: string): { position: number | null; cleanName: string } {
+  const match = filename.match(/^(\d{2})_(.+)$/);
+  if (match) {
+    return {
+      position: parseInt(match[1], 10),
+      cleanName: match[2],
+    };
+  }
+  return { position: null, cleanName: filename };
+}
+
+/**
+ * Clean slug by removing XX_ prefixes from all path segments
+ */
+function cleanSlugPrefixes(slug: string): string {
+  return slug
+    .split('/')
+    .map(segment => {
+      const { cleanName } = extractPositionFromFilename(segment);
+      return cleanName;
+    })
+    .join('/');
+}
+
 function parseMarkdownFile(filePath: string, basePath: string): LoadedContent {
   const raw = fs.readFileSync(filePath, 'utf-8');
-  const { data, content } = matter(raw);
+  const { data, content: rawContent } = matter(raw);
   const fileType = getFileType(filePath) as 'mdx' | 'md';
 
+  // Process [[type, path]] asset embeds
+  const fileDir = path.dirname(filePath);
+  const content = processAssetEmbeds(rawContent, fileDir);
+
   const relativePath = path.relative(basePath, filePath);
-  const slug = relativePath
+
+  // Get raw slug (with potential XX_ prefixes)
+  const rawSlug = relativePath
     .replace(/\\/g, '/')
     .replace(/\.(mdx|md)$/, '')
     .replace(/\/index$/, '');
+
+  // Clean slug (remove XX_ prefixes for URL)
+  const slug = cleanSlugPrefixes(rawSlug);
+
+  // Extract position from filename if not in frontmatter
+  const filename = path.basename(filePath, path.extname(filePath));
+  const { position: filenamePosition } = extractPositionFromFilename(filename);
+
+  // Frontmatter sidebar_position takes precedence, then filename prefix
+  const sidebarPosition = data.sidebar_position ?? filenamePosition ?? undefined;
 
   return {
     id: slug.replace(/\//g, '-') || 'index',
@@ -139,6 +286,7 @@ function parseMarkdownFile(filePath: string, basePath: string): LoadedContent {
     data: {
       title: data.title || path.basename(filePath, path.extname(filePath)),
       ...data,
+      sidebar_position: sidebarPosition,
     },
     filePath,
     relativePath,
@@ -270,6 +418,7 @@ export async function loadContent(
     filter,
     includeDrafts = !import.meta.env.PROD,
     maxDepth,
+    requirePositionPrefix = false,
   } = options;
 
   // Resolve the data path
@@ -301,11 +450,37 @@ export async function loadContent(
 
   // Parse files
   let content: LoadedContent[] = [];
+  const missingPrefixFiles: string[] = [];
+
   for (const file of files) {
     const parsed = parseFile(file, absolutePath);
     if (parsed) {
+      // Check for required position prefix
+      if (requirePositionPrefix) {
+        const filename = path.basename(file, path.extname(file));
+        const hasPrefix = /^\d{2}_/.test(filename);
+        if (!hasPrefix && filename !== 'index') {
+          missingPrefixFiles.push(parsed.relativePath);
+        }
+      }
       content.push(parsed);
     }
+  }
+
+  // Throw error if prefix validation fails
+  if (requirePositionPrefix && missingPrefixFiles.length > 0) {
+    throw new DataLoaderError({
+      code: 'MISSING_POSITION_PREFIX',
+      path: absolutePath,
+      message:
+        `\n[DOCS ERROR] Files missing required XX_ position prefix:\n` +
+        missingPrefixFiles.map(f => `  - ${f}`).join('\n') +
+        `\n\nDocs files must be named with a position prefix (01-99).\n` +
+        `Examples:\n` +
+        `  01_getting-started.mdx\n` +
+        `  02_installation.mdx\n` +
+        `  guides/01_configuration.mdx\n`,
+    });
   }
 
   // Filter drafts

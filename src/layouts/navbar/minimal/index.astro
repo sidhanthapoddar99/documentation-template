@@ -9,25 +9,28 @@
  * - Clean, minimal design
  */
 
-import { loadSiteConfig, loadNavbarConfig, resolvePageUrl } from '@loaders/config';
+import { loadNavbarConfig } from '@loaders/config';
 import type { NavItem } from '@loaders/config';
 
 interface Props {
   currentPath?: string;
 }
 
-const siteConfig = loadSiteConfig();
 const navbarConfig = loadNavbarConfig();
-
 const { currentPath = Astro.url.pathname } = Astro.props;
 
-const logo = siteConfig.site.logo || { src: '/logo.svg', alt: siteConfig.site.name };
+const logo = navbarConfig.logo || { alt: 'Docs' };
 
-// Flatten nav items (ignore children)
-const items = navbarConfig.items?.map((item: NavItem) => ({
+// Helper to check if a link is external
+function isExternal(href: string | undefined): boolean {
+  return href?.startsWith('http') || false;
+}
+
+// Flatten nav items (ignore nested items)
+const items = navbarConfig.items?.filter((item: NavItem) => !item.items).map((item: NavItem) => ({
   label: item.label,
-  href: item.page ? resolvePageUrl(item.page) : (item.href || '#'),
-  external: item.external || false,
+  href: item.href || '#',
+  isExternal: isExternal(item.href),
 })) || [];
 
 function isActive(href: string): boolean {
@@ -45,7 +48,7 @@ function isActive(href: string): boolean {
       {logo.src ? (
         <img src={logo.src} alt={logo.alt} />
       ) : (
-        <span>{siteConfig.site.name}</span>
+        <span>{logo.alt}</span>
       )}
     </a>
 
@@ -55,8 +58,8 @@ function isActive(href: string): boolean {
         <a
           href={item.href}
           class:list={['navbar-minimal__link', { 'navbar-minimal__link--active': isActive(item.href) }]}
-          target={item.external ? '_blank' : undefined}
-          rel={item.external ? 'noopener noreferrer' : undefined}
+          target={item.isExternal ? '_blank' : undefined}
+          rel={item.isExternal ? 'noopener noreferrer' : undefined}
         >
           {item.label}
         </a>

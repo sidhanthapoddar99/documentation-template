@@ -3,24 +3,48 @@ site:
   name: "My Docs"
   title: "My Documentation"
   description: "Modern documentation built with Astro"
-  logo:
-    src: "/logo.svg"
-    alt: "My Docs Logo"
 
 # Page Definitions
 pages:
-  docs_main:
-    base_url: "/docs"
+  # Documentation Sections (each is independent in navbar)
+  getting-started:
+    base_url: "/docs/getting-started"
     type: docs
     layout: "@docs/doc_style1"
-    data: "@data/docs"
+    data: "@data/docs/getting-started"
 
+  architecture:
+    base_url: "/docs/architecture"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/docs/architecture"
+
+  layouts:
+    base_url: "/docs/layouts"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/docs/layouts"
+
+  content:
+    base_url: "/docs/content"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/docs/content"
+
+  components:
+    base_url: "/docs/components"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/docs/components"
+
+  # Blog
   blog:
     base_url: "/blog"
     type: blog
     layout: "@blog/blog_style1"
     data: "@data/blog"
 
+  # Custom Pages
   home:
     base_url: "/"
     type: custom

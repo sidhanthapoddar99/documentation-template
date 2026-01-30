@@ -3,15 +3,19 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { remarkAssets } from './src/plugins/remark-assets.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://astro.build/config
 export default defineConfig({
   integrations: [
-    mdx(),
+    mdx({
+      remarkPlugins: [remarkAssets],
+    }),
   ],
   markdown: {
+    remarkPlugins: [remarkAssets],
     shikiConfig: {
       theme: 'github-dark',
       wrap: true,

@@ -5,53 +5,53 @@
  * Features:
  * - Logo on the left
  * - Navigation links in the center/right
- * - Dropdown menus for children
- * - External link indicators
+ * - Dropdown menus for grouped items
+ * - External link indicators (auto-detected)
  * - Theme toggle
  * - Mobile responsive with hamburger menu
  */
 
-import { loadSiteConfig, loadNavbarConfig, resolvePageUrl } from '@loaders/config';
+import { loadNavbarConfig } from '@loaders/config';
 import type { NavItem } from '@loaders/config';
 
 interface Props {
   currentPath?: string;
 }
 
-const siteConfig = loadSiteConfig();
 const navbarConfig = loadNavbarConfig();
-
 const { currentPath = Astro.url.pathname } = Astro.props;
 
-const logo = siteConfig.site.logo || { src: '/logo.svg', alt: siteConfig.site.name };
+const logo = navbarConfig.logo || { alt: 'Docs' };
 const items = navbarConfig.items || [];
 
-// Process nav items - resolve page references to URLs
-function processNavItem(item: NavItem): NavItem & { resolvedHref: string } {
-  let resolvedHref = item.href || '#';
+// Helper to check if a link is external
+function isExternal(href: string | undefined): boolean {
+  return href?.startsWith('http') || false;
+}
 
-  if (item.page) {
-    resolvedHref = resolvePageUrl(item.page);
-  }
+// Process nav items
+interface ProcessedNavItem extends NavItem {
+  isExternal: boolean;
+  items?: ProcessedNavItem[];
+}
 
+function processNavItem(item: NavItem): ProcessedNavItem {
   return {
     ...item,
-    resolvedHref,
-    children: item.children?.map(processNavItem),
+    isExternal: isExternal(item.href),
+    items: item.items?.map(processNavItem),
   };
 }
 
 const processedItems = items.map(processNavItem);
 
-// Separate regular and external items
-const regularItems = processedItems.filter(item => !item.external && !item.children);
-const dropdownItems = processedItems.filter(item => item.children && item.children.length > 0);
-const externalItems = processedItems.filter(item => item.external);
+// Separate items by type
+const regularItems = processedItems.filter(item => !item.items);
+const dropdownItems = processedItems.filter(item => item.items && item.items.length > 0);
 
-function isActive(href: string): boolean {
-  if (href === '/') {
-    return currentPath === '/';
-  }
+function isActive(href: string | undefined): boolean {
+  if (!href) return false;
+  if (href === '/') return currentPath === '/';
   return currentPath.startsWith(href);
 }
 ---
@@ -71,10 +71,19 @@ function isActive(href: string): boolean {
     <div class="navbar__links">
       {regularItems.map((item) => (
         <a
-          href={item.resolvedHref}
-          class:list={['navbar__link', { 'navbar__link--active': isActive(item.resolvedHref) }]}
+          href={item.href || '#'}
+          class:list={['navbar__link', { 'navbar__link--active': isActive(item.href) }]}
+          target={item.isExternal ? '_blank' : undefined}
+          rel={item.isExternal ? 'noopener noreferrer' : undefined}
         >
           {item.label}
+          {item.isExternal && (
+            <svg class="navbar__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+          )}
         </a>
       ))}
 
@@ -87,15 +96,15 @@ function isActive(href: string): boolean {
             </svg>
           </button>
           <div class="navbar__dropdown-menu">
-            {item.children?.map((child) => (
+            {item.items?.map((child) => (
               <a
-                href={child.resolvedHref}
+                href={child.href || '#'}
                 class="navbar__dropdown-item"
-                target={child.external ? '_blank' : undefined}
-                rel={child.external ? 'noopener noreferrer' : undefined}
+                target={child.isExternal ? '_blank' : undefined}
+                rel={child.isExternal ? 'noopener noreferrer' : undefined}
               >
                 {child.label}
-                {child.external && (
+                {child.isExternal && (
                   <svg class="navbar__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                     <polyline points="15 3 21 3 21 9" />
@@ -106,22 +115,6 @@ function isActive(href: string): boolean {
             ))}
           </div>
         </div>
-      ))}
-
-      {externalItems.map((item) => (
-        <a
-          href={item.resolvedHref}
-          class="navbar__link"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {item.label}
-          <svg class="navbar__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" y1="14" x2="21" y2="3" />
-          </svg>
-        </a>
       ))}
     </div>
 
@@ -164,15 +157,15 @@ function isActive(href: string): boolean {
   <div class="navbar__mobile-menu" data-mobile-menu>
     {processedItems.map((item) => (
       <>
-        {item.children ? (
+        {item.items ? (
           <>
             <span class="navbar__mobile-label">{item.label}</span>
-            {item.children.map((child) => (
+            {item.items.map((child) => (
               <a
-                href={child.resolvedHref}
+                href={child.href || '#'}
                 class="navbar__mobile-link navbar__mobile-link--nested"
-                target={child.external ? '_blank' : undefined}
-                rel={child.external ? 'noopener noreferrer' : undefined}
+                target={child.isExternal ? '_blank' : undefined}
+                rel={child.isExternal ? 'noopener noreferrer' : undefined}
               >
                 {child.label}
               </a>
@@ -180,10 +173,10 @@ function isActive(href: string): boolean {
           </>
         ) : (
           <a
-            href={item.resolvedHref}
-            class:list={['navbar__mobile-link', { 'navbar__mobile-link--active': isActive(item.resolvedHref) }]}
-            target={item.external ? '_blank' : undefined}
-            rel={item.external ? 'noopener noreferrer' : undefined}
+            href={item.href || '#'}
+            class:list={['navbar__mobile-link', { 'navbar__mobile-link--active': isActive(item.href) }]}
+            target={item.isExternal ? '_blank' : undefined}
+            rel={item.isExternal ? 'noopener noreferrer' : undefined}
           >
             {item.label}
           </a>
