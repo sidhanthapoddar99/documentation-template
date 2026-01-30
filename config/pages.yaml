@@ -1,0 +1,89 @@
+# ==============================================================================
+# PAGE DEFINITIONS
+# ==============================================================================
+# Define all pages and routes for your site
+#
+# Page types:
+#   - home: Landing page with custom layout
+#   - doc: Documentation pages with sidebar and TOC
+#   - blog: Blog posts
+#   - custom: Custom .astro pages in data/pages/
+#
+# For 'doc' and 'blog' types, content_dir is relative to DATA_DIR
+# For 'custom' type, component is the .astro file in DATA_DIR/pages/
+# ==============================================================================
+
+pages:
+  # Homepage
+  home:
+    type: home
+    title: "Home"
+    url: "/"
+    description: "Welcome to the documentation"
+    component: "home.astro"       # In DATA_DIR/pages/
+    navbar: "style2"              # Override default navbar
+    sidebar: none
+    footer: default
+    outline: none
+
+  # Documentation sections
+  getting_started:
+    type: doc
+    title: "Getting Started"
+    url: "/docs/getting-started"
+    content_dir: "docs/getting-started"
+
+  configuration:
+    type: doc
+    title: "Configuration"
+    url: "/docs/configuration"
+    content_dir: "docs/configuration"
+
+  components:
+    type: doc
+    title: "Components"
+    url: "/docs/components"
+    content_dir: "docs/components"
+
+  guides:
+    type: doc
+    title: "Guides"
+    url: "/docs/guides"
+    content_dir: "docs/guides"
+
+  authoring:
+    type: doc
+    title: "Writing Docs"
+    url: "/docs/authoring"
+    content_dir: "docs/authoring"
+
+  # Blog
+  blog:
+    type: blog
+    title: "Blog"
+    url: "/blog"
+    content_dir: "blog"
+
+  # Custom pages
+  about:
+    type: custom
+    title: "About"
+    url: "/about"
+    component: "about.astro"
+    sidebar: none
+
+  contact:
+    type: custom
+    title: "Contact Us"
+    url: "/contact"
+    component: "contact.astro"
+    sidebar: none
+
+  # External links
+  github:
+    type: custom
+    title: "GitHub"
+    url: "https://github.com/user/repo"
+    external: true
+    sidebar: none
+    outline: none

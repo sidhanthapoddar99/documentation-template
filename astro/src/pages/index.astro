@@ -1,19 +1,24 @@
 ---
 /**
  * Homepage - Configuration-driven landing page
+ *
+ * Loads the home page component from data/pages/ based on pages.yaml config.
  */
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ConfiguredNavbar from '../components/ConfiguredNavbar.astro';
 import ConfiguredFooter from '../components/ConfiguredFooter.astro';
-import { getPageConfig, getSiteMetadata } from '../config';
+import { getResolvedPageConfig, getSiteMetadata, getPageProps } from '../loaders';
 
 // Get config for homepage
-const pageConfig = getPageConfig('home');
+const pageConfig = getResolvedPageConfig('home');
 const siteMetadata = getSiteMetadata();
+
+// Get props to pass to user component
+const pageProps = getPageProps('home');
 ---
 
-<BaseLayout title={pageConfig.title} description={pageConfig.description || siteMetadata.description}>
+<BaseLayout title={pageConfig?.title || 'Home'} description={pageConfig?.description || siteMetadata.description}>
   <ConfiguredNavbar pageName="home" />
 
   <main class="flex-1">
@@ -28,7 +33,7 @@ const siteMetadata = getSiteMetadata();
         </a>
 
         <h1 class="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
-          Build beautiful docs with Astro
+          {siteMetadata.title}
         </h1>
 
         <p class="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
@@ -131,7 +136,7 @@ const siteMetadata = getSiteMetadata();
             <div class="space-y-2">
               <h3 class="font-bold">Config Driven</h3>
               <p class="text-sm text-muted-foreground">
-                Control everything from a single config file.
+                Control everything from simple YAML config files.
               </p>
             </div>
           </div>

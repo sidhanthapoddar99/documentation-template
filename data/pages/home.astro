@@ -1,0 +1,172 @@
+---
+/**
+ * Home Page Component
+ *
+ * This is a user-customizable home page component.
+ * Props are passed from the framework based on your config files.
+ *
+ * Available props:
+ * - siteConfig: Site metadata from config/site.yaml
+ * - pageConfig: This page's config from config/pages.yaml
+ * - navItems: Navigation items for use in custom navs
+ */
+
+interface Props {
+  siteConfig: {
+    name: string;
+    title: string;
+    description: string;
+    logo?: { src: string; alt: string };
+  };
+  pageConfig: {
+    title: string;
+    description?: string;
+  };
+}
+
+const { siteConfig, pageConfig } = Astro.props;
+---
+
+<main class="flex-1">
+  <!-- Hero Section -->
+  <section class="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
+    <div class="container flex max-w-[64rem] flex-col items-center gap-4 text-center mx-auto px-4">
+      <a
+        href="/docs/getting-started"
+        class="rounded-2xl bg-muted px-4 py-1.5 text-sm font-medium"
+      >
+        Get started with docs
+      </a>
+
+      <h1 class="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold">
+        {siteConfig.title}
+      </h1>
+
+      <p class="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
+        {siteConfig.description}
+      </p>
+
+      <div class="space-x-4">
+        <a
+          href="/docs/getting-started"
+          class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
+        >
+          Get Started
+        </a>
+        <a
+          href="https://github.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8"
+        >
+          GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="container space-y-6 py-8 md:py-12 lg:py-24 mx-auto px-4">
+    <div class="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
+      <h2 class="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl font-bold">
+        Features
+      </h2>
+      <p class="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
+        Everything you need to build modern documentation.
+      </p>
+    </div>
+
+    <div class="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
+      <!-- Feature 1: Lightning Fast -->
+      <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+        <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+          <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          <div class="space-y-2">
+            <h3 class="font-bold">Lightning Fast</h3>
+            <p class="text-sm text-muted-foreground">
+              Built on Astro for zero JS by default. Ships only what you need.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2: Customizable -->
+      <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+        <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+          <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+          </svg>
+          <div class="space-y-2">
+            <h3 class="font-bold">Fully Customizable</h3>
+            <p class="text-sm text-muted-foreground">
+              Tailwind CSS for styling. Easy to customize and extend.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 3: Dark Mode -->
+      <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+        <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+          <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+          <div class="space-y-2">
+            <h3 class="font-bold">Dark Mode</h3>
+            <p class="text-sm text-muted-foreground">
+              Built-in dark mode with smooth transitions.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 4: MDX Support -->
+      <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+        <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+          <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <div class="space-y-2">
+            <h3 class="font-bold">MD & MDX Support</h3>
+            <p class="text-sm text-muted-foreground">
+              Write docs in Markdown or MDX with custom components.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 5: Config Driven -->
+      <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+        <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+          <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <div class="space-y-2">
+            <h3 class="font-bold">Config Driven</h3>
+            <p class="text-sm text-muted-foreground">
+              Control everything from simple YAML config files.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 6: Search -->
+      <div class="relative overflow-hidden rounded-lg border bg-background p-2">
+        <div class="flex h-[180px] flex-col justify-between rounded-md p-6">
+          <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <div class="space-y-2">
+            <h3 class="font-bold">Search Ready</h3>
+            <p class="text-sm text-muted-foreground">
+              Integrate search with Pagefind or Algolia.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

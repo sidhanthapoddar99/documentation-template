@@ -1,0 +1,39 @@
+/**
+ * Custom CSS
+ *
+ * Add your custom styles here. These are loaded after the theme
+ * and can override any default styles.
+ *
+ * You have access to all CSS variables defined by the theme:
+ * - var(--color-brand-primary)
+ * - var(--color-brand-secondary)
+ * - var(--theme-bg-primary)
+ * - var(--theme-text-primary)
+ * - var(--theme-border-default)
+ * - etc.
+ */
+
+/* Example: Custom button style */
+/*
+.custom-button {
+  background: var(--color-brand-primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: opacity 0.2s;
+}
+
+.custom-button:hover {
+  opacity: 0.9;
+}
+*/
+
+/* Example: Custom card style */
+/*
+.custom-card {
+  background: var(--theme-bg-secondary);
+  border: 1px solid var(--theme-border-default);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+*/

@@ -1,0 +1,128 @@
+---
+/**
+ * Contact Page Component
+ *
+ * A simple contact page template. Customize the form action
+ * and fields to match your needs.
+ *
+ * Available props:
+ * - siteConfig: Site metadata from config/site.yaml
+ * - pageConfig: This page's config from config/pages.yaml
+ */
+
+interface Props {
+  siteConfig: {
+    name: string;
+    title: string;
+    description: string;
+  };
+  pageConfig: {
+    title: string;
+    description?: string;
+  };
+}
+
+const { siteConfig, pageConfig } = Astro.props;
+---
+
+<main class="flex-1">
+  <div class="container max-w-2xl mx-auto px-4 py-16">
+    <h1 class="text-4xl font-bold mb-4">{pageConfig.title}</h1>
+    <p class="text-lg text-muted-foreground mb-8">
+      Have questions about {siteConfig.name}? We'd love to hear from you.
+    </p>
+
+    <form class="space-y-6" action="#" method="POST">
+      <!-- Name -->
+      <div>
+        <label for="name" class="block text-sm font-medium mb-2">
+          Name
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          required
+          class="w-full px-4 py-2 rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          placeholder="Your name"
+        />
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label for="email" class="block text-sm font-medium mb-2">
+          Email
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          class="w-full px-4 py-2 rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          placeholder="you@example.com"
+        />
+      </div>
+
+      <!-- Subject -->
+      <div>
+        <label for="subject" class="block text-sm font-medium mb-2">
+          Subject
+        </label>
+        <select
+          id="subject"
+          name="subject"
+          required
+          class="w-full px-4 py-2 rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        >
+          <option value="">Select a topic</option>
+          <option value="general">General Question</option>
+          <option value="support">Technical Support</option>
+          <option value="feedback">Feedback</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- Message -->
+      <div>
+        <label for="message" class="block text-sm font-medium mb-2">
+          Message
+        </label>
+        <textarea
+          id="message"
+          name="message"
+          rows="5"
+          required
+          class="w-full px-4 py-2 rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 resize-none"
+          placeholder="How can we help?"
+        ></textarea>
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
+      >
+        Send Message
+      </button>
+    </form>
+
+    <!-- Alternative Contact -->
+    <div class="mt-12 pt-8 border-t">
+      <h2 class="text-xl font-semibold mb-4">Other Ways to Reach Us</h2>
+      <div class="space-y-4 text-muted-foreground">
+        <p>
+          <strong>GitHub:</strong>{' '}
+          <a href="https://github.com/user/repo" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+            Open an issue
+          </a>
+        </p>
+        <p>
+          <strong>Discord:</strong>{' '}
+          <a href="https://discord.gg/invite" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+            Join our community
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</main>

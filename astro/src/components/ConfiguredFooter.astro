@@ -2,11 +2,16 @@
 /**
  * ConfiguredFooter - Renders the configured footer variant
  *
- * Reads from site.config.ts to determine whether to show footer
+ * Reads from YAML config files to determine whether to show footer
  * and renders with config values.
  */
 
-import { getPageConfig, getPageNameByUrl, getFooterConfig } from '../config';
+import {
+  getResolvedPageConfig,
+  getPageNameByUrl,
+  getResolvedFooterConfig,
+  getDefaults,
+} from '../loaders';
 import { FooterDefault } from './footer';
 
 interface Props {
@@ -19,18 +24,31 @@ const { pageName } = Astro.props;
 const resolvedPageName = pageName || getPageNameByUrl(Astro.url.pathname) || 'home';
 
 // Get page config with resolved component variants
-const pageConfig = getPageConfig(resolvedPageName);
+const pageConfig = getResolvedPageConfig(resolvedPageName);
 
-// Get footer config
-const footerConfig = getFooterConfig();
+// Get defaults in case page config is not found
+const defaults = getDefaults();
+
+// Get resolved footer config (with page references resolved)
+const footerConfig = getResolvedFooterConfig();
 
 // Check if footer should be shown
-const showFooter = pageConfig.resolvedFooter !== 'none';
+const footerVariant = pageConfig?.resolvedFooter || defaults.footer;
+const showFooter = footerVariant !== 'none';
+
+// Flatten columns into simple links array for FooterDefault
+// (for backwards compatibility with current FooterDefault component)
+const links = footerConfig.columns?.flatMap(col =>
+  col.links.map(link => ({
+    href: link.href,
+    label: link.label,
+  }))
+) || [];
 ---
 
 {showFooter && (
   <FooterDefault
     copyright={footerConfig.copyright}
-    links={footerConfig.links}
+    links={links}
   />
 )}

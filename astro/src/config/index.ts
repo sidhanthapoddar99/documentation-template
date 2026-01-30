@@ -1,36 +1,47 @@
 /**
  * Configuration exports
+ *
+ * This module now re-exports from the new YAML-based loaders.
+ * The old site.config.ts is kept for reference but the YAML files
+ * in config/ are the primary source of configuration.
  */
 
-// Types
+// Re-export everything from the new loaders
+export {
+  // Config loaders
+  getSiteConfig,
+  getPagesConfig,
+  getNavbarConfig,
+  getFooterConfig,
+  getSiteMetadata,
+  getDefaults,
+  getPageConfig,
+  getResolvedPageConfig,
+  getPagesByType,
+  getDocPages,
+  getPageNameByUrl,
+  getNavItems,
+  getResolvedFooterConfig,
+} from '../loaders';
+
+// Re-export types
 export type {
   SiteConfig,
+  PagesConfig,
   PageConfig,
-  PageType,
+  NavbarConfig,
+  FooterConfig,
+  NavItem,
   NavbarVariant,
   SidebarVariant,
   FooterVariant,
   OutlineVariant,
-  NavItem,
-  NavbarItem,
-  NavbarGroup,
+  ResolvedPageConfig,
   LogoConfig,
-  SiteMetadata,
   DefaultComponents,
-  FooterConfig,
-  FooterLink,
-} from './types';
+  FooterColumn,
+  SocialLink,
+} from '../loaders';
 
-// Config
+// Legacy export for backward compatibility
 export { siteConfig } from './site.config';
-
-// Helpers
-export {
-  getNavItems,
-  getPageConfig,
-  getPageNameByUrl,
-  getDocPages,
-  getSiteMetadata,
-  getFooterConfig,
-  getDefaults,
-} from './helpers';

@@ -1,0 +1,66 @@
+---
+/**
+ * About Page Component
+ *
+ * Customize this page to tell visitors about your project or company.
+ *
+ * Available props:
+ * - siteConfig: Site metadata from config/site.yaml
+ * - pageConfig: This page's config from config/pages.yaml
+ */
+
+interface Props {
+  siteConfig: {
+    name: string;
+    title: string;
+    description: string;
+  };
+  pageConfig: {
+    title: string;
+    description?: string;
+  };
+}
+
+const { siteConfig, pageConfig } = Astro.props;
+---
+
+<main class="flex-1">
+  <div class="container max-w-4xl mx-auto px-4 py-16">
+    <h1 class="text-4xl font-bold mb-8">{pageConfig.title}</h1>
+
+    <div class="prose prose-lg dark:prose-invert max-w-none">
+      <p class="lead text-xl text-muted-foreground mb-8">
+        Learn more about {siteConfig.name} and our mission.
+      </p>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-semibold mb-4">Our Mission</h2>
+        <p>
+          We believe that great documentation is the foundation of successful software projects.
+          Our goal is to provide tools that make creating and maintaining documentation as
+          effortless as possible.
+        </p>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-semibold mb-4">What We Offer</h2>
+        <ul class="list-disc pl-6 space-y-2">
+          <li>Modern, fast documentation framework built on Astro</li>
+          <li>Beautiful, customizable themes</li>
+          <li>Full MDX support for interactive documentation</li>
+          <li>Simple YAML configuration - no code changes needed</li>
+          <li>Dark mode and accessibility built-in</li>
+        </ul>
+      </section>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-semibold mb-4">Get Started</h2>
+        <p>
+          Ready to build your documentation site? Check out our
+          <a href="/docs/getting-started" class="text-primary hover:underline">getting started guide</a>
+          to begin.
+        </p>
+      </section>
+    </div>
+  </div>
+</main>

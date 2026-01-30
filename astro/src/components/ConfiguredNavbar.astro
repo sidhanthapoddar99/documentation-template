@@ -2,11 +2,17 @@
 /**
  * ConfiguredNavbar - Renders the configured navbar variant
  *
- * Reads from site.config.ts to determine which navbar to show
+ * Reads from YAML config files to determine which navbar to show
  * and transforms the navbar structure into NavItem[] format.
  */
 
-import { getNavItems, getPageConfig, getPageNameByUrl, getSiteMetadata } from '../config';
+import {
+  getNavItems,
+  getResolvedPageConfig,
+  getPageNameByUrl,
+  getSiteMetadata,
+  getDefaults,
+} from '../loaders';
 import { NavbarMinimal, NavbarStyle1, NavbarStyle2, NavbarStyle3 } from './navbar';
 
 interface Props {
@@ -19,7 +25,10 @@ const { pageName } = Astro.props;
 const resolvedPageName = pageName || getPageNameByUrl(Astro.url.pathname) || 'home';
 
 // Get page config with resolved component variants
-const pageConfig = getPageConfig(resolvedPageName);
+const pageConfig = getResolvedPageConfig(resolvedPageName);
+
+// Get defaults in case page config is not found
+const defaults = getDefaults();
 
 // Get navigation items from config
 const navItems = getNavItems();
@@ -30,8 +39,8 @@ const siteMetadata = getSiteMetadata();
 // Current path for active state
 const currentPath = Astro.url.pathname;
 
-// Map variant name to component
-const navbarVariant = pageConfig.resolvedNavbar;
+// Get navbar variant (use page config or default)
+const navbarVariant = pageConfig?.resolvedNavbar || defaults.navbar;
 ---
 
 {navbarVariant === 'minimal' && (

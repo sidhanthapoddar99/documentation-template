@@ -1,0 +1,36 @@
+# ==============================================================================
+# NAVBAR CONFIGURATION
+# ==============================================================================
+# Define navigation structure for the site navbar
+#
+# Items can be:
+#   - page: Reference to a page name defined in pages.yaml
+#   - group: Dropdown menu with child items
+#   - label + href: Direct link (with optional external: true)
+#   - label + icon: Icon-only link (e.g., GitHub icon)
+#
+# The navbar style is controlled by site.yaml defaults or per-page overrides
+# ==============================================================================
+
+# Navigation items
+items:
+  # Direct page links
+  - page: home
+
+  - page: getting_started
+    label: "Docs"                 # Override page title
+
+  # Dropdown group
+  - group: "Learn"
+    items:
+      - page: authoring
+      - page: configuration
+      - page: guides
+
+  - page: components
+
+  - page: blog
+
+  # External link with icon
+  - page: github
+    icon: "github"                # Icon name for external link

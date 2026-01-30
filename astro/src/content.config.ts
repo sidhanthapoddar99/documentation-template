@@ -5,7 +5,6 @@
  * Supports both .md and .mdx files.
  *
  * Note: Collections must be defined statically at build time.
- * The main 'docs' collection loads from the external ../docs folder.
  */
 
 import { defineCollection, z } from 'astro:content';
@@ -40,8 +39,7 @@ const docSchema = z.object({
   full_width: z.boolean().optional().default(false),
 });
 
-// Main documentation collection - loads from external docs folder
-// Supports both .md and .mdx files
+// Main documentation collection - loads from ../docs
 const docs = defineCollection({
   loader: glob({
     pattern: '**/*.{md,mdx}',
@@ -50,16 +48,16 @@ const docs = defineCollection({
   schema: docSchema,
 });
 
-// Blog collection (if blog content exists)
+// Blog collection - loads from ../data/blog
 const blog = defineCollection({
   loader: glob({
     pattern: '**/*.{md,mdx}',
-    base: '../blog',
+    base: '../data/blog',
   }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
-    date: z.coerce.date(),
+    published_at: z.coerce.date().optional(),
     author: z.string().optional(),
     tags: z.array(z.string()).optional(),
     draft: z.boolean().optional().default(false),

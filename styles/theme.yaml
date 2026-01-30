@@ -1,0 +1,38 @@
+# ==============================================================================
+# THEME CONFIGURATION
+# ==============================================================================
+# Select a preset theme and optionally override specific colors
+# ==============================================================================
+
+# Select preset theme
+# Available presets: default, ocean, forest, sunset, midnight
+preset: "default"
+
+# Color overrides (optional)
+# Uncomment and modify to override specific colors from the preset
+# overrides:
+#   brand:
+#     primary: "#3b82f6"      # Blue-500
+#     secondary: "#8b5cf6"    # Purple-500
+#     accent: "#f59e0b"       # Amber-500
+#
+#   # Override semantic colors
+#   light:
+#     background:
+#       primary: "#ffffff"
+#       secondary: "#f8fafc"
+#     text:
+#       primary: "#0f172a"
+#       secondary: "#475569"
+#     border:
+#       default: "#e2e8f0"
+#
+#   dark:
+#     background:
+#       primary: "#0f172a"
+#       secondary: "#1e293b"
+#     text:
+#       primary: "#f8fafc"
+#       secondary: "#94a3b8"
+#     border:
+#       default: "#334155"

@@ -9,7 +9,7 @@
 import BaseLayout from '../BaseLayout.astro';
 import ConfiguredNavbar from '../../components/ConfiguredNavbar.astro';
 import ConfiguredFooter from '../../components/ConfiguredFooter.astro';
-import { getPageConfig, getPageNameByUrl } from '../../config';
+import { getResolvedPageConfig, getPageNameByUrl, getDefaults } from '../../loaders';
 
 interface Heading {
   depth: number;
@@ -38,11 +38,12 @@ const currentPath = Astro.url.pathname;
 const resolvedPageName = pageName || getPageNameByUrl(currentPath) || 'docs';
 
 // Get page config with resolved component variants
-const pageConfig = getPageConfig(resolvedPageName);
+const pageConfig = getResolvedPageConfig(resolvedPageName);
+const defaults = getDefaults();
 
 // Check which components to show
-const showSidebar = pageConfig.resolvedSidebar !== 'none';
-const showOutline = pageConfig.resolvedOutline !== 'none';
+const showSidebar = (pageConfig?.resolvedSidebar || defaults.sidebar) !== 'none';
+const showOutline = (pageConfig?.resolvedOutline || defaults.outline) !== 'none';
 
 // Filter headings for TOC (h2 and h3 only)
 const tocHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);

@@ -1,6 +1,6 @@
 ---
 active: true
-iteration: 2
+iteration: 3
 max_iterations: 20
 completion_promise: "ASTRO DOCS COMPLETE"
 started_at: "2026-01-21T16:50:27Z"

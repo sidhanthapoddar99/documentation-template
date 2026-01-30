@@ -1,0 +1,42 @@
+# ==============================================================================
+# ROADMAP CONFIGURATION
+# ==============================================================================
+# Define your product roadmap items
+# ==============================================================================
+
+# Roadmap title and description
+title: "Product Roadmap"
+description: "See what's coming next and what we're working on."
+
+# Roadmap items by status
+items:
+  completed:
+    - title: "Initial Release"
+      description: "Launch documentation framework with core features"
+      date: "2024-01"
+
+    - title: "Dark Mode Support"
+      description: "Built-in dark mode with smooth transitions"
+      date: "2024-02"
+
+  in_progress:
+    - title: "YAML Configuration System"
+      description: "Move all configuration to external YAML files"
+      progress: 80
+
+    - title: "Preset Themes"
+      description: "Multiple pre-built color themes to choose from"
+      progress: 50
+
+  planned:
+    - title: "Search Integration"
+      description: "Built-in search with Pagefind"
+      quarter: "Q2 2024"
+
+    - title: "Multi-language Support"
+      description: "i18n support for multiple languages"
+      quarter: "Q3 2024"
+
+    - title: "API Documentation Generator"
+      description: "Auto-generate API docs from OpenAPI specs"
+      quarter: "Q4 2024"

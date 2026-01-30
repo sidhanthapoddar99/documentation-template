@@ -1,0 +1,26 @@
+# ==============================================================================
+# SITE CONFIGURATION
+# ==============================================================================
+# Main site metadata and global defaults
+# ==============================================================================
+
+# Site metadata
+name: "My Documentation"
+title: "Documentation Site"
+description: "Modern documentation built with Astro"
+
+# Logo configuration
+logo:
+  src: "assets/logos/logo.svg"    # Relative to DATA_DIR
+  alt: "Site Logo"
+  href: "/"
+
+# Global defaults - used when page doesn't specify a variant
+defaults:
+  navbar: "minimal"       # minimal | style1 | style2 | style3
+  sidebar: "default"      # default | none
+  footer: "default"       # default | none
+  outline: "default"      # default | none
+
+# Theme selection (preset name from astro/src/theme/presets/)
+theme: "default"          # default | ocean | forest | sunset | midnight

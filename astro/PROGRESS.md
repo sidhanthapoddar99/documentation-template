@@ -2,8 +2,8 @@
 
 ## Current Status: COMPLETE
 
-**Iteration:** 2
-**Last Updated:** Configuration system implemented and verified
+**Iteration:** 7
+**Last Updated:** YAML-based configuration system implemented
 
 ---
 
@@ -18,184 +18,115 @@
 | content.config.ts | ✅ Complete | 4/4 |
 | Page Files Update | ✅ Complete | 3/3 |
 | Example Config | ✅ Complete | 5/5 |
+| YAML Loaders | ✅ Complete | 5/5 |
+| Theme Presets | ✅ Complete | 5/5 |
 | Verification | ✅ Complete | 6/6 |
 
 **Overall Progress:** 100%
 
 ---
 
-## Detailed Progress
+## Architecture Overview
 
-### 1. Config Infrastructure
+The configuration system now uses external YAML files:
 
-- [x] `src/config/types.ts` - TypeScript interfaces
-- [x] `src/config/site.config.ts` - Main configuration
-- [x] `src/config/helpers.ts` - Helper functions
-- [x] `src/config/index.ts` - Barrel export
-
----
-
-### 2. ConfiguredNavbar.astro
-
-- [x] Read navbar variant from config
-- [x] Transform navbar structure to NavItem[]
-- [x] Dynamically select navbar component
-- [x] Pass items to selected navbar
-- [x] Accept pageName prop for overrides
-
----
-
-### 3. ConfiguredFooter.astro
-
-- [x] Read footer config
-- [x] Render FooterDefault with config
-- [x] Accept pageName prop for overrides
-
----
-
-### 4. DocsLayout Update
-
-- [x] Import ConfiguredNavbar, ConfiguredFooter
-- [x] Accept pageName prop
-- [x] Conditional sidebar rendering
-- [x] Conditional outline rendering
-
----
-
-### 5. content.config.ts
-
-- [x] Supports both .md and .mdx files
-- [x] Docs collection from ../docs
-- [x] Blog collection from ../blog (optional)
-- [x] Shared schema for doc content
-
----
-
-### 6. Page Files Update
-
-- [x] `src/pages/index.astro` - Uses ConfiguredNavbar/Footer
-- [x] `src/pages/docs/[...slug].astro` - Passes pageName to layout
-- [x] All pages use config system
-
----
-
-### 7. Example Configuration
-
-- [x] Home page config (no sidebar, no outline)
-- [x] Getting Started section config
-- [x] Configuration section config
-- [x] Components section config
-- [x] External GitHub link
-- [x] Navbar with groups/dropdowns
-
----
-
-### 8. Verification
-
-- [x] `npm run dev` runs without errors
-- [x] Homepage shows correct navbar (200 OK)
-- [x] Docs pages load correctly (200 OK)
-- [x] Navbar structure from config works
-- [x] Config system functional
-- [x] MD and MDX both supported
-
----
-
-## Iteration Log
-
-### Iteration 1
-- Created INSTRUCTIONS.md with full spec
-- Created PROGRESS.md for tracking
-
-### Iteration 2
-- Created `src/config/types.ts` - All TypeScript interfaces
-- Created `src/config/site.config.ts` - Example configuration
-- Created `src/config/helpers.ts` - Helper functions (getNavItems, getPageConfig, etc.)
-- Created `src/config/index.ts` - Barrel exports
-- Created `src/components/ConfiguredNavbar.astro` - Config-driven navbar wrapper
-- Created `src/components/ConfiguredFooter.astro` - Config-driven footer wrapper
-- Updated `src/layouts/docs/DocsLayout.astro` - Uses config for sidebar/outline visibility
-- Updated `src/content.config.ts` - Supports both MD and MDX files
-- Updated `src/pages/index.astro` - Uses ConfiguredNavbar/Footer
-- Updated `src/pages/docs/[...slug].astro` - Passes pageName to layout
-- Verified all pages return 200 OK
-
-### Iteration 3
-- Created `docs/configuration/site-config.mdx` - Full documentation for the config system
-- Updated `docs/configuration/index.mdx` - References new site.config.ts system
-- Verified configuration documentation pages load correctly (200 OK)
-
-### Iteration 4
-- Fixed `NavbarMinimal.astro` to support dropdown groups with `children`
-- Added hover dropdowns for grouped navigation items
-- Added mobile menu support for nested navigation
-- Updated `site.config.ts` with nested navbar structure:
-  - Home (direct link)
-  - Getting Started (direct link)
-  - Learn (dropdown: Configuration, Guides)
-  - Components (direct link)
-  - GitHub (external link)
-- Verified all pages return 200 OK
-
-### Iteration 5
-- Created comprehensive "Writing Docs" / Authoring documentation:
-  - `docs/authoring/index.mdx` - Overview of writing documentation
-  - `docs/authoring/folder-structure.mdx` - Folder organization guide
-  - `docs/authoring/frontmatter.mdx` - Complete frontmatter reference
-  - `docs/authoring/assets.mdx` - How to use assets folder
-  - `docs/authoring/assets/` - Example asset files
-- Enhanced `content.config.ts` schema with additional frontmatter fields:
-  - SEO: keywords, image
-  - Organization: tags, category
-  - Publishing: published_at, updated_at
-  - Page behavior: hide_title, hide_toc, full_width
-- Added "Writing Docs" to navbar under Learn dropdown
-- All authoring pages return 200 OK
-
-### Iteration 6
-- Restructured `docs/configuration/` into organized folder hierarchy:
-  ```
-  configuration/
-  ├── index.mdx              # Overview with structure diagram
-  ├── site-config.mdx        # Site configuration (position 1)
-  ├── themes.mdx             # Themes (position 2)
-  ├── navigation/            # Navigation section
-  │   ├── index.mdx          # Navigation overview
-  │   ├── navbar.mdx         # Navbar variants
-  │   └── footer.mdx         # Footer configuration
-  ├── layouts/               # Layouts section
-  │   ├── index.mdx          # Layouts overview
-  │   └── details.mdx        # Layout details
-  ├── components/            # MDX Components section
-  │   ├── index.mdx          # Components overview
-  │   └── details.mdx        # Component reference
-  └── modules/               # Modules section
-      ├── index.mdx          # Modules overview
-      └── details.mdx        # Module reference
-  ```
-- Each section has an index with overview and links to details
-- Removed old flat files (backend.mdx, pages.mdx)
-- All 12 configuration pages return 200 OK
+```
+project/
+├── config/                    # User configuration (YAML)
+│   ├── site.yaml             # Site metadata, defaults
+│   ├── pages.yaml            # Page definitions
+│   ├── navbar.yaml           # Navigation structure
+│   └── footer.yaml           # Footer configuration
+│
+├── data/                      # User content
+│   ├── pages/                # Custom .astro components
+│   ├── blog/                 # Blog posts
+│   └── assets/               # User assets
+│
+├── styles/                    # User styling
+│   ├── theme.yaml            # Theme preset selection
+│   └── custom.css            # Optional custom CSS
+│
+├── docs/                      # Documentation (MDX)
+│
+└── astro/                     # Core framework
+    └── src/
+        ├── loaders/          # YAML config loaders
+        └── theme/presets/    # Theme presets
+```
 
 ---
 
 ## Files Created
 
-- `src/config/types.ts`
-- `src/config/site.config.ts`
-- `src/config/helpers.ts`
-- `src/config/index.ts`
-- `src/components/ConfiguredNavbar.astro`
-- `src/components/ConfiguredFooter.astro`
+### YAML Configuration
+- `config/site.yaml` - Site metadata and defaults
+- `config/pages.yaml` - Page definitions
+- `config/navbar.yaml` - Navigation structure
+- `config/footer.yaml` - Footer configuration
+- `styles/theme.yaml` - Theme preset selection
+- `styles/custom.css` - Optional custom styles
+
+### YAML Loaders
+- `src/loaders/config.ts` - Config file loader
+- `src/loaders/theme.ts` - Theme loader
+- `src/loaders/pages.ts` - Page component loader
+- `src/loaders/types.ts` - Type definitions
+- `src/loaders/index.ts` - Barrel export
+
+### Theme Presets
+- `src/theme/presets/default.ts`
+- `src/theme/presets/ocean.ts`
+- `src/theme/presets/forest.ts`
+- `src/theme/presets/sunset.ts`
+- `src/theme/presets/midnight.ts`
+- `src/theme/presets/index.ts`
+
+### User Pages
+- `data/pages/home.astro`
+- `data/pages/about.astro`
+- `data/pages/contact.astro`
+
+### Dynamic Routes
+- `src/pages/[...slug].astro` - Custom page router
+
+---
 
 ## Files Modified
 
-- `src/content.config.ts`
-- `src/layouts/docs/DocsLayout.astro`
-- `src/pages/index.astro`
-- `src/pages/docs/[...slug].astro`
-- `../docs/configuration/index.mdx` - Updated to reference site.config.ts
+- `src/components/ConfiguredNavbar.astro` - Uses YAML loaders
+- `src/components/ConfiguredFooter.astro` - Uses YAML loaders
+- `src/layouts/docs/DocsLayout.astro` - Uses YAML loaders
+- `src/pages/index.astro` - Uses YAML loaders
+- `src/pages/docs/[...slug].astro` - Uses YAML loaders
+- `src/content.config.ts` - Updated paths
+- `src/config/index.ts` - Re-exports from loaders
+- `.env.example` - Added directory paths
+- `src/env.d.ts` - Added type definitions
+- `package.json` - Added js-yaml dependency
 
-## Documentation Created
+## Files Removed (Cleanup)
 
-- `../docs/configuration/site-config.mdx` - Full guide to the configuration system
+- `src/config/helpers.ts` - Replaced by loaders/config.ts
+- `src/config/types.ts` - Replaced by loaders/types.ts
+
+---
+
+## Iteration Log
+
+### Iteration 7 (Current)
+- Implemented YAML-based external configuration system
+- Created config/, data/, styles/ directories outside astro/
+- Created YAML loaders in src/loaders/
+- Created 5 preset themes (default, ocean, forest, sunset, midnight)
+- Created dynamic page routes for custom components
+- Updated all components to use YAML loaders
+- Added js-yaml dependency
+- Cleaned up redundant files
+
+### Previous Iterations (1-6)
+- Initial TypeScript-based config system
+- ConfiguredNavbar and ConfiguredFooter components
+- DocsLayout with conditional sidebar/outline
+- Navbar dropdown support
+- Documentation structure and authoring guides

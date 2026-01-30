@@ -1,0 +1,85 @@
+---
+/**
+ * Dynamic page route handler
+ *
+ * Loads custom .astro page components from data/pages/ based on pages.yaml config.
+ * This handles pages of type 'custom' that have a 'component' defined.
+ */
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ConfiguredNavbar from '../components/ConfiguredNavbar.astro';
+import ConfiguredFooter from '../components/ConfiguredFooter.astro';
+import {
+  getPagesConfig,
+  getResolvedPageConfig,
+  getSiteMetadata,
+  getPageProps,
+} from '../loaders';
+
+// Import all user page components at build time
+// Note: Vite requires static imports, so we import them all and select at runtime
+// Path is relative to astro/src/pages/ -> goes up to project root -> data/pages/
+const userPageModules = import.meta.glob('../../../data/pages/*.astro', { eager: true });
+
+export async function getStaticPaths() {
+  const pagesConfig = getPagesConfig();
+  const paths: Array<{ params: { slug: string | undefined }; props: { pageName: string } }> = [];
+
+  for (const [name, config] of Object.entries(pagesConfig.pages)) {
+    // Only handle custom pages with components (not external links)
+    if ((config.type === 'custom' || config.type === 'home') && config.component && !config.external) {
+      // Skip the home page as it's handled by index.astro
+      if (config.url === '/') continue;
+
+      // Convert URL to slug (remove leading slash)
+      const slug = config.url.replace(/^\//, '') || undefined;
+
+      paths.push({
+        params: { slug },
+        props: { pageName: name },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { pageName } = Astro.props;
+
+// Get page configuration
+const pageConfig = getResolvedPageConfig(pageName);
+const siteMetadata = getSiteMetadata();
+
+if (!pageConfig) {
+  return Astro.redirect('/404');
+}
+
+// Get the user component
+const componentPath = `../../../data/pages/${pageConfig.component}`;
+const UserComponent = userPageModules[componentPath]?.default;
+
+// Get props to pass to the user component
+const pageProps = getPageProps(pageName);
+---
+
+<BaseLayout
+  title={pageConfig.title}
+  description={pageConfig.description || siteMetadata.description}
+>
+  <ConfiguredNavbar pageName={pageName} />
+
+  {UserComponent ? (
+    <UserComponent {...pageProps} />
+  ) : (
+    <main class="flex-1 container mx-auto px-4 py-16">
+      <div class="text-center">
+        <h1 class="text-2xl font-bold mb-4">Page Component Not Found</h1>
+        <p class="text-muted-foreground">
+          The component "{pageConfig.component}" was not found in data/pages/.
+        </p>
+      </div>
+    </main>
+  )}
+
+  <ConfiguredFooter pageName={pageName} />
+</BaseLayout>

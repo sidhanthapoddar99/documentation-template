@@ -1,0 +1,47 @@
+# ==============================================================================
+# FOOTER CONFIGURATION
+# ==============================================================================
+# Define footer content including links, columns, and social icons
+# ==============================================================================
+
+# Footer style variant
+style: "default"                  # default | none
+
+# Copyright notice (use {year} for dynamic year)
+copyright: "{year} My Company. All rights reserved."
+
+# Footer link columns
+columns:
+  - title: "Product"
+    links:
+      - label: "Documentation"
+        page: getting_started     # Reference page from pages.yaml
+      - label: "Components"
+        page: components
+      - label: "Guides"
+        page: guides
+
+  - title: "Company"
+    links:
+      - label: "About"
+        page: about
+      - label: "Contact"
+        page: contact
+      - label: "Blog"
+        page: blog
+
+  - title: "Legal"
+    links:
+      - label: "Privacy"
+        href: "/privacy"
+      - label: "Terms"
+        href: "/terms"
+
+# Social links (displayed as icons)
+social:
+  - platform: "github"
+    href: "https://github.com/user/repo"
+  - platform: "twitter"
+    href: "https://twitter.com/user"
+  - platform: "discord"
+    href: "https://discord.gg/invite"
