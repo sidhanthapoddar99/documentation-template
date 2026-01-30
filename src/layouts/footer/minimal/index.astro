@@ -1,0 +1,79 @@
+---
+/**
+ * Footer Minimal - Simple single-line footer
+ *
+ * Features:
+ * - Copyright text
+ * - Optional inline links
+ * - Clean, minimal design
+ */
+
+import { loadFooterConfig, processCopyright } from '@loaders/config';
+
+const footerConfig = loadFooterConfig();
+const copyright = processCopyright(footerConfig.copyright);
+
+// Flatten all links from columns for minimal display
+const links = footerConfig.columns?.flatMap(col => col.links.slice(0, 2)) || [];
+---
+
+<footer class="footer-minimal">
+  <div class="footer-minimal__container">
+    <p class="footer-minimal__copyright">{copyright}</p>
+
+    {links.length > 0 && (
+      <nav class="footer-minimal__links">
+        {links.slice(0, 4).map((link) => (
+          <a href={link.href || '#'} class="footer-minimal__link">
+            {link.label}
+          </a>
+        ))}
+      </nav>
+    )}
+  </div>
+</footer>
+
+<style>
+  .footer-minimal {
+    background-color: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border-default);
+  }
+
+  .footer-minimal__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: var(--max-width-content);
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+  }
+
+  .footer-minimal__copyright {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .footer-minimal__links {
+    display: flex;
+    gap: var(--spacing-lg);
+  }
+
+  .footer-minimal__link {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .footer-minimal__link:hover {
+    color: var(--color-text-primary);
+  }
+
+  @media (max-width: 640px) {
+    .footer-minimal__container {
+      flex-direction: column;
+      gap: var(--spacing-md);
+      text-align: center;
+    }
+  }
+</style>

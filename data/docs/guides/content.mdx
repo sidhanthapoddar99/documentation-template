@@ -1,0 +1,109 @@
+---
+title: Writing Content
+description: Learn how to write documentation content
+sidebar_position: 2
+sidebar_label: Writing Content
+---
+
+# Writing Content
+
+Learn how to write and organize documentation content.
+
+## File Structure
+
+Documentation files are stored in `data/docs/`:
+
+```
+data/docs/
+├── settings.json       # Section settings
+├── getting-started.mdx # Top-level page
+└── guides/
+    ├── configuration.mdx
+    └── content.mdx
+```
+
+## Frontmatter
+
+Every MDX file should have frontmatter:
+
+```yaml
+---
+title: Page Title
+description: Page description for SEO
+sidebar_position: 1
+sidebar_label: Short Label
+---
+```
+
+### Frontmatter Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `title` | Yes | Page title |
+| `description` | No | SEO description |
+| `sidebar_position` | No | Sort order (default: 999) |
+| `sidebar_label` | No | Sidebar display label |
+| `draft` | No | Hide in production |
+
+## Markdown Features
+
+### Headings
+
+Use headings to structure content:
+
+```markdown
+## Second Level
+### Third Level
+#### Fourth Level
+```
+
+### Code Blocks
+
+Add code with syntax highlighting:
+
+```javascript
+function hello() {
+  console.log('Hello, world!');
+}
+```
+
+### Lists
+
+Create ordered and unordered lists:
+
+- Item one
+- Item two
+  - Nested item
+
+1. First step
+2. Second step
+
+### Tables
+
+Create tables:
+
+| Header 1 | Header 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+
+### Blockquotes
+
+> This is a blockquote for important notes.
+
+## Settings File
+
+Configure section behavior with `settings.json`:
+
+```json
+{
+  "sidebar": {
+    "collapsed": false,
+    "collapsible": true,
+    "sort": "position"
+  },
+  "outline": {
+    "enabled": true,
+    "levels": [2, 3]
+  }
+}
+```

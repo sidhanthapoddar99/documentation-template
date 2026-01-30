@@ -1,0 +1,144 @@
+---
+/**
+ * Dynamic Route Handler
+ *
+ * Structure:
+ * - Page handles: Navbar + Footer (same for all routes)
+ * - Layouts handle: Main body content only
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import NavbarStyle1 from '@layouts/navbar/style1/index.astro';
+import FooterDefault from '@layouts/footer/default/index.astro';
+
+import { loadSiteConfig, loadContent } from '@loaders/index';
+import { resolveAliasPath } from '@loaders/alias';
+
+// Import body layouts (these only render main content, no navbar/footer)
+import HomeBody from '@layouts/custom/home/Body.astro';
+import InfoBody from '@layouts/custom/info/Body.astro';
+import DocsBody from '@layouts/docs/doc_style1/Body.astro';
+import BlogIndexBody from '@layouts/blogs/blog_style1/IndexBody.astro';
+import BlogPostBody from '@layouts/blogs/blog_style1/PostBody.astro';
+
+export async function getStaticPaths() {
+  const siteConfig = loadSiteConfig();
+  const pages = siteConfig.pages || {};
+  const paths: any[] = [];
+
+  for (const [pageName, pageConfig] of Object.entries(pages)) {
+    const baseUrl = pageConfig.base_url.replace(/^\//, '');
+    const dataPath = resolveAliasPath(pageConfig.data);
+
+    if (pageConfig.type === 'custom') {
+      paths.push({
+        params: { slug: baseUrl || undefined },
+        props: { pageConfig, dataPath, pageType: 'custom' },
+      });
+    } else if (pageConfig.type === 'docs') {
+      try {
+        const content = await loadContent(dataPath, {
+          pattern: '**/*.{md,mdx}',
+          sort: 'position',
+        });
+
+        // Docs index (redirect)
+        paths.push({
+          params: { slug: baseUrl || undefined },
+          props: { pageConfig, dataPath, pageType: 'docs-index', allContent: content },
+        });
+
+        // Each doc page
+        for (const doc of content) {
+          paths.push({
+            params: { slug: `${baseUrl}/${doc.slug}` },
+            props: { pageConfig, dataPath, pageType: 'docs', doc, allContent: content },
+          });
+        }
+      } catch (error) {
+        console.error(`Error loading docs:`, error);
+      }
+    } else if (pageConfig.type === 'blog') {
+      try {
+        const posts = await loadContent(dataPath, {
+          pattern: '*.{md,mdx}',
+          sort: 'date',
+          order: 'desc',
+        });
+
+        // Blog index
+        paths.push({
+          params: { slug: baseUrl || undefined },
+          props: { pageConfig, dataPath, pageType: 'blog-index', allContent: posts },
+        });
+
+        // Each post
+        for (const post of posts) {
+          paths.push({
+            params: { slug: `${baseUrl}/${post.slug}` },
+            props: { pageConfig, dataPath, pageType: 'blog-post', post },
+          });
+        }
+      } catch (error) {
+        console.error(`Error loading blog:`, error);
+      }
+    }
+  }
+
+  return paths;
+}
+
+const { pageConfig, dataPath, pageType, doc, post, allContent } = Astro.props;
+
+// Handle docs index redirect
+if (pageType === 'docs-index' && allContent?.length > 0) {
+  return Astro.redirect(`${pageConfig.base_url}/${allContent[0].slug}`);
+}
+
+// Determine page title
+let title = 'Page';
+if (pageType === 'docs' && doc) title = doc.data.title;
+else if (pageType === 'blog-post' && post) title = post.data.title;
+else if (pageType === 'blog-index') title = 'Blog';
+---
+
+<BaseLayout title={title}>
+  <!-- Navbar - same for all routes -->
+  <NavbarStyle1 slot="navbar" />
+
+  <!-- Main Body - varies by layout -->
+  {pageType === 'custom' && pageConfig.layout.includes('home') && (
+    <HomeBody dataPath={dataPath} />
+  )}
+
+  {pageType === 'custom' && pageConfig.layout.includes('info') && (
+    <InfoBody dataPath={dataPath} />
+  )}
+
+  {pageType === 'docs' && doc && (
+    <DocsBody
+      title={doc.data.title}
+      description={doc.data.description}
+      dataPath={dataPath}
+      currentSlug={doc.slug}
+      content={doc.content}
+    />
+  )}
+
+  {pageType === 'blog-index' && (
+    <BlogIndexBody dataPath={dataPath} />
+  )}
+
+  {pageType === 'blog-post' && post && (
+    <BlogPostBody
+      title={post.data.title}
+      description={post.data.description}
+      date={post.data.date as string}
+      author={post.data.author as string}
+      tags={post.data.tags as string[]}
+      content={post.content}
+    />
+  )}
+
+  <!-- Footer - same for all routes -->
+  <FooterDefault slot="footer" />
+</BaseLayout>

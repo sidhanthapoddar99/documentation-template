@@ -1,0 +1,20 @@
+# Navbar Configuration
+layout: "@navbar/style1"
+
+items:
+  - label: "Home"
+    href: "/"
+
+  - label: "Documentation"
+    page: "docs_main"
+
+  - label: "Blog"
+    page: "blog"
+
+  - label: "About"
+    page: "about"
+
+  - label: "GitHub"
+    href: "https://github.com/user/repo"
+    external: true
+    icon: "github"

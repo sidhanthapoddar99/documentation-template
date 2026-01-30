@@ -1,0 +1,138 @@
+---
+/**
+ * Pagination - Previous/Next navigation for docs
+ */
+
+interface NavItem {
+  title: string;
+  href: string;
+}
+
+interface Props {
+  prev?: NavItem | null;
+  next?: NavItem | null;
+}
+
+const { prev, next } = Astro.props;
+---
+
+{(prev || next) && (
+  <nav class="pagination" aria-label="Page navigation">
+    <div class="pagination__prev">
+      {prev && (
+        <a href={prev.href} class="pagination__link pagination__link--prev">
+          <svg class="pagination__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          <span class="pagination__text">
+            <span class="pagination__label">Previous</span>
+            <span class="pagination__title">{prev.title}</span>
+          </span>
+        </a>
+      )}
+    </div>
+
+    <div class="pagination__next">
+      {next && (
+        <a href={next.href} class="pagination__link pagination__link--next">
+          <span class="pagination__text">
+            <span class="pagination__label">Next</span>
+            <span class="pagination__title">{next.title}</span>
+          </span>
+          <svg class="pagination__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </a>
+      )}
+    </div>
+  </nav>
+)}
+
+<style>
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-2xl);
+    padding-top: var(--spacing-xl);
+    border-top: 1px solid var(--color-border-default);
+  }
+
+  .pagination__prev,
+  .pagination__next {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pagination__link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    text-decoration: none;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--border-radius-md);
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .pagination__link:hover {
+    border-color: var(--color-brand-primary);
+    background-color: var(--color-bg-secondary);
+  }
+
+  .pagination__link--prev {
+    justify-content: flex-start;
+  }
+
+  .pagination__link--next {
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .pagination__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    color: var(--color-text-muted);
+  }
+
+  .pagination__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .pagination__link--prev .pagination__text {
+    align-items: flex-start;
+  }
+
+  .pagination__link--next .pagination__text {
+    align-items: flex-end;
+  }
+
+  .pagination__label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .pagination__title {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 640px) {
+    .pagination {
+      flex-direction: column;
+    }
+
+    .pagination__link--next {
+      margin-left: 0;
+    }
+  }
+</style>

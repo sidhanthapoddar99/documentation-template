@@ -1,0 +1,38 @@
+# Footer Configuration
+layout: "@footer/default"
+
+copyright: "© {year} My Docs. All rights reserved."
+
+columns:
+  - title: "Documentation"
+    links:
+      - label: "Getting Started"
+        href: "/docs/getting-started"
+      - label: "Guides"
+        href: "/docs/guides"
+      - label: "API Reference"
+        href: "/docs/api"
+
+  - title: "Community"
+    links:
+      - label: "Blog"
+        page: "blog"
+      - label: "Discord"
+        href: "https://discord.gg/example"
+      - label: "GitHub"
+        href: "https://github.com/user/repo"
+
+  - title: "Company"
+    links:
+      - label: "About"
+        page: "about"
+      - label: "Contact"
+        href: "/contact"
+
+social:
+  - platform: "github"
+    href: "https://github.com/user/repo"
+  - platform: "twitter"
+    href: "https://twitter.com/user"
+  - platform: "discord"
+    href: "https://discord.gg/example"

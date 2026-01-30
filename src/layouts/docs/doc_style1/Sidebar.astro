@@ -1,0 +1,229 @@
+---
+/**
+ * Sidebar - Documentation navigation sidebar
+ *
+ * Features:
+ * - Section headers
+ * - Nested navigation items
+ * - Active item highlighting
+ * - Collapsible sections (optional)
+ */
+
+interface SidebarItem {
+  title: string;
+  href: string;
+  slug?: string;
+}
+
+interface SidebarSection {
+  title: string;
+  href?: string;
+  items: SidebarItem[];
+}
+
+interface SidebarSettings {
+  collapsed?: boolean;
+  collapsible?: boolean;
+  sort?: 'position' | 'alphabetical';
+  depth?: number;
+}
+
+interface Props {
+  sections: SidebarSection[];
+  currentPath: string;
+  settings?: SidebarSettings;
+}
+
+const { sections, currentPath, settings = {} } = Astro.props;
+
+const { collapsible = true } = settings;
+
+function isActive(href: string): boolean {
+  return currentPath === href;
+}
+
+function isSectionActive(section: SidebarSection): boolean {
+  if (section.href && isActive(section.href)) return true;
+  return section.items.some(item => isActive(item.href));
+}
+---
+
+<aside class="sidebar">
+  <nav class="sidebar__nav" aria-label="Documentation">
+    {sections.map((section, index) => (
+      <div
+        class:list={['sidebar__section', { 'sidebar__section--active': isSectionActive(section) }]}
+        data-section={index}
+      >
+        {section.items.length > 0 ? (
+          <>
+            {collapsible ? (
+              <button
+                class="sidebar__header sidebar__header--collapsible"
+                aria-expanded="true"
+                data-collapse-trigger
+              >
+                <span>{section.title}</span>
+                <svg class="sidebar__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+            ) : (
+              <span class="sidebar__header">{section.title}</span>
+            )}
+
+            <ul class="sidebar__list" data-collapse-content>
+              {section.items.map((item) => (
+                <li>
+                  <a
+                    href={item.href}
+                    class:list={['sidebar__link', { 'sidebar__link--active': isActive(item.href) }]}
+                    aria-current={isActive(item.href) ? 'page' : undefined}
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : section.href ? (
+          <a
+            href={section.href}
+            class:list={['sidebar__link sidebar__link--top', { 'sidebar__link--active': isActive(section.href) }]}
+            aria-current={isActive(section.href) ? 'page' : undefined}
+          >
+            {section.title}
+          </a>
+        ) : (
+          <span class="sidebar__header">{section.title}</span>
+        )}
+      </div>
+    ))}
+  </nav>
+</aside>
+
+<style>
+  .sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    padding: var(--spacing-lg) var(--spacing-md);
+    border-right: 1px solid var(--color-border-default);
+    background-color: var(--color-bg-primary);
+    height: calc(100vh - var(--navbar-height));
+    overflow-y: auto;
+    position: sticky;
+    top: var(--navbar-height);
+  }
+
+  .sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .sidebar__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .sidebar__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    background: none;
+    border: none;
+    cursor: default;
+    width: 100%;
+    text-align: left;
+  }
+
+  .sidebar__header--collapsible {
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .sidebar__header--collapsible:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-secondary);
+  }
+
+  .sidebar__chevron {
+    width: 1rem;
+    height: 1rem;
+    transition: transform var(--transition-fast);
+  }
+
+  .sidebar__section[data-collapsed="true"] .sidebar__chevron {
+    transform: rotate(-90deg);
+  }
+
+  .sidebar__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar__section[data-collapsed="true"] .sidebar__list {
+    display: none;
+  }
+
+  .sidebar__link {
+    display: block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--border-radius-sm);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .sidebar__link:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-secondary);
+  }
+
+  .sidebar__link--active {
+    color: var(--color-brand-primary);
+    background-color: var(--color-bg-secondary);
+    font-weight: 500;
+  }
+
+  .sidebar__link--top {
+    font-weight: 500;
+  }
+
+  /* Mobile: hide sidebar */
+  @media (max-width: 1024px) {
+    .sidebar {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  function initSidebar() {
+    document.querySelectorAll('[data-collapse-trigger]').forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        const section = trigger.closest('[data-section]');
+        if (section) {
+          const isCollapsed = section.getAttribute('data-collapsed') === 'true';
+          section.setAttribute('data-collapsed', String(!isCollapsed));
+          trigger.setAttribute('aria-expanded', String(isCollapsed));
+        }
+      });
+    });
+  }
+
+  initSidebar();
+  document.addEventListener('astro:page-load', initSidebar);
+</script>

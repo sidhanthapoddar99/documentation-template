@@ -1,0 +1,35 @@
+# Homepage Data
+hero:
+  title: "Modern Documentation Framework"
+  subtitle: "Build beautiful, fast documentation sites with Astro. Easy to customize, simple to maintain."
+  cta:
+    label: "Get Started"
+    href: "/docs/getting-started"
+  secondaryCta:
+    label: "View on GitHub"
+    href: "https://github.com/user/repo"
+
+features:
+  - title: "Lightning Fast"
+    description: "Built on Astro for optimal performance. Ships zero JavaScript by default."
+    icon: "⚡"
+
+  - title: "Easy Configuration"
+    description: "Simple YAML configuration. No complex setup required."
+    icon: "⚙️"
+
+  - title: "Beautiful Design"
+    description: "Clean, modern design with light and dark mode support."
+    icon: "🎨"
+
+  - title: "Fully Customizable"
+    description: "Layout packages and CSS variables make customization a breeze."
+    icon: "🔧"
+
+  - title: "MDX Support"
+    description: "Write documentation with MDX components for interactive content."
+    icon: "📝"
+
+  - title: "Auto Sidebar"
+    description: "Sidebar automatically generated from your folder structure."
+    icon: "📁"

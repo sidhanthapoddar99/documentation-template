@@ -1,0 +1,24 @@
+{
+  "name": "astro-docs-framework",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Modern documentation framework built with Astro",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.13",
+    "astro": "^5.16.12",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "glob": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,115 @@
+---
+/**
+ * BaseLayout - Root layout for all pages
+ *
+ * Provides:
+ * - HTML structure with head meta
+ * - Global styles
+ * - Dark mode script (prevents flash)
+ * - Navbar and Footer slots
+ *
+ * Structure:
+ * ┌─────────────────────────────────────┐
+ * │           Top Navbar                │
+ * ├─────────────────────────────────────┤
+ * │           Main Body                 │
+ * │         (slot content)              │
+ * ├─────────────────────────────────────┤
+ * │             Footer                  │
+ * └─────────────────────────────────────┘
+ */
+
+import { loadSiteConfig, loadNavbarConfig, loadFooterConfig } from '@loaders/config';
+import '@styles/globals.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+// Load configurations
+const siteConfig = loadSiteConfig();
+const navbarConfig = loadNavbarConfig();
+const footerConfig = loadFooterConfig();
+
+const {
+  title,
+  description = siteConfig.site.description,
+  ogImage
+} = Astro.props;
+
+const siteName = siteConfig.site.name;
+const fullTitle = title ? `${title} | ${siteName}` : siteConfig.site.title;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- SEO -->
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Dark Mode Script (prevents flash) -->
+    <script is:inline>
+      const theme = (() => {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+          return localStorage.getItem('theme');
+        }
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          return 'dark';
+        }
+        return 'light';
+      })();
+
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Navbar Slot -->
+    <slot name="navbar" />
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <slot />
+    </main>
+
+    <!-- Footer Slot -->
+    <slot name="footer" />
+  </body>
+</html>
+
+<style is:global>
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .main-content {
+    flex: 1;
+  }
+</style>

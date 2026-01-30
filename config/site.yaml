@@ -1,0 +1,34 @@
+# Site Configuration
+site:
+  name: "My Docs"
+  title: "My Documentation"
+  description: "Modern documentation built with Astro"
+  logo:
+    src: "/logo.svg"
+    alt: "My Docs Logo"
+
+# Page Definitions
+pages:
+  docs_main:
+    base_url: "/docs"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/docs"
+
+  blog:
+    base_url: "/blog"
+    type: blog
+    layout: "@blog/blog_style1"
+    data: "@data/blog"
+
+  home:
+    base_url: "/"
+    type: custom
+    layout: "@custom/home"
+    data: "@data/pages/home.yaml"
+
+  about:
+    base_url: "/about"
+    type: custom
+    layout: "@custom/info"
+    data: "@data/pages/about.yaml"

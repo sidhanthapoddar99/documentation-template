@@ -1,0 +1,17 @@
+{
+  "sidebar": {
+    "collapsed": false,
+    "collapsible": true,
+    "sort": "position",
+    "depth": 3
+  },
+  "outline": {
+    "enabled": true,
+    "levels": [2, 3],
+    "title": "On this page"
+  },
+  "pagination": {
+    "enabled": true,
+    "showPrevNext": true
+  }
+}

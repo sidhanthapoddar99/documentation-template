@@ -1,0 +1,76 @@
+/* Info Page Layout Styles */
+
+.info-page {
+  min-height: calc(100vh - var(--navbar-height) - 200px);
+  padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+.info-page__container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.info-page__header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.info-page__title {
+  font-size: var(--font-size-4xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.info-page__description {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.info-page__content {
+  line-height: 1.8;
+}
+
+.info-page__content h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: var(--spacing-2xl);
+  margin-bottom: var(--spacing-md);
+}
+
+.info-page__content h3 {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-sm);
+}
+
+.info-page__content p {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-secondary);
+}
+
+.info-page__content ul,
+.info-page__content ol {
+  margin-bottom: var(--spacing-md);
+  padding-left: var(--spacing-xl);
+  color: var(--color-text-secondary);
+}
+
+.info-page__content li {
+  margin-bottom: var(--spacing-sm);
+}
+
+.info-page__content a {
+  color: var(--color-brand-primary);
+}
+
+.info-page__content a:hover {
+  text-decoration: underline;
+}

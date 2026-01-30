@@ -1,0 +1,508 @@
+---
+/**
+ * Navbar Style 1 - Standard navigation bar
+ *
+ * Features:
+ * - Logo on the left
+ * - Navigation links in the center/right
+ * - Dropdown menus for children
+ * - External link indicators
+ * - Theme toggle
+ * - Mobile responsive with hamburger menu
+ */
+
+import { loadSiteConfig, loadNavbarConfig, resolvePageUrl } from '@loaders/config';
+import type { NavItem } from '@loaders/config';
+
+interface Props {
+  currentPath?: string;
+}
+
+const siteConfig = loadSiteConfig();
+const navbarConfig = loadNavbarConfig();
+
+const { currentPath = Astro.url.pathname } = Astro.props;
+
+const logo = siteConfig.site.logo || { src: '/logo.svg', alt: siteConfig.site.name };
+const items = navbarConfig.items || [];
+
+// Process nav items - resolve page references to URLs
+function processNavItem(item: NavItem): NavItem & { resolvedHref: string } {
+  let resolvedHref = item.href || '#';
+
+  if (item.page) {
+    resolvedHref = resolvePageUrl(item.page);
+  }
+
+  return {
+    ...item,
+    resolvedHref,
+    children: item.children?.map(processNavItem),
+  };
+}
+
+const processedItems = items.map(processNavItem);
+
+// Separate regular and external items
+const regularItems = processedItems.filter(item => !item.external && !item.children);
+const dropdownItems = processedItems.filter(item => item.children && item.children.length > 0);
+const externalItems = processedItems.filter(item => item.external);
+
+function isActive(href: string): boolean {
+  if (href === '/') {
+    return currentPath === '/';
+  }
+  return currentPath.startsWith(href);
+}
+---
+
+<nav class="navbar" aria-label="Main navigation">
+  <div class="navbar__container">
+    <!-- Logo -->
+    <a href="/" class="navbar__logo">
+      {logo.src ? (
+        <img src={logo.src} alt={logo.alt} />
+      ) : (
+        <span class="navbar__logo-text">{siteConfig.site.name}</span>
+      )}
+    </a>
+
+    <!-- Desktop Navigation -->
+    <div class="navbar__links">
+      {regularItems.map((item) => (
+        <a
+          href={item.resolvedHref}
+          class:list={['navbar__link', { 'navbar__link--active': isActive(item.resolvedHref) }]}
+        >
+          {item.label}
+        </a>
+      ))}
+
+      {dropdownItems.map((item) => (
+        <div class="navbar__dropdown">
+          <button class="navbar__link navbar__dropdown-trigger">
+            {item.label}
+            <svg class="navbar__dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <div class="navbar__dropdown-menu">
+            {item.children?.map((child) => (
+              <a
+                href={child.resolvedHref}
+                class="navbar__dropdown-item"
+                target={child.external ? '_blank' : undefined}
+                rel={child.external ? 'noopener noreferrer' : undefined}
+              >
+                {child.label}
+                {child.external && (
+                  <svg class="navbar__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                )}
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {externalItems.map((item) => (
+        <a
+          href={item.resolvedHref}
+          class="navbar__link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {item.label}
+          <svg class="navbar__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+        </a>
+      ))}
+    </div>
+
+    <!-- Right Section -->
+    <div class="navbar__right">
+      <!-- Theme Toggle -->
+      <button class="navbar__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
+        <svg class="navbar__theme-icon navbar__theme-icon--light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+        <svg class="navbar__theme-icon navbar__theme-icon--dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      </button>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="navbar__mobile-toggle" aria-label="Toggle menu" data-mobile-toggle>
+        <svg class="navbar__menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+        <svg class="navbar__close-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="navbar__mobile-menu" data-mobile-menu>
+    {processedItems.map((item) => (
+      <>
+        {item.children ? (
+          <>
+            <span class="navbar__mobile-label">{item.label}</span>
+            {item.children.map((child) => (
+              <a
+                href={child.resolvedHref}
+                class="navbar__mobile-link navbar__mobile-link--nested"
+                target={child.external ? '_blank' : undefined}
+                rel={child.external ? 'noopener noreferrer' : undefined}
+              >
+                {child.label}
+              </a>
+            ))}
+          </>
+        ) : (
+          <a
+            href={item.resolvedHref}
+            class:list={['navbar__mobile-link', { 'navbar__mobile-link--active': isActive(item.resolvedHref) }]}
+            target={item.external ? '_blank' : undefined}
+            rel={item.external ? 'noopener noreferrer' : undefined}
+          >
+            {item.label}
+          </a>
+        )}
+      </>
+    ))}
+  </div>
+</nav>
+
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--color-bg-primary);
+    border-bottom: 1px solid var(--color-border-default);
+  }
+
+  .navbar__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: var(--max-width-content);
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    height: var(--navbar-height);
+    gap: var(--spacing-xl);
+  }
+
+  .navbar__logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+
+  .navbar__logo img {
+    height: 2rem;
+    width: auto;
+  }
+
+  .navbar__logo-text {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .navbar__links {
+    display: none;
+    align-items: center;
+    gap: var(--spacing-xs);
+  }
+
+  @media (min-width: 768px) {
+    .navbar__links {
+      display: flex;
+    }
+  }
+
+  .navbar__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--border-radius-md);
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .navbar__link:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-secondary);
+  }
+
+  .navbar__link--active {
+    color: var(--color-brand-primary);
+  }
+
+  .navbar__external-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    opacity: 0.5;
+  }
+
+  /* Dropdown */
+  .navbar__dropdown {
+    position: relative;
+  }
+
+  .navbar__dropdown-trigger {
+    font-family: inherit;
+  }
+
+  .navbar__dropdown-icon {
+    width: 1rem;
+    height: 1rem;
+    transition: transform var(--transition-fast);
+  }
+
+  .navbar__dropdown:hover .navbar__dropdown-icon {
+    transform: rotate(180deg);
+  }
+
+  .navbar__dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 180px;
+    padding: var(--spacing-sm);
+    background-color: var(--color-bg-primary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .navbar__dropdown:hover .navbar__dropdown-menu {
+    display: block;
+  }
+
+  .navbar__dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--border-radius-sm);
+  }
+
+  .navbar__dropdown-item:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-secondary);
+  }
+
+  /* Right Section */
+  .navbar__right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  /* Theme Toggle */
+  .navbar__theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--border-radius-md);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .navbar__theme-toggle:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-secondary);
+  }
+
+  .navbar__theme-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .navbar__theme-icon--dark {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .navbar__theme-icon--light {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .navbar__theme-icon--dark {
+    display: block;
+  }
+
+  /* Mobile Toggle */
+  .navbar__mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    border-radius: var(--border-radius-md);
+  }
+
+  .navbar__mobile-toggle:hover {
+    background-color: var(--color-bg-secondary);
+  }
+
+  @media (min-width: 768px) {
+    .navbar__mobile-toggle {
+      display: none;
+    }
+  }
+
+  .navbar__menu-icon,
+  .navbar__close-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .navbar__close-icon {
+    display: none;
+  }
+
+  .navbar[data-mobile-open="true"] .navbar__menu-icon {
+    display: none;
+  }
+
+  .navbar[data-mobile-open="true"] .navbar__close-icon {
+    display: block;
+  }
+
+  /* Mobile Menu */
+  .navbar__mobile-menu {
+    display: none;
+    flex-direction: column;
+    padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-lg);
+    border-top: 1px solid var(--color-border-default);
+  }
+
+  .navbar[data-mobile-open="true"] .navbar__mobile-menu {
+    display: flex;
+  }
+
+  @media (min-width: 768px) {
+    .navbar__mobile-menu {
+      display: none !important;
+    }
+  }
+
+  .navbar__mobile-label {
+    padding: var(--spacing-md) var(--spacing-sm) var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .navbar__mobile-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--border-radius-md);
+  }
+
+  .navbar__mobile-link:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-secondary);
+  }
+
+  .navbar__mobile-link--active {
+    color: var(--color-brand-primary);
+  }
+
+  .navbar__mobile-link--nested {
+    padding-left: var(--spacing-xl);
+  }
+</style>
+
+<script>
+  function initNavbar() {
+    // Mobile menu toggle
+    document.querySelectorAll('[data-mobile-toggle]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const navbar = button.closest('.navbar');
+        if (navbar) {
+          const isOpen = navbar.getAttribute('data-mobile-open') === 'true';
+          navbar.setAttribute('data-mobile-open', String(!isOpen));
+        }
+      });
+    });
+
+    // Close on link click
+    document.querySelectorAll('.navbar__mobile-link').forEach((link) => {
+      link.addEventListener('click', () => {
+        const navbar = link.closest('.navbar');
+        if (navbar) {
+          navbar.setAttribute('data-mobile-open', 'false');
+        }
+      });
+    });
+
+    // Theme toggle
+    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+      });
+    });
+  }
+
+  initNavbar();
+
+  // Re-init on Astro page transitions
+  document.addEventListener('astro:page-load', initNavbar);
+</script>

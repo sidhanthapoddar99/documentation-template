@@ -1,0 +1,69 @@
+---
+/**
+ * Blog Post Body - Individual post content
+ */
+import './styles.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  date?: string;
+  author?: string;
+  tags?: string[];
+  content: string;
+}
+
+const { title, description, date, author, tags = [], content } = Astro.props;
+
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+const formattedDate = formatDate(date);
+---
+
+<article class="blog-post">
+  <div class="blog-post__container">
+    <a href="/blog" class="blog-post__back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      Back to Blog
+    </a>
+
+    <header class="blog-post__header">
+      {tags.length > 0 && (
+        <div class="blog-post__tags">
+          {tags.map((tag) => <span class="blog-post__tag">{tag}</span>)}
+        </div>
+      )}
+
+      <h1 class="blog-post__title">{title}</h1>
+      {description && <p class="blog-post__description">{description}</p>}
+
+      <div class="blog-post__meta">
+        {author && <span class="blog-post__author">By {author}</span>}
+        {formattedDate && <time class="blog-post__date" datetime={date}>{formattedDate}</time>}
+      </div>
+    </header>
+
+    <div class="blog-post__content">
+      <Fragment set:html={content} />
+    </div>
+
+    {tags.length > 0 && (
+      <footer class="blog-post__footer">
+        <div class="blog-post__footer-tags">
+          <span class="blog-post__footer-label">Tagged:</span>
+          {tags.map((tag) => <a href={`/blog/tag/${tag}`} class="blog-post__footer-tag">#{tag}</a>)}
+        </div>
+      </footer>
+    )}
+  </div>
+</article>

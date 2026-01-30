@@ -1,0 +1,199 @@
+---
+/**
+ * Navbar Minimal - Simple navigation bar
+ *
+ * Features:
+ * - Logo on the left
+ * - Flat navigation links (no dropdowns)
+ * - Theme toggle
+ * - Clean, minimal design
+ */
+
+import { loadSiteConfig, loadNavbarConfig, resolvePageUrl } from '@loaders/config';
+import type { NavItem } from '@loaders/config';
+
+interface Props {
+  currentPath?: string;
+}
+
+const siteConfig = loadSiteConfig();
+const navbarConfig = loadNavbarConfig();
+
+const { currentPath = Astro.url.pathname } = Astro.props;
+
+const logo = siteConfig.site.logo || { src: '/logo.svg', alt: siteConfig.site.name };
+
+// Flatten nav items (ignore children)
+const items = navbarConfig.items?.map((item: NavItem) => ({
+  label: item.label,
+  href: item.page ? resolvePageUrl(item.page) : (item.href || '#'),
+  external: item.external || false,
+})) || [];
+
+function isActive(href: string): boolean {
+  if (href === '/') {
+    return currentPath === '/';
+  }
+  return currentPath.startsWith(href);
+}
+---
+
+<nav class="navbar-minimal" aria-label="Main navigation">
+  <div class="navbar-minimal__container">
+    <!-- Logo -->
+    <a href="/" class="navbar-minimal__logo">
+      {logo.src ? (
+        <img src={logo.src} alt={logo.alt} />
+      ) : (
+        <span>{siteConfig.site.name}</span>
+      )}
+    </a>
+
+    <!-- Navigation Links -->
+    <div class="navbar-minimal__links">
+      {items.map((item) => (
+        <a
+          href={item.href}
+          class:list={['navbar-minimal__link', { 'navbar-minimal__link--active': isActive(item.href) }]}
+          target={item.external ? '_blank' : undefined}
+          rel={item.external ? 'noopener noreferrer' : undefined}
+        >
+          {item.label}
+        </a>
+      ))}
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="navbar-minimal__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
+      <svg class="navbar-minimal__theme-icon navbar-minimal__theme-icon--light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5" />
+        <line x1="12" y1="1" x2="12" y2="3" />
+        <line x1="12" y1="21" x2="12" y2="23" />
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+        <line x1="1" y1="12" x2="3" y2="12" />
+        <line x1="21" y1="12" x2="23" y2="12" />
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+      </svg>
+      <svg class="navbar-minimal__theme-icon navbar-minimal__theme-icon--dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<style>
+  .navbar-minimal {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--color-bg-primary);
+    border-bottom: 1px solid var(--color-border-default);
+  }
+
+  .navbar-minimal__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: var(--max-width-content);
+    margin: 0 auto;
+    padding: 0 var(--spacing-lg);
+    height: var(--navbar-height);
+  }
+
+  .navbar-minimal__logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+  }
+
+  .navbar-minimal__logo img {
+    height: 1.75rem;
+    width: auto;
+  }
+
+  .navbar-minimal__links {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .navbar-minimal__link {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .navbar-minimal__link:hover {
+    color: var(--color-text-primary);
+  }
+
+  .navbar-minimal__link--active {
+    color: var(--color-brand-primary);
+  }
+
+  .navbar-minimal__theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--border-radius-md);
+    transition: color var(--transition-fast);
+  }
+
+  .navbar-minimal__theme-toggle:hover {
+    color: var(--color-text-primary);
+  }
+
+  .navbar-minimal__theme-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .navbar-minimal__theme-icon--dark {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .navbar-minimal__theme-icon--light {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) .navbar-minimal__theme-icon--dark {
+    display: block;
+  }
+
+  @media (max-width: 640px) {
+    .navbar-minimal__links {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  function initNavbarMinimal() {
+    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+      });
+    });
+  }
+
+  initNavbarMinimal();
+  document.addEventListener('astro:page-load', initNavbarMinimal);
+</script>
