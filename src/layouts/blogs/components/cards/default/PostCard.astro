@@ -1,0 +1,60 @@
+---
+/**
+ * PostCard - Blog post preview card (Default Style)
+ */
+
+interface Props {
+  title: string;
+  description?: string;
+  date?: string;
+  author?: string;
+  tags?: string[];
+  href: string;
+  image?: string;
+}
+
+const { title, description, date, author, tags = [], href, image } = Astro.props;
+
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+const formattedDate = formatDate(date);
+---
+
+<article class="post-card">
+  <a href={href} class="post-card__link">
+    {image && (
+      <div class="post-card__image-wrapper">
+        <img src={image} alt={title} class="post-card__image" />
+      </div>
+    )}
+
+    <div class="post-card__content">
+      {tags.length > 0 && (
+        <div class="post-card__tags">
+          {tags.slice(0, 2).map((tag) => (
+            <span class="post-card__tag">{tag}</span>
+          ))}
+        </div>
+      )}
+
+      <h2 class="post-card__title">{title}</h2>
+
+      {description && (
+        <p class="post-card__description">{description}</p>
+      )}
+
+      <div class="post-card__meta">
+        {author && <span class="post-card__author">{author}</span>}
+        {formattedDate && <time class="post-card__date">{formattedDate}</time>}
+      </div>
+    </div>
+  </a>
+</article>

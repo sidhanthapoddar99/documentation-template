@@ -1,0 +1,87 @@
+---
+/**
+ * Outline - Table of contents for current page (Default Style)
+ */
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+  title?: string;
+}
+
+const { headings, title = 'On this page' } = Astro.props;
+---
+
+<aside class="outline">
+  <nav class="outline__nav" aria-label="Table of contents">
+    <h2 class="outline__title">{title}</h2>
+    <ul class="outline__list">
+      {headings.map((heading) => (
+        <li class:list={['outline__item', `outline__item--depth-${heading.depth}`]}>
+          <a
+            href={`#${heading.slug}`}
+            class="outline__link"
+            data-outline-link={heading.slug}
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</aside>
+
+<script>
+  function initOutline() {
+    const links = document.querySelectorAll('[data-outline-link]');
+    if (links.length === 0) return;
+
+    const headings = Array.from(links).map(link => {
+      const slug = link.getAttribute('data-outline-link');
+      const heading = document.getElementById(slug || '');
+      return { link, heading, slug };
+    }).filter(item => item.heading);
+
+    let currentActive: Element | null = null;
+
+    function updateActive() {
+      const scrollTop = window.scrollY;
+      const offset = 100;
+
+      let activeHeading = headings[0];
+
+      for (const item of headings) {
+        if (item.heading && item.heading.offsetTop <= scrollTop + offset) {
+          activeHeading = item;
+        }
+      }
+
+      if (currentActive !== activeHeading.link) {
+        currentActive?.classList.remove('outline__link--active');
+        activeHeading.link.classList.add('outline__link--active');
+        currentActive = activeHeading.link;
+      }
+    }
+
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          updateActive();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+
+    updateActive();
+  }
+
+  initOutline();
+  document.addEventListener('astro:page-load', initOutline);
+</script>

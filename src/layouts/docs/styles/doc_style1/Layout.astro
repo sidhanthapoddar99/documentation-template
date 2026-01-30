@@ -1,0 +1,125 @@
+---
+/**
+ * Doc Style 1 - Complete docs layout
+ * Imports sidebar, body, outline with default styles
+ */
+import Sidebar from '../../components/sidebar/default/Sidebar.astro';
+import Body from '../../components/body/default/Body.astro';
+import Outline from '../../components/outline/default/Outline.astro';
+import Pagination from '../../components/common/Pagination.astro';
+
+// Import all styles for this layout
+import '../../components/sidebar/default/styles.css';
+import '../../components/body/default/styles.css';
+import '../../components/outline/default/styles.css';
+import '../../components/common/styles.css';
+import './layout.css';
+
+import { loadContentWithSettings, type LoadedContent, type ContentSettings } from '@loaders/data';
+
+interface Props {
+  title: string;
+  description?: string;
+  dataPath: string;
+  currentSlug: string;
+  content: string;
+  headings?: { depth: number; slug: string; text: string }[];
+}
+
+const { title, description, dataPath, currentSlug, content, headings = [] } = Astro.props;
+
+// Load sidebar content and settings
+let allContent: LoadedContent[] = [];
+let settings: ContentSettings = {};
+
+try {
+  const result = await loadContentWithSettings(dataPath);
+  allContent = result.content;
+  settings = result.settings;
+} catch (error) {
+  console.error('Error loading docs content:', error);
+}
+
+// Build sidebar sections
+interface SidebarSection {
+  title: string;
+  href?: string;
+  items: { title: string; href: string; slug: string }[];
+}
+
+function buildSidebarTree(content: LoadedContent[]): SidebarSection[] {
+  const sections: Map<string, SidebarSection> = new Map();
+
+  for (const item of content) {
+    const parts = item.slug.split('/');
+
+    if (parts.length === 1) {
+      const key = item.slug;
+      if (!sections.has(key)) {
+        sections.set(key, {
+          title: item.data.sidebar_label || item.data.title,
+          href: `/docs/${item.slug}`,
+          items: [],
+        });
+      }
+    } else {
+      const sectionKey = parts[0];
+      const section = sections.get(sectionKey) || {
+        title: sectionKey.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        items: [],
+      };
+
+      section.items.push({
+        title: item.data.sidebar_label || item.data.title,
+        href: `/docs/${item.slug}`,
+        slug: item.slug,
+      });
+
+      sections.set(sectionKey, section);
+    }
+  }
+
+  return Array.from(sections.values()).map(section => ({
+    ...section,
+    items: section.items.sort((a, b) => {
+      const itemA = content.find(c => c.slug === a.slug);
+      const itemB = content.find(c => c.slug === b.slug);
+      return (itemA?.data.sidebar_position ?? 999) - (itemB?.data.sidebar_position ?? 999);
+    }),
+  }));
+}
+
+const sidebarSections = buildSidebarTree(allContent);
+
+// Pagination
+const flatItems = sidebarSections.flatMap(s =>
+  s.items.length ? s.items : [{ title: s.title, href: s.href || '', slug: '' }]
+);
+const currentIndex = flatItems.findIndex(item => item.href === `/docs/${currentSlug}`);
+const prevItem = currentIndex > 0 ? flatItems[currentIndex - 1] : null;
+const nextItem = currentIndex < flatItems.length - 1 ? flatItems[currentIndex + 1] : null;
+
+// Outline
+const outlineEnabled = settings.outline?.enabled !== false;
+const outlineLevels = settings.outline?.levels || [2, 3];
+const outlineHeadings = headings.filter(h => outlineLevels.includes(h.depth));
+const paginationEnabled = settings.pagination?.enabled !== false;
+---
+
+<div class="docs-layout">
+  <Sidebar
+    sections={sidebarSections}
+    currentPath={`/docs/${currentSlug}`}
+    settings={settings.sidebar}
+  />
+
+  <Body title={title} description={description} content={content}>
+    {paginationEnabled && (prevItem || nextItem) && (
+      <Pagination prev={prevItem} next={nextItem} />
+    )}
+  </Body>
+
+  {outlineEnabled && outlineHeadings.length > 0 && (
+    <Outline headings={outlineHeadings} title={settings.outline?.title} />
+  )}
+</div>

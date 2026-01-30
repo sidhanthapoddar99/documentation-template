@@ -5,6 +5,8 @@
  * Structure:
  * - Page handles: Navbar + Footer (same for all routes)
  * - Layouts handle: Main body content only
+ *
+ * Import from styles/ folders for complete style bundles
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
 import NavbarStyle1 from '@layouts/navbar/style1/index.astro';
@@ -13,19 +15,19 @@ import FooterDefault from '@layouts/footer/default/index.astro';
 import { loadSiteConfig, loadContent } from '@loaders/index';
 import { resolveAliasPath } from '@loaders/alias';
 
-// Import body layouts (these only render main content, no navbar/footer)
-import HomeBody from '@layouts/custom/home/Body.astro';
-import InfoBody from '@layouts/custom/info/Body.astro';
-import DocsBody from '@layouts/docs/doc_style1/Body.astro';
-import BlogIndexBody from '@layouts/blogs/blog_style1/IndexBody.astro';
-import BlogPostBody from '@layouts/blogs/blog_style1/PostBody.astro';
+// Import from styles folders - each style bundles its components + CSS
+import DocsLayout from '@layouts/docs/styles/doc_style1/Layout.astro';
+import HomeLayout from '@layouts/custom/styles/home/Layout.astro';
+import InfoLayout from '@layouts/custom/styles/info/Layout.astro';
+import BlogIndexBody from '@layouts/blogs/components/body/default/IndexBody.astro';
+import BlogPostBody from '@layouts/blogs/components/body/default/PostBody.astro';
 
 export async function getStaticPaths() {
   const siteConfig = loadSiteConfig();
   const pages = siteConfig.pages || {};
   const paths: any[] = [];
 
-  for (const [pageName, pageConfig] of Object.entries(pages)) {
+  for (const [, pageConfig] of Object.entries(pages)) {
     const baseUrl = pageConfig.base_url.replace(/^\//, '');
     const dataPath = resolveAliasPath(pageConfig.data);
 
@@ -105,17 +107,17 @@ else if (pageType === 'blog-index') title = 'Blog';
   <!-- Navbar - same for all routes -->
   <NavbarStyle1 slot="navbar" />
 
-  <!-- Main Body - varies by layout -->
+  <!-- Main Body - varies by layout style -->
   {pageType === 'custom' && pageConfig.layout.includes('home') && (
-    <HomeBody dataPath={dataPath} />
+    <HomeLayout dataPath={dataPath} />
   )}
 
   {pageType === 'custom' && pageConfig.layout.includes('info') && (
-    <InfoBody dataPath={dataPath} />
+    <InfoLayout dataPath={dataPath} />
   )}
 
   {pageType === 'docs' && doc && (
-    <DocsBody
+    <DocsLayout
       title={doc.data.title}
       description={doc.data.description}
       dataPath={dataPath}

@@ -1,0 +1,32 @@
+---
+/**
+ * Info Layout - Simple content page
+ */
+import Content from '../../components/content/default/Content.astro';
+import { loadFile } from '@loaders/data';
+
+// Import styles
+import '../../components/content/default/styles.css';
+
+interface Props {
+  dataPath: string;
+}
+
+const { dataPath } = Astro.props;
+
+let pageData: { title?: string; description?: string } = {};
+
+try {
+  const content = await loadFile(dataPath);
+  pageData = content.data as typeof pageData;
+} catch (error) {
+  console.error('Error loading info page data:', error);
+}
+
+const title = pageData.title || 'Page';
+const description = pageData.description;
+---
+
+<Content title={title} description={description}>
+  <slot />
+</Content>

@@ -1,0 +1,107 @@
+/* Sidebar Default Style */
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  padding: var(--spacing-lg) var(--spacing-md);
+  border-right: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-primary);
+  height: calc(100vh - var(--navbar-height));
+  overflow-y: auto;
+  position: sticky;
+  top: var(--navbar-height);
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.sidebar__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: default;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar__header--collapsible {
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.sidebar__header--collapsible:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+}
+
+.sidebar__chevron {
+  width: 1rem;
+  height: 1rem;
+  transition: transform var(--transition-fast);
+}
+
+.sidebar__section[data-collapsed="true"] .sidebar__chevron {
+  transform: rotate(-90deg);
+}
+
+.sidebar__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar__section[data-collapsed="true"] .sidebar__list {
+  display: none;
+}
+
+.sidebar__link {
+  display: block;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--border-radius-sm);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.sidebar__link:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+}
+
+.sidebar__link--active {
+  color: var(--color-brand-primary);
+  background-color: var(--color-bg-secondary);
+  font-weight: 500;
+}
+
+.sidebar__link--top {
+  font-weight: 500;
+}
+
+/* Mobile: hide sidebar */
+@media (max-width: 1024px) {
+  .sidebar {
+    display: none;
+  }
+}

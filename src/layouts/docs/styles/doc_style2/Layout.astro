@@ -1,0 +1,67 @@
+---
+/**
+ * Doc Style 2 - Minimal docs layout (no sidebar)
+ */
+import Body from '../../components/body/default/Body.astro';
+import Outline from '../../components/outline/default/Outline.astro';
+import Pagination from '../../components/common/Pagination.astro';
+
+// Import styles for this layout
+import '../../components/body/default/styles.css';
+import '../../components/outline/default/styles.css';
+import '../../components/common/styles.css';
+import './layout.css';
+
+import { loadContentWithSettings, type LoadedContent, type ContentSettings } from '@loaders/data';
+
+interface Props {
+  title: string;
+  description?: string;
+  dataPath: string;
+  currentSlug: string;
+  content: string;
+  headings?: { depth: number; slug: string; text: string }[];
+}
+
+const { title, description, dataPath, currentSlug, content, headings = [] } = Astro.props;
+
+// Load settings only (no sidebar needed)
+let allContent: LoadedContent[] = [];
+let settings: ContentSettings = {};
+
+try {
+  const result = await loadContentWithSettings(dataPath);
+  allContent = result.content;
+  settings = result.settings;
+} catch (error) {
+  console.error('Error loading docs content:', error);
+}
+
+// Pagination (flat list for minimal style)
+const flatItems = allContent.map(item => ({
+  title: item.data.sidebar_label || item.data.title,
+  href: `/docs/${item.slug}`,
+  slug: item.slug,
+}));
+const currentIndex = flatItems.findIndex(item => item.href === `/docs/${currentSlug}`);
+const prevItem = currentIndex > 0 ? flatItems[currentIndex - 1] : null;
+const nextItem = currentIndex < flatItems.length - 1 ? flatItems[currentIndex + 1] : null;
+
+// Outline
+const outlineEnabled = settings.outline?.enabled !== false;
+const outlineLevels = settings.outline?.levels || [2, 3];
+const outlineHeadings = headings.filter(h => outlineLevels.includes(h.depth));
+const paginationEnabled = settings.pagination?.enabled !== false;
+---
+
+<div class="docs-layout docs-layout--minimal">
+  <Body title={title} description={description} content={content}>
+    {paginationEnabled && (prevItem || nextItem) && (
+      <Pagination prev={prevItem} next={nextItem} />
+    )}
+  </Body>
+
+  {outlineEnabled && outlineHeadings.length > 0 && (
+    <Outline headings={outlineHeadings} title={settings.outline?.title} />
+  )}
+</div>

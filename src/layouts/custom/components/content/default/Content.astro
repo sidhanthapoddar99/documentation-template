@@ -1,0 +1,26 @@
+---
+/**
+ * Content - Simple content container (Default Style)
+ */
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<article class="info-page">
+  <div class="info-page__container">
+    {title && (
+      <header class="info-page__header">
+        <h1 class="info-page__title">{title}</h1>
+        {description && <p class="info-page__description">{description}</p>}
+      </header>
+    )}
+    <div class="info-page__content">
+      <slot />
+    </div>
+  </div>
+</article>

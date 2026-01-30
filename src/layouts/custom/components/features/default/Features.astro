@@ -1,0 +1,33 @@
+---
+/**
+ * Features - Feature grid component (Default Style)
+ */
+
+interface FeatureData {
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+interface Props {
+  features: FeatureData[];
+}
+
+const { features } = Astro.props;
+---
+
+{features.length > 0 && (
+  <section class="features">
+    <div class="features__container">
+      <div class="features__grid">
+        {features.map((feature) => (
+          <div class="feature-card">
+            {feature.icon && <div class="feature-card__icon"><span>{feature.icon}</span></div>}
+            <h3 class="feature-card__title">{feature.title}</h3>
+            <p class="feature-card__description">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

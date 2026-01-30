@@ -1,0 +1,49 @@
+---
+/**
+ * Pagination - Previous/Next navigation for docs
+ */
+
+interface NavItem {
+  title: string;
+  href: string;
+}
+
+interface Props {
+  prev?: NavItem | null;
+  next?: NavItem | null;
+}
+
+const { prev, next } = Astro.props;
+---
+
+{(prev || next) && (
+  <nav class="pagination" aria-label="Page navigation">
+    <div class="pagination__prev">
+      {prev && (
+        <a href={prev.href} class="pagination__link pagination__link--prev">
+          <svg class="pagination__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          <span class="pagination__text">
+            <span class="pagination__label">Previous</span>
+            <span class="pagination__title">{prev.title}</span>
+          </span>
+        </a>
+      )}
+    </div>
+
+    <div class="pagination__next">
+      {next && (
+        <a href={next.href} class="pagination__link pagination__link--next">
+          <span class="pagination__text">
+            <span class="pagination__label">Next</span>
+            <span class="pagination__title">{next.title}</span>
+          </span>
+          <svg class="pagination__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </a>
+      )}
+    </div>
+  </nav>
+)}

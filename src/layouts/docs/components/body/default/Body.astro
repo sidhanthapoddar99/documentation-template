@@ -1,0 +1,29 @@
+---
+/**
+ * Docs Body - Main content area (Default Style)
+ * Does NOT include sidebar or outline - those are separate components
+ */
+
+interface Props {
+  title: string;
+  description?: string;
+  content: string;
+}
+
+const { title, description, content } = Astro.props;
+---
+
+<main class="docs-content">
+  <article class="docs-article">
+    <header class="docs-header">
+      <h1 class="docs-title">{title}</h1>
+      {description && <p class="docs-description">{description}</p>}
+    </header>
+
+    <div class="docs-body">
+      <Fragment set:html={content} />
+    </div>
+
+    <slot />
+  </article>
+</main>
