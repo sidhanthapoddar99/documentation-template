@@ -1,8 +1,16 @@
 ---
 /**
  * Blog Style 1 - Index Layout
- * Re-exports the default index body with all styles bundled
+ * Wrapper that imports the component with styles
  */
-export { default } from '../../components/body/default/IndexBody.astro';
-export { Props } from '../../components/body/default/IndexBody.astro';
+import IndexBody from '../../components/body/default/IndexBody.astro';
+
+interface Props {
+  dataPath: string;
+  postsPerPage?: number;
+}
+
+const props = Astro.props;
 ---
+
+<IndexBody {...props} />

@@ -1,8 +1,20 @@
 ---
 /**
  * Blog Style 1 - Post Layout
- * Re-exports the default post body with all styles bundled
+ * Wrapper that imports the component with styles
  */
-export { default } from '../../components/body/default/PostBody.astro';
-export { Props } from '../../components/body/default/PostBody.astro';
+import PostBody from '../../components/body/default/PostBody.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  date?: string;
+  author?: string;
+  tags?: string[];
+  content: string;
+}
+
+const props = Astro.props;
 ---
+
+<PostBody {...props} />
