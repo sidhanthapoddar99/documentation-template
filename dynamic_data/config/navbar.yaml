@@ -1,8 +1,5 @@
 # Navbar Configuration
-
-logo:
-  src: "/logo.svg"
-  alt: "Docs"
+# Note: Logo configuration has moved to site.yaml
 
 items:
   - label: "Home"
