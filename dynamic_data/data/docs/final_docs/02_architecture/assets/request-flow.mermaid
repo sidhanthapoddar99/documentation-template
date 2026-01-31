@@ -1,0 +1,75 @@
+flowchart TB
+    subgraph Browser["Browser / Client"]
+        REQ["User Request<br/>/docs/getting-started/overview"]
+    end
+
+    subgraph RenderLayer["Render Layer"]
+        SLUG["[...slug].astro<br/>Route Handler"]
+        STATIC["getStaticPaths()"]
+        BASE["BaseLayout.astro"]
+    end
+
+    subgraph LoadersLayer["Loaders Layer"]
+        PATHS["paths.ts<br/>Environment & Paths"]
+        CONFIG["config.ts<br/>Load site.yaml"]
+        ALIAS["alias.ts<br/>Resolve @prefixes"]
+        DATA["data.ts<br/>Content Orchestration"]
+    end
+
+    subgraph ParserLayer["Parser Layer"]
+        PARSER["Content-Type Parser<br/>DocsParser / BlogParser"]
+        PIPELINE["Processing Pipeline"]
+        PRE["Preprocessors<br/>asset-embed"]
+        RENDER["Renderer<br/>Marked (MD→HTML)"]
+        POST["Postprocessors<br/>heading-ids"]
+        TRANSFORM["Transformers<br/>custom tags"]
+    end
+
+    subgraph LayoutLayer["Layout Layer"]
+        RESOLVE["Layout Resolution<br/>@docs/style1 → path"]
+        LAYOUT["Layout Component<br/>Layout.astro"]
+        COMPONENTS["Sub-Components<br/>Sidebar, Outline, Body"]
+        NAVBAR["Navbar Component"]
+        FOOTER["Footer Component"]
+    end
+
+    subgraph UserSpace["User Space (dynamic_data/)"]
+        SITE["config/<br/>site.yaml"]
+        NAV["config/<br/>navbar.yaml"]
+        FOOT["config/<br/>footer.yaml"]
+        CONTENT["data/docs/<br/>*.md files"]
+        ASSETS["assets/<br/>images, code"]
+    end
+
+    subgraph Output["Output"]
+        HTML["Static HTML Page"]
+    end
+
+    %% Request Flow with numbered arrows
+    REQ -->|"1"| SLUG
+    SLUG -->|"2"| STATIC
+    STATIC -->|"3"| CONFIG
+    CONFIG -->|"4"| PATHS
+    PATHS -->|"5"| SITE
+    CONFIG -->|"6"| NAV
+    CONFIG -->|"7"| FOOT
+    STATIC -->|"8"| ALIAS
+    ALIAS -->|"9"| DATA
+    DATA -->|"10"| CONTENT
+    DATA -->|"11"| PARSER
+    PARSER -->|"12"| PIPELINE
+    PIPELINE --> PRE
+    PRE -->|"13"| ASSETS
+    PRE --> RENDER
+    RENDER --> POST
+    POST --> TRANSFORM
+    TRANSFORM -->|"14"| SLUG
+    SLUG -->|"15"| RESOLVE
+    RESOLVE -->|"16"| LAYOUT
+    LAYOUT --> COMPONENTS
+    SLUG -->|"17"| BASE
+    BASE --> NAVBAR
+    BASE --> FOOTER
+    LAYOUT -->|"18"| BASE
+    BASE -->|"19"| HTML
+    HTML -->|"20"| REQ
