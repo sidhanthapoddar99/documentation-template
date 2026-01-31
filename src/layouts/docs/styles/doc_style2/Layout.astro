@@ -18,12 +18,13 @@ interface Props {
   title: string;
   description?: string;
   dataPath: string;
+  baseUrl: string;
   currentSlug: string;
   content: string;
   headings?: { depth: number; slug: string; text: string }[];
 }
 
-const { title, description, dataPath, currentSlug, content, headings = [] } = Astro.props;
+const { title, description, dataPath, baseUrl, currentSlug, content, headings = [] } = Astro.props;
 
 // Load settings only (no sidebar needed)
 let allContent: LoadedContent[] = [];
@@ -40,10 +41,10 @@ try {
 // Pagination (flat list for minimal style)
 const flatItems = allContent.map(item => ({
   title: item.data.sidebar_label || item.data.title,
-  href: `/docs/${item.slug}`,
+  href: `${baseUrl}/${item.slug}`,
   slug: item.slug,
 }));
-const currentIndex = flatItems.findIndex(item => item.href === `/docs/${currentSlug}`);
+const currentIndex = flatItems.findIndex(item => item.href === `${baseUrl}/${currentSlug}`);
 const prevItem = currentIndex > 0 ? flatItems[currentIndex - 1] : null;
 const nextItem = currentIndex < flatItems.length - 1 ? flatItems[currentIndex + 1] : null;
 

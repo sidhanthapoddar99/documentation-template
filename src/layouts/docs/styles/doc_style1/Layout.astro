@@ -21,12 +21,13 @@ interface Props {
   title: string;
   description?: string;
   dataPath: string;
+  baseUrl: string;
   currentSlug: string;
   content: string;
   headings?: { depth: number; slug: string; text: string }[];
 }
 
-const { title, description, dataPath, currentSlug, content, headings = [] } = Astro.props;
+const { title, description, dataPath, baseUrl, currentSlug, content, headings = [] } = Astro.props;
 
 // Load sidebar content and settings
 let allContent: LoadedContent[] = [];
@@ -47,7 +48,7 @@ interface SidebarSection {
   items: { title: string; href: string; slug: string }[];
 }
 
-function buildSidebarTree(content: LoadedContent[]): SidebarSection[] {
+function buildSidebarTree(content: LoadedContent[], baseUrl: string): SidebarSection[] {
   const sections: Map<string, SidebarSection> = new Map();
 
   for (const item of content) {
@@ -58,7 +59,7 @@ function buildSidebarTree(content: LoadedContent[]): SidebarSection[] {
       if (!sections.has(key)) {
         sections.set(key, {
           title: item.data.sidebar_label || item.data.title,
-          href: `/docs/${item.slug}`,
+          href: `${baseUrl}/${item.slug}`,
           items: [],
         });
       }
@@ -71,7 +72,7 @@ function buildSidebarTree(content: LoadedContent[]): SidebarSection[] {
 
       section.items.push({
         title: item.data.sidebar_label || item.data.title,
-        href: `/docs/${item.slug}`,
+        href: `${baseUrl}/${item.slug}`,
         slug: item.slug,
       });
 
@@ -89,13 +90,13 @@ function buildSidebarTree(content: LoadedContent[]): SidebarSection[] {
   }));
 }
 
-const sidebarSections = buildSidebarTree(allContent);
+const sidebarSections = buildSidebarTree(allContent, baseUrl);
 
 // Pagination
 const flatItems = sidebarSections.flatMap(s =>
   s.items.length ? s.items : [{ title: s.title, href: s.href || '', slug: '' }]
 );
-const currentIndex = flatItems.findIndex(item => item.href === `/docs/${currentSlug}`);
+const currentIndex = flatItems.findIndex(item => item.href === `${baseUrl}/${currentSlug}`);
 const prevItem = currentIndex > 0 ? flatItems[currentIndex - 1] : null;
 const nextItem = currentIndex < flatItems.length - 1 ? flatItems[currentIndex + 1] : null;
 
@@ -109,7 +110,7 @@ const paginationEnabled = settings.pagination?.enabled !== false;
 <div class="docs-layout">
   <Sidebar
     sections={sidebarSections}
-    currentPath={`/docs/${currentSlug}`}
+    currentPath={`${baseUrl}/${currentSlug}`}
     settings={settings.sidebar}
   />
 

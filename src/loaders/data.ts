@@ -6,106 +6,106 @@ import path from 'path';
 import matter from 'gray-matter';
 import yaml from 'js-yaml';
 import { glob } from 'glob';
+import { marked } from 'marked';
 import { getDataPath, paths } from './paths';
 
 // ============================================
-// Asset Embedding - [[type, path]] syntax
+// Asset Embedding - [[path]] syntax
 // ============================================
 
-// Map file extensions to language identifiers for syntax highlighting
-const extToLang: Record<string, string> = {
-  'py': 'python',
-  'js': 'javascript',
-  'ts': 'typescript',
-  'jsx': 'jsx',
-  'tsx': 'tsx',
-  'cpp': 'cpp',
-  'c': 'c',
-  'h': 'c',
-  'hpp': 'cpp',
-  'java': 'java',
-  'go': 'go',
-  'rs': 'rust',
-  'rb': 'ruby',
-  'php': 'php',
-  'sh': 'bash',
-  'bash': 'bash',
-  'zsh': 'bash',
-  'yaml': 'yaml',
-  'yml': 'yaml',
-  'json': 'json',
-  'xml': 'xml',
-  'html': 'html',
-  'css': 'css',
-  'scss': 'scss',
-  'sass': 'sass',
-  'less': 'less',
-  'sql': 'sql',
-  'md': 'markdown',
-  'mdx': 'mdx',
-  'toml': 'toml',
-  'ini': 'ini',
-  'env': 'bash',
-  'dockerfile': 'dockerfile',
-  'graphql': 'graphql',
-  'gql': 'graphql',
-};
-
-function getLanguageFromExtension(filePath: string): string {
-  const ext = path.extname(filePath).slice(1).toLowerCase();
-  return extToLang[ext] || ext || 'text';
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
 /**
- * Process [[type, path]] asset embeds in content
+ * Process [[path]] asset embeds in content
+ * Simply replaces [[path]] with the raw file content
+ * Use \[[path]] to escape (show literal syntax)
+ *
+ * Skips content inside fenced code blocks (```...```) to allow
+ * documenting the syntax itself.
+ *
+ * Usage in MDX:
+ *   ```python
+ *   [[./assets/code.py]]
+ *   ```
  */
 function processAssetEmbeds(content: string, fileDir: string): string {
-  // Match [[type, path]] patterns on their own line
-  const assetPattern = /^\[\[(\w+),\s*(.+)\]\]$/gm;
+  // First, protect fenced code blocks (``` and ~~~) from processing
+  const codeBlocks: string[] = [];
+  content = content.replace(/(`{3,}|~{3,})[\s\S]*?\1/g, (match) => {
+    codeBlocks.push(match);
+    return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
+  });
 
-  return content.replace(assetPattern, (match, type, assetPath) => {
+  // Protect inline code (`...`)
+  const inlineCode: string[] = [];
+  content = content.replace(/`[^`]+`/g, (match) => {
+    inlineCode.push(match);
+    return `__INLINE_CODE_${inlineCode.length - 1}__`;
+  });
+
+  // Protect escaped \[[...]]
+  const escaped: string[] = [];
+  content = content.replace(/\\\[\[([^\]]+)\]\]/g, (match, inner) => {
+    escaped.push(inner);
+    return `__ESCAPED_ASSET_${escaped.length - 1}__`;
+  });
+
+  // Match [[path]] patterns - can be inline or on their own line
+  const assetPattern = /\[\[([^\]]+)\]\]/g;
+
+  content = content.replace(assetPattern, (match, assetPath) => {
     const trimmedPath = assetPath.trim();
     const absolutePath = path.resolve(fileDir, trimmedPath);
 
     try {
-      if (type === 'code') {
-        if (!fs.existsSync(absolutePath)) {
-          console.warn(`[asset-embed] File not found: ${absolutePath}`);
-          return match; // Return original if file not found
-        }
-
-        const fileContent = fs.readFileSync(absolutePath, 'utf-8');
-        const lang = getLanguageFromExtension(trimmedPath);
-        const filename = path.basename(trimmedPath);
-
-        // Return markdown code block that will be processed by the markdown renderer
-        return `\`\`\`${lang} title="${filename}"\n${fileContent.trimEnd()}\n\`\`\``;
-
-      } else if (type === 'img') {
-        const altText = path.basename(trimmedPath);
-        return `![${altText}](${trimmedPath})`;
-
-      } else if (type === 'video') {
-        return `<video controls src="${trimmedPath}" style="max-width: 100%; height: auto;"></video>`;
-
-      } else {
-        console.warn(`[asset-embed] Unknown asset type: ${type}`);
+      if (!fs.existsSync(absolutePath)) {
+        console.warn(`[asset-embed] File not found: ${absolutePath}`);
         return match;
       }
+
+      // Just return the raw file content
+      return fs.readFileSync(absolutePath, 'utf-8').trimEnd();
     } catch (error) {
-      console.error(`[asset-embed] Error processing asset: ${trimmedPath}`, error);
+      console.error(`[asset-embed] Error reading file: ${trimmedPath}`, error);
       return match;
     }
   });
+
+  // Restore escaped [[...]]
+  content = content.replace(/__ESCAPED_ASSET_(\d+)__/g, (match, index) => {
+    return `[[${escaped[parseInt(index)]}]]`;
+  });
+
+  // Restore inline code (unchanged)
+  content = content.replace(/__INLINE_CODE_(\d+)__/g, (match, index) => {
+    return inlineCode[parseInt(index)];
+  });
+
+  // Restore code blocks - but process [[path]] inside them!
+  content = content.replace(/__CODE_BLOCK_(\d+)__/g, (match, index) => {
+    let block = codeBlocks[parseInt(index)];
+
+    // Process [[path]] inside code blocks (actual file embedding)
+    block = block.replace(/\[\[([^\]]+)\]\]/g, (m, assetPath) => {
+      const trimmedPath = assetPath.trim();
+      // Skip if it looks like documentation example (contains spaces or special chars)
+      if (trimmedPath.includes(' ') || trimmedPath.includes(',') || !trimmedPath.startsWith('./')) {
+        return m;
+      }
+
+      const absolutePath = path.resolve(fileDir, trimmedPath);
+      try {
+        if (!fs.existsSync(absolutePath)) {
+          return m;
+        }
+        return fs.readFileSync(absolutePath, 'utf-8').trimEnd();
+      } catch {
+        return m;
+      }
+    });
+
+    return block;
+  });
+
+  return content;
 }
 
 // ============================================
@@ -259,7 +259,10 @@ function parseMarkdownFile(filePath: string, basePath: string): LoadedContent {
 
   // Process [[type, path]] asset embeds
   const fileDir = path.dirname(filePath);
-  const content = processAssetEmbeds(rawContent, fileDir);
+  const processedContent = processAssetEmbeds(rawContent, fileDir);
+
+  // Render markdown to HTML
+  const content = marked.parse(processedContent, { async: false }) as string;
 
   const relativePath = path.relative(basePath, filePath);
 
