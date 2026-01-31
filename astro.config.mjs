@@ -3,19 +3,15 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { remarkAssets } from './src/plugins/remark-assets.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://astro.build/config
 export default defineConfig({
   integrations: [
-    mdx({
-      remarkPlugins: [remarkAssets],
-    }),
+    mdx(),
   ],
   markdown: {
-    remarkPlugins: [remarkAssets],
     shikiConfig: {
       theme: 'github-dark',
       wrap: true,
@@ -27,9 +23,10 @@ export default defineConfig({
         '@': path.resolve(__dirname, './src'),
         '@layouts': path.resolve(__dirname, './src/layouts'),
         '@loaders': path.resolve(__dirname, './src/loaders'),
+        '@parsers': path.resolve(__dirname, './src/parsers'),
+        '@custom-tags': path.resolve(__dirname, './src/custom-tags'),
         '@hooks': path.resolve(__dirname, './src/hooks'),
         '@modules': path.resolve(__dirname, './src/modules'),
-        '@mdx': path.resolve(__dirname, './src/mdx_components'),
         '@styles': path.resolve(__dirname, './src/styles'),
         '@assets': path.resolve(__dirname, './src/assets'),
       },

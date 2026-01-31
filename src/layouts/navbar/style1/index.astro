@@ -45,10 +45,6 @@ function processNavItem(item: NavItem): ProcessedNavItem {
 
 const processedItems = items.map(processNavItem);
 
-// Separate items by type
-const regularItems = processedItems.filter(item => !item.items);
-const dropdownItems = processedItems.filter(item => item.items && item.items.length > 0);
-
 function isActive(href: string | undefined): boolean {
   if (!href) return false;
   if (href === '/') return currentPath === '/';
@@ -63,58 +59,58 @@ function isActive(href: string | undefined): boolean {
       {logo.src ? (
         <img src={logo.src} alt={logo.alt} />
       ) : (
-        <span class="navbar__logo-text">{siteConfig.site.name}</span>
+        <span class="navbar__logo-text">{logo.alt}</span>
       )}
     </a>
 
     <!-- Desktop Navigation -->
     <div class="navbar__links">
-      {regularItems.map((item) => (
-        <a
-          href={item.href || '#'}
-          class:list={['navbar__link', { 'navbar__link--active': isActive(item.href) }]}
-          target={item.isExternal ? '_blank' : undefined}
-          rel={item.isExternal ? 'noopener noreferrer' : undefined}
-        >
-          {item.label}
-          {item.isExternal && (
-            <svg class="navbar__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-          )}
-        </a>
-      ))}
-
-      {dropdownItems.map((item) => (
-        <div class="navbar__dropdown">
-          <button class="navbar__link navbar__dropdown-trigger">
-            {item.label}
-            <svg class="navbar__dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          <div class="navbar__dropdown-menu">
-            {item.items?.map((child) => (
-              <a
-                href={child.href || '#'}
-                class="navbar__dropdown-item"
-                target={child.isExternal ? '_blank' : undefined}
-                rel={child.isExternal ? 'noopener noreferrer' : undefined}
-              >
-                {child.label}
-                {child.isExternal && (
-                  <svg class="navbar__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                    <polyline points="15 3 21 3 21 9" />
-                    <line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                )}
-              </a>
-            ))}
+      {processedItems.map((item) => (
+        item.items && item.items.length > 0 ? (
+          <div class="navbar__dropdown">
+            <button class="navbar__link navbar__dropdown-trigger">
+              {item.label}
+              <svg class="navbar__dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <div class="navbar__dropdown-menu">
+              {item.items.map((child) => (
+                <a
+                  href={child.href || '#'}
+                  class="navbar__dropdown-item"
+                  target={child.isExternal ? '_blank' : undefined}
+                  rel={child.isExternal ? 'noopener noreferrer' : undefined}
+                >
+                  {child.label}
+                  {child.isExternal && (
+                    <svg class="navbar__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  )}
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <a
+            href={item.href || '#'}
+            class:list={['navbar__link', { 'navbar__link--active': isActive(item.href) }]}
+            target={item.isExternal ? '_blank' : undefined}
+            rel={item.isExternal ? 'noopener noreferrer' : undefined}
+          >
+            {item.label}
+            {item.isExternal && (
+              <svg class="navbar__external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            )}
+          </a>
+        )
       ))}
     </div>
 

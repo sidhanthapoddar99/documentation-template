@@ -1,0 +1,14 @@
+/**
+ * Postprocessors module exports
+ */
+
+export {
+  createHeadingIdsPostprocessor,
+  headingIdsPostprocessor,
+} from './heading-ids';
+
+export {
+  createExternalLinksPostprocessor,
+  externalLinksPostprocessor,
+  type ExternalLinksOptions,
+} from './external-links';

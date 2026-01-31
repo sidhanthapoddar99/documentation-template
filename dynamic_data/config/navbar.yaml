@@ -9,7 +9,7 @@ items:
     href: "/"
 
   - label: "Getting Started"
-    href: "/docs"
+    href: "/docs/getting-started"
 
   - label: "Docs"
     items:

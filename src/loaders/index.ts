@@ -57,3 +57,10 @@ export {
   type AliasPrefix,
   type ResolvedAlias,
 } from './alias';
+
+// Parser system (re-exported for convenience)
+export {
+  getParser,
+  createParser,
+  type ContentType,
+} from '../parsers';
