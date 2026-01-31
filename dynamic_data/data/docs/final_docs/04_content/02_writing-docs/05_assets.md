@@ -1,5 +1,5 @@
 ---
-title: Assets
+title: Assets Embedding
 description: Embed code, images, and videos in documentation
 ---
 
