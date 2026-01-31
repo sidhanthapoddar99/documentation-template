@@ -1,143 +1,200 @@
 ---
 title: Architecture Overview
-description: How the documentation system works
+description: Understanding the core architecture of the documentation framework
 ---
 
 # Architecture Overview
 
-Understanding the core architecture helps you extend and customize the template effectively.
+This documentation framework is built on a modular architecture that separates concerns into distinct layers: configuration, parsing, layouts, and rendering.
 
-## System Design
-
-The template follows a clear separation:
+## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    User Space                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
-│  │  Config  │  │   Data   │  │  Theme   │              │
-│  │  (YAML)  │  │  (MDX)   │  │  (YAML)  │              │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘              │
-└───────┼─────────────┼─────────────┼─────────────────────┘
-        │             │             │
-        ▼             ▼             ▼
-┌─────────────────────────────────────────────────────────┐
-│                    Loader Layer                          │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
-│  │  Config  │  │   Data   │  │  Theme   │              │
-│  │  Loader  │  │  Loader  │  │  Loader  │              │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘              │
-└───────┼─────────────┼─────────────┼─────────────────────┘
-        │             │             │
-        ▼             ▼             ▼
-┌─────────────────────────────────────────────────────────┐
-│                    Layout Layer                          │
-│  ┌──────────────────────────────────────────┐          │
-│  │         Dynamic Layout Resolution         │          │
-│  │  @docs/style → layouts/docs/styles/style │          │
-│  └────────────────────┬─────────────────────┘          │
-└───────────────────────┼─────────────────────────────────┘
-                        │
-                        ▼
-┌─────────────────────────────────────────────────────────┐
-│                    Render Layer                          │
-│  ┌──────────────────────────────────────────┐          │
-│  │           [...slug].astro                 │          │
-│  │    Single entry point for all routes      │          │
-│  └──────────────────────────────────────────┘          │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        User Space                               │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌───────────┐  │
+│  │   Config   │  │    Data    │  │   Theme    │  │  Assets   │  │
+│  │   (YAML)   │  │ (MD/MDX)   │  │   (YAML)   │  │  (files)  │  │
+│  └─────┬──────┘  └─────┬──────┘  └─────┬──────┘  └─────┬─────┘  │
+└────────┼───────────────┼───────────────┼───────────────┼────────┘
+         │               │               │               │
+         ▼               ▼               ▼               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       Parser Layer                              │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                  Modular Parser System                   │   │
+│  │  ┌───────────────┐  ┌──────────────┐  ┌──────────────┐   │   │
+│  │  │ Preprocessors │  │   Renderer   │  │Postprocessors│   │   │
+│  │  │ (asset embed) │  │   (marked)   │  │ (heading IDs)│   │   │
+│  │  └───────────────┘  └──────────────┘  └──────────────┘   │   │
+│  │                                                          │   │
+│  │  ┌──────────────────────────────────────────────────┐    │   │
+│  │  │  Content-Type Parsers (DocsParser, BlogParser)   │    │   │
+│  │  └──────────────────────────────────────────────────┘    │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       Layout Layer                              │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │              Dynamic Layout Resolution                   │   │
+│  │     @docs/style1 → layouts/docs/styles/style1/           │   │
+│  │     @blogs/style1 → layouts/blogs/styles/style1/         │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       Render Layer                              │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                   [...slug].astro                        │   │
+│  │             Single entry point for all routes            │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Request Flow
 
 When a user visits `/docs/getting-started/overview`:
 
-1. **Route Matching**: `[...slug].astro` catches all routes
-2. **Config Lookup**: Find which page config matches `/docs`
-3. **Layout Resolution**: Resolve `@docs/doc_style1` to actual component
-4. **Data Loading**: Load MDX content from `data/docs/getting-started/`
-5. **Rendering**: Layout component renders with content as props
+1. **Route Matching**: `[...slug].astro` catches the route
+2. **Config Lookup**: Find page config matching `/docs` base URL
+3. **Parser Selection**: Get appropriate parser (DocsParser for docs)
+4. **Content Loading**: Load and parse MDX from `data/docs/getting-started/`
+5. **Pipeline Processing**: Run preprocessors → render → postprocessors
+6. **Layout Resolution**: Resolve `@docs/doc_style1` to component path
+7. **Rendering**: Layout component renders with processed content
+
+## Core Modules
+
+### Loaders (`src/loaders/`)
+
+| Module | Purpose |
+|--------|---------|
+| `paths.ts` | Path resolution and alias mapping |
+| `config.ts` | Site and page configuration loading |
+| `data.ts` | Content loading orchestration |
+| `alias.ts` | Layout and data path alias resolution |
+
+### Parsers (`src/parsers/`)
+
+| Module | Purpose |
+|--------|---------|
+| `core/` | Base parser classes and pipeline |
+| `preprocessors/` | Run before markdown rendering |
+| `renderers/` | Markdown to HTML conversion |
+| `transformers/` | Custom tag transformation |
+| `postprocessors/` | Run after HTML rendering |
+| `content-types/` | DocsParser, BlogParser |
+
+### Custom Tags (`src/custom-tags/`)
+
+| Tag | Purpose |
+|-----|---------|
+| `<callout>` | Styled admonition boxes |
+| `<tabs>` | Tabbed content interfaces |
+| `<collapsible>` | Expandable sections |
 
 ## Core Principles
 
 ### 1. Convention Over Configuration
 
-File and folder structure determines behavior:
+File structure determines behavior automatically:
 
 ```
 data/docs/
-├── getting-started/     # Section in sidebar
-│   ├── settings.json    # Section label & behavior
-│   ├── 01_overview.mdx  # First item
-│   └── 02_install.mdx   # Second item
+├── getting-started/
+│   ├── settings.json    # Section configuration
+│   ├── 01_overview.md   # Position 1
+│   └── 02_install.md    # Position 2
 ```
 
-No need to manually configure sidebar entries.
+No manual sidebar configuration required.
 
-### 2. Strict Validation
+### 2. Modular Parser Pipeline
 
-The system fails fast with clear errors:
-
-```
-[CONFIG ERROR] Docs layout "invalid" does not exist.
-  Page: docs
-  Expected: src/layouts/docs/styles/invalid/Layout.astro
-  Available: doc_style1, doc_style2
-```
-
-No silent fallbacks that hide mistakes.
-
-### 3. Modular Components
-
-Layouts are composed of interchangeable components:
+Content flows through a configurable pipeline:
 
 ```
-Layout.astro
-├── imports Body from components/body/default/
-├── imports Sidebar from components/sidebar/default/
-└── imports Outline from components/outline/default/
+    Raw Markdown
+         │
+         ▼
+┌─────────────────┐
+│  Preprocessors  │  ← Asset embedding [[path]]
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│    Renderer     │  ← Marked (Markdown → HTML)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Postprocessors  │  ← Heading IDs, external links
+└────────┬────────┘
+         │
+         ▼
+   Rendered HTML
 ```
 
-Create new styles by mixing different components.
+### 3. Content-Type Specific Parsing
 
-### 4. Zero Runtime Config
+Different content types have different rules:
 
-All configuration is resolved at build time:
+| Feature | Docs | Blog |
+|---------|------|------|
+| Naming | `XX_name.md` (position prefix) | `YYYY-MM-DD-name.md` (date) |
+| Structure | Nested folders | Flat |
+| Assets | `./assets/` relative | `assets/<filename>/` central |
+
+### 4. Strict Validation
+
+The system fails fast with clear error messages:
+
+```
+[DOCS ERROR] Files missing required XX_ position prefix:
+  - overview.md
+  - installation.md
+
+Docs files must be named with a position prefix (01-99).
+```
+
+### 5. Zero Runtime Configuration
+
+All configuration resolves at build time:
 - No client-side config loading
 - No runtime environment checks
 - Fully static output
 
-## Key Subsystems
+## Directory Structure
 
-### Config Loader
-
-Reads and validates `site.yaml`:
-- Parses YAML configuration
-- Resolves path aliases (`@data/`, `@assets/`)
-- Validates required fields
-- Returns typed configuration objects
-
-### Data Loader
-
-Loads and transforms content:
-- Discovers files matching patterns
-- Parses MDX frontmatter
-- Extracts position from `XX_` prefixes
-- Builds sidebar tree structure
-- Validates required fields
-
-### Theme Loader
-
-Processes theme customization:
-- Reads `colors.yaml`
-- Merges with default values
-- Generates CSS custom properties
-- Supports light/dark modes
-
-### Layout System
-
-Resolves and renders layouts:
-- Maps aliases to file paths
-- Uses `import.meta.glob` for discovery
-- Validates existence at build time
-- Passes props to layout components
+```
+src/
+├── loaders/           # Data and config loading
+│   ├── paths.ts       # Path resolution
+│   ├── config.ts      # Configuration loading
+│   ├── data.ts        # Content loading
+│   └── alias.ts       # Alias resolution
+│
+├── parsers/           # Modular parser system
+│   ├── core/          # Pipeline and base parser
+│   ├── preprocessors/ # Asset embedding
+│   ├── renderers/     # Markdown rendering
+│   ├── transformers/  # Custom tag transforms
+│   ├── postprocessors/# Heading IDs, links
+│   └── content-types/ # Docs/Blog parsers
+│
+├── custom-tags/       # Custom HTML tag transformers
+│   ├── callout.ts
+│   ├── tabs.ts
+│   └── collapsible.ts
+│
+├── layouts/           # Layout components
+│   ├── docs/          # Documentation layouts
+│   ├── blogs/         # Blog layouts
+│   └── custom/        # Custom page layouts
+│
+└── pages/
+    └── [...slug].astro # Single route handler
+```

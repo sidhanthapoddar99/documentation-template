@@ -1,95 +1,109 @@
 ---
 title: Routing System
-description: How URLs map to pages
+description: How URLs map to content and layouts
 ---
 
 # Routing System
 
-The template uses a single dynamic route to handle all pages.
+The framework uses a single dynamic route to handle all pages, with layout resolution based on page configuration.
 
 ## Single Entry Point
 
 All routes flow through `src/pages/[...slug].astro`:
 
 ```
-/                           → [...slug].astro (slug = undefined)
-/docs                       → [...slug].astro (slug = ["docs"])
-/docs/getting-started       → [...slug].astro (slug = ["docs", "getting-started"])
-/docs/getting-started/intro → [...slug].astro (slug = ["docs", "getting-started", "intro"])
-/blog                       → [...slug].astro (slug = ["blog"])
-/blog/my-post               → [...slug].astro (slug = ["blog", "my-post"])
+/                           → slug = undefined (home)
+/docs                       → slug = ["docs"]
+/docs/getting-started       → slug = ["docs", "getting-started"]
+/docs/getting-started/intro → slug = ["docs", "getting-started", "intro"]
+/blog                       → slug = ["blog"]
+/blog/hello-world           → slug = ["blog", "hello-world"]
 ```
 
-## Route Resolution
+## Route Resolution Flow
 
-### Step 1: Match Page Config
-
-The slug is matched against page configurations:
-
-```yaml
-# site.yaml
-pages:
-  docs:
-    base_url: "/docs"      # Matches /docs/*
-  blog:
-    base_url: "/blog"      # Matches /blog/*
-  home:
-    base_url: "/"          # Matches / exactly
+```
+┌──────────────────────────────────────────────────────────────┐
+│                  URL: /docs/getting-started/overview         │
+└──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│  Step 1: Match Page Config                                   │
+│  ─────────────────────────                                   │
+│  pages.docs.base_url: "/docs" ✓                              │
+│  Remaining path: getting-started/overview                    │
+└──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│  Step 2: Select Parser                                       │
+│  ────────────────────                                        │
+│  Content type: docs → DocsParser                             │
+└──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│  Step 3: Resolve Content Path                                │
+│  ────────────────────────────                                │
+│  data/docs/getting-started/XX_overview.md                    │
+└──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│  Step 4: Parse Content                                       │
+│  ─────────────────────                                       │
+│  Preprocessors → Render → Postprocessors                     │
+└──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│  Step 5: Resolve Layout                                      │
+│  ──────────────────────                                      │
+│  @docs/doc_style1 → layouts/docs/styles/doc_style1/          │
+└──────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────┐
+│  Step 6: Render                                              │
+│  ─────────────────                                           │
+│  Layout.astro with content, sidebar, pagination              │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-### Step 2: Determine Content Path
+## Page Configuration
 
-For `/docs/getting-started/overview`:
-
-1. Match `docs` page config (base_url: `/docs`)
-2. Remaining path: `getting-started/overview`
-3. Content path: `data/docs/getting-started/XX_overview.mdx`
-
-### Step 3: Load Layout
-
-Resolve the layout alias:
+Define pages in `site.yaml`:
 
 ```yaml
 pages:
+  # Documentation
   docs:
+    type: docs
+    base_url: "/docs"
+    data: "@data/docs"
     layout: "@docs/doc_style1"
-```
 
-Maps to: `src/layouts/docs/styles/doc_style1/Layout.astro`
+  # Blog
+  blog:
+    type: blog
+    base_url: "/blog"
+    data: "@data/blog"
+    layout: "@blogs/blog_style1"
 
-### Step 4: Render
+  # Home page
+  home:
+    type: custom
+    base_url: "/"
+    data: "@data/pages/home.yaml"
+    layout: "@custom/home"
 
-Layout receives:
-- `content`: The MDX content
-- `frontmatter`: Parsed frontmatter
-- `sidebar`: Tree structure for navigation
-- `pagination`: Previous/next links
-
-## Static Path Generation
-
-At build time, `getStaticPaths()` generates all routes:
-
-```typescript
-export async function getStaticPaths() {
-  const paths = [];
-
-  // For each page in config
-  for (const [name, config] of Object.entries(pagesConfig)) {
-    if (config.type === 'docs') {
-      // Load all docs and create path for each
-      const docs = await loadContent(config.data);
-      for (const doc of docs.items) {
-        paths.push({
-          params: { slug: `docs/${doc.slug}`.split('/') },
-          props: { pageConfig: config, content: doc }
-        });
-      }
-    }
-    // ... handle blog, custom pages
-  }
-
-  return paths;
-}
+  # About page
+  about:
+    type: custom
+    base_url: "/about"
+    data: "@data/pages/about.yaml"
+    layout: "@custom/info"
 ```
 
 ## URL Structure
@@ -97,19 +111,19 @@ export async function getStaticPaths() {
 ### Documentation URLs
 
 ```
-File:  data/docs/getting-started/01_overview.mdx
+File:  data/docs/getting-started/01_overview.md
 URL:   /docs/getting-started/overview
        └─┬─┘ └───────┬───────┘ └───┬───┘
-      base_url    folder      clean slug
+     base_url    folder      clean slug
 ```
 
-The `01_` prefix is stripped from the URL.
+The `01_` prefix is stripped from the URL, used only for ordering.
 
 ### Blog URLs
 
 ```
-File:  data/blog/2024-01-15-my-first-post.mdx
-URL:   /blog/my-first-post
+File:  data/blog/2024-01-15-hello-world.md
+URL:   /blog/hello-world
        └─┬─┘ └─────┬─────┘
      base_url  clean slug (date stripped)
 ```
@@ -121,30 +135,40 @@ Config: base_url: "/about"
 URL:    /about
 ```
 
-Custom pages have exact URL matching.
+Custom pages use exact URL matching.
 
 ## Layout Resolution
 
-Layout aliases are resolved at build time:
+Layout aliases map to filesystem paths:
+
+### Documentation Layouts
 
 ```
 @docs/doc_style1
   ↓
 src/layouts/docs/styles/doc_style1/Layout.astro
+```
 
+### Blog Layouts
+
+```
 @blogs/blog_style1
   ↓
 src/layouts/blogs/styles/blog_style1/IndexLayout.astro  (for /blog)
 src/layouts/blogs/styles/blog_style1/PostLayout.astro   (for /blog/*)
+```
 
+### Custom Page Layouts
+
+```
 @custom/home
   ↓
 src/layouts/custom/styles/home/Layout.astro
 ```
 
-### Validation
+### Layout Validation
 
-If a layout doesn't exist:
+Missing layouts trigger build errors:
 
 ```
 [CONFIG ERROR] Docs layout "nonexistent" does not exist.
@@ -154,29 +178,180 @@ If a layout doesn't exist:
   Available: doc_style1, doc_style2
 ```
 
+## Static Path Generation
+
+At build time, `getStaticPaths()` generates all routes:
+
+```typescript
+export async function getStaticPaths() {
+  const paths = [];
+  const pages = await getPages();
+
+  for (const [name, config] of Object.entries(pages)) {
+    switch (config.type) {
+      case 'docs':
+        // Load all docs and create path for each
+        const docs = await loadContent(config.data, 'docs');
+        for (const doc of docs) {
+          paths.push({
+            params: { slug: buildSlug(config.base_url, doc.slug) },
+            props: { page: name, content: doc }
+          });
+        }
+        break;
+
+      case 'blog':
+        // Blog index
+        paths.push({
+          params: { slug: config.base_url.split('/').filter(Boolean) },
+          props: { page: name, isIndex: true }
+        });
+        // Individual posts
+        const posts = await loadContent(config.data, 'blog');
+        for (const post of posts) {
+          paths.push({
+            params: { slug: buildSlug(config.base_url, post.slug) },
+            props: { page: name, content: post }
+          });
+        }
+        break;
+
+      case 'custom':
+        // Single custom page
+        paths.push({
+          params: { slug: config.base_url.split('/').filter(Boolean) },
+          props: { page: name }
+        });
+        break;
+    }
+  }
+
+  return paths;
+}
+```
+
 ## Index Pages
 
 ### Documentation Index
 
-`/docs` shows the first doc in the first section:
-
-```
-/docs → redirects to /docs/getting-started/overview
-```
-
-Or renders a custom index if `index.mdx` exists in `data/docs/`.
+`/docs` behavior:
+1. If `index.md` exists in `data/docs/`, render it
+2. Otherwise, redirect to first doc in first section
 
 ### Blog Index
 
-`/blog` renders the blog index layout showing all posts:
+`/blog` renders `IndexLayout.astro` showing all posts:
 
 ```
-/blog → IndexLayout.astro (list of posts)
+/blog         → IndexLayout.astro (list of posts)
 /blog/my-post → PostLayout.astro (single post)
+```
+
+### Section Index
+
+Folder index files (`index.md`) are optional:
+- If present: Renders as the section landing page
+- If absent: Section shows as non-clickable header in sidebar
+
+## Content Type Routing
+
+| Type | URL Pattern | Content Source | Parser |
+|------|-------------|----------------|--------|
+| `docs` | `/base/*/**` | Folder of `.md` files | DocsParser |
+| `blog` | `/base/*` | Folder of dated `.md` files | BlogParser |
+| `custom` | `/base` (exact) | Single YAML/JSON file | - |
+
+## Alias Resolution
+
+Path aliases are resolved at build time:
+
+| Alias | Resolves To |
+|-------|-------------|
+| `@data/` | `dynamic_data/data/` |
+| `@assets/` | `dynamic_data/assets/` |
+| `@config/` | `dynamic_data/config/` |
+| `@docs/` | `src/layouts/docs/styles/` |
+| `@blogs/` | `src/layouts/blogs/styles/` |
+| `@custom/` | `src/layouts/custom/styles/` |
+
+## Props Passed to Layouts
+
+### Documentation Layout
+
+```typescript
+interface DocsLayoutProps {
+  content: LoadedContent;     // Current page content
+  sidebar: SidebarItem[];     // Navigation tree
+  pagination: {
+    prev?: { title: string; slug: string };
+    next?: { title: string; slug: string };
+  };
+  settings: ContentSettings;  // Folder settings
+}
+```
+
+### Blog Layout
+
+```typescript
+// Index
+interface BlogIndexProps {
+  posts: LoadedContent[];     // All blog posts
+  settings: ContentSettings;
+}
+
+// Post
+interface BlogPostProps {
+  content: LoadedContent;     // Current post
+  settings: ContentSettings;
+}
+```
+
+### Custom Layout
+
+```typescript
+interface CustomLayoutProps {
+  data: Record<string, unknown>;  // YAML/JSON data
+}
 ```
 
 ## 404 Handling
 
-Unmatched routes fall through to Astro's default 404 handling.
+Unmatched routes use Astro's default 404.
 
-Create `src/pages/404.astro` for a custom 404 page.
+Create `src/pages/404.astro` for custom 404 page:
+
+```astro
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page Not Found">
+  <h1>404 - Page Not Found</h1>
+  <p>The page you're looking for doesn't exist.</p>
+  <a href="/">Go home</a>
+</BaseLayout>
+```
+
+## Dynamic Imports
+
+Layouts are loaded using Vite's `import.meta.glob`:
+
+```typescript
+const layouts = import.meta.glob('/src/layouts/**/*.astro');
+
+async function getLayout(alias: string) {
+  const path = resolveLayoutAlias(alias);
+  const loader = layouts[path];
+
+  if (!loader) {
+    throw new Error(`Layout not found: ${alias}`);
+  }
+
+  return (await loader()).default;
+}
+```
+
+This enables:
+- Build-time validation of all layouts
+- Tree-shaking of unused layouts
+- Type-safe layout props

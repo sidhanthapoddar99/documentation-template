@@ -1,204 +1,332 @@
 ---
-title: Data Loader
-description: How content loading works
+title: Parser System
+description: How the modular parser system processes content
 ---
 
-# Data Loader
+# Parser System
 
-The data loader (`src/loaders/data.ts`) is responsible for discovering, parsing, and organizing content.
+The parser system (`src/parsers/`) is a modular architecture for processing markdown content through configurable pipelines.
 
-## Core Functions
+## Architecture Overview
 
-### `loadContent()`
+```
+┌───────────────────────────────────────────────────────────┐
+│                    Processing Pipeline                    │
+│                                                           │
+│  ┌────────────┐    ┌────────────┐    ┌────────────────┐   │
+│  │  Preproc.  │ -> │  Renderer  │ -> │  Postproc.     │   │
+│  │            │    │  (Marked)  │    │                │   │
+│  │ - Assets   │    │            │    │ - Heading IDs  │   │
+│  │ - Code     │    │  MD → HTML │    │ - Ext. Links   │   │
+│  └────────────┘    └────────────┘    └────────────────┘   │
+│                                                           │
+└───────────────────────────────────────────────────────────┘
+                           │
+            ┌──────────────┴──────────────┐
+            ▼                             ▼
+     ┌─────────────┐                ┌─────────────┐
+     │ DocsParser  │                │ BlogParser  │
+     │             │                │             │
+     │ XX_ prefix  │                │ Date prefix │
+     │ Nested dirs │                │ Flat struct │
+     │ Rel. assets │                │ Central     │
+     └─────────────┘                └─────────────┘
+```
 
-Loads multiple content files from a directory:
+## Core Components
+
+### Processing Pipeline
+
+The pipeline orchestrates content transformation:
 
 ```typescript
-const content = await loadContent(dataPath, {
+import { ProcessingPipeline } from '@parsers/core';
+
+const pipeline = new ProcessingPipeline();
+
+// Add processors
+pipeline
+  .addPreprocessor(assetEmbedPreprocessor)
+  .addPostprocessor(headingIdsPostprocessor)
+  .addPostprocessor(externalLinksPostprocessor);
+
+// Process content
+const html = await pipeline.process(rawMarkdown, context, render);
+```
+
+### Content-Type Parsers
+
+#### DocsParser
+
+Handles documentation with position-based ordering:
+
+```typescript
+import { DocsParser } from '@parsers/content-types';
+
+const parser = new DocsParser();
+
+// Filename parsing
+parser.parseFilename('01_overview');
+// → { position: 1, cleanName: 'overview' }
+
+// Asset resolution (relative to file)
+parser.getAssetPath('/docs/guide/intro.md', './assets/diagram.png');
+// → /docs/guide/assets/diagram.png
+```
+
+**Docs Naming Convention:**
+```
+01_overview.md     → position: 1, slug: "overview"
+02_installation.md → position: 2, slug: "installation"
+10_advanced.md     → position: 10, slug: "advanced"
+```
+
+#### BlogParser
+
+Handles blog posts with date-based naming:
+
+```typescript
+import { BlogParser } from '@parsers/content-types';
+
+const parser = new BlogParser();
+
+// Filename parsing
+parser.parseFilename('2024-01-15-hello-world');
+// → { date: '2024-01-15', slug: 'hello-world' }
+
+// Asset resolution (central assets folder)
+parser.getAssetPath('/blog/2024-01-15-hello-world.md', 'cover.jpg');
+// → /blog/assets/2024-01-15-hello-world/cover.jpg
+```
+
+**Blog Naming Convention:**
+```
+2024-01-15-hello-world.md → date: "2024-01-15", slug: "hello-world"
+2024-02-20-my-journey.md  → date: "2024-02-20", slug: "my-journey"
+```
+
+## Preprocessors
+
+Preprocessors run before markdown rendering.
+
+### Asset Embed Preprocessor
+
+Embeds file contents using `[[path]]` syntax:
+
+```markdown
+# Code Example
+
+```python
+[[./assets/example.py]]
+```
+```
+
+The `[[./assets/example.py]]` is replaced with the actual file content.
+
+**Features:**
+- Protects code blocks from accidental processing
+- Supports escaped syntax: `\[[path]]` shows literal `[[path]]`
+- Blog-specific resolution: `[[cover.jpg]]` → `assets/<filename>/cover.jpg`
+
+```typescript
+import { createAssetEmbedPreprocessor } from '@parsers/preprocessors';
+
+// Default (docs-style relative paths)
+const docsPreprocessor = createAssetEmbedPreprocessor();
+
+// Blog-style (central assets folder)
+import { createBlogAssetResolver } from '@parsers/preprocessors';
+const blogPreprocessor = createAssetEmbedPreprocessor({
+  resolvePath: createBlogAssetResolver(),
+});
+```
+
+## Postprocessors
+
+Postprocessors run after HTML rendering.
+
+### Heading IDs
+
+Automatically adds IDs to headings for anchor links:
+
+```html
+<!-- Input -->
+<h2>Getting Started</h2>
+
+<!-- Output -->
+<h2 id="getting-started">Getting Started</h2>
+```
+
+### External Links
+
+Adds security attributes to external links:
+
+```html
+<!-- Input -->
+<a href="https://example.com">Link</a>
+
+<!-- Output -->
+<a href="https://example.com" target="_blank" rel="noopener noreferrer">Link</a>
+```
+
+## Data Loader Integration
+
+The data loader (`src/loaders/data.ts`) uses the parser system:
+
+```typescript
+import { loadContent } from '@loaders/data';
+
+// Load docs with DocsParser
+const docs = await loadContent('docs', 'docs', {
   pattern: '**/*.{md,mdx}',
   sort: 'position',
   requirePositionPrefix: true,
 });
+
+// Load blog with BlogParser
+const posts = await loadContent('blog', 'blog', {
+  pattern: '*.md',
+  sort: 'date',
+  order: 'desc',
+});
 ```
 
-**Options:**
+### LoadContent Options
 
 | Option | Type | Description |
 |--------|------|-------------|
 | `pattern` | `string` | Glob pattern for files |
-| `sort` | `'position' \| 'date' \| 'title'` | Sort order |
+| `sort` | `'position' \| 'date' \| 'title'` | Sort method |
 | `order` | `'asc' \| 'desc'` | Sort direction |
-| `requirePositionPrefix` | `boolean` | Enforce `XX_` prefix |
+| `includeDrafts` | `boolean` | Include draft content |
+| `requirePositionPrefix` | `boolean` | Enforce `XX_` prefix (docs) |
 
-**Returns:**
+### Return Type
 
 ```typescript
-{
-  items: ContentItem[],
-  tree: SidebarTree,
-  flatList: ContentItem[],
+interface LoadedContent {
+  id: string;           // Unique identifier
+  slug: string;         // URL path
+  content: string;      // Rendered HTML
+  data: {
+    title: string;
+    description?: string;
+    sidebar_position?: number;
+    date?: string;
+    tags?: string[];
+    draft?: boolean;
+  };
+  filePath: string;
+  relativePath: string;
+  fileType: 'md' | 'mdx';
 }
 ```
 
-### `loadFile()`
+## Frontmatter Schema
 
-Loads a single file (YAML or MDX):
+### Docs Frontmatter
 
-```typescript
-const page = await loadFile('@data/pages/home.yaml');
-// Returns: { data: { hero: {...}, features: [...] } }
-```
-
-## Position Prefix System
-
-Documentation files **must** use `XX_` prefix for ordering:
-
-```
-01_overview.mdx     → position: 1, slug: "overview"
-02_installation.mdx → position: 2, slug: "installation"
-10_advanced.mdx     → position: 10, slug: "advanced"
-```
-
-### How It Works
-
-1. **Extract**: Parse `XX_` from filename
-2. **Clean**: Remove prefix for URL slug
-3. **Sort**: Order by extracted number
-4. **Validate**: Error if prefix missing (when required)
-
-### Validation Error
-
-If a doc file is missing the prefix:
-
-```
-[DOCS ERROR] Files missing required XX_ position prefix:
-  - overview.mdx
-  - installation.mdx
-
-Docs files must be named with a position prefix (01-99).
-Examples:
-  01_getting-started.mdx
-  02_installation.mdx
-```
-
-## Sidebar Tree Building
-
-The loader builds a nested tree structure for the sidebar:
-
-### Input Structure
-
-```
-docs/
-├── getting-started/
-│   ├── settings.json     # { "label": "Getting Started" }
-│   ├── 01_overview.mdx
-│   └── 02_install.mdx
-└── guides/
-    ├── settings.json     # { "label": "Guides" }
-    └── 01_basics.mdx
-```
-
-### Output Tree
-
-```typescript
-{
-  tree: [
-    {
-      type: 'section',
-      label: 'Getting Started',
-      isCollapsible: true,
-      collapsed: false,
-      children: [
-        { type: 'doc', title: 'Overview', slug: 'getting-started/overview', position: 1 },
-        { type: 'doc', title: 'Installation', slug: 'getting-started/install', position: 2 },
-      ]
-    },
-    {
-      type: 'section',
-      label: 'Guides',
-      children: [
-        { type: 'doc', title: 'Basics', slug: 'guides/basics', position: 1 },
-      ]
-    }
-  ]
-}
-```
-
-## Frontmatter Parsing
-
-Each MDX file's frontmatter is parsed and validated:
-
-```mdx
+```yaml
 ---
-title: Page Title
+title: Page Title           # Required
 description: SEO description
-draft: false
+sidebar_label: Sidebar Text  # Override sidebar display
+sidebar_position: 1         # Override XX_ position
+draft: false                # Hide in production
+tags: [guide, tutorial]
 ---
 ```
 
-### Required Fields
+### Blog Frontmatter
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `title` | `string` | Page title (required) |
-
-### Optional Fields
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `description` | `string` | `""` | Meta description |
-| `draft` | `boolean` | `false` | Hide in production |
-| `sidebar_label` | `string` | `title` | Override sidebar text |
-
-## Path Alias Resolution
-
-The loader resolves path aliases:
-
-```typescript
-resolveAlias('@data/docs')
-// → /absolute/path/to/dynamic_data/data/docs
-
-resolveAlias('@assets/logo.svg')
-// → /absolute/path/to/dynamic_data/assets/logo.svg
+```yaml
+---
+title: Post Title           # Required
+description: Post summary
+date: 2024-01-15           # Override filename date
+author: John Doe
+tags: [news, update]
+draft: false
+image: cover.jpg           # Featured image
+---
 ```
-
-| Alias | Resolves To |
-|-------|-------------|
-| `@data/` | `DATA_DIR/data/` |
-| `@assets/` | `DATA_DIR/assets/` |
-| `@config/` | `DATA_DIR/config/` |
-| `@theme/` | `DATA_DIR/theme/` |
 
 ## Error Handling
 
-The loader provides detailed errors:
+### Missing Position Prefix
+
+```
+[DOCS ERROR] Files missing required XX_ position prefix:
+  - overview.md
+  - installation.md
+
+Docs files must be named with a position prefix (01-99).
+Examples:
+  01_getting-started.md
+  02_installation.md
+```
 
 ### File Not Found
 
 ```
-[DATA ERROR] Path not found: /path/to/missing/folder
-  Resolved from: @data/missing
+[PARSER ERROR] Content file not found: /path/to/missing.md
+  Code: FILE_NOT_FOUND
 ```
 
-### Invalid Frontmatter
+### Directory Not Found
 
 ```
-[PARSE ERROR] Invalid frontmatter in: 01_overview.mdx
-  Line 3: Expected string for 'title', got number
+[PARSER ERROR] Content directory not found: /path/to/missing/
+  Code: DIR_NOT_FOUND
 ```
 
-### Missing Required Field
+## Creating Custom Parsers
 
-```
-[VALIDATION ERROR] Missing required field 'title'
-  File: 01_overview.mdx
+Extend `BaseContentParser` for custom content types:
+
+```typescript
+import { BaseContentParser } from '@parsers/core';
+import type { FrontmatterSchema, ParsedDocsFilename } from '@parsers/types';
+
+class CustomParser extends BaseContentParser {
+  constructor() {
+    super('page');
+
+    // Configure pipeline
+    this.pipeline
+      .addPreprocessor(myPreprocessor)
+      .addPostprocessor(myPostprocessor);
+  }
+
+  parseFilename(filename: string): ParsedDocsFilename {
+    // Custom filename parsing logic
+    return { position: null, cleanName: filename };
+  }
+
+  getAssetPath(filePath: string, assetPath: string): string {
+    // Custom asset resolution
+    return path.resolve(path.dirname(filePath), assetPath);
+  }
+
+  getFrontmatterSchema(): FrontmatterSchema {
+    return {
+      required: ['title'],
+      optional: ['description', 'layout'],
+    };
+  }
+
+  generateSlug(relativePath: string): string {
+    // Custom slug generation
+    return relativePath.replace(/\.md$/, '');
+  }
+}
 ```
 
 ## Caching
 
-Content is cached during development for performance. The cache invalidates when:
-- A file is modified
-- A file is added or deleted
-- `settings.json` changes
+Content is cached during production builds:
 
-In production builds, there's no caching—content is loaded once during build.
+- **Development**: No caching, files re-parsed on each request
+- **Production**: Content cached after first parse
+
+Cache invalidation happens automatically when files change during development.
