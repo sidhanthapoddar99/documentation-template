@@ -1,36 +1,16 @@
 ---
 /**
- * Sidebar - Documentation navigation sidebar (Default Style)
+ * Sidebar - Documentation navigation sidebar with recursive nesting
  */
 
-interface SidebarItem {
-  title: string;
-  href: string;
-  slug?: string;
-}
-
-interface SidebarSection {
-  title: string;
-  href?: string;
-  items: SidebarItem[];
-}
-
-interface SidebarSettings {
-  collapsed?: boolean;
-  collapsible?: boolean;
-  sort?: 'position' | 'alphabetical';
-  depth?: number;
-}
+import type { SidebarSection, SidebarItem } from '@/hooks/useSidebar';
 
 interface Props {
   sections: SidebarSection[];
   currentPath: string;
-  settings?: SidebarSettings;
 }
 
-const { sections, currentPath, settings = {} } = Astro.props;
-
-const { collapsible = true } = settings;
+const { sections, currentPath } = Astro.props;
 
 function isActive(href: string): boolean {
   return currentPath === href;
@@ -38,7 +18,20 @@ function isActive(href: string): boolean {
 
 function isSectionActive(section: SidebarSection): boolean {
   if (section.href && isActive(section.href)) return true;
-  return section.items.some(item => isActive(item.href));
+
+  for (const child of section.children) {
+    if (child.type === 'item' && isActive(child.href)) return true;
+    if (child.type === 'section' && isSectionActive(child)) return true;
+  }
+
+  return false;
+}
+
+function shouldBeExpanded(section: SidebarSection): boolean {
+  // Always expand if contains active item
+  if (isSectionActive(section)) return true;
+  // Otherwise use collapsed setting
+  return !section.collapsed;
 }
 ---
 
@@ -48,13 +41,14 @@ function isSectionActive(section: SidebarSection): boolean {
       <div
         class:list={['sidebar__section', { 'sidebar__section--active': isSectionActive(section) }]}
         data-section={index}
+        data-collapsed={!shouldBeExpanded(section)}
       >
-        {section.items.length > 0 ? (
+        {section.children.length > 0 ? (
           <>
-            {collapsible ? (
+            {section.collapsible ? (
               <button
                 class="sidebar__header sidebar__header--collapsible"
-                aria-expanded="true"
+                aria-expanded={shouldBeExpanded(section)}
                 data-collapse-trigger
               >
                 <span>{section.title}</span>
@@ -67,16 +61,55 @@ function isSectionActive(section: SidebarSection): boolean {
             )}
 
             <ul class="sidebar__list" data-collapse-content>
-              {section.items.map((item) => (
-                <li>
-                  <a
-                    href={item.href}
-                    class:list={['sidebar__link', { 'sidebar__link--active': isActive(item.href) }]}
-                    aria-current={isActive(item.href) ? 'page' : undefined}
-                  >
-                    {item.title}
-                  </a>
-                </li>
+              {section.children.map((child) => (
+                child.type === 'item' ? (
+                  <li>
+                    <a
+                      href={child.href}
+                      class:list={['sidebar__link', { 'sidebar__link--active': isActive(child.href) }]}
+                      aria-current={isActive(child.href) ? 'page' : undefined}
+                    >
+                      {child.title}
+                    </a>
+                  </li>
+                ) : (
+                  <li class="sidebar__nested">
+                    <div
+                      class:list={['sidebar__section', 'sidebar__section--nested', { 'sidebar__section--active': isSectionActive(child) }]}
+                      data-collapsed={!shouldBeExpanded(child)}
+                    >
+                      {child.collapsible ? (
+                        <button
+                          class="sidebar__header sidebar__header--collapsible sidebar__header--nested"
+                          aria-expanded={shouldBeExpanded(child)}
+                          data-collapse-trigger
+                        >
+                          <span>{child.title}</span>
+                          <svg class="sidebar__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                      ) : (
+                        <span class="sidebar__header sidebar__header--nested">{child.title}</span>
+                      )}
+                      <ul class="sidebar__list" data-collapse-content>
+                        {child.children.map((subChild) => (
+                          subChild.type === 'item' ? (
+                            <li>
+                              <a
+                                href={subChild.href}
+                                class:list={['sidebar__link', { 'sidebar__link--active': isActive(subChild.href) }]}
+                                aria-current={isActive(subChild.href) ? 'page' : undefined}
+                              >
+                                {subChild.title}
+                              </a>
+                            </li>
+                          ) : null
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                )
               ))}
             </ul>
           </>
@@ -100,7 +133,7 @@ function isSectionActive(section: SidebarSection): boolean {
   function initSidebar() {
     document.querySelectorAll('[data-collapse-trigger]').forEach((trigger) => {
       trigger.addEventListener('click', () => {
-        const section = trigger.closest('[data-section]');
+        const section = trigger.closest('[data-collapsed]');
         if (section) {
           const isCollapsed = section.getAttribute('data-collapsed') === 'true';
           section.setAttribute('data-collapsed', String(!isCollapsed));

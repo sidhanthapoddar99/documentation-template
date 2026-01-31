@@ -16,6 +16,7 @@ import '../../components/common/styles.css';
 import './layout.css';
 
 import { loadContentWithSettings, type LoadedContent, type ContentSettings } from '@loaders/data';
+import { buildSidebarTree, getPrevNext } from '@/hooks/useSidebar';
 
 interface Props {
   title: string;
@@ -41,64 +42,13 @@ try {
   console.error('Error loading docs content:', error);
 }
 
-// Build sidebar sections
-interface SidebarSection {
-  title: string;
-  href?: string;
-  items: { title: string; href: string; slug: string }[];
-}
-
-function buildSidebarTree(content: LoadedContent[], baseUrl: string): SidebarSection[] {
-  const sections: Map<string, SidebarSection> = new Map();
-
-  for (const item of content) {
-    const parts = item.slug.split('/');
-
-    if (parts.length === 1) {
-      const key = item.slug;
-      if (!sections.has(key)) {
-        sections.set(key, {
-          title: item.data.sidebar_label || item.data.title,
-          href: `${baseUrl}/${item.slug}`,
-          items: [],
-        });
-      }
-    } else {
-      const sectionKey = parts[0];
-      const section = sections.get(sectionKey) || {
-        title: sectionKey.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-        items: [],
-      };
-
-      section.items.push({
-        title: item.data.sidebar_label || item.data.title,
-        href: `${baseUrl}/${item.slug}`,
-        slug: item.slug,
-      });
-
-      sections.set(sectionKey, section);
-    }
-  }
-
-  return Array.from(sections.values()).map(section => ({
-    ...section,
-    items: section.items.sort((a, b) => {
-      const itemA = content.find(c => c.slug === a.slug);
-      const itemB = content.find(c => c.slug === b.slug);
-      return (itemA?.data.sidebar_position ?? 999) - (itemB?.data.sidebar_position ?? 999);
-    }),
-  }));
-}
-
-const sidebarSections = buildSidebarTree(allContent, baseUrl);
+// dataPath is already an absolute path from resolveAliasPath() in [..slug].astro
+// Build sidebar sections using the hook with proper folder settings
+const sidebarSections = buildSidebarTree(allContent, baseUrl, dataPath);
 
 // Pagination
-const flatItems = sidebarSections.flatMap(s =>
-  s.items.length ? s.items : [{ title: s.title, href: s.href || '', slug: '' }]
-);
-const currentIndex = flatItems.findIndex(item => item.href === `${baseUrl}/${currentSlug}`);
-const prevItem = currentIndex > 0 ? flatItems[currentIndex - 1] : null;
-const nextItem = currentIndex < flatItems.length - 1 ? flatItems[currentIndex + 1] : null;
+const currentPath = `${baseUrl}/${currentSlug}`;
+const { prev: prevItem, next: nextItem } = getPrevNext(sidebarSections, currentPath);
 
 // Outline
 const outlineEnabled = settings.outline?.enabled !== false;
@@ -110,8 +60,7 @@ const paginationEnabled = settings.pagination?.enabled !== false;
 <div class="docs-layout">
   <Sidebar
     sections={sidebarSections}
-    currentPath={`${baseUrl}/${currentSlug}`}
-    settings={settings.sidebar}
+    currentPath={currentPath}
   />
 
   <Body title={title} description={description} content={content}>

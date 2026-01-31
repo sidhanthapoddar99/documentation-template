@@ -1,84 +1,80 @@
 /**
  * Sidebar Hook - Build sidebar tree from content
+ *
+ * Sorting: XX_ prefix is the SOLE determining factor for order
+ * Both files and folders use the same XX_ prefix system
  */
 
+import fs from 'fs';
+import path from 'path';
 import type { LoadedContent } from '@loaders/data';
 
+// ============================================
+// Types
+// ============================================
+
 export interface SidebarItem {
+  type: 'item';
   title: string;
   href: string;
   slug: string;
   position: number;
-  children?: SidebarItem[];
 }
 
 export interface SidebarSection {
+  type: 'section';
   title: string;
+  slug: string;
   href?: string;
-  slug?: string;
   position: number;
-  items: SidebarItem[];
+  collapsed: boolean;
+  collapsible: boolean;
+  children: (SidebarItem | SidebarSection)[];
+}
+
+export type SidebarNode = SidebarItem | SidebarSection;
+
+export interface FolderSettings {
+  label?: string;
+  isCollapsible?: boolean;
+  collapsible?: boolean;
+  collapsed?: boolean;
+}
+
+// ============================================
+// Utilities
+// ============================================
+
+/**
+ * Extract position from XX_ prefix (works for files and folders)
+ */
+function extractPosition(name: string): { position: number; cleanName: string } {
+  const match = name.match(/^(\d{2})_(.+)$/);
+  if (match) {
+    return {
+      position: parseInt(match[1], 10),
+      cleanName: match[2],
+    };
+  }
+  return { position: 999, cleanName: name };
 }
 
 /**
- * Build a sidebar tree from flat content array
+ * Load settings.json from a folder
  */
-export function buildSidebarTree(
-  content: LoadedContent[],
-  basePath: string = '/docs'
-): SidebarSection[] {
-  const sections = new Map<string, SidebarSection>();
+function loadFolderSettings(folderPath: string): FolderSettings {
+  const settingsPath = path.join(folderPath, 'settings.json');
 
-  for (const item of content) {
-    const parts = item.slug.split('/');
-    const position = item.data.sidebar_position ?? 999;
-
-    if (parts.length === 1) {
-      // Top-level item
-      const existing = sections.get(item.slug);
-      if (existing) {
-        // Update existing section with link
-        existing.href = `${basePath}/${item.slug}`;
-        existing.position = Math.min(existing.position, position);
-      } else {
-        sections.set(item.slug, {
-          title: item.data.sidebar_label || item.data.title,
-          href: `${basePath}/${item.slug}`,
-          slug: item.slug,
-          position,
-          items: [],
-        });
-      }
-    } else {
-      // Nested item
-      const sectionSlug = parts[0];
-      const section = sections.get(sectionSlug) || {
-        title: formatTitle(sectionSlug),
-        slug: sectionSlug,
-        position: 999,
-        items: [],
-      };
-
-      section.items.push({
-        title: item.data.sidebar_label || item.data.title,
-        href: `${basePath}/${item.slug}`,
-        slug: item.slug,
-        position,
-      });
-
-      sections.set(sectionSlug, section);
-    }
+  if (!fs.existsSync(settingsPath)) {
+    return {};
   }
 
-  // Sort sections and their items
-  const result = Array.from(sections.values())
-    .sort((a, b) => a.position - b.position)
-    .map(section => ({
-      ...section,
-      items: section.items.sort((a, b) => a.position - b.position),
-    }));
-
-  return result;
+  try {
+    const raw = fs.readFileSync(settingsPath, 'utf-8');
+    return JSON.parse(raw) as FolderSettings;
+  } catch {
+    return {};
+  }
 }
 
 /**
@@ -91,23 +87,239 @@ function formatTitle(slug: string): string {
 }
 
 /**
- * Find the current item in sidebar
+ * Find folder with XX_ prefix that matches clean name
  */
-export function findCurrentItem(
-  sections: SidebarSection[],
-  currentPath: string
-): SidebarItem | SidebarSection | null {
-  for (const section of sections) {
-    if (section.href === currentPath) {
-      return section;
+function findFolderWithPrefix(parentPath: string, cleanName: string): string | null {
+  if (!parentPath || !fs.existsSync(parentPath)) {
+    return null;
+  }
+
+  try {
+    const entries = fs.readdirSync(parentPath, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const { cleanName: entryClean } = extractPosition(entry.name);
+        if (entryClean === cleanName) {
+          return entry.name;
+        }
+      }
     }
-    for (const item of section.items) {
-      if (item.href === currentPath) {
-        return item;
+  } catch {
+    // Ignore errors
+  }
+
+  return null;
+}
+
+// ============================================
+// Sidebar Tree Building
+// ============================================
+
+interface TreeNode {
+  name: string;
+  cleanName: string;
+  fullPath: string;  // filesystem path
+  slugPath: string;  // url slug path
+  position: number;
+  settings: FolderSettings;
+  items: LoadedContent[];
+  children: Map<string, TreeNode>;
+}
+
+/**
+ * Build a sidebar tree from flat content array
+ * Sorting is based ONLY on XX_ prefix
+ */
+export function buildSidebarTree(
+  content: LoadedContent[],
+  basePath: string = '/docs',
+  dataPath?: string
+): SidebarSection[] {
+  const root: Map<string, TreeNode> = new Map();
+
+  // Group content by directory structure
+  for (const item of content) {
+    const parts = item.slug.split('/');
+    let currentLevel = root;
+    let currentFsPath = dataPath || '';
+
+    // Navigate/create the tree structure for directories
+    for (let i = 0; i < parts.length - 1; i++) {
+      const slugPart = parts[i];
+
+      if (!currentLevel.has(slugPart)) {
+        // Find the actual folder name (with XX_ prefix)
+        const actualFolderName = findFolderWithPrefix(currentFsPath, slugPart) || slugPart;
+        const { position } = extractPosition(actualFolderName);
+        const folderFsPath = path.join(currentFsPath, actualFolderName);
+        const settings = dataPath ? loadFolderSettings(folderFsPath) : {};
+
+        currentLevel.set(slugPart, {
+          name: actualFolderName,
+          cleanName: slugPart,
+          fullPath: folderFsPath,
+          slugPath: parts.slice(0, i + 1).join('/'),
+          position,
+          settings,
+          items: [],
+          children: new Map(),
+        });
+      }
+
+      const node = currentLevel.get(slugPart)!;
+      currentFsPath = node.fullPath;
+      currentLevel = node.children;
+    }
+
+    // Add item to appropriate level
+    if (parts.length === 1) {
+      // Top-level item - treat as section with no children
+      const { position } = extractPosition(parts[0]);
+      if (!root.has(parts[0])) {
+        root.set(parts[0], {
+          name: parts[0],
+          cleanName: parts[0],
+          fullPath: '',
+          slugPath: parts[0],
+          position,
+          settings: {},
+          items: [item],
+          children: new Map(),
+        });
+      } else {
+        root.get(parts[0])!.items.push(item);
+      }
+    } else {
+      // Add to parent folder
+      const parentSlug = parts.slice(0, -1).join('/');
+      const parent = findNode(root, parentSlug);
+      if (parent) {
+        parent.items.push(item);
       }
     }
   }
+
+  // Convert tree to SidebarSection array
+  return convertToSections(root, basePath);
+}
+
+/**
+ * Find a node in the tree by slug path
+ */
+function findNode(root: Map<string, TreeNode>, slugPath: string): TreeNode | null {
+  const parts = slugPath.split('/');
+  let current = root;
+
+  for (let i = 0; i < parts.length; i++) {
+    const node = current.get(parts[i]);
+    if (!node) return null;
+    if (i === parts.length - 1) return node;
+    current = node.children;
+  }
+
   return null;
+}
+
+/**
+ * Convert tree nodes to sidebar sections
+ */
+function convertToSections(nodes: Map<string, TreeNode>, basePath: string): SidebarSection[] {
+  const sections: SidebarSection[] = [];
+
+  for (const [, node] of nodes) {
+    sections.push(nodeToSection(node, basePath));
+  }
+
+  // Sort by position (XX_ prefix)
+  return sections.sort((a, b) => a.position - b.position);
+}
+
+/**
+ * Convert a single tree node to sidebar section
+ */
+function nodeToSection(node: TreeNode, basePath: string): SidebarSection {
+  const settings = node.settings;
+  const children: (SidebarItem | SidebarSection)[] = [];
+
+  // Convert items to SidebarItems
+  for (const item of node.items) {
+    children.push({
+      type: 'item',
+      title: item.data.sidebar_label || item.data.title,
+      href: `${basePath}/${item.slug}`,
+      slug: item.slug,
+      position: item.data.sidebar_position ?? 999,
+    });
+  }
+
+  // Convert child folders to nested SidebarSections
+  for (const [, childNode] of node.children) {
+    children.push(nodeToSection(childNode, basePath));
+  }
+
+  // Sort ALL children by position
+  children.sort((a, b) => a.position - b.position);
+
+  // Section href is the first item's href
+  let sectionHref: string | undefined;
+  const firstItem = children.find((c): c is SidebarItem => c.type === 'item');
+  if (firstItem) {
+    sectionHref = firstItem.href;
+  }
+
+  // Determine collapsibility - check both isCollapsible and collapsible
+  const isCollapsible = settings.isCollapsible ?? settings.collapsible ?? true;
+
+  return {
+    type: 'section',
+    title: settings.label || formatTitle(node.cleanName),
+    slug: node.slugPath,
+    href: sectionHref,
+    position: node.position,
+    collapsed: settings.collapsed ?? false,
+    collapsible: isCollapsible,
+    children,
+  };
+}
+
+// ============================================
+// Navigation Helpers
+// ============================================
+
+/**
+ * Check if a section contains the current path
+ */
+export function isSectionActive(section: SidebarSection, currentPath: string): boolean {
+  if (section.href === currentPath) return true;
+
+  for (const child of section.children) {
+    if (child.type === 'item' && child.href === currentPath) {
+      return true;
+    }
+    if (child.type === 'section' && isSectionActive(child, currentPath)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Flatten sidebar to linear list for pagination
+ */
+function flattenSidebar(nodes: SidebarNode[]): SidebarItem[] {
+  const result: SidebarItem[] = [];
+
+  for (const node of nodes) {
+    if (node.type === 'item') {
+      result.push(node);
+    } else {
+      // Recursively add children (items come from sections)
+      result.push(...flattenSidebar(node.children));
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -117,20 +329,7 @@ export function getPrevNext(
   sections: SidebarSection[],
   currentPath: string
 ): { prev: SidebarItem | null; next: SidebarItem | null } {
-  const flatItems: SidebarItem[] = [];
-
-  for (const section of sections) {
-    if (section.href) {
-      flatItems.push({
-        title: section.title,
-        href: section.href,
-        slug: section.slug || '',
-        position: section.position,
-      });
-    }
-    flatItems.push(...section.items);
-  }
-
+  const flatItems = flattenSidebar(sections);
   const currentIndex = flatItems.findIndex(item => item.href === currentPath);
 
   return {
@@ -141,6 +340,6 @@ export function getPrevNext(
 
 export default {
   buildSidebarTree,
-  findCurrentItem,
+  isSectionActive,
   getPrevNext,
 };

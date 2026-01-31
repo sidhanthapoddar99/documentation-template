@@ -99,6 +99,26 @@
   font-weight: 500;
 }
 
+/* Nested sections */
+.sidebar__nested {
+  margin-top: var(--spacing-xs);
+}
+
+.sidebar__section--nested {
+  padding-left: var(--spacing-sm);
+}
+
+.sidebar__header--nested {
+  font-size: var(--font-size-xs);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
+
+.sidebar__section--nested .sidebar__list {
+  padding-left: var(--spacing-sm);
+}
+
 /* Mobile: hide sidebar */
 @media (max-width: 1024px) {
   .sidebar {
