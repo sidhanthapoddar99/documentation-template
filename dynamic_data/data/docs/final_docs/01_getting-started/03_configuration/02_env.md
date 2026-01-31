@@ -1,0 +1,153 @@
+---
+title: Environment Variables
+description: Configure environment variables for your site
+sidebar_position: 2
+---
+
+# Environment Variables
+
+Environment variables configure directory paths, site settings, and feature flags. These are defined in the `.env` file at the project root.
+
+## Directory Paths
+
+Configure where the system looks for configuration and content:
+
+```env
+# Configuration files (site.yaml, navbar.yaml, footer.yaml)
+CONFIG_DIR=./dynamic_data/config
+
+# User content (docs, blog, pages, assets)
+DATA_DIR=./dynamic_data/data
+
+# Custom themes (optional)
+THEMES_DIR=./dynamic_data/themes/theme1
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CONFIG_DIR` | `./dynamic_data/config` | Path to configuration files |
+| `DATA_DIR` | `./dynamic_data/data` | Path to content (docs, blog, pages) |
+| `THEMES_DIR` | `./dynamic_data/themes/theme1` | Path to custom themes |
+
+### Path Types
+
+Paths can be:
+- **Relative** - Relative to project root (e.g., `./dynamic_data/config`)
+- **Absolute** - Full system path (e.g., `/var/www/data`)
+
+This allows pointing to external folders outside your project.
+
+## Site Settings
+
+```env
+SITE_URL=http://localhost:4321
+BASE_PATH=
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SITE_URL` | `http://localhost:4321` | Base URL for the site |
+| `BASE_PATH` | `` (empty) | URL path prefix for deployment subdirectories |
+
+### `SITE_URL`
+
+The full URL where your site is hosted:
+
+```env
+# Development
+SITE_URL=http://localhost:4321
+
+# Production
+SITE_URL=https://docs.example.com
+```
+
+Used for:
+- Canonical link tags
+- Sitemap generation
+- Open Graph URLs
+- RSS feed links
+
+### `BASE_PATH`
+
+For deploying to a subdirectory:
+
+```env
+# Root deployment (default)
+BASE_PATH=
+
+# Subdirectory deployment
+BASE_PATH=/docs
+```
+
+If your site is hosted at `https://example.com/docs/`, set:
+
+```env
+SITE_URL=https://example.com
+BASE_PATH=/docs
+```
+
+## Feature Flags
+
+Enable or disable site features:
+
+```env
+ENABLE_SEARCH=false
+ENABLE_DARK_MODE=true
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENABLE_SEARCH` | `false` | Enable site search functionality |
+| `ENABLE_DARK_MODE` | `true` | Enable dark mode toggle |
+
+## Complete Example
+
+```env
+# ============================================
+# DIRECTORY PATHS
+# ============================================
+CONFIG_DIR=./dynamic_data/config
+DATA_DIR=./dynamic_data/data
+THEMES_DIR=./dynamic_data/themes/theme1
+
+# ============================================
+# SITE SETTINGS
+# ============================================
+SITE_URL=http://localhost:4321
+BASE_PATH=
+
+# ============================================
+# FEATURE FLAGS
+# ============================================
+ENABLE_SEARCH=false
+ENABLE_DARK_MODE=true
+```
+
+## Development vs Production
+
+Use different values for different environments:
+
+**Development:**
+
+```env
+CONFIG_DIR=./dynamic_data/config
+DATA_DIR=./dynamic_data/data
+SITE_URL=http://localhost:4321
+ENABLE_SEARCH=false
+```
+
+**Production:**
+
+```env
+CONFIG_DIR=/var/www/config
+DATA_DIR=/var/www/data
+SITE_URL=https://docs.example.com
+ENABLE_SEARCH=true
+```
+
+## Best Practices
+
+1. **Never commit secrets** - Add `.env` to `.gitignore`
+2. **Use `.env.example`** - Document required variables for other developers
+3. **Use relative paths for portability** - `./dynamic_data` works across machines
+4. **Use absolute paths for external data** - When content lives outside the project
