@@ -7,17 +7,12 @@ site:
 # Page Definitions
 pages:
   # Documentation Sections (each is independent in navbar)
-  getting-started:
-    base_url: "/docs/getting-started"
+  docs:
+    base_url: "/docs/final-docs"
     type: docs
     layout: "@docs/doc_style1"
-    data: "@data/docs/getting-started"
+    data: "@data/docs/final_docs"
 
-  architecture:
-    base_url: "/docs/architecture"
-    type: docs
-    layout: "@docs/doc_style1"
-    data: "@data/docs/architecture"
 
   layouts:
     base_url: "/docs/layouts"
@@ -25,11 +20,6 @@ pages:
     layout: "@docs/doc_style1"
     data: "@data/docs/layouts"
 
-  content:
-    base_url: "/docs/content"
-    type: docs
-    layout: "@docs/doc_style1"
-    data: "@data/docs/content"
 
   components:
     base_url: "/docs/components"
