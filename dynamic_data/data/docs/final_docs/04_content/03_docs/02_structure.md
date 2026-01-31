@@ -1,6 +1,7 @@
 ---
 title: File Structure
 description: File and folder naming conventions for documentation
+sidebar_position: 2
 ---
 
 # File & Folder Structure
@@ -80,13 +81,6 @@ Examples:
   02_installation.mdx
 ```
 
-## Best Practices
-
-1. **Use descriptive names** - `01_getting-started.mdx` not `01_gs.mdx`
-2. **Keep names lowercase** - Use hyphens for spaces: `02_api-reference.mdx`
-3. **Leave number gaps** - Start with 01, 05, 10 to allow insertions
-4. **Match folder and content** - Folder name should reflect its contents
-
 ## Special Files
 
 Some files don't need the `XX_` prefix:
@@ -95,3 +89,10 @@ Some files don't need the `XX_` prefix:
 |------|---------|
 | `settings.json` | Folder configuration |
 | `assets/` | Asset folder (excluded from indexing) |
+
+## Best Practices
+
+1. **Use descriptive names** - `01_getting-started.mdx` not `01_gs.mdx`
+2. **Keep names lowercase** - Use hyphens for spaces: `02_api-reference.mdx`
+3. **Leave number gaps** - Start with 01, 05, 10 to allow insertions
+4. **Match folder and content** - Folder name should reflect its contents

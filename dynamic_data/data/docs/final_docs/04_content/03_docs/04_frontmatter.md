@@ -1,9 +1,10 @@
 ---
-title: Frontmatter
-description: Configure page metadata with frontmatter
+title: Docs Frontmatter
+description: Configure page metadata with frontmatter for docs
+sidebar_position: 4
 ---
 
-# Frontmatter
+# Docs Frontmatter
 
 Every documentation file (`.md` or `.mdx`) should include frontmatter at the top. Frontmatter is YAML metadata enclosed in triple dashes.
 
@@ -152,15 +153,15 @@ title: Wrong (no dashes)
 
 ### Incorrect YAML Syntax
 
-Watch out for:
+Watch out for colons in values:
 
 ```yaml
-# Wrong - missing quotes for special characters
+# Wrong - unquoted colon
 ---
 title: API: Getting Started
 ---
 
-# Correct - quote strings with colons
+# Correct - quoted string
 ---
 title: "API: Getting Started"
 ---
@@ -176,18 +177,6 @@ title: Installation Guide
 ---
 
 # Installation Guide
-
-Content...
-```
-
-Not:
-
-```yaml
----
-title: Installation Guide
----
-
-# Getting Started  ← Doesn't match!
 
 Content...
 ```

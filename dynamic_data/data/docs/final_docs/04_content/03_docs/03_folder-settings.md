@@ -1,6 +1,7 @@
 ---
 title: Folder Settings
 description: Configure folder display with settings.json
+sidebar_position: 3
 ---
 
 # Folder Settings
