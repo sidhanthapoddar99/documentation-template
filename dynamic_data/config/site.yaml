@@ -32,6 +32,12 @@ pages:
     layout: "@docs/doc_style1"
     data: "@data/docs/components"
 
+  todo:
+    base_url: "/todo"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/docs/todo"
+
   # Blog
   blog:
     base_url: "/blog"
