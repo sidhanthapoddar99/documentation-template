@@ -1,6 +1,6 @@
 /**
  * Unified Data Loader
- * Loads content using the modular parser system
+ * Loads content using the modular parser system with caching and error collection
  */
 import fs from 'fs';
 import path from 'path';
@@ -14,21 +14,19 @@ import {
   type LoadOptions,
   type ContentSettings,
 } from '../parsers/types';
+import {
+  shouldCache,
+  getCached,
+  setCache,
+  computeFileHash,
+  addError,
+  addWarning,
+  type CacheEntry,
+} from './cache';
 
 // Re-export types from parsers for backward compatibility
 export type { LoadedContent, LoadOptions, ContentSettings } from '../parsers/types';
 export { ParserError as DataLoaderError } from '../parsers/types';
-
-// ============================================
-// Cache (production only)
-// ============================================
-
-const cache = new Map<string, LoadedContent[]>();
-const settingsCache = new Map<string, ContentSettings>();
-
-function shouldUseCache(): boolean {
-  return import.meta.env.PROD === true;
-}
 
 // ============================================
 // Sorting
@@ -71,11 +69,37 @@ function sortContent(
 }
 
 // ============================================
+// Error Collection Helpers
+// ============================================
+
+function collectContentWarnings(content: LoadedContent, relativePath: string): void {
+  // Check for missing description
+  if (!content.data.description) {
+    addWarning({
+      file: relativePath,
+      type: 'missing-description',
+      message: "Missing 'description' in frontmatter",
+      suggestion: 'Add description for better SEO',
+    });
+  }
+
+  // Check for draft content
+  if (content.data.draft) {
+    addWarning({
+      file: relativePath,
+      type: 'draft',
+      message: 'Document is marked as draft',
+      suggestion: 'Remove draft: true when ready to publish',
+    });
+  }
+}
+
+// ============================================
 // Main Loading Functions
 // ============================================
 
 /**
- * Load content from a directory
+ * Load content from a directory with caching and error collection
  */
 export async function loadContent(
   dataPath: string,
@@ -97,14 +121,38 @@ export async function loadContent(
     ? dataPath
     : getDataPath(dataPath);
 
-  // Check cache
+  // Generate cache key
   const cacheKey = `${absolutePath}:${pattern}:${contentType}`;
-  if (shouldUseCache() && cache.has(cacheKey)) {
-    return cache.get(cacheKey)!;
+
+  // Check cache first (works in both dev and prod now)
+  if (shouldCache()) {
+    const cached = getCached(cacheKey);
+    if (cached) {
+      // Return cached content (already sorted and filtered)
+      let content = [...cached.content];
+
+      // Filter drafts (may change between requests in dev)
+      if (!includeDrafts) {
+        content = content.filter((item) => !item.data.draft);
+      }
+
+      // Apply custom filter
+      if (filter) {
+        content = content.filter(filter);
+      }
+
+      return content;
+    }
   }
 
   // Check if directory exists
   if (!fs.existsSync(absolutePath)) {
+    addError({
+      file: absolutePath,
+      type: 'config',
+      message: `Content directory not found: ${absolutePath}`,
+      suggestion: 'Check the data path in your configuration',
+    });
     throw new ParserError({
       code: 'DIR_NOT_FOUND',
       path: absolutePath,
@@ -122,26 +170,60 @@ export async function loadContent(
     maxDepth,
   });
 
-  // Parse files
+  // Parse files and collect errors
   let content: LoadedContent[] = [];
   const missingPrefixFiles: string[] = [];
+  const fileHashes = new Map<string, string>();
 
   for (const file of files) {
-    const parsed = await parser.parse(file, absolutePath);
-    if (parsed) {
-      // Check for required position prefix (docs only)
-      if (requirePositionPrefix && contentType === 'docs') {
-        const filename = path.basename(file, path.extname(file));
-        const hasPrefix = parser.hasPositionPrefix(filename);
-        if (!hasPrefix && filename !== 'index') {
-          missingPrefixFiles.push(parsed.relativePath);
+    try {
+      // Compute file hash for selective invalidation
+      const hash = computeFileHash(file);
+      fileHashes.set(file, hash);
+
+      const parsed = await parser.parse(file, absolutePath);
+      if (parsed) {
+        // Check for required position prefix (docs only)
+        if (requirePositionPrefix && contentType === 'docs') {
+          const filename = path.basename(file, path.extname(file));
+          const hasPrefix = parser.hasPositionPrefix(filename);
+          if (!hasPrefix && filename !== 'index') {
+            missingPrefixFiles.push(parsed.relativePath);
+            addError({
+              file: parsed.relativePath,
+              type: 'config',
+              message: `File missing required XX_ position prefix`,
+              suggestion: 'Rename file with position prefix (e.g., 01_filename.md)',
+            });
+          }
         }
+
+        // Collect warnings for this content
+        collectContentWarnings(parsed, parsed.relativePath);
+
+        content.push(parsed);
       }
-      content.push(parsed);
+    } catch (error) {
+      const relativePath = path.relative(absolutePath, file);
+      if (error instanceof ParserError) {
+        addError({
+          file: relativePath,
+          type: 'syntax',
+          message: error.message,
+        });
+      } else if (error instanceof Error) {
+        addError({
+          file: relativePath,
+          type: 'unknown',
+          message: error.message,
+        });
+      }
+      // Continue processing other files
+      console.error(`Error parsing ${file}:`, error);
     }
   }
 
-  // Throw error if prefix validation fails
+  // Throw error if prefix validation fails (but errors are still collected)
   if (requirePositionPrefix && missingPrefixFiles.length > 0) {
     throw new ParserError({
       code: 'MISSING_POSITION_PREFIX',
@@ -157,6 +239,19 @@ export async function loadContent(
     });
   }
 
+  // Sort content
+  content = sortContent(content, sort, order);
+
+  // Store in cache (before filtering, so filters can vary between requests)
+  if (shouldCache()) {
+    const cacheEntry: CacheEntry = {
+      content,
+      timestamp: Date.now(),
+      fileHashes,
+    };
+    setCache(cacheKey, cacheEntry);
+  }
+
   // Filter drafts
   if (!includeDrafts) {
     content = content.filter((item) => !item.data.draft);
@@ -165,14 +260,6 @@ export async function loadContent(
   // Apply custom filter
   if (filter) {
     content = content.filter(filter);
-  }
-
-  // Sort
-  content = sortContent(content, sort, order);
-
-  // Cache
-  if (shouldUseCache()) {
-    cache.set(cacheKey, content);
   }
 
   return content;
@@ -192,6 +279,12 @@ export async function loadFile(
 
   // Check if file exists
   if (!fs.existsSync(absolutePath)) {
+    addError({
+      file: filePath,
+      type: 'config',
+      message: `Content file not found: ${absolutePath}`,
+      suggestion: 'Check the file path',
+    });
     throw new ParserError({
       code: 'FILE_NOT_FOUND',
       path: absolutePath,
@@ -202,18 +295,36 @@ export async function loadFile(
   // Get parser for content type
   const parser = getParser(contentType);
   const basePath = path.dirname(absolutePath);
-  const parsed = await parser.parse(absolutePath, basePath);
 
-  if (!parsed) {
-    throw new ParserError({
-      code: 'UNSUPPORTED_FILE_TYPE',
-      path: absolutePath,
-      message: `Unsupported file type: ${absolutePath}`,
-    });
+  try {
+    const parsed = await parser.parse(absolutePath, basePath);
+
+    if (!parsed) {
+      throw new ParserError({
+        code: 'UNSUPPORTED_FILE_TYPE',
+        path: absolutePath,
+        message: `Unsupported file type: ${absolutePath}`,
+      });
+    }
+
+    return parsed;
+  } catch (error) {
+    if (error instanceof ParserError) {
+      addError({
+        file: filePath,
+        type: 'syntax',
+        message: error.message,
+      });
+    }
+    throw error;
   }
-
-  return parsed;
 }
+
+// ============================================
+// Settings Cache
+// ============================================
+
+const settingsCache = new Map<string, ContentSettings>();
 
 /**
  * Load settings.json from a content directory
@@ -224,7 +335,7 @@ export function loadSettings(dataPath: string): ContentSettings {
     : getDataPath(dataPath);
 
   // Check cache
-  if (shouldUseCache() && settingsCache.has(absolutePath)) {
+  if (shouldCache() && settingsCache.has(absolutePath)) {
     return settingsCache.get(absolutePath)!;
   }
 
@@ -265,12 +376,18 @@ export function loadSettings(dataPath: string): ContentSettings {
     };
 
     // Cache
-    if (shouldUseCache()) {
+    if (shouldCache()) {
       settingsCache.set(absolutePath, merged);
     }
 
     return merged;
   } catch (error) {
+    addError({
+      file: settingsPath,
+      type: 'config',
+      message: `Error loading settings: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      suggestion: 'Check settings.json syntax',
+    });
     console.error(`Error loading settings from ${settingsPath}:`, error);
     return defaultSettings;
   }

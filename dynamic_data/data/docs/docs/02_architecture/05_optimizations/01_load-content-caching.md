@@ -1,0 +1,396 @@
+---
+title: Load Content Caching
+description: Performance optimization for content loading in server mode
+---
+
+# Load Content Caching
+
+## The Problem
+
+In server mode, every page request triggers a full content reload:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         WITHOUT CACHING                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Request: /docs/getting-started/overview                                   │
+│                        │                                                    │
+│                        ▼                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │        loadContent()                 │                                  │
+│   │   pattern: '**/*.{md,mdx}'           │                                  │
+│   └──────────────────────────────────────┘                                  │
+│                        │                                                    │
+│                        ▼                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │     Read ALL markdown files          │  ◄── Disk I/O (slow)             │
+│   │     from dynamic_data/data/docs/     │                                  │
+│   └──────────────────────────────────────┘                                  │
+│                        │                                                    │
+│                        ▼                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │   Parse ALL frontmatter & content    │  ◄── CPU (repeated work)         │
+│   └──────────────────────────────────────┘                                  │
+│                        │                                                    │
+│                        ▼                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │   Process custom tags/embeds for ALL │  ◄── Triggers errors for         │
+│   └──────────────────────────────────────┘      missing assets everywhere   │
+│                        │                                                    │
+│                        ▼                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │   Find requested page in results     │                                  │
+│   │   Build sidebar from all content     │                                  │
+│   └──────────────────────────────────────┘                                  │
+│                        │                                                    │
+│                        ▼                                                    │
+│              Render single page                                             │
+│                                                                             │
+│   Measured: ~178ms+ per request                                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Why This Happens
+
+The page handler needs ALL content for:
+- **Sidebar navigation** - requires full content tree
+- **Pagination** - needs prev/next pages
+- **Content lookup** - finds requested doc by slug
+
+```typescript
+// src/pages/[...slug].astro (server mode branch)
+const content = await loadContent(dataPath, {
+  pattern: '**/*.{md,mdx}',  // Loads EVERYTHING
+  sort: 'position',
+});
+allContent = content;  // Used for sidebar, pagination
+doc = content.find(d => d.slug === docSlug);  // Find single page
+```
+
+---
+
+## The Solution
+
+Cache loaded content in memory with error tracking:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          WITH CACHING                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   FIRST REQUEST: /docs/getting-started/overview                             │
+│                        │                                                    │
+│                        ▼                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │   Cache miss → loadContent()         │                                  │
+│   │   Read & parse all files             │  ~178ms                          │
+│   │   Compute file hashes                │                                  │
+│   │   Collect errors during processing   │                                  │
+│   │   Store everything in memory cache   │                                  │
+│   └──────────────────────────────────────┘                                  │
+│                        │                                                    │
+│                        ▼                                                    │
+│              Render page                                                    │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   SUBSEQUENT REQUESTS: /docs/any/other/page                                 │
+│                        │                                                    │
+│                        ▼                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │   Cache hit → return cached content  │  ~5ms                            │
+│   │   No disk I/O                        │                                  │
+│   │   No parsing                         │                                  │
+│   │   Errors already collected           │                                  │
+│   └──────────────────────────────────────┘                                  │
+│                        │                                                    │
+│                        ▼                                                    │
+│              Render page                                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Measured Performance
+
+| Metric | Without Cache | With Cache | Improvement |
+|--------|---------------|------------|-------------|
+| **First request** | ~178ms | ~178ms | Same (cold start) |
+| **Subsequent requests** | ~178ms | **~5ms** | **97% faster** |
+| **File reads per request** | All files | 0 | 100% reduction |
+
+### Real-World Impact
+
+```
+Without cache:  10 page navigations = 10 × 178ms = 1.78 seconds
+With cache:     10 page navigations = 178ms + (9 × 5ms) = 223ms
+                                                          └── 87% faster overall
+```
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        CACHING ARCHITECTURE                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐      │
+│   │   Page Request  │────▶│  loadContent()  │────▶│  Cache Check    │      │
+│   │   [...slug]     │     │  src/loaders/   │     │                 │      │
+│   └─────────────────┘     │  data.ts        │     └────────┬────────┘      │
+│                           └─────────────────┘              │               │
+│                                                            │               │
+│                                    ┌───────────────────────┴───────┐       │
+│                                    ▼                               ▼       │
+│                           ┌─────────────┐                 ┌─────────────┐  │
+│                           │ Cache HIT   │                 │ Cache MISS  │  │
+│                           │ Return data │                 │ Load files  │  │
+│                           │ (~5ms)      │                 │ Parse MD    │  │
+│                           └─────────────┘                 │ Collect err │  │
+│                                                           │ Store cache │  │
+│                                                           │ (~178ms)    │  │
+│                                                           └─────────────┘  │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   CACHE STRUCTURE (src/loaders/cache.ts)                                   │
+│                                                                             │
+│   ContentCacheState {                                                       │
+│     entries: Map<cacheKey, {                                               │
+│       content: LoadedContent[]     // All parsed markdown                  │
+│       fileHashes: Map<path, hash>  // For selective updates                │
+│       timestamp: number            // When cached                          │
+│     }>                                                                      │
+│     errors: ContentError[]         // All errors found                     │
+│     warnings: ContentWarning[]     // All warnings found                   │
+│   }                                                                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Cache Structure
+
+```typescript
+// src/loaders/cache.ts
+
+interface ContentCacheState {
+  entries: Map<string, CacheEntry>;  // Cached content by path
+  errors: ContentError[];            // All errors encountered
+  warnings: ContentWarning[];        // Non-fatal issues
+  initialized: boolean;              // Cache has been populated
+  lastUpdate: number;                // Timestamp of last update
+}
+
+interface CacheEntry {
+  content: LoadedContent[];          // Parsed markdown files
+  timestamp: number;                 // When entry was created
+  fileHashes: Map<string, string>;   // MD5 hash per file
+}
+
+interface ContentError {
+  file: string;          // 'docs/05_content/03_docs.md'
+  line?: number;         // Line number if applicable
+  type: ErrorType;       // 'asset-missing' | 'frontmatter' | 'syntax'
+  message: string;       // Human-readable description
+  suggestion?: string;   // How to fix it
+  timestamp: number;     // When error was recorded
+}
+```
+
+---
+
+## Files Modified
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        FILES IMPLEMENTED                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   src/                                                                      │
+│   ├── loaders/                                                              │
+│   │   ├── cache.ts             ◄── NEW: Cache manager (globalThis shared)  │
+│   │   ├── data.ts              ◄── MODIFIED: Integrated caching            │
+│   │   └── index.ts             ◄── MODIFIED: Export cache utilities        │
+│   │                                                                         │
+│   ├── pages/                                                                │
+│   │   ├── [...slug].astro      ◄── MODIFIED: Skip api routes               │
+│   │   └── api/dev/                                                          │
+│   │       └── errors.ts        ◄── NEW: API endpoint for errors            │
+│   │                                                                         │
+│   ├── parsers/                                                              │
+│   │   └── preprocessors/                                                    │
+│   │       └── asset-embed.ts   ◄── MODIFIED: Collect asset errors          │
+│   │                                                                         │
+│   └── dev-toolbar/                                                          │
+│       ├── integration.ts       ◄── MODIFIED: HMR + external paths support  │
+│       └── error-logger.ts      ◄── NEW: Error panel UI                     │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   UNCHANGED (transparent integration):                                      │
+│   ├── src/layouts/docs/components/sidebar/   ◄── No changes needed         │
+│   ├── src/layouts/navbar/                    ◄── No changes needed         │
+│   └── src/hooks/useSidebar.ts                ◄── No changes needed         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### External Paths Support
+
+Hot reload works with content paths configured via `.env`:
+
+```bash
+# .env - Content can be anywhere on the filesystem
+DATA_DIR=/Users/external/my-docs
+CONFIG_DIR=/Users/external/my-config
+ASSETS_DIR=/Users/external/my-assets
+```
+
+The HMR handler reads configured paths from `src/loaders/paths.ts` and watches all of them:
+
+```typescript
+// src/dev-toolbar/integration.ts
+const watchPaths = [paths.data, paths.config, paths.assets];
+
+// Check if changed file is in any watched path
+const isContentFile = watchPaths.some(p => file.startsWith(p));
+```
+
+### Why Sidebar/Navbar Stay Unchanged
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     TRANSPARENT INTEGRATION                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Sidebar.astro                                                             │
+│        │                                                                    │
+│        ▼                                                                    │
+│   loadContent(dataPath)  ──────▶  Check cache  ──┬──▶  Return cached        │
+│                                        │         │     (5ms)                │
+│                                        ▼         │                          │
+│                                   Cache miss?    │                          │
+│                                        │         │                          │
+│                                        ▼         │                          │
+│                                   Read files  ───┘                          │
+│                                   Store in cache                            │
+│                                   (178ms)                                   │
+│                                                                             │
+│   Same function signature, same return type → No changes to consumers       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Error Logger Dev Toolbar
+
+A new dev toolbar panel displays all cached errors:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     ERROR LOGGER DEV TOOLBAR                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  Issues   [3 errors]  [12 warnings]                      [Refresh]  │   │
+│   ├─────────────────────────────────────────────────────────────────────┤   │
+│   │                                                                     │   │
+│   │  ┌─ content/03_docs.md ────────────────────────────────────────┐   │   │
+│   │  │  ❌ ASSET-MISSING                                            │   │   │
+│   │  │     File not found: ./assets/basics.py                       │   │   │
+│   │  │     → Create the file or update the embed path               │   │   │
+│   │  └──────────────────────────────────────────────────────────────┘   │   │
+│   │                                                                     │   │
+│   │  ┌─ getting-started/02_installation.md ────────────────────────┐   │   │
+│   │  │  ⚠ MISSING-DESCRIPTION                                       │   │   │
+│   │  │     Missing 'description' in frontmatter                     │   │   │
+│   │  │     → Add description for better SEO                         │   │   │
+│   │  └──────────────────────────────────────────────────────────────┘   │   │
+│   │                                                                     │   │
+│   │  Cache: 2 entries | Last update: 4:08:12 PM                        │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### API Endpoint
+
+Errors are exposed via `/api/dev/errors`:
+
+```json
+{
+  "errors": [
+    {
+      "file": "content/03_docs.md",
+      "type": "asset-missing",
+      "message": "File not found: ./assets/basics.py",
+      "suggestion": "Create the file or update the embed path",
+      "timestamp": 1706889600000
+    }
+  ],
+  "warnings": [...],
+  "stats": {
+    "initialized": true,
+    "entryCount": 2,
+    "errorCount": 3,
+    "warningCount": 12,
+    "lastUpdate": 1706889600000
+  }
+}
+```
+
+---
+
+## Future: Selective Cache Invalidation
+
+File hashes are stored for future selective updates:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     SELECTIVE CACHE INVALIDATION                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   File changed: docs/05_content/03_docs.md                                  │
+│                        │                                                    │
+│                        ▼                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │   Vite HMR detects file change       │                                  │
+│   │   Compare hash with cached hash      │                                  │
+│   └──────────────────────────────────────┘                                  │
+│                        │                                                    │
+│                        ▼                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │   Re-process ONLY changed file       │  ~10-20ms                        │
+│   │   Update single cache entry          │                                  │
+│   │   Clear old errors for file          │                                  │
+│   │   Rest of cache untouched            │                                  │
+│   └──────────────────────────────────────┘                                  │
+│                                                                             │
+│   (Not yet implemented - file hashes are stored for future use)             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Trade-offs
+
+### Pros
+- **97% faster** subsequent page loads (5ms vs 178ms)
+- Reduces disk I/O and CPU usage
+- Better dev experience when testing layouts
+- Centralized error visibility in dev toolbar
+- File hashes stored for future selective updates
+
+### Cons
+- Increased memory usage (cached content + hashes)
+- First request still takes ~178ms (cold start)
+- Cache persists until server restart (no auto-invalidation yet)

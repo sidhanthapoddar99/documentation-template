@@ -94,6 +94,12 @@ let { pageName, pageConfig, dataPath, pageType, doc, post, allContent, layout: c
 // Server mode: compute props dynamically if not provided by getStaticPaths
 if (!pageType) {
   const slug = Astro.params.slug || '';
+
+  // Skip internal routes (API endpoints)
+  if (slug.startsWith('api') || slug.startsWith('_')) {
+    return new Response(null, { status: 404 });
+  }
+
   const siteConfig = loadSiteConfig();
   const pages = siteConfig.pages || {};
 

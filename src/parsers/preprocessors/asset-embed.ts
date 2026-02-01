@@ -12,6 +12,7 @@
 import fs from 'fs';
 import path from 'path';
 import type { Processor, ProcessContext } from '../types';
+import { addError } from '../../loaders/cache';
 
 export interface AssetEmbedOptions {
   /** Custom asset path resolver */
@@ -56,12 +57,27 @@ export function createAssetEmbedPreprocessor(options: AssetEmbedOptions = {}): P
 
         try {
           if (!fs.existsSync(absolutePath)) {
+            // Add error to cache for dev toolbar
+            const relativePath = path.relative(context.basePath, context.filePath);
+            addError({
+              file: relativePath,
+              type: 'asset-missing',
+              message: `File not found: ${trimmedPath}`,
+              suggestion: 'Create the file or update the embed path',
+            });
             console.warn(`[asset-embed] File not found: ${absolutePath}`);
             return match;
           }
 
           return fs.readFileSync(absolutePath, 'utf-8').trimEnd();
         } catch (error) {
+          const relativePath = path.relative(context.basePath, context.filePath);
+          addError({
+            file: relativePath,
+            type: 'asset-missing',
+            message: `Error reading file: ${trimmedPath}`,
+            suggestion: 'Check file permissions and path',
+          });
           console.error(`[asset-embed] Error reading file: ${trimmedPath}`, error);
           return match;
         }
@@ -94,6 +110,14 @@ export function createAssetEmbedPreprocessor(options: AssetEmbedOptions = {}): P
 
           try {
             if (!fs.existsSync(absolutePath)) {
+              // Add error to cache for dev toolbar
+              const relativePath = path.relative(context.basePath, context.filePath);
+              addError({
+                file: relativePath,
+                type: 'asset-missing',
+                message: `File not found in code block: ${trimmedPath}`,
+                suggestion: 'Create the file or update the embed path',
+              });
               return m;
             }
             return fs.readFileSync(absolutePath, 'utf-8').trimEnd();

@@ -58,6 +58,28 @@ export {
   type ResolvedAlias,
 } from './alias';
 
+// Cache utilities
+export {
+  shouldCache,
+  getCached,
+  setCache,
+  invalidateCache,
+  invalidateAll,
+  addError,
+  addWarning,
+  getErrors,
+  getWarnings,
+  getAllIssues,
+  getErrorCount,
+  getWarningCount,
+  getCacheStats,
+  isCacheInitialized,
+  type ContentError,
+  type ContentWarning,
+  type ErrorType,
+  type WarningType,
+} from './cache';
+
 // Parser system (re-exported for convenience)
 export {
   getParser,

@@ -4,14 +4,15 @@
 
 
 
-
-
-
-# document layout 
-
-- [ ] in architecture 
-- [ ] in how to create a new layout
-- [ ] ss
+# Create a skill
+- [ ] Tp create components and themes
+    - [ ] To Create theme and validate
+    - [ ] To create layout and validate
+    - [ ] To create component and validate
+    - [ ] To create config and validate
+- [ ] To write Docs
+- [ ] To write Blog
+- [ ] To Create Custom Pages
 
 
 
