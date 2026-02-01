@@ -8,12 +8,8 @@ items:
   - label: "Docs"
     href: "/docs/final-docs"
 
-  - label: "Docs"
-    items:
-      - label: "Layouts"
-        href: "/docs/layouts"
-      - label: "Components"
-        href: "/docs/components"
+  - label: "Components"
+    href: "/docs/components"
 
   - label: "Blog"
     href: "/blog"

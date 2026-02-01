@@ -20,15 +20,7 @@ pages:
     base_url: "/docs/final-docs"
     type: docs
     layout: "@docs/doc_style1"
-    data: "@data/docs/final_docs"
-
-
-  layouts:
-    base_url: "/docs/layouts"
-    type: docs
-    layout: "@docs/doc_style1"
-    data: "@data/docs/layouts"
-
+    data: "@data/docs/docs"
 
   components:
     base_url: "/docs/components"
