@@ -19,7 +19,7 @@
  * └─────────────────────────────────────┘
  */
 
-import { loadSiteConfig, loadNavbarConfig, loadFooterConfig } from '@loaders/config';
+import { loadSiteConfig, loadNavbarConfig, loadFooterConfig, getFavicon } from '@loaders/config';
 import '@styles/globals.css';
 
 interface Props {
@@ -41,6 +41,7 @@ const {
 
 const siteName = siteConfig.site.name;
 const fullTitle = title ? `${title} | ${siteName}` : siteConfig.site.title;
+const faviconUrl = getFavicon();
 ---
 
 <!doctype html>
@@ -61,7 +62,7 @@ const fullTitle = title ? `${title} | ${siteName}` : siteConfig.site.title;
     {ogImage && <meta property="og:image" content={ogImage} />}
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href={faviconUrl} />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

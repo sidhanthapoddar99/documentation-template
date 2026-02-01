@@ -6,7 +6,7 @@ sidebar_position: 5
 
 # Navbar Configuration
 
-The `navbar.yaml` file configures your site's top navigation bar.
+The `navbar.yaml` file configures your site's top navigation bar items.
 
 ## Location
 
@@ -17,9 +17,7 @@ config/navbar.yaml
 ## Structure
 
 ```yaml
-logo:
-  src: "/logo.svg"
-  alt: "Docs"
+# Note: Logo configuration has moved to site.yaml
 
 items:
   - label: "Home"
@@ -34,18 +32,18 @@ items:
 
 ## Logo Configuration
 
+Logo and favicon configuration has moved to `site.yaml`. See [Site Configuration](./03_site.md) for details.
+
 ```yaml
+# In site.yaml (not navbar.yaml)
 logo:
-  src: "/logo.svg"
+  src: "@assets/logo.svg"
   alt: "Docs"
+  theme:
+    dark: "logo-dark.svg"
+    light: "logo-light.svg"
+  favicon: "@assets/favicon.png"
 ```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `src` | `string` | No | Path to logo image |
-| `alt` | `string` | Yes | Alt text for accessibility |
-
-If `src` is omitted, the site name is displayed instead.
 
 ## Navigation Items
 
@@ -116,13 +114,7 @@ interface NavItem {
   items?: NavItem[];
 }
 
-interface NavbarLogo {
-  src?: string;
-  alt?: string;
-}
-
 interface NavbarConfig {
-  logo?: NavbarLogo;
   items: NavItem[];
 }
 ```
@@ -130,10 +122,13 @@ interface NavbarConfig {
 ## Loading in Code
 
 ```typescript
-import { loadNavbarConfig } from '@loaders/config';
+import { loadNavbarConfig, getSiteLogo } from '@loaders/config';
 
 const navbar = loadNavbarConfig();
-const { logo, items } = navbar;
+const { items } = navbar;
+
+// Logo is now loaded separately from site config
+const logo = getSiteLogo();
 ```
 
 ## Default Values
@@ -142,7 +137,6 @@ If `navbar.yaml` is missing:
 
 ```typescript
 {
-  logo: { alt: 'Docs' },
   items: [],
 }
 ```
@@ -151,10 +145,6 @@ If `navbar.yaml` is missing:
 
 ```yaml
 # navbar.yaml
-logo:
-  src: "/logo.svg"
-  alt: "Docs"
-
 items:
   - label: "Home"
     href: "/"
@@ -177,4 +167,39 @@ items:
 
   - label: "GitHub"
     href: "https://github.com/user/repo"
+```
+
+## Migration Note
+
+If you're upgrading from a previous version, move your logo configuration from `navbar.yaml` to `site.yaml`:
+
+**Before (navbar.yaml):**
+```yaml
+logo:
+  src: "/logo.svg"
+  alt: "Docs"
+
+items:
+  # ...
+```
+
+**After (site.yaml):**
+```yaml
+site:
+  name: "My Docs"
+  # ...
+
+logo:
+  src: "@assets/logo.svg"
+  alt: "Docs"
+  theme:
+    dark: "logo-dark.svg"
+    light: "logo-light.svg"
+  favicon: "@assets/favicon.png"
+```
+
+**After (navbar.yaml):**
+```yaml
+items:
+  # ...
 ```

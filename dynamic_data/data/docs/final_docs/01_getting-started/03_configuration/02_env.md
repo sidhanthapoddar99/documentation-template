@@ -16,8 +16,11 @@ Configure where the system looks for configuration and content:
 # Configuration files (site.yaml, navbar.yaml, footer.yaml)
 CONFIG_DIR=./dynamic_data/config
 
-# User content (docs, blog, pages, assets)
+# User content (docs, blog, pages)
 DATA_DIR=./dynamic_data/data
+
+# Static assets (logos, favicons, images)
+ASSETS_DIR=./dynamic_data/assets
 
 # Custom themes (optional)
 THEMES_DIR=./dynamic_data/themes/theme1
@@ -27,6 +30,7 @@ THEMES_DIR=./dynamic_data/themes/theme1
 |----------|---------|-------------|
 | `CONFIG_DIR` | `./dynamic_data/config` | Path to configuration files |
 | `DATA_DIR` | `./dynamic_data/data` | Path to content (docs, blog, pages) |
+| `ASSETS_DIR` | `./dynamic_data/assets` | Path to static assets (logos, images) |
 | `THEMES_DIR` | `./dynamic_data/themes/theme1` | Path to custom themes |
 
 ### Path Types
@@ -108,6 +112,7 @@ ENABLE_DARK_MODE=true
 # ============================================
 CONFIG_DIR=./dynamic_data/config
 DATA_DIR=./dynamic_data/data
+ASSETS_DIR=./dynamic_data/data/assets
 THEMES_DIR=./dynamic_data/themes/theme1
 
 # ============================================
@@ -132,6 +137,7 @@ Use different values for different environments:
 ```env
 CONFIG_DIR=./dynamic_data/config
 DATA_DIR=./dynamic_data/data
+ASSETS_DIR=./dynamic_data/assets
 SITE_URL=http://localhost:4321
 ENABLE_SEARCH=false
 ```
@@ -141,6 +147,7 @@ ENABLE_SEARCH=false
 ```env
 CONFIG_DIR=/var/www/config
 DATA_DIR=/var/www/data
+ASSETS_DIR=/var/www/assets
 SITE_URL=https://docs.example.com
 ENABLE_SEARCH=true
 ```

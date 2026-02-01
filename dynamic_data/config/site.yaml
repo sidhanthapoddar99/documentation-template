@@ -4,6 +4,15 @@ site:
   title: "My Documentation"
   description: "Modern documentation built with Astro"
 
+# Logo and Favicon Configuration
+logo:
+  src: "@assets/astro.svg"
+  alt: "Docs"
+  theme:
+    dark: "astro.svg"
+    light: "astro.svg"
+  favicon: "@assets/astro.png"
+
 # Page Definitions
 pages:
   # Documentation Sections (each is independent in navbar)

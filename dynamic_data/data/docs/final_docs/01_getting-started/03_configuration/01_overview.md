@@ -6,21 +6,31 @@ sidebar_position: 1
 
 # Configuration Overview
 
-Configuration is split across three YAML files in `CONFIG_DIR` (default: `dynamic_data/config/`).
+Configuration is split across environment variables and YAML files.
+
+## Directory Structure
+
+```
+dynamic_data/
+├── config/           # Configuration files (CONFIG_DIR)
+│   ├── site.yaml     # Site metadata, logo, pages
+│   ├── navbar.yaml   # Navigation items
+│   └── footer.yaml   # Footer configuration
+├── assets/           # Static assets (ASSETS_DIR)
+│   ├── logo.svg
+│   └── favicon.png
+└── data/             # Content (DATA_DIR)
+    ├── docs/
+    ├── blog/
+    └── pages/
+```
 
 ## Configuration Files
 
-```
-config/
-├── site.yaml      # Site metadata + page definitions
-├── navbar.yaml    # Navigation bar configuration
-└── footer.yaml    # Footer configuration
-```
-
 | File | Contents |
 |------|----------|
-| `site.yaml` | Site metadata (`site:`) and page definitions (`pages:`) |
-| `navbar.yaml` | Logo and navigation items |
+| `site.yaml` | Site metadata, logo/favicon, and page definitions |
+| `navbar.yaml` | Navigation items |
 | `footer.yaml` | Footer layout, columns, and social links |
 
 ## File Structure Overview
@@ -33,6 +43,15 @@ site:
   name: "My Docs"
   title: "My Documentation"
   description: "Modern documentation built with Astro"
+
+# Logo and favicon
+logo:
+  src: "@assets/logo.svg"
+  alt: "Docs"
+  theme:
+    dark: "logo-dark.svg"
+    light: "logo-light.svg"
+  favicon: "@assets/favicon.png"
 
 # Page definitions
 pages:
@@ -52,9 +71,7 @@ pages:
 ### navbar.yaml
 
 ```yaml
-logo:
-  src: "/logo.svg"
-  alt: "Docs"
+# Note: Logo configuration is in site.yaml
 
 items:
   - label: "Home"
@@ -84,24 +101,47 @@ social:
 
 Configuration supports path aliases for cleaner references:
 
-| Alias | Resolves To |
-|-------|-------------|
-| `@docs/style_name` | `src/layouts/docs/styles/style_name/` |
-| `@blog/style_name` | `src/layouts/blog/styles/style_name/` |
-| `@custom/style_name` | `src/layouts/custom/styles/style_name/` |
-| `@footer/style_name` | `src/layouts/footer/styles/style_name/` |
-| `@data/path` | `DATA_DIR/data/path` |
+| Alias | Resolves To | Used For |
+|-------|-------------|----------|
+| `@docs/style_name` | `src/layouts/docs/style_name/` | Doc layouts |
+| `@blog/style_name` | `src/layouts/blogs/style_name/` | Blog layouts |
+| `@custom/style_name` | `src/layouts/custom/style_name/` | Custom page layouts |
+| `@footer/style_name` | `src/layouts/footer/style_name/` | Footer layouts |
+| `@data/path` | `DATA_DIR/path` | Content data |
+| `@assets/file` | `ASSETS_DIR/file` → `/assets/file` | Static assets |
+
+### Assets Alias
+
+The `@assets` alias is special - it resolves to a web URL:
+
+```yaml
+logo:
+  src: "@assets/logo.svg"    # Becomes /assets/logo.svg
+  favicon: "@assets/icon.png" # Becomes /assets/icon.png
+```
+
+Assets are served from the `ASSETS_DIR` location (configured in `.env`).
 
 ## Config Loader
 
 Configuration is loaded by `src/loaders/config.ts`:
 
 ```typescript
-import { loadSiteConfig, loadNavbarConfig, loadFooterConfig } from '@loaders/config';
+import {
+  loadSiteConfig,
+  loadNavbarConfig,
+  loadFooterConfig,
+  getSiteLogo,
+  getFavicon
+} from '@loaders/config';
 
 const siteConfig = loadSiteConfig();    // site.yaml
 const navbarConfig = loadNavbarConfig(); // navbar.yaml
 const footerConfig = loadFooterConfig(); // footer.yaml
+
+// Logo and favicon helpers
+const logo = getSiteLogo();
+const faviconUrl = getFavicon();
 ```
 
 ### Helper Functions
@@ -110,6 +150,8 @@ const footerConfig = loadFooterConfig(); // footer.yaml
 |----------|---------|
 | `getPages()` | Get all page configurations |
 | `getPage(name)` | Get specific page config |
+| `getSiteLogo()` | Get logo configuration with resolved URLs |
+| `getFavicon()` | Get favicon URL |
 | `resolvePageUrl(name)` | Convert page name to URL |
 | `processCopyright(str)` | Replace `{year}` with current year |
 | `validateRoutes(pages)` | Check for overlapping routes |
@@ -142,7 +184,7 @@ The system validates configuration at build time:
 | Section | File | Link |
 |---------|------|------|
 | Environment | `.env` | [env.md](./env) |
-| Site Metadata | `site.yaml` → `site:` | [site.md](./site) |
+| Site Metadata & Logo | `site.yaml` | [site.md](./site) |
 | Page Definitions | `site.yaml` → `pages:` | [page.md](./page) |
 | Navigation | `navbar.yaml` | [navbar.md](./navbar) |
 | Footer | `footer.yaml` | [footer.md](./footer) |

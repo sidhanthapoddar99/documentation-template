@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import { paths, getConfigPath } from './paths';
+import { resolveAssetUrl } from './alias';
 
 // ============================================
 // Type Definitions
@@ -14,6 +15,18 @@ export interface SiteMetadata {
   name: string;
   title: string;
   description: string;
+}
+
+export interface LogoTheme {
+  dark?: string;
+  light?: string;
+}
+
+export interface SiteLogo {
+  src?: string;
+  alt?: string;
+  theme?: LogoTheme;
+  favicon?: string;
 }
 
 export type PageType = 'docs' | 'blog' | 'custom';
@@ -27,6 +40,7 @@ export interface PageConfig {
 
 export interface SiteConfig {
   site: SiteMetadata;
+  logo?: SiteLogo;
   pages: Record<string, PageConfig>;
 }
 
@@ -104,7 +118,19 @@ export function loadSiteConfig(): SiteConfig {
         title: 'Documentation Site',
         description: 'Modern documentation built with Astro',
       },
+      logo: {
+        alt: 'Docs',
+      },
       pages: {},
+    };
+  }
+
+  // Resolve asset URLs in logo config
+  if (config.logo) {
+    config.logo = {
+      ...config.logo,
+      src: resolveAssetUrl(config.logo.src),
+      favicon: resolveAssetUrl(config.logo.favicon),
     };
   }
 
@@ -112,7 +138,24 @@ export function loadSiteConfig(): SiteConfig {
 }
 
 /**
+ * Get site logo configuration with resolved URLs
+ */
+export function getSiteLogo(): SiteLogo {
+  const config = loadSiteConfig();
+  return config.logo || { alt: 'Docs' };
+}
+
+/**
+ * Get favicon URL from site config
+ */
+export function getFavicon(): string {
+  const config = loadSiteConfig();
+  return config.logo?.favicon || '/favicon.svg';
+}
+
+/**
  * Load navbar configuration
+ * Note: Logo configuration has moved to site.yaml - use getSiteLogo() instead
  */
 export function loadNavbarConfig(): NavbarConfig {
   const config = loadYaml<NavbarConfig>(getConfigPath('navbar.yaml'));
@@ -120,7 +163,6 @@ export function loadNavbarConfig(): NavbarConfig {
   if (!config) {
     // Return default config
     return {
-      logo: { alt: 'Docs' },
       items: [],
     };
   }
@@ -225,6 +267,8 @@ export default {
   loadFooterConfig,
   getPages,
   getPage,
+  getSiteLogo,
+  getFavicon,
   resolvePageUrl,
   processCopyright,
   validateRoutes,

@@ -11,7 +11,7 @@
  * - Mobile responsive with hamburger menu
  */
 
-import { loadNavbarConfig } from '@loaders/config';
+import { loadNavbarConfig, getSiteLogo } from '@loaders/config';
 import type { NavItem } from '@loaders/config';
 
 interface Props {
@@ -21,7 +21,8 @@ interface Props {
 const navbarConfig = loadNavbarConfig();
 const { currentPath = Astro.url.pathname } = Astro.props;
 
-const logo = navbarConfig.logo || { alt: 'Docs' };
+// Logo is now loaded from site.yaml
+const logo = getSiteLogo();
 const items = navbarConfig.items || [];
 
 // Helper to check if a link is external

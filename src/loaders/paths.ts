@@ -12,6 +12,7 @@ const projectRoot = path.resolve(__dirname, '../..');
 // Read from environment with defaults
 const CONFIG_DIR = import.meta.env.CONFIG_DIR || './config';
 const DATA_DIR = import.meta.env.DATA_DIR || './data';
+const ASSETS_DIR = import.meta.env.ASSETS_DIR || './assets';
 const THEMES_DIR = import.meta.env.THEMES_DIR || './themes';
 
 /**
@@ -31,6 +32,7 @@ export const paths = {
   root: projectRoot,
   config: resolvePath(CONFIG_DIR),
   data: resolvePath(DATA_DIR),
+  assets: resolvePath(ASSETS_DIR),
   themes: resolvePath(THEMES_DIR),
   src: path.resolve(projectRoot, 'src'),
   layouts: path.resolve(projectRoot, 'src/layouts'),
@@ -40,7 +42,7 @@ export const paths = {
   mdxComponents: path.resolve(projectRoot, 'src/mdx_components'),
   pages: path.resolve(projectRoot, 'src/pages'),
   styles: path.resolve(projectRoot, 'src/styles'),
-  assets: path.resolve(projectRoot, 'src/assets'),
+  srcAssets: path.resolve(projectRoot, 'src/assets'),
 } as const;
 
 /**
@@ -55,6 +57,13 @@ export function getConfigPath(filename: string): string {
  */
 export function getDataPath(subpath: string): string {
   return path.join(paths.data, subpath);
+}
+
+/**
+ * Get path to an asset file
+ */
+export function getAssetsPath(subpath?: string): string {
+  return subpath ? path.join(paths.assets, subpath) : paths.assets;
 }
 
 /**

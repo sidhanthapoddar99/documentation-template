@@ -15,6 +15,7 @@ export type AliasPrefix =
   | '@navbar'
   | '@footer'
   | '@data'
+  | '@assets'
   | '@mdx';
 
 export interface ResolvedAlias {
@@ -34,6 +35,7 @@ const aliasMap: Record<AliasPrefix, string> = {
   '@navbar': path.join(paths.layouts, 'navbar'),
   '@footer': path.join(paths.layouts, 'footer'),
   '@data': paths.data,
+  '@assets': paths.assets,
   '@mdx': paths.mdxComponents,
 };
 
@@ -59,6 +61,7 @@ export function extractPrefix(aliasPath: string): AliasPrefix | null {
     '@navbar',
     '@footer',
     '@data',
+    '@assets',
     '@mdx',
   ];
 
@@ -184,6 +187,34 @@ export function getLayoutName(layoutRef: string): string | null {
   return resolved.name;
 }
 
+/**
+ * Resolve an asset alias path to a web-accessible URL
+ *
+ * Examples:
+ * - '@assets/logo.svg' -> '/assets/logo.svg'
+ * - '/logo.svg' -> '/logo.svg' (passthrough)
+ * - 'logo.svg' -> '/assets/logo.svg' (relative to assets)
+ */
+export function resolveAssetUrl(assetPath: string | undefined): string | undefined {
+  if (!assetPath) {
+    return undefined;
+  }
+
+  // If it's an absolute URL or starts with /, return as-is
+  if (assetPath.startsWith('http') || assetPath.startsWith('/')) {
+    return assetPath;
+  }
+
+  // If it starts with @assets/, convert to web URL
+  if (assetPath.startsWith('@assets/')) {
+    const filename = assetPath.slice('@assets/'.length);
+    return `/assets/${filename}`;
+  }
+
+  // For other relative paths, assume they're in /assets/
+  return `/assets/${assetPath}`;
+}
+
 export default {
   isAliasPath,
   extractPrefix,
@@ -191,6 +222,7 @@ export default {
   resolveAliasPath,
   resolveLayoutPath,
   resolveDataPath,
+  resolveAssetUrl,
   getLayoutType,
   getLayoutName,
 };
