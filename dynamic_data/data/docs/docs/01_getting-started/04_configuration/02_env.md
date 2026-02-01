@@ -22,8 +22,8 @@ DATA_DIR=./dynamic_data/data
 # Static assets (logos, favicons, images)
 ASSETS_DIR=./dynamic_data/assets
 
-# Custom themes (optional)
-THEMES_DIR=./dynamic_data/themes/theme1
+# Custom themes directory (contains multiple theme folders)
+THEMES_DIR=./dynamic_data/themes
 ```
 
 | Variable | Default | Description |
@@ -31,7 +31,7 @@ THEMES_DIR=./dynamic_data/themes/theme1
 | `CONFIG_DIR` | `./dynamic_data/config` | Path to configuration files |
 | `DATA_DIR` | `./dynamic_data/data` | Path to content (docs, blog, pages) |
 | `ASSETS_DIR` | `./dynamic_data/assets` | Path to static assets (logos, images) |
-| `THEMES_DIR` | `./dynamic_data/themes/theme1` | Path to custom themes |
+| `THEMES_DIR` | `./dynamic_data/themes` | Path to themes directory (contains theme folders) |
 
 ### Path Types
 
@@ -112,8 +112,8 @@ ENABLE_DARK_MODE=true
 # ============================================
 CONFIG_DIR=./dynamic_data/config
 DATA_DIR=./dynamic_data/data
-ASSETS_DIR=./dynamic_data/data/assets
-THEMES_DIR=./dynamic_data/themes/theme1
+ASSETS_DIR=./dynamic_data/assets
+THEMES_DIR=./dynamic_data/themes
 
 # ============================================
 # SITE SETTINGS

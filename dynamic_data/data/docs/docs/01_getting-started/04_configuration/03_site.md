@@ -1,12 +1,12 @@
 ---
 title: Site Configuration
-description: Configure site metadata, logo, and favicon in site.yaml
+description: Configure site metadata, logo, favicon, and theme in site.yaml
 sidebar_position: 3
 ---
 
 # Site Configuration
 
-The `site.yaml` file defines your site's metadata, logo, and favicon configuration.
+The `site.yaml` file defines your site's metadata, logo, favicon, and theme configuration.
 
 ## Location
 
@@ -22,6 +22,9 @@ site:
   name: "My Docs"
   title: "My Documentation"
   description: "Modern documentation built with Astro"
+
+# Theme configuration
+theme: "@theme/default"  # or "@theme/minimal" for custom theme
 
 # Logo and favicon configuration
 logo:
@@ -78,6 +81,36 @@ site:
 ```
 
 Keep under 160 characters for best SEO results.
+
+## Theme Configuration
+
+The `theme` field specifies which theme to use for the site's styling.
+
+```yaml
+# Use default built-in theme
+theme: "@theme/default"
+
+# Use a custom theme
+theme: "@theme/minimal"
+```
+
+| Value | Description |
+|-------|-------------|
+| `@theme/default` | Built-in theme from `src/styles/` |
+| `@theme/theme_name` | Custom theme from `THEMES_DIR/theme_name/` |
+
+### Theme Inheritance
+
+Custom themes can inherit from the default theme, only overriding specific variables:
+
+```yaml
+# In THEMES_DIR/minimal/theme.yaml
+name: "Minimal Theme"
+extends: "@theme/default"  # Inherit from default
+supports_dark_mode: true
+```
+
+See [Themes Documentation](/docs/themes) for complete details on creating and using themes.
 
 ## Logo Configuration
 
@@ -182,6 +215,7 @@ interface SiteLogo {
 
 interface SiteConfig {
   site: SiteMetadata;
+  theme?: string;           // Theme alias (e.g., "@theme/default")
   logo?: SiteLogo;
   pages: Record<string, PageConfig>;
 }
@@ -212,6 +246,9 @@ site:
   name: "My Docs"
   title: "My Documentation"
   description: "Modern documentation built with Astro"
+
+# Theme (optional - defaults to @theme/default)
+theme: "@theme/default"
 
 logo:
   src: "@assets/astro.svg"
