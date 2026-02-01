@@ -351,8 +351,20 @@ Before publishing your theme:
 - [ ] Code blocks are readable
 - [ ] Links are visible and distinct
 
+## Important: Compliance Rules
+
+When creating custom layouts or components for your theme, you **MUST** follow the [Theme Compliance Rules](/docs/themes/rules). Key requirements:
+
+- No hardcoded colors (use `--color-*` variables)
+- No hardcoded font sizes (use `--font-size-*` variables)
+- No hardcoded spacing (use `--spacing-*` variables)
+- All elements must work in both light and dark modes
+
+See [Theme Compliance Rules](/docs/themes/rules) for the complete list.
+
 ## Next Steps
 
 - [CSS Variables Reference](/docs/themes/css-variables) - Complete variable list
 - [Theme Inheritance](/docs/themes/theme-inheritance) - Advanced inheritance patterns
 - [Validation](/docs/themes/validation) - Understanding theme validation
+- [Theme Compliance Rules](/docs/themes/rules) - Required rules for layouts and components

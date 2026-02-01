@@ -178,7 +178,7 @@ The `[data-theme="dark"]` selector is applied to `<html>` when dark mode is acti
 
 ## CSS Variables
 
-Themes work by defining CSS custom properties (variables). All layout components use these variables instead of hardcoded values.
+Themes work by defining CSS custom properties (variables). **All layouts, components, and custom tags MUST use these variables instead of hardcoded values.** This is a strict requirement - see [Theme Compliance Rules](/docs/themes/rules) for details.
 
 ### Color Variables
 ```css
@@ -218,3 +218,4 @@ See [Theme Validation](/docs/themes/validation) for details.
 - [Theme Structure](/docs/themes/theme-structure) - Detailed file organization
 - [Creating Themes](/docs/themes/creating-themes) - Step-by-step guide
 - [CSS Variables](/docs/themes/css-variables) - Complete variable reference
+- [Theme Compliance Rules](/docs/themes/rules) - Required rules for layouts and components
