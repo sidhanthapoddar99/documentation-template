@@ -15,10 +15,10 @@ const { title, description, content } = Astro.props;
 
 <main class="docs-content">
   <article class="docs-article">
-    <header class="docs-header">
+    <!-- <header class="docs-header">
       <h1 class="docs-title">{title}</h1>
       {description && <p class="docs-description">{description}</p>}
-    </header>
+    </header> -->
 
     <div class="docs-body">
       <Fragment set:html={content} />
