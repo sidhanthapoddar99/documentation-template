@@ -17,6 +17,7 @@ import type {
   FrontmatterSchema,
   ParsedDocsFilename,
   ParsedBlogFilename,
+  Heading,
 } from '../types';
 import { ParserError } from '../types';
 import { ProcessingPipeline } from './pipeline';
@@ -31,6 +32,29 @@ export abstract class BaseContentParser {
     this.contentType = contentType;
     this.pipeline = new ProcessingPipeline();
     this.render = createMarkdownRenderer();
+  }
+
+  /**
+   * Extract headings from rendered HTML content
+   * Parses <h1> through <h6> tags with id attributes
+   */
+  protected extractHeadings(html: string): Heading[] {
+    const headings: Heading[] = [];
+    const headingRegex = /<h([1-6])[^>]*\s+id=["']([^"']+)["'][^>]*>([\s\S]*?)<\/h\1>/gi;
+
+    let match;
+    while ((match = headingRegex.exec(html)) !== null) {
+      const depth = parseInt(match[1], 10);
+      const slug = match[2];
+      // Strip HTML tags from heading text
+      const text = match[3].replace(/<[^>]+>/g, '').trim();
+
+      if (slug && text) {
+        headings.push({ depth, slug, text });
+      }
+    }
+
+    return headings;
   }
 
   /**
@@ -109,6 +133,9 @@ export abstract class BaseContentParser {
     // Process through pipeline
     const content = await this.pipeline.process(rawContent, context, this.render);
 
+    // Extract headings from rendered HTML for outline/TOC
+    const headings = this.extractHeadings(content);
+
     // Generate slug and ID
     const slug = this.generateSlug(relativePath, fileType);
     const id = slug.replace(/\//g, '-') || 'index';
@@ -124,6 +151,7 @@ export abstract class BaseContentParser {
       id,
       slug,
       content,
+      headings,
       data: contentData,
       filePath,
       relativePath,
@@ -176,6 +204,7 @@ export abstract class BaseContentParser {
       id: slug.replace(/\//g, '-'),
       slug,
       content: '',
+      headings: [],
       data: {
         title: (data.title as string) || path.basename(filePath, path.extname(filePath)),
         ...data,
@@ -199,6 +228,7 @@ export abstract class BaseContentParser {
       id: slug.replace(/\//g, '-'),
       slug,
       content: '',
+      headings: [],
       data: {
         title: (data.title as string) || path.basename(filePath, '.json'),
         ...data,

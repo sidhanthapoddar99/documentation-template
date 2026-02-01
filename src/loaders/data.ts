@@ -25,7 +25,7 @@ import {
 } from './cache';
 
 // Re-export types from parsers for backward compatibility
-export type { LoadedContent, LoadOptions, ContentSettings } from '../parsers/types';
+export type { LoadedContent, LoadOptions, ContentSettings, Heading } from '../parsers/types';
 export { ParserError as DataLoaderError } from '../parsers/types';
 
 // ============================================
@@ -128,6 +128,7 @@ export async function loadContent(
   if (shouldCache()) {
     const cached = getCached(cacheKey);
     if (cached) {
+      console.log(`[CACHE HIT] ${cacheKey} - ${cached.content.length} items`);
       // Return cached content (already sorted and filtered)
       let content = [...cached.content];
 
@@ -142,6 +143,8 @@ export async function loadContent(
       }
 
       return content;
+    } else {
+      console.log(`[CACHE MISS] ${cacheKey}`);
     }
   }
 
@@ -250,6 +253,7 @@ export async function loadContent(
       fileHashes,
     };
     setCache(cacheKey, cacheEntry);
+    console.log(`[CACHE SET] ${cacheKey} - ${content.length} items cached`);
   }
 
   // Filter drafts

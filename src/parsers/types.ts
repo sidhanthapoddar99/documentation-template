@@ -43,6 +43,12 @@ export interface Processor {
 // Loaded Content
 // ============================================
 
+export interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
 export interface LoadedContent {
   /** Unique identifier derived from slug */
   id: string;
@@ -50,6 +56,8 @@ export interface LoadedContent {
   slug: string;
   /** Rendered HTML content */
   content: string;
+  /** Extracted headings for outline/TOC */
+  headings: Heading[];
 
   /** Frontmatter data */
   data: ContentData;

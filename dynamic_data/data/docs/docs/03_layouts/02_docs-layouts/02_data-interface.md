@@ -268,13 +268,14 @@ const outlineHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
 For TypeScript support, import types from loaders:
 
 ```typescript
-import type { LoadedContent, ContentSettings } from '@loaders/data';
+import type { LoadedContent, ContentSettings, Heading } from '@loaders/data';
 
 // LoadedContent shape:
 interface LoadedContent {
   id: string;
   slug: string;
   content: string;
+  headings: Heading[];  // Extracted during parsing, cached with content
   data: {
     title: string;
     description?: string;
@@ -284,5 +285,12 @@ interface LoadedContent {
   };
   filePath: string;
   relativePath: string;
+}
+
+// Heading shape:
+interface Heading {
+  depth: number;    // 1-6 (h1-h6)
+  slug: string;     // URL-safe ID
+  text: string;     // Heading text content
 }
 ```

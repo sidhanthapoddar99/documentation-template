@@ -31,6 +31,7 @@ In server mode, every page request triggers a full content reload:
 │                        ▼                                                    │
 │   ┌──────────────────────────────────────┐                                  │
 │   │   Parse ALL frontmatter & content    │  ◄── CPU (repeated work)         │
+│   │   Extract headings for TOC/outline   │                                  │
 │   └──────────────────────────────────────┘                                  │
 │                        │                                                    │
 │                        ▼                                                    │
@@ -86,6 +87,7 @@ Cache loaded content in memory with error tracking:
 │   ┌──────────────────────────────────────┐                                  │
 │   │   Cache miss → loadContent()         │                                  │
 │   │   Read & parse all files             │  ~178ms                          │
+│   │   Extract headings (for TOC/outline) │                                  │
 │   │   Compute file hashes                │                                  │
 │   │   Collect errors during processing   │                                  │
 │   │   Store everything in memory cache   │                                  │
@@ -103,6 +105,7 @@ Cache loaded content in memory with error tracking:
 │   │   Cache hit → return cached content  │  ~5ms                            │
 │   │   No disk I/O                        │                                  │
 │   │   No parsing                         │                                  │
+│   │   Headings already extracted         │                                  │
 │   │   Errors already collected           │                                  │
 │   └──────────────────────────────────────┘                                  │
 │                        │                                                    │
@@ -139,36 +142,41 @@ With cache:     10 page navigations = 178ms + (9 × 5ms) = 223ms
 │                        CACHING ARCHITECTURE                                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐      │
-│   │   Page Request  │────▶│  loadContent()  │────▶│  Cache Check    │      │
-│   │   [...slug]     │     │  src/loaders/   │     │                 │      │
-│   └─────────────────┘     │  data.ts        │     └────────┬────────┘      │
-│                           └─────────────────┘              │               │
-│                                                            │               │
-│                                    ┌───────────────────────┴───────┐       │
-│                                    ▼                               ▼       │
-│                           ┌─────────────┐                 ┌─────────────┐  │
-│                           │ Cache HIT   │                 │ Cache MISS  │  │
-│                           │ Return data │                 │ Load files  │  │
-│                           │ (~5ms)      │                 │ Parse MD    │  │
-│                           └─────────────┘                 │ Collect err │  │
-│                                                           │ Store cache │  │
-│                                                           │ (~178ms)    │  │
-│                                                           └─────────────┘  │
+│   ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐       │
+│   │   Page Request  │────▶│  loadContent()  │────▶│  Cache Check    │       │
+│   │   [...slug]     │     │  src/loaders/   │     │                 │       │
+│   └─────────────────┘     │  data.ts        │     └────────┬────────┘       │
+│                           └─────────────────┘              │                │
+│                                                            │                │
+│                                    ┌───────────────────────┴───────┐        │
+│                                    ▼                               ▼        │
+│                           ┌─────────────┐                 ┌─────────────┐   │
+│                           │ Cache HIT   │                 │ Cache MISS  │   │
+│                           │ Return data │                 │ Load files  │   │
+│                           │ (~5ms)      │                 │ Parse MD    │   │
+│                           └─────────────┘                 │ Collect err │   │
+│                                                           │ Store cache │   │
+│                                                           │ (~178ms)    │   │
+│                                                           └─────────────┘   │
 │                                                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   CACHE STRUCTURE (src/loaders/cache.ts)                                   │
+│   CACHE STRUCTURE (src/loaders/cache.ts)                                    │
 │                                                                             │
 │   ContentCacheState {                                                       │
-│     entries: Map<cacheKey, {                                               │
-│       content: LoadedContent[]     // All parsed markdown                  │
-│       fileHashes: Map<path, hash>  // For selective updates                │
-│       timestamp: number            // When cached                          │
+│     entries: Map<cacheKey, {                                                │
+│       content: LoadedContent[]     // All parsed markdown + headings        │
+│       fileHashes: Map<path, hash>  // For selective updates                 │
+│       timestamp: number            // When cached                           │
 │     }>                                                                      │
-│     errors: ContentError[]         // All errors found                     │
-│     warnings: ContentWarning[]     // All warnings found                   │
+│     errors: ContentError[]         // All errors found                      │
+│     warnings: ContentWarning[]     // All warnings found                    │
 │   }                                                                         │
+│                                                                             │
+│   LoadedContent includes:                                                   │
+│     content: string        // Rendered HTML                                 │
+│     headings: Heading[]    // Extracted for TOC/outline                     │
+│     data: {...}            // Frontmatter                                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -189,9 +197,26 @@ interface ContentCacheState {
 }
 
 interface CacheEntry {
-  content: LoadedContent[];          // Parsed markdown files
+  content: LoadedContent[];          // Parsed markdown + headings
   timestamp: number;                 // When entry was created
   fileHashes: Map<string, string>;   // MD5 hash per file
+}
+
+// LoadedContent includes headings extracted during parsing
+interface LoadedContent {
+  id: string;
+  slug: string;
+  content: string;                   // Rendered HTML
+  headings: Heading[];               // Extracted for TOC/outline
+  data: ContentData;                 // Frontmatter
+  filePath: string;
+  relativePath: string;
+}
+
+interface Heading {
+  depth: number;    // 1-6 (h1-h6)
+  slug: string;     // URL-safe ID
+  text: string;     // Heading text
 }
 
 interface ContentError {
@@ -215,29 +240,29 @@ interface ContentError {
 │                                                                             │
 │   src/                                                                      │
 │   ├── loaders/                                                              │
-│   │   ├── cache.ts             ◄── NEW: Cache manager (globalThis shared)  │
-│   │   ├── data.ts              ◄── MODIFIED: Integrated caching            │
-│   │   └── index.ts             ◄── MODIFIED: Export cache utilities        │
+│   │   ├── cache.ts             ◄── NEW: Cache manager (globalThis shared)   │
+│   │   ├── data.ts              ◄── MODIFIED: Integrated caching             │
+│   │   └── index.ts             ◄── MODIFIED: Export cache utilities         │
 │   │                                                                         │
 │   ├── pages/                                                                │
-│   │   ├── [...slug].astro      ◄── MODIFIED: Skip api routes               │
+│   │   ├── [...slug].astro      ◄── MODIFIED: Skip api routes                │
 │   │   └── api/dev/                                                          │
-│   │       └── errors.ts        ◄── NEW: API endpoint for errors            │
+│   │       └── errors.ts        ◄── NEW: API endpoint for errors             │
 │   │                                                                         │
 │   ├── parsers/                                                              │
 │   │   └── preprocessors/                                                    │
-│   │       └── asset-embed.ts   ◄── MODIFIED: Collect asset errors          │
+│   │       └── asset-embed.ts   ◄── MODIFIED: Collect asset errors           │
 │   │                                                                         │
 │   └── dev-toolbar/                                                          │
-│       ├── integration.ts       ◄── MODIFIED: HMR + external paths support  │
-│       └── error-logger.ts      ◄── NEW: Error panel UI                     │
+│       ├── integration.ts       ◄── MODIFIED: HMR + external paths support   │
+│       └── error-logger.ts      ◄── NEW: Error panel UI                      │
 │                                                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   UNCHANGED (transparent integration):                                      │
-│   ├── src/layouts/docs/components/sidebar/   ◄── No changes needed         │
-│   ├── src/layouts/navbar/                    ◄── No changes needed         │
-│   └── src/hooks/useSidebar.ts                ◄── No changes needed         │
+│   ├── src/layouts/docs/components/sidebar/   ◄── No changes needed          │
+│   ├── src/layouts/navbar/                    ◄── No changes needed          │
+│   └── src/hooks/useSidebar.ts                ◄── No changes needed          │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -303,19 +328,19 @@ A new dev toolbar panel displays all cached errors:
 │   │  Issues   [3 errors]  [12 warnings]                      [Refresh]  │   │
 │   ├─────────────────────────────────────────────────────────────────────┤   │
 │   │                                                                     │   │
-│   │  ┌─ content/03_docs.md ────────────────────────────────────────┐   │   │
+│   │  ┌─ content/03_docs.md ─────────────────────────────────────────┐   │   │
 │   │  │  ❌ ASSET-MISSING                                            │   │   │
 │   │  │     File not found: ./assets/basics.py                       │   │   │
 │   │  │     → Create the file or update the embed path               │   │   │
 │   │  └──────────────────────────────────────────────────────────────┘   │   │
 │   │                                                                     │   │
-│   │  ┌─ getting-started/02_installation.md ────────────────────────┐   │   │
+│   │  ┌─ getting-started/02_installation.md ─────────────────────────┐   │   │
 │   │  │  ⚠ MISSING-DESCRIPTION                                       │   │   │
 │   │  │     Missing 'description' in frontmatter                     │   │   │
 │   │  │     → Add description for better SEO                         │   │   │
 │   │  └──────────────────────────────────────────────────────────────┘   │   │
 │   │                                                                     │   │
-│   │  Cache: 2 entries | Last update: 4:08:12 PM                        │   │
+│   │  Cache: 2 entries | Last update: 4:08:12 PM                         │   │
 │   └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -386,6 +411,7 @@ File hashes are stored for future selective updates:
 ### Pros
 - **97% faster** subsequent page loads (5ms vs 178ms)
 - Reduces disk I/O and CPU usage
+- **Headings extracted once** - TOC/outline uses cached headings, no re-parsing
 - Better dev experience when testing layouts
 - Centralized error visibility in dev toolbar
 - File hashes stored for future selective updates

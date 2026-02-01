@@ -42,6 +42,7 @@ export {
   type LoadedContent,
   type LoadOptions,
   type ContentSettings,
+  type Heading,
 } from './data';
 
 // Alias resolver

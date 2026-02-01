@@ -55,13 +55,13 @@ import { loadContent } from '@loaders/data';
 
 const { dataPath, postsPerPage = 10 } = Astro.props;
 
-const posts = await loadContent(dataPath, {
+const posts = await loadContent(dataPath, 'blog', {
   pattern: '*.{md,mdx}',
   sort: 'date',
   order: 'desc',
 });
 
-// posts is an array of LoadedContent
+// posts is an array of LoadedContent (includes headings)
 ```
 
 ### Post Array Structure
@@ -73,6 +73,7 @@ interface LoadedContent {
   id: string;            // Unique identifier
   slug: string;          // URL slug (e.g., "hello-world")
   content: string;       // Rendered HTML (full post)
+  headings: Heading[];   // Extracted headings (for TOC on long posts)
   data: {
     title: string;       // Post title
     description?: string; // Excerpt/summary
@@ -84,6 +85,12 @@ interface LoadedContent {
   };
   filePath: string;      // Absolute file path
   relativePath: string;  // Relative path
+}
+
+interface Heading {
+  depth: number;    // 1-6 (h1-h6)
+  slug: string;     // URL-safe ID
+  text: string;     // Heading text
 }
 ```
 
@@ -101,7 +108,7 @@ interface Props {
 
 const { dataPath, postsPerPage = 10 } = Astro.props;
 
-const posts = await loadContent(dataPath, {
+const posts = await loadContent(dataPath, 'blog', {
   pattern: '*.{md,mdx}',
   sort: 'date',
   order: 'desc',
@@ -332,8 +339,11 @@ const { title, image, href } = Astro.props;
 For TypeScript, import types:
 
 ```typescript
-import type { LoadedContent } from '@loaders/data';
+import type { LoadedContent, Heading } from '@loaders/data';
 
 // Then use in your components
-const posts: LoadedContent[] = await loadContent(dataPath, options);
+const posts: LoadedContent[] = await loadContent(dataPath, 'blog', options);
+
+// Access headings for TOC (on long posts)
+const headings: Heading[] = post.headings;
 ```

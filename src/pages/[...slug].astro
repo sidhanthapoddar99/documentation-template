@@ -43,7 +43,7 @@ export async function getStaticPaths() {
         props: { pageName, pageConfig, dataPath, pageType: 'custom', layout },
       });
     } else if (pageConfig.type === 'docs') {
-      const content = await loadContent(dataPath, {
+      const content = await loadContent(dataPath, 'docs', {
         pattern: '**/*.{md,mdx}',
         sort: 'position',
         requirePositionPrefix: true, // Docs require XX_ prefix for ordering
@@ -61,7 +61,7 @@ export async function getStaticPaths() {
         });
       }
     } else if (pageConfig.type === 'blog') {
-      const posts = await loadContent(dataPath, {
+      const posts = await loadContent(dataPath, 'blog', {
         pattern: '*.{md,mdx}',
         sort: 'date',
         order: 'desc',
@@ -116,7 +116,7 @@ if (!pageType) {
       if (config.type === 'custom') {
         pageType = 'custom';
       } else if (config.type === 'docs') {
-        const content = await loadContent(dataPath, {
+        const content = await loadContent(dataPath, 'docs', {
           pattern: '**/*.{md,mdx}',
           sort: 'position',
           requirePositionPrefix: true,
@@ -131,7 +131,7 @@ if (!pageType) {
           pageType = 'docs';
         }
       } else if (config.type === 'blog') {
-        const posts = await loadContent(dataPath, {
+        const posts = await loadContent(dataPath, 'blog', {
           pattern: '*.{md,mdx}',
           sort: 'date',
           order: 'desc',
@@ -313,6 +313,7 @@ if (pageType === 'docs' && doc) {
     baseUrl: pageConfig.base_url,
     currentSlug: doc.slug,
     content: doc.content,
+    headings: doc.headings, // Headings extracted during parsing
   };
 } else if (pageType === 'blog-post' && post) {
   layoutProps = {

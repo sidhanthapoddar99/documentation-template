@@ -72,6 +72,7 @@ const CACHE_KEY = '__astro_content_cache__';
 
 function getCacheState(): ContentCacheState {
   if (!(globalThis as any)[CACHE_KEY]) {
+    console.log('[CACHE] Initializing new cache state');
     (globalThis as any)[CACHE_KEY] = {
       entries: new Map<string, CacheEntry>(),
       errors: [] as ContentError[],
