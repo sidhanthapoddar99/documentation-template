@@ -88,11 +88,67 @@ export async function getStaticPaths() {
 // Page Rendering (validation happens here - errors show during build)
 // ============================================================================
 
-const { pageName, pageConfig, dataPath, pageType, doc, post, allContent, layout: configLayout } = Astro.props;
+// In server mode, getStaticPaths() is ignored, so we compute props from URL
+let { pageName, pageConfig, dataPath, pageType, doc, post, allContent, layout: configLayout } = Astro.props;
+
+// Server mode: compute props dynamically if not provided by getStaticPaths
+if (!pageType) {
+  const slug = Astro.params.slug || '';
+  const siteConfig = loadSiteConfig();
+  const pages = siteConfig.pages || {};
+
+  // Find matching page config based on URL
+  for (const [name, config] of Object.entries(pages)) {
+    const baseUrl = config.base_url.replace(/^\//, '');
+
+    if (slug === baseUrl || slug.startsWith(baseUrl + '/')) {
+      pageName = name;
+      pageConfig = config;
+      dataPath = resolveAliasPath(config.data);
+      configLayout = config.layout || '';
+
+      if (config.type === 'custom') {
+        pageType = 'custom';
+      } else if (config.type === 'docs') {
+        const content = await loadContent(dataPath, {
+          pattern: '**/*.{md,mdx}',
+          sort: 'position',
+          requirePositionPrefix: true,
+        });
+        allContent = content;
+
+        if (slug === baseUrl) {
+          pageType = 'docs-index';
+        } else {
+          const docSlug = slug.slice(baseUrl.length + 1);
+          doc = content.find(d => d.slug === docSlug);
+          pageType = 'docs';
+        }
+      } else if (config.type === 'blog') {
+        const posts = await loadContent(dataPath, {
+          pattern: '*.{md,mdx}',
+          sort: 'date',
+          order: 'desc',
+        });
+        allContent = posts;
+
+        if (slug === baseUrl) {
+          pageType = 'blog-index';
+        } else {
+          const postSlug = slug.slice(baseUrl.length + 1);
+          post = posts.find(p => p.slug === postSlug);
+          pageType = 'blog-post';
+        }
+      }
+      break;
+    }
+  }
+}
 
 // Dev mode: Allow layout override via query param (?layout=doc_style2)
+// Middleware captures the query param and passes it via Astro.locals
 const isDev = import.meta.env.DEV;
-const layoutOverride = isDev ? Astro.url.searchParams.get('layout') : null;
+const layoutOverride = isDev ? (Astro.locals.layoutOverride as string | undefined) : null;
 
 // Determine effective layout
 let layout = configLayout;

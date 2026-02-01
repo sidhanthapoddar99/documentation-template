@@ -1,9 +1,9 @@
 ---
-title: Development
+title: Development Overview
 description: Development experience features and tools
 ---
 
-# Development
+# Development Overview
 
 The framework provides an enhanced development experience with fast hot reload, built-in dev tools, and custom utilities for layout iteration.
 
@@ -44,55 +44,6 @@ The dev toolbar appears at the bottom of every page during development. Click th
 | **Inspect** | Highlight component islands, view hydration status |
 | **Audit** | Accessibility checks, performance hints |
 | **Settings** | Toggle verbose logging, disable toolbar |
-
-## Layout & Theme Selector
-
-The framework includes a custom dev toolbar app for rapid layout iteration.
-
-### Accessing the Selector
-
-1. Start the dev server (`npm run start`)
-2. Navigate to any docs or blog page
-3. Click the **grid icon** in the dev toolbar
-4. Select a layout or theme
-
-### Layout Selector
-
-When on `/docs/*` pages:
-- Switch between `doc_style1`, `doc_style2`, etc.
-- Preview different sidebar configurations
-- Compare layout variants side-by-side (open in multiple tabs)
-
-When on `/blog/*` pages:
-- Switch between `blog_style1`, `blog_style2`, etc.
-- Preview different post card layouts
-- Test index vs post layouts
-
-### Theme Selector
-
-Toggle between themes globally:
-
-| Theme | Behavior |
-|-------|----------|
-| **Light** | Force light mode |
-| **Dark** | Force dark mode |
-| **System** | Follow OS preference |
-
-Theme selection persists in localStorage across sessions.
-
-### URL-Based Layout Override
-
-You can also override layouts via URL query parameter:
-
-```
-/docs/overview?layout=doc_style2
-/blog?layout=blog_style2
-```
-
-This is useful for:
-- Sharing specific layout previews with team members
-- Testing layouts without opening the toolbar
-- Bookmarking layout comparisons
 
 ## Development Workflow Tips
 

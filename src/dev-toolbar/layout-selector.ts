@@ -7,10 +7,11 @@
  * - Toggling theme (light/dark/system) globally
  */
 
-// Available layouts (discovered from src/layouts/*/styles/)
+// Available layouts (should match src/layouts/*/styles/)
+// TODO: Auto-discover these from the server
 const LAYOUTS = {
   docs: ['doc_style1', 'doc_style2'],
-  blog: ['blog_style1', 'blog_style2'],
+  blog: ['blog_style1'],  // Only blog_style1 exists currently
 } as const;
 
 const THEMES = ['light', 'dark', 'system'] as const;
@@ -276,10 +277,13 @@ export default {
 
     html += '</div>';
 
-    windowEl.innerHTML = html;
+    // Create a wrapper div for the content (can't query custom elements directly)
+    const contentWrapper = document.createElement('div');
+    contentWrapper.innerHTML = html;
+    windowEl.appendChild(contentWrapper);
 
     // Add event listeners for layout buttons
-    windowEl.querySelectorAll('.option-btn[data-layout]').forEach(button => {
+    contentWrapper.querySelectorAll('.option-btn[data-layout]').forEach(button => {
       button.addEventListener('click', () => {
         const layout = button.getAttribute('data-layout');
         const type = button.getAttribute('data-type');
@@ -294,13 +298,13 @@ export default {
     });
 
     // Add event listeners for theme buttons
-    windowEl.querySelectorAll('.theme-btn[data-theme]').forEach(button => {
+    contentWrapper.querySelectorAll('.theme-btn[data-theme]').forEach(button => {
       button.addEventListener('click', () => {
         const theme = button.getAttribute('data-theme');
 
         if (theme) {
           // Update button states
-          windowEl.querySelectorAll('.theme-btn').forEach(btn => {
+          contentWrapper.querySelectorAll('.theme-btn').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
           });
 
