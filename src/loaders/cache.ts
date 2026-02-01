@@ -15,7 +15,18 @@ import type { LoadedContent, ContentSettings } from '../parsers/types';
 // Types
 // ============================================
 
-export type ErrorType = 'asset-missing' | 'frontmatter' | 'syntax' | 'config' | 'unknown';
+export type ErrorType =
+  | 'asset-missing'
+  | 'frontmatter'
+  | 'syntax'
+  | 'config'
+  | 'unknown'
+  // Theme-related errors
+  | 'theme-not-found'
+  | 'theme-missing-file'
+  | 'theme-missing-variable'
+  | 'theme-invalid-manifest'
+  | 'theme-circular-extends';
 export type WarningType = 'missing-description' | 'missing-image' | 'deprecated' | 'draft';
 
 export interface ContentError {

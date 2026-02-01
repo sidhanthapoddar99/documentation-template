@@ -1,0 +1,11 @@
+/**
+ * Minimal Theme - Main Entry Point
+ *
+ * This theme extends @theme/default and only overrides colors.
+ * All other styles (fonts, spacing, elements, markdown) are
+ * inherited from the default theme.
+ */
+
+@import './color.css';
+
+/* Additional minimal theme customizations can be added here */

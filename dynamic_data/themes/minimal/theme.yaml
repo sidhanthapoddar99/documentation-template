@@ -1,0 +1,11 @@
+name: "Minimal Theme"
+version: "1.0.0"
+description: "A clean, minimal color palette with neutral tones"
+extends: "@theme/default"
+supports_dark_mode: true
+
+# Only list files that override defaults
+# All other styles are inherited from @theme/default
+files:
+  - color.css
+  - index.css

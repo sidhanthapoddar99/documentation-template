@@ -4,7 +4,7 @@
  *
  * Provides:
  * - HTML structure with head meta
- * - Global styles
+ * - Theme CSS injection (supports @theme/default and custom themes)
  * - Dark mode script (prevents flash)
  * - Navbar and Footer slots
  *
@@ -19,8 +19,11 @@
  * └─────────────────────────────────────┘
  */
 
-import { loadSiteConfig, loadNavbarConfig, loadFooterConfig, getFavicon } from '@loaders/config';
-import '@styles/globals.css';
+import { loadSiteConfig, loadNavbarConfig, loadFooterConfig, getFavicon, getTheme } from '@loaders/config';
+import { getThemeCSS } from '@loaders/theme';
+
+// Note: We no longer import globals.css directly - theme CSS is injected dynamically
+// import '@styles/globals.css';
 
 interface Props {
   title?: string;
@@ -33,6 +36,23 @@ interface Props {
 const siteConfig = loadSiteConfig();
 const navbarConfig = loadNavbarConfig();
 const footerConfig = loadFooterConfig();
+
+// Get theme from config (default)
+let themeRef = getTheme();
+const isDev = import.meta.env.DEV;
+
+// In dev mode, check for cookie-based theme override (set by dev toolbar)
+// Cookies work because they're sent with every request, unlike localStorage
+if (isDev) {
+  const themeCookie = Astro.cookies.get('dev-color-theme');
+  // If cookie exists and is not empty/__reset__, use it as theme override
+  if (themeCookie && themeCookie.value && themeCookie.value !== '__reset__') {
+    themeRef = `@theme/${themeCookie.value}`;
+  }
+}
+
+// Load theme CSS
+const themeCSS = getThemeCSS(themeRef);
 
 const {
   title,
@@ -74,6 +94,9 @@ const faviconUrl = getFavicon();
       rel="stylesheet"
     />
 
+    <!-- Theme CSS (dynamically injected based on site.yaml theme setting) -->
+    <style id="theme-styles" set:html={themeCSS}></style>
+
     <!-- Dark Mode Script (prevents flash) -->
     <script is:inline>
       const theme = (() => {
@@ -90,6 +113,7 @@ const faviconUrl = getFavicon();
         document.documentElement.setAttribute('data-theme', 'dark');
       }
     </script>
+
   </head>
   <body>
     <!-- Navbar Slot -->

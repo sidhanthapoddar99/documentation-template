@@ -105,7 +105,7 @@ links:
 
 ```markdown
 <!-- Asset embedding -->
-[[./assets/code.py]]
+\[[./assets/code.py]]
 
 <!-- Image references -->
 ![Logo](@assets/logo.svg)

@@ -1,0 +1,56 @@
+name: "Default Theme"
+version: "1.0.0"
+description: "Built-in default theme for the documentation framework"
+extends: null  # This is the base theme - no parent
+supports_dark_mode: true
+
+# CSS files to load (in order)
+files:
+  - color.css
+  - font.css
+  - element.css
+  - reset.css
+  - markdown.css
+  - index.css
+
+# Required CSS variables that themes extending this must define
+# (or inherit from this theme)
+required_variables:
+  colors:
+    - --color-bg-primary
+    - --color-bg-secondary
+    - --color-bg-tertiary
+    - --color-text-primary
+    - --color-text-secondary
+    - --color-text-muted
+    - --color-border-default
+    - --color-border-light
+    - --color-brand-primary
+    - --color-brand-secondary
+    - --color-success
+    - --color-warning
+    - --color-error
+    - --color-info
+  fonts:
+    - --font-family-base
+    - --font-family-mono
+    - --font-size-base
+    - --font-size-sm
+    - --font-size-lg
+    - --font-size-xl
+    - --font-size-2xl
+    - --line-height-base
+  elements:
+    - --spacing-xs
+    - --spacing-sm
+    - --spacing-md
+    - --spacing-lg
+    - --spacing-xl
+    - --border-radius-sm
+    - --border-radius-md
+    - --border-radius-lg
+    - --shadow-sm
+    - --shadow-md
+    - --shadow-lg
+    - --transition-fast
+    - --transition-normal

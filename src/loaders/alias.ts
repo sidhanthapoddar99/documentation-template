@@ -16,7 +16,8 @@ export type AliasPrefix =
   | '@footer'
   | '@data'
   | '@assets'
-  | '@mdx';
+  | '@mdx'
+  | '@theme';
 
 export interface ResolvedAlias {
   type: AliasPrefix;
@@ -37,6 +38,7 @@ const aliasMap: Record<AliasPrefix, string> = {
   '@data': paths.data,
   '@assets': paths.assets,
   '@mdx': paths.mdxComponents,
+  '@theme': paths.themes,
 };
 
 // ============================================
@@ -63,6 +65,7 @@ export function extractPrefix(aliasPath: string): AliasPrefix | null {
     '@data',
     '@assets',
     '@mdx',
+    '@theme',
   ];
 
   for (const prefix of prefixes) {

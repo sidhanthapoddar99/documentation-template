@@ -62,7 +62,7 @@
 
 .hero__cta--primary {
   background-color: var(--color-brand-primary);
-  color: white;
+  color: var(--color-bg-primary);
 }
 
 .hero__cta--primary:hover {

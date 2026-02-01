@@ -1,0 +1,21 @@
+/**
+ * Default Theme - Main Entry Point
+ *
+ * This file imports all theme modules in the correct order.
+ * The order matters: variables must be defined before they're used.
+ */
+
+/* 1. Color variables (light/dark mode) */
+@import './color.css';
+
+/* 2. Typography variables */
+@import './font.css';
+
+/* 3. Element variables (spacing, borders, shadows) */
+@import './element.css';
+
+/* 4. CSS Reset (uses variables defined above) */
+@import './reset.css';
+
+/* 5. Markdown/content styles (uses all variables) */
+@import './markdown.css';

@@ -122,6 +122,18 @@ export function toAliasPath(absolutePath: string): string {
     return '@assets/' + assetsMatch[2];
   }
 
+  // Match /dynamic_data/themes/ or /themes/ patterns for @theme alias
+  const themesMatch = normalizedPath.match(/[/\\](dynamic_data[/\\])?themes[/\\](.+)$/);
+  if (themesMatch) {
+    return '@theme/' + themesMatch[2];
+  }
+
+  // Match /src/styles/ for @theme/default alias
+  const stylesMatch = normalizedPath.match(/[/\\]src[/\\]styles[/\\](.+)$/);
+  if (stylesMatch) {
+    return '@theme/default/' + stylesMatch[1];
+  }
+
   // Match /src/ for @src alias
   const srcMatch = normalizedPath.match(/[/\\]src[/\\](.+)$/);
   if (srcMatch) {

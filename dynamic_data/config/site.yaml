@@ -4,6 +4,10 @@ site:
   title: "My Documentation"
   description: "Modern documentation built with Astro"
 
+# Theme Configuration (optional - defaults to @theme/default)
+# Options: "@theme/default", "@theme/minimal", or custom theme path
+theme: "@theme/minimal"
+
 # Logo and Favicon Configuration
 logo:
   src: "@assets/astro.svg"

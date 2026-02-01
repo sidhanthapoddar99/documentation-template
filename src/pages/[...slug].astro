@@ -151,22 +151,31 @@ if (!pageType) {
   }
 }
 
-// Dev mode: Allow layout override via query param (?layout=doc_style2)
-// Middleware captures the query param and passes it via Astro.locals
+// Dev mode: Allow layout override via cookie (set by dev toolbar)
+// Layout overrides are type-specific: doc_style* for docs, blog_style* for blogs
 const isDev = import.meta.env.DEV;
-const layoutOverride = isDev ? (Astro.locals.layoutOverride as string | undefined) : null;
+let layoutOverride: string | null = null;
 
-// Determine effective layout
+if (isDev) {
+  const layoutCookie = Astro.cookies.get('dev-layout');
+  if (layoutCookie && layoutCookie.value && layoutCookie.value !== '__reset__') {
+    layoutOverride = layoutCookie.value;
+  }
+}
+
+// Determine effective layout - only apply override if it matches the page type
 let layout = configLayout;
 if (layoutOverride && isDev) {
-  // Determine layout type from page type
-  if (pageType === 'docs' || pageType === 'docs-index') {
+  // Only apply override if the layout style matches the page type
+  const isDocsLayout = layoutOverride.startsWith('doc_');
+  const isBlogLayout = layoutOverride.startsWith('blog_');
+
+  if ((pageType === 'docs' || pageType === 'docs-index') && isDocsLayout) {
     layout = `@docs/${layoutOverride}`;
-  } else if (pageType === 'blog-index' || pageType === 'blog-post') {
+  } else if ((pageType === 'blog-index' || pageType === 'blog-post') && isBlogLayout) {
     layout = `@blog/${layoutOverride}`;
-  } else if (pageType === 'custom') {
-    layout = `@custom/${layoutOverride}`;
   }
+  // Custom pages don't have layout overrides (use config only)
 }
 
 // Handle docs index redirect
@@ -293,6 +302,10 @@ if (pageType === 'docs' || pageType === 'docs-index') {
 let layoutProps: Record<string, any> = { dataPath };
 
 if (pageType === 'docs' && doc) {
+  // DEBUG: Log what we're passing
+  console.log('[slug.astro DEBUG] pageConfig.base_url:', pageConfig?.base_url);
+  console.log('[slug.astro DEBUG] pageName:', pageName);
+
   layoutProps = {
     title: doc.data.title,
     description: doc.data.description,

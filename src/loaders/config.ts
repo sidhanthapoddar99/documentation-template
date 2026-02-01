@@ -40,6 +40,7 @@ export interface PageConfig {
 
 export interface SiteConfig {
   site: SiteMetadata;
+  theme?: string;  // Theme alias (e.g., "@theme/default" or "@theme/minimal")
   logo?: SiteLogo;
   pages: Record<string, PageConfig>;
 }
@@ -151,6 +152,14 @@ export function getSiteLogo(): SiteLogo {
 export function getFavicon(): string {
   const config = loadSiteConfig();
   return config.logo?.favicon || '/favicon.svg';
+}
+
+/**
+ * Get theme reference from site config
+ */
+export function getTheme(): string {
+  const config = loadSiteConfig();
+  return config.theme || '@theme/default';
 }
 
 /**
@@ -269,6 +278,7 @@ export default {
   getPage,
   getSiteLogo,
   getFavicon,
+  getTheme,
   resolvePageUrl,
   processCopyright,
   validateRoutes,

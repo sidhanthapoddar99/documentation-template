@@ -4,7 +4,8 @@
  * Provides development-time UI for:
  * - Switching between doc layouts when on /docs/* pages
  * - Switching between blog layouts when on /blog/* pages
- * - Toggling theme (light/dark/system) globally
+ * - Switching between color themes (@theme/default, @theme/minimal, etc.)
+ * - Toggling display mode (light/dark/system) globally
  */
 
 // Available layouts (should match src/layouts/*/styles/)
@@ -14,26 +15,66 @@ const LAYOUTS = {
   blog: ['blog_style1'],  // Only blog_style1 exists currently
 } as const;
 
-const THEMES = ['light', 'dark', 'system'] as const;
+// Display modes for light/dark toggle (used in UI rendering)
+// const DISPLAY_MODES = ['light', 'dark', 'system'] as const;
+
+interface ThemeInfo {
+  name: string;
+  ref: string;
+  displayName: string;
+  description: string;
+  version: string;
+  extends: string | null;
+  supportsDarkMode: boolean;
+}
+
+interface ThemesResponse {
+  current: { ref: string; name: string };
+  themes: ThemeInfo[];
+}
 
 export default {
   id: 'layout-theme-selector',
   name: 'Layout & Theme',
   icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
 
-  init(canvas: ShadowRoot, _app: any, _server: any) {
+  async init(canvas: ShadowRoot, _app: any, _server: any) {
     // Detect content type from data attribute (config-driven, not URL-based)
     const contentType = document.documentElement.getAttribute('data-content-type');
     const isDocsPage = contentType === 'docs';
     const isBlogPage = contentType === 'blog';
-    const isCustomPage = contentType === 'custom';
+    // const isCustomPage = contentType === 'custom'; // Reserved for future use
 
-    // Get current layout from URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentLayout = urlParams.get('layout');
+    // Get overrides from cookies (cookies are sent to server, unlike localStorage)
+    const getCookie = (name: string): string | null => {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? match[2] : null;
+    };
 
-    // Get current theme
-    const currentTheme = localStorage.getItem('theme') || 'system';
+    // Get theme from cookie (null or __reset__ means use config)
+    const themeCookie = getCookie('dev-color-theme');
+    const activeColorTheme = (themeCookie && themeCookie !== '__reset__') ? themeCookie : null;
+
+    // Get layout from cookie
+    const layoutCookie = getCookie('dev-layout');
+    const activeLayout = (layoutCookie && layoutCookie !== '__reset__') ? layoutCookie : null;
+
+    // Get current display mode (light/dark/system)
+    const currentDisplayMode = localStorage.getItem('theme') || 'system';
+
+    // Fetch available themes from API
+    let themesData: ThemesResponse | null = null;
+    try {
+      const response = await fetch('/api/dev/themes');
+      if (response.ok) {
+        themesData = await response.json();
+        console.log('[dev-toolbar] Loaded themes:', themesData);
+      } else {
+        console.error('[dev-toolbar] Failed to fetch themes, status:', response.status);
+      }
+    } catch (error) {
+      console.error('[dev-toolbar] Failed to fetch themes:', error);
+    }
 
     // Create the window using Astro's built-in component
     const windowEl = document.createElement('astro-dev-toolbar-window');
@@ -196,6 +237,42 @@ export default {
         width: 18px;
         height: 18px;
       }
+
+      .reset-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        margin-top: 12px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 6px;
+        color: #fca5a5;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-size: 11px;
+        width: 100%;
+      }
+
+      .reset-btn:hover {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: rgba(239, 68, 68, 0.5);
+      }
+
+      .reset-btn svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .current-config {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 8px;
+        padding: 6px 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 4px;
+      }
     `;
 
     // Build content
@@ -214,7 +291,7 @@ export default {
     if (isDocsPage) {
       html += '<div class="option-list">';
       for (const layout of LAYOUTS.docs) {
-        const isActive = currentLayout === layout || (!currentLayout && layout === 'doc_style1');
+        const isActive = activeLayout === layout || (!activeLayout && layout === 'doc_style1');
         const displayName = layout.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
         html += `
           <button class="option-btn ${isActive ? 'active' : ''}" data-layout="${layout}" data-type="docs">
@@ -228,7 +305,7 @@ export default {
     } else if (isBlogPage) {
       html += '<div class="option-list">';
       for (const layout of LAYOUTS.blog) {
-        const isActive = currentLayout === layout || (!currentLayout && layout === 'blog_style1');
+        const isActive = activeLayout === layout || (!activeLayout && layout === 'blog_style1');
         const displayName = layout.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
         html += `
           <button class="option-btn ${isActive ? 'active' : ''}" data-layout="${layout}" data-type="blog">
@@ -247,33 +324,102 @@ export default {
     // Divider
     html += '<div class="divider"></div>';
 
-    // Theme Section
+    // Color Theme Section (if themes are available)
+    if (themesData && themesData.themes.length >= 1) {
+      html += '<div class="section">';
+      html += `<div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+        </svg>
+        Color Theme
+      </div>`;
+      html += '<div class="option-list">';
+
+      // Determine active theme (localStorage > URL > configured theme)
+      const activeThemeRef = activeColorTheme
+        ? `@theme/${activeColorTheme}`
+        : themesData.current.ref;
+
+      for (const theme of themesData.themes) {
+        const isActive = theme.ref === activeThemeRef;
+        const extendsInfo = theme.extends ? ` (extends ${theme.extends.replace('@theme/', '')})` : '';
+        html += `
+          <button class="option-btn ${isActive ? 'active' : ''}" data-color-theme="${theme.name}" data-theme-ref="${theme.ref}">
+            <span class="radio-circle"><span class="radio-dot"></span></span>
+            <span class="option-text">
+              ${theme.displayName}
+              <span style="font-size: 10px; opacity: 0.6;">${extendsInfo}</span>
+            </span>
+            ${isActive ? '<span class="active-tag">Active</span>' : ''}
+          </button>
+        `;
+      }
+      html += '</div>';
+      html += '</div>';
+
+      // Divider before display mode
+      html += '<div class="divider"></div>';
+    } else {
+      // Show message when themes couldn't be loaded
+      html += '<div class="section">';
+      html += `<div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+        </svg>
+        Color Theme
+      </div>`;
+      html += '<div class="disabled-msg">Failed to load themes</div>';
+      html += '</div>';
+      html += '<div class="divider"></div>';
+    }
+
+    // Display Mode Section (Light/Dark/System)
     html += '<div class="section">';
     html += `<div class="section-title">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/>
       </svg>
-      Theme
+      Display Mode
     </div>`;
     html += '<div class="theme-row">';
 
-    const themeData = [
+    const displayModeData = [
       { id: 'light', label: 'Light', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>` },
       { id: 'dark', label: 'Dark', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>` },
       { id: 'system', label: 'System', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>` },
     ];
 
-    for (const theme of themeData) {
-      const isActive = currentTheme === theme.id;
+    for (const mode of displayModeData) {
+      const isActive = currentDisplayMode === mode.id;
       html += `
-        <button class="theme-btn ${isActive ? 'active' : ''}" data-theme="${theme.id}">
-          ${theme.icon}
-          <span>${theme.label}</span>
+        <button class="theme-btn ${isActive ? 'active' : ''}" data-display-mode="${mode.id}">
+          ${mode.icon}
+          <span>${mode.label}</span>
         </button>
       `;
     }
     html += '</div>';
     html += '</div>';
+
+    // Show current config info and reset button
+    const hasOverrides = activeColorTheme || activeLayout;
+    if (hasOverrides) {
+      html += '<div class="divider"></div>';
+      html += `
+        <button class="reset-btn" id="reset-overrides">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Reset All Overrides
+        </button>
+      `;
+    }
+
+    // Show configured theme info
+    if (themesData) {
+      html += `<div class="current-config">Config: ${themesData.current.ref}</div>`;
+    }
 
     html += '</div>';
 
@@ -286,40 +432,81 @@ export default {
     contentWrapper.querySelectorAll('.option-btn[data-layout]').forEach(button => {
       button.addEventListener('click', () => {
         const layout = button.getAttribute('data-layout');
-        const type = button.getAttribute('data-type');
 
         if (layout) {
-          const url = new URL(window.location.href);
-          url.searchParams.set('layout', layout);
-          localStorage.setItem(`dev-layout-${type}`, layout);
-          window.location.href = url.toString();
+          // Set layout cookie (expires in 7 days)
+          const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+          document.cookie = `dev-layout=${layout}; expires=${expires}; path=/`;
+
+          console.log('[dev-toolbar] Set layout cookie:', layout);
+
+          // Reload page to apply layout (server reads cookie)
+          window.location.reload();
         }
       });
     });
 
-    // Add event listeners for theme buttons
-    contentWrapper.querySelectorAll('.theme-btn[data-theme]').forEach(button => {
+    // Add event listeners for color theme buttons (theme switching)
+    contentWrapper.querySelectorAll('.option-btn[data-color-theme]').forEach(button => {
       button.addEventListener('click', () => {
-        const theme = button.getAttribute('data-theme');
+        const themeName = button.getAttribute('data-color-theme');
 
-        if (theme) {
+        if (themeName) {
+          // Set cookie (expires in 7 days, path=/ so it works on all pages)
+          const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+          document.cookie = `dev-color-theme=${themeName}; expires=${expires}; path=/`;
+
+          console.log('[dev-toolbar] Set theme cookie:', themeName);
+
+          // Reload page to apply theme (server reads cookie)
+          window.location.reload();
+        }
+      });
+    });
+
+    // Add event listeners for display mode buttons (light/dark/system)
+    contentWrapper.querySelectorAll('.theme-btn[data-display-mode]').forEach(button => {
+      button.addEventListener('click', () => {
+        const mode = button.getAttribute('data-display-mode');
+
+        if (mode) {
           // Update button states
-          contentWrapper.querySelectorAll('.theme-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+          contentWrapper.querySelectorAll('.theme-btn[data-display-mode]').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-display-mode') === mode);
           });
 
-          // Store and apply theme
-          localStorage.setItem('theme', theme);
+          // Store and apply display mode
+          localStorage.setItem('theme', mode);
 
-          if (theme === 'system') {
+          if (mode === 'system') {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
           } else {
-            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.setAttribute('data-theme', mode);
           }
         }
       });
     });
+
+    // Add event listener for reset button
+    const resetBtn = contentWrapper.querySelector('#reset-overrides');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        // Clear theme cookie (set to '__reset__' which server ignores, using site.yaml config)
+        document.cookie = 'dev-color-theme=__reset__; expires=' + new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString() + '; path=/';
+
+        // Clear layout cookie
+        document.cookie = 'dev-layout=__reset__; expires=' + new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString() + '; path=/';
+
+        // Clear old localStorage values
+        localStorage.removeItem('dev-layout-docs');
+        localStorage.removeItem('dev-layout-blog');
+        localStorage.removeItem('dev-color-theme');
+
+        // Reload to apply
+        window.location.reload();
+      });
+    }
 
     canvas.appendChild(styles);
     canvas.appendChild(windowEl);
