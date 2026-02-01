@@ -36,7 +36,7 @@ In blogs, asset paths resolve to the post's subfolder in `assets/`:
 
 ```
 blog/
-├── 2024-01-15-hello-world.md   ← [[diagram.png]]
+├── 2024-01-15-hello-world.md   ← \[[diagram.png]]
 └── assets/
     └── 2024-01-15-hello-world/
         └── diagram.png          ← Resolved here
@@ -47,7 +47,7 @@ blog/
 ```markdown
 <!-- In 2024-01-15-hello-world.md -->
 ```python
-[[code.py]]
+\[[code.py]]
 ```
 ```
 
@@ -59,10 +59,10 @@ Unlike docs, you don't need `./` or folder paths:
 
 ```markdown
 <!-- Docs style (NOT used in blogs) -->
-[[./assets/diagram.png]]
+\[[./assets/diagram.png]]
 
 <!-- Blog style (correct) -->
-[[diagram.png]]
+\[[diagram.png]]
 ```
 
 The system automatically resolves to the correct subfolder based on the post filename.
@@ -74,7 +74,7 @@ When creating a new post, create a matching asset folder:
 1. Create post: `2024-03-01-my-new-post.md`
 2. Create folder: `assets/2024-03-01-my-new-post/`
 3. Add assets to the folder
-4. Reference in post: `[[myfile.png]]`
+4. Reference in post: `\[[myfile.png]]`
 
 ## Code Files
 
@@ -122,8 +122,8 @@ assets/
 When using subfolders, include the path:
 
 ```markdown
-[[code/example.py]]
-[[images/diagram.svg]]
+\[[code/example.py]]
+\[[images/diagram.svg]]
 ```
 
 ## Comparison: Docs vs Blogs
@@ -131,7 +131,7 @@ When using subfolders, include the path:
 | Feature | Docs | Blogs |
 |---------|------|-------|
 | Asset location | Next to file | Central `assets/` folder |
-| Path syntax | `[[./assets/file.py]]` | `[[file.py]]` |
+| Path syntax | `\[[./assets/file.py]]` | `\[[file.py]]` |
 | Organization | Per-folder assets | Per-post subfolders |
 | Relative paths | Required | Not needed |
 

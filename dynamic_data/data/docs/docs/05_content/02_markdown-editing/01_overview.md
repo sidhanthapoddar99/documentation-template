@@ -56,6 +56,45 @@ console.log(greeting);
 ```
 ````
 
+### Fenced Code Block Delimiters
+
+Both backticks (` ``` `) and tildes (`~~~`) create code blocks:
+
+| Delimiter | Name | Usage |
+|-----------|------|-------|
+| ` ``` ` | Backtick fence | Most common |
+| `~~~` | Tilde fence | Alternative |
+
+**They are functionally identical** - the difference is for nesting.
+
+#### Nesting Code Blocks
+
+Use tildes to wrap content containing backticks (or vice versa):
+
+~~~markdown
+```python
+print("hello")
+```
+~~~
+
+This is written as:
+
+````markdown
+~~~markdown
+```python
+print("hello")
+```
+~~~
+````
+
+#### Rules
+
+1. **Closing must match opening** - same character, same or more count
+2. **3+ characters required** - ` ``` `, ` ```` `, `~~~`, `~~~~` all work
+3. **Use outer fence** - when documenting code blocks, wrap with a different delimiter
+
+**Best practice:** Use `~~~` as the outer fence when showing code block syntax in documentation.
+
 ### Links
 
 ```markdown

@@ -79,7 +79,7 @@ Raw Markdown                    Processed HTML (content prop)
 
 Some **bold** text.        →    <p>Some <strong>bold</strong> text.</p>
 
-[[./assets/code.py]]            <pre><code>print("hello")</code></pre>
+\[[./assets/code.py]]            <pre><code>print("hello")</code></pre>
 ```
 
 ### What's Already Done
@@ -90,7 +90,7 @@ By the time content reaches the layout:
 |------------|--------|---------|
 | Markdown → HTML | ✅ Done | `**bold**` → `<strong>bold</strong>` |
 | Heading IDs | ✅ Done | `<h2>` → `<h2 id="slug">` |
-| Asset embedding | ✅ Done | `[[./code.py]]` → `<pre><code>...</code></pre>` |
+| Asset embedding | ✅ Done | `\[[./code.py]]` → `<pre><code>...</code></pre>` |
 | External links | ✅ Done | `<a>` gets `target="_blank"` |
 | Custom tags | ✅ Done | `<callout>` → styled HTML |
 | Code highlighting | ✅ Done | Syntax highlighted |

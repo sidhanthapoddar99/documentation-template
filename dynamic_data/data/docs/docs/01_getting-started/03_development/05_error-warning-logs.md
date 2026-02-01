@@ -29,38 +29,42 @@ The framework includes a dev toolbar panel that displays all errors and warnings
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  ⚠ Errors & Warnings (7)                                           [Clear]  │
+│  Issues  [3 errors] [2 warnings]                      [Copy All] [Refresh]  │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ┌─ 05_content/03_docs.md ───────────────────────────────────────────────┐  │
-│  │                                                                       │  │
-│  │  ❌ ASSET MISSING                                          line 45    │  │
-│  │     File not found: assets/basics.py                                  │  │
-│  │     → Create the file or update the embed path                        │  │
-│  │                                                                       │  │
-│  │  ❌ ASSET MISSING                                          line 52    │  │
-│  │     File not found: assets/example.py                                 │  │
-│  │     → Create the file or update the embed path                        │  │
-│  │                                                                       │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
+│  ┌─ @data/docs/05_content/03_docs.md ───────────────────────────────────┐   │
+│  │                                                                      │   │
+│  │  ❌ ASSET-MISSING                              line 45         [📋]  │   │
+│  │     File not found: ./assets/basics.py                               │   │
+│  │     → Create the file or update the embed path                       │   │
+│  │                                                                      │   │
+│  │  ❌ ASSET-MISSING                              line 52         [📋]  │   │
+│  │     File not found: ./assets/example.py                              │   │
+│  │     → Create the file or update the embed path                       │   │
+│  │                                                                      │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
-│  ┌─ 02_architecture/02_parser.md ────────────────────────────────────────┐  │
-│  │                                                                       │  │
-│  │  ❌ ASSET MISSING                                          line 78    │  │
-│  │     File not found: assets/example.py                                 │  │
-│  │                                                                       │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
+│  ┌─ @data/docs/01_getting-started/02_installation.md ───────────────────┐   │
+│  │                                                                      │   │
+│  │  ⚠ MISSING-DESCRIPTION                                        [📋]  │   │
+│  │     Missing 'description' in frontmatter                             │   │
+│  │     → Add description for better SEO                                 │   │
+│  │                                                                      │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
-│  ┌─ 01_getting-started/02_installation.md ───────────────────────────────┐  │
-│  │                                                                       │  │
-│  │  ⚠ WARNING                                                            │  │
-│  │     Missing 'description' in frontmatter                              │  │
-│  │     → Add description for better SEO                                  │  │
-│  │                                                                       │  │
-│  └───────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
+│  Cache: 2 entries | Last update: 4:08:12 PM                                 │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Path Format
+
+File paths use alias notation for clarity:
+
+| Alias | Maps To |
+|-------|---------|
+| `@data/` | `dynamic_data/data/` (or configured DATA_DIR) |
+| `@config/` | `dynamic_data/config/` (or configured CONFIG_DIR) |
+| `@assets/` | `dynamic_data/assets/` (or configured ASSETS_DIR) |
 
 ## Error Types
 
@@ -119,7 +123,25 @@ The framework includes a dev toolbar panel that displays all errors and warnings
 Errors are organized by source file, making it easy to fix issues one file at a time.
 
 ### Line Numbers
-When available, the exact line number is shown so you can jump directly to the problem.
+When available, the exact line number is shown (accounting for frontmatter) so you can jump directly to the problem.
+
+### Copy Functionality
+
+**Copy All** - Click to copy all errors as a JSON array:
+```json
+[
+  {
+    "file": "@data/docs/05_content/03_docs.md",
+    "line": 45,
+    "type": "asset-missing",
+    "message": "File not found: ./assets/basics.py",
+    "suggestion": "Create the file or update the embed path",
+    "timestamp": 1706889600000
+  }
+]
+```
+
+**Copy Individual** - Each error has a copy button [📋] to copy that single error as JSON.
 
 ### Suggestions
 Each error includes a suggested fix:
@@ -233,12 +255,40 @@ src/
     └── error-logger.ts   # UI implementation
 ```
 
+## API Endpoint
+
+Errors are available via `/api/dev/errors` (dev mode only):
+
+```json
+{
+  "errors": [
+    {
+      "file": "@data/docs/05_content/03_docs.md",
+      "line": 45,
+      "type": "asset-missing",
+      "message": "File not found: ./assets/basics.py",
+      "suggestion": "Create the file or update the embed path",
+      "timestamp": 1706889600000
+    }
+  ],
+  "warnings": [],
+  "stats": {
+    "initialized": true,
+    "entryCount": 2,
+    "errorCount": 1,
+    "warningCount": 0,
+    "lastUpdate": 1706889600000
+  }
+}
+```
+
 ## Differences from Terminal Logs
 
 | Terminal Logs | Error Logger Panel |
 |---------------|-------------------|
 | Shows errors as they occur | Shows all errors at once |
-| Scrolls away quickly | Persistent, searchable |
-| Raw format | Grouped by file |
+| Scrolls away quickly | Persistent, copyable |
+| Raw format | Grouped by file with alias paths |
 | No suggestions | Includes fix suggestions |
 | Repeats on each request | Cached, shows once |
+| No line numbers | Accurate line numbers (with frontmatter offset) |

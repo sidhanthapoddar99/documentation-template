@@ -38,11 +38,11 @@ Embeds file contents using `[[path]]` syntax:
 # Code Example
 
 ```python
-[[./assets/example.py]]
+\[[./assets/example.py]]
 ```
 ```
 
-The `[[./assets/example.py]]` is replaced with the actual file content.
+The `\[[./assets/example.py]]` is replaced with the actual file content.
 
 ### Features
 
@@ -99,7 +99,7 @@ Paths are resolved relative to the current file:
 
 ```
 /docs/guide/intro.md
-  └── [[./assets/code.py]]
+  └── \[[./assets/code.py]]
       → /docs/guide/assets/code.py
 ```
 

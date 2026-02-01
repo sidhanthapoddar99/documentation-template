@@ -88,7 +88,12 @@ export default {
         font-weight: 600;
       }
 
-      .refresh-btn {
+      .header-buttons {
+        display: flex;
+        gap: 6px;
+      }
+
+      .btn {
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: rgba(255, 255, 255, 0.7);
@@ -97,11 +102,46 @@ export default {
         cursor: pointer;
         font-size: 11px;
         transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
       }
 
-      .refresh-btn:hover {
+      .btn:hover {
         background: rgba(255, 255, 255, 0.2);
         color: white;
+      }
+
+      .btn.copied {
+        background: rgba(34, 197, 94, 0.2);
+        border-color: rgba(34, 197, 94, 0.4);
+        color: #86efac;
+      }
+
+      .copy-icon {
+        width: 12px;
+        height: 12px;
+      }
+
+      .copy-item-btn {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        padding: 2px;
+        cursor: pointer;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+      }
+
+      .copy-item-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .copy-item-btn.copied {
+        color: #86efac;
       }
 
       .file-group {
@@ -315,14 +355,20 @@ export default {
               ${errors.length > 0 ? `<span class="error-count">${errors.length} errors</span>` : ''}
               ${warnings.length > 0 ? `<span class="warning-count">${warnings.length} warnings</span>` : ''}
             </div>
-            <button class="refresh-btn" id="refresh-errors">Refresh</button>
+            <div class="header-buttons">
+              <button class="btn" id="copy-all-errors">
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copy All
+              </button>
+              <button class="btn" id="refresh-errors">Refresh</button>
+            </div>
           </div>
         `;
 
         for (const [file, issues] of grouped) {
-          const errorCount = issues.filter(i => !('type' in i && (i as ContentWarning).type?.includes('missing'))).length;
-          const shortFile = file.split('/').slice(-2).join('/');
-
           html += `
             <div class="file-group">
               <div class="file-header">
@@ -330,7 +376,7 @@ export default {
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                   <polyline points="14 2 14 8 20 8"/>
                 </svg>
-                <span class="file-name" title="${file}">${shortFile}</span>
+                <span class="file-name" title="${file}">${file}</span>
                 <span class="file-count">${issues.length}</span>
               </div>
               <div class="issue-list">
@@ -340,12 +386,19 @@ export default {
             const isError = errors.includes(issue as ContentError);
             const issueType = isError ? 'error' : 'warning';
             const badgeText = (issue as any).type || issueType;
+            const issueJson = JSON.stringify(issue);
 
             html += `
               <div class="issue-item ${issueType}">
                 <div class="issue-header">
                   <span class="issue-badge ${issueType}">${badgeText}</span>
                   ${issue.line ? `<span class="issue-line">line ${issue.line}</span>` : ''}
+                  <button class="copy-item-btn" data-issue='${issueJson.replace(/'/g, '&#39;')}' title="Copy error">
+                    <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                  </button>
                 </div>
                 <div class="issue-message">${issue.message}</div>
                 ${issue.suggestion ? `<div class="issue-suggestion">${issue.suggestion}</div>` : ''}
@@ -375,6 +428,45 @@ export default {
             renderErrors();
           });
         }
+
+        // Add copy all handler
+        const copyAllBtn = contentWrapper.querySelector('#copy-all-errors');
+        if (copyAllBtn) {
+          copyAllBtn.addEventListener('click', async () => {
+            const allErrors = JSON.stringify(allIssues, null, 2);
+            await navigator.clipboard.writeText(allErrors);
+            copyAllBtn.classList.add('copied');
+            copyAllBtn.innerHTML = `
+              <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Copied!
+            `;
+            setTimeout(() => {
+              copyAllBtn.classList.remove('copied');
+              copyAllBtn.innerHTML = `
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copy All
+              `;
+            }, 1500);
+          });
+        }
+
+        // Add copy individual error handlers
+        contentWrapper.querySelectorAll('.copy-item-btn').forEach((btn) => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const issueData = (btn as HTMLElement).dataset.issue;
+            if (issueData) {
+              await navigator.clipboard.writeText(issueData);
+              btn.classList.add('copied');
+              setTimeout(() => btn.classList.remove('copied'), 1000);
+            }
+          });
+        });
       } catch (error) {
         contentWrapper.innerHTML = `
           <div class="empty-state">

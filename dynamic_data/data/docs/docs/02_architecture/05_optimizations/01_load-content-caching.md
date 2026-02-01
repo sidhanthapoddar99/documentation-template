@@ -349,7 +349,7 @@ Errors are exposed via `/api/dev/errors`:
 
 ---
 
-## Future: Selective Cache Invalidation
+## Selective Cache Invalidation
 
 File hashes are stored for future selective updates:
 

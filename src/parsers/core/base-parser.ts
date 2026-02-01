@@ -90,6 +90,12 @@ export abstract class BaseContentParser {
     const fileDir = path.dirname(filePath);
     const relativePath = path.relative(basePath, filePath);
 
+    // Calculate frontmatter line count for accurate error line numbers
+    // Frontmatter is between --- delimiters, so we count lines before rawContent starts
+    const frontmatterLineCount = raw.indexOf(rawContent) > 0
+      ? raw.slice(0, raw.indexOf(rawContent)).split('\n').length - 1
+      : 0;
+
     // Create processing context
     const context: ProcessContext = {
       filePath,
@@ -97,6 +103,7 @@ export abstract class BaseContentParser {
       contentType: this.contentType,
       frontmatter,
       basePath,
+      frontmatterLineCount,
     };
 
     // Process through pipeline

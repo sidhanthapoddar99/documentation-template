@@ -14,7 +14,7 @@ The `[[path]]` syntax allows you to embed file contents directly into your markd
 ┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
 │  Markdown   │     │  Preprocessor   │     │   Output    │
 │             │ ──▶ │                 │ ──▶ │             │
-│ [[path]]    │     │ Reads file      │     │ File content│
+│ \[[path]]    │     │ Reads file      │     │ File content│
 │             │     │ Replaces syntax │     │ inserted    │
 └─────────────┘     └─────────────────┘     └─────────────┘
 ```
@@ -35,11 +35,11 @@ Embed code files inside fenced code blocks:
 
 ~~~markdown
 ```python
-[[./assets/example.py]]
+\[[./assets/example.py]]
 ```
 ~~~
 
-The `[[./assets/example.py]]` is replaced with the file's contents.
+The `\[[./assets/example.py]]` is replaced with the file's contents.
 
 ### In Components
 
@@ -47,7 +47,7 @@ Use with custom components:
 
 ```markdown
 <CollapsibleCodeBlock language="python" title="example.py">
-[[./assets/example.py]]
+\[[./assets/example.py]]
 </CollapsibleCodeBlock>
 ```
 
@@ -62,19 +62,19 @@ In docs, paths are relative to the current file:
 ```
 docs/
 ├── 01_getting-started/
-│   ├── 01_overview.md      ← [[./assets/code.py]]
+│   ├── 01_overview.md      ← \[[./assets/code.py]]
 │   └── assets/
 │       └── code.py         ← Resolved here
 ```
 
 **Example:**
 
-```markdown
+~~~markdown
 <!-- In 01_overview.md -->
 ```python
-[[./assets/code.py]]
+\[[./assets/code.py]]
 ```
-```
+~~~
 
 Resolves to: `docs/01_getting-started/assets/code.py`
 
@@ -84,7 +84,7 @@ In blogs, paths resolve to a central assets folder named after the post:
 
 ```
 blog/
-├── 2024-01-15-hello-world.md   ← [[diagram.png]]
+├── 2024-01-15-hello-world.md   ← \[[diagram.png]]
 └── assets/
     └── 2024-01-15-hello-world/
         └── diagram.png          ← Resolved here
@@ -104,7 +104,7 @@ Resolves to: `blog/assets/2024-01-15-hello-world/diagram.png`
 To show literal `[[path]]` without replacement, use backslash:
 
 ```markdown
-\[[./assets/example.py]]
+\\[[./assets/example.py]]
 ```
 
 Renders as: `[[./assets/example.py]]`

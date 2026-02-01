@@ -39,16 +39,16 @@ docs/
 ├── 01_getting-started/
 │   ├── 01_overview.mdx      ← You are here
 │   └── assets/
-│       └── example.py       ← [[./assets/example.py]]
+│       └── example.py       ← \[[./assets/example.py]]
 ```
 
 **Example:**
 
-```markdown
+~~~markdown
 ````python
-[[./assets/example.py]]
-```;
+\[[./assets/example.py]]
 ```
+~~~
 
 Resolves to: `docs/01_getting-started/assets/example.py`
 
@@ -64,23 +64,23 @@ docs/
 │   └── 01_basics/
 │       ├── 01_overview.mdx
 │       └── assets/
-│           └── basics.py    ← [[./assets/basics.py]]
+│           └── basics.py    ← \[[./assets/basics.py]]
 ```
 
 From `01_basics/01_overview.mdx`:
 
-```markdown
+~~~markdown
 <!-- Access local assets -->
 ````python
-[[./assets/basics.py]]
-```;
+\[[./assets/basics.py]]
+```
 
 <!-- Access parent folder assets -->
 ````python
-[[../assets/intro.py]]
-```;
-
+\[[../assets/intro.py]]
 ```
+
+~~~
 
 ## Code in Fenced Blocks
 
@@ -88,11 +88,11 @@ The most common usage - embedding code inside fenced blocks:
 
 ~~~markdown
 ```python
-[[./assets/example.py]]
+\[[./assets/example.py]]
 ```
 ~~~
 
-The content of `example.py` replaces `[[./assets/example.py]]`.
+The content of `example.py` replaces `\[[./assets/example.py]]`.
 
 ## Code in Components
 
@@ -100,7 +100,7 @@ Use with custom components for enhanced display:
 
 ```markdown
 <CollapsibleCodeBlock language="python" title="example.py">
-[[./assets/example.py]]
+\[[./assets/example.py]]
 </CollapsibleCodeBlock>
 ```
 

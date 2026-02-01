@@ -174,7 +174,7 @@ The modular parser processes markdown content through a pipeline:
 Raw Markdown
      ↓
 ┌─────────────────────┐
-│   Preprocessors     │  ← Asset embedding [[./assets/code.py]]
+│   Preprocessors     │  ← Asset embedding \[[./assets/code.py]]
 └─────────────────────┘
      ↓
 ┌─────────────────────┐

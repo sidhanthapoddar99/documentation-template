@@ -24,6 +24,8 @@ export interface ProcessContext {
   frontmatter: Record<string, unknown>;
   /** Base path for the content directory */
   basePath: string;
+  /** Number of lines in frontmatter (including delimiters) for line number offset */
+  frontmatterLineCount?: number;
 }
 
 // ============================================
