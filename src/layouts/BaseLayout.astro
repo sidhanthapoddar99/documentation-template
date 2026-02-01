@@ -26,6 +26,7 @@ interface Props {
   title?: string;
   description?: string;
   ogImage?: string;
+  contentType?: 'docs' | 'blog' | 'custom';
 }
 
 // Load configurations
@@ -36,7 +37,8 @@ const footerConfig = loadFooterConfig();
 const {
   title,
   description = siteConfig.site.description,
-  ogImage
+  ogImage,
+  contentType
 } = Astro.props;
 
 const siteName = siteConfig.site.name;
@@ -45,7 +47,7 @@ const faviconUrl = getFavicon();
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-content-type={contentType}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

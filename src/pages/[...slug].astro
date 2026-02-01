@@ -88,7 +88,24 @@ export async function getStaticPaths() {
 // Page Rendering (validation happens here - errors show during build)
 // ============================================================================
 
-const { pageName, pageConfig, dataPath, pageType, doc, post, allContent, layout } = Astro.props;
+const { pageName, pageConfig, dataPath, pageType, doc, post, allContent, layout: configLayout } = Astro.props;
+
+// Dev mode: Allow layout override via query param (?layout=doc_style2)
+const isDev = import.meta.env.DEV;
+const layoutOverride = isDev ? Astro.url.searchParams.get('layout') : null;
+
+// Determine effective layout
+let layout = configLayout;
+if (layoutOverride && isDev) {
+  // Determine layout type from page type
+  if (pageType === 'docs' || pageType === 'docs-index') {
+    layout = `@docs/${layoutOverride}`;
+  } else if (pageType === 'blog-index' || pageType === 'blog-post') {
+    layout = `@blog/${layoutOverride}`;
+  } else if (pageType === 'custom') {
+    layout = `@custom/${layoutOverride}`;
+  }
+}
 
 // Handle docs index redirect
 if (pageType === 'docs-index' && allContent?.length > 0) {
@@ -200,6 +217,16 @@ if (pageType === 'docs' && doc) title = doc.data.title;
 else if (pageType === 'blog-post' && post) title = post.data.title;
 else if (pageType === 'blog-index') title = 'Blog';
 
+// Derive content type from page type for dev toolbar
+let contentType: 'docs' | 'blog' | 'custom' | undefined;
+if (pageType === 'docs' || pageType === 'docs-index') {
+  contentType = 'docs';
+} else if (pageType === 'blog-index' || pageType === 'blog-post') {
+  contentType = 'blog';
+} else if (pageType === 'custom') {
+  contentType = 'custom';
+}
+
 // Layout props
 let layoutProps: Record<string, any> = { dataPath };
 
@@ -224,7 +251,7 @@ if (pageType === 'docs' && doc) {
 }
 ---
 
-<BaseLayout title={title}>
+<BaseLayout title={title} contentType={contentType}>
   <NavbarStyle1 slot="navbar" />
   <LayoutComponent {...layoutProps} />
   <FooterDefault slot="footer" />
