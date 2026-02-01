@@ -10,11 +10,11 @@ theme: "@theme/minimal"
 
 # Logo and Favicon Configuration
 logo:
-  src: "@assets/astro.svg"
+  src: "@assets/astro-dark.svg"
   alt: "Docs"
   theme:
-    dark: "astro.svg"
-    light: "astro.svg"
+    dark: "@assets/astro-dark.svg"
+    light: "@assets/astro-light.svg"
   favicon: "@assets/astro.png"
 
 # Page Definitions
