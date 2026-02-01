@@ -210,8 +210,8 @@ const { content, settings } = await loadContentWithSettings(dataPath);
 ```typescript
 import { buildSidebarTree, getPrevNext } from '@/hooks/useSidebar';
 
-const sidebarSections = buildSidebarTree(content, baseUrl, dataPath);
-const { prev, next } = getPrevNext(sidebarSections, currentPath);
+const sidebarNodes = buildSidebarTree(content, baseUrl, dataPath);
+const { prev, next } = getPrevNext(sidebarNodes, currentPath);
 ```
 
 ## Example: Full Layout Implementation
@@ -240,18 +240,18 @@ const { title, description, dataPath, baseUrl, currentSlug, content, headings = 
 
 // Load sidebar data
 const { content: allContent, settings } = await loadContentWithSettings(dataPath);
-const sidebarSections = buildSidebarTree(allContent, baseUrl, dataPath);
+const sidebarNodes = buildSidebarTree(allContent, baseUrl, dataPath);
 
 // Pagination
 const currentPath = `${baseUrl}/${currentSlug}`;
-const { prev, next } = getPrevNext(sidebarSections, currentPath);
+const { prev, next } = getPrevNext(sidebarNodes, currentPath);
 
 // Filter headings for outline
 const outlineHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
 ---
 
 <div class="docs-layout">
-  <Sidebar sections={sidebarSections} currentPath={currentPath} />
+  <Sidebar nodes={sidebarNodes} currentPath={currentPath} />
 
   <Body title={title} description={description} content={content}>
     <Pagination prev={prev} next={next} />

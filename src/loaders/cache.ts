@@ -3,8 +3,7 @@
  *
  * Provides in-memory caching for content loading with:
  * - Error/warning collection
- * - Selective cache invalidation
- * - File hash tracking for efficient updates
+ * - Full cache invalidation on file changes (via HMR)
  */
 
 import crypto from 'crypto';
@@ -142,19 +141,6 @@ export function computeFileHash(filePath: string): string {
   }
 }
 
-/**
- * Check if a file has changed since last cache
- */
-export function hasFileChanged(cacheKey: string, filePath: string): boolean {
-  const entry = getCacheState().entries.get(cacheKey);
-  if (!entry) return true;
-
-  const currentHash = computeFileHash(filePath);
-  const cachedHash = entry.fileHashes.get(filePath);
-
-  return currentHash !== cachedHash;
-}
-
 // ============================================
 // Error/Warning Management
 // ============================================
@@ -191,14 +177,6 @@ export function addWarning(warning: Omit<ContentWarning, 'timestamp'>): void {
       timestamp: Date.now(),
     });
   }
-}
-
-/**
- * Clear errors for a specific file
- */
-export function clearErrorsForFile(filePath: string): void {
-  getCacheState().errors = getCacheState().errors.filter(e => e.file !== filePath);
-  getCacheState().warnings = getCacheState().warnings.filter(w => w.file !== filePath);
 }
 
 /**
@@ -266,55 +244,6 @@ export function getCacheStats(): {
 }
 
 // ============================================
-// Selective Update
-// ============================================
-
-/**
- * Update a single file in the cache
- */
-export function updateCacheEntry(
-  cacheKey: string,
-  filePath: string,
-  newContent: LoadedContent,
-  newHash: string
-): void {
-  const entry = getCacheState().entries.get(cacheKey);
-  if (!entry) return;
-
-  // Find and update the content
-  const index = entry.content.findIndex(c => c.filePath === filePath);
-  if (index >= 0) {
-    entry.content[index] = newContent;
-  } else {
-    entry.content.push(newContent);
-  }
-
-  // Update hash
-  entry.fileHashes.set(filePath, newHash);
-  entry.timestamp = Date.now();
-  getCacheState().lastUpdate = Date.now();
-
-  // Clear old errors for this file
-  clearErrorsForFile(filePath);
-}
-
-/**
- * Remove a file from cache (when deleted)
- */
-export function removeFromCache(cacheKey: string, filePath: string): void {
-  const entry = getCacheState().entries.get(cacheKey);
-  if (!entry) return;
-
-  entry.content = entry.content.filter(c => c.filePath !== filePath);
-  entry.fileHashes.delete(filePath);
-  entry.timestamp = Date.now();
-  getCacheState().lastUpdate = Date.now();
-
-  // Clear errors for this file
-  clearErrorsForFile(filePath);
-}
-
-// ============================================
 // Export cache state for API endpoint
 // ============================================
 
@@ -327,10 +256,8 @@ export default {
   invalidateCache,
   invalidateAll,
   computeFileHash,
-  hasFileChanged,
   addError,
   addWarning,
-  clearErrorsForFile,
   getErrors,
   getWarnings,
   getAllIssues,
@@ -338,7 +265,5 @@ export default {
   getWarningCount,
   isCacheInitialized,
   getCacheStats,
-  updateCacheEntry,
-  removeFromCache,
   getCacheState,
 };

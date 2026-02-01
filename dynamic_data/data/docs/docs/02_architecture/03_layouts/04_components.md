@@ -52,25 +52,39 @@ Renders hierarchical navigation tree with collapsible sections.
 ```astro
 ---
 interface Props {
-  sections: SidebarSection[];
+  nodes: SidebarNode[];    // Mixed: items (root files) + sections (folders)
   currentPath: string;
-  baseUrl: string;
+}
+
+type SidebarNode = SidebarItem | SidebarSection;
+
+interface SidebarItem {
+  type: 'item';
+  title: string;
+  href: string;
+  slug: string;
+  position: number;
 }
 
 interface SidebarSection {
+  type: 'section';
   title: string;
   slug: string;
   href?: string;
   position: number;
   collapsed: boolean;
   collapsible: boolean;
-  children: (SidebarSection | SidebarItem)[];
+  children: SidebarNode[];
 }
 ---
 
 <aside class="sidebar">
-  {sections.map(section => (
-    <SidebarSection section={section} currentPath={currentPath} />
+  {nodes.map(node => (
+    node.type === 'item' ? (
+      <a href={node.href}>{node.title}</a>
+    ) : (
+      <SidebarSection section={node} currentPath={currentPath} />
+    )
   ))}
 </aside>
 ```
@@ -425,15 +439,14 @@ import Outline from '../components/outline/default/Outline.astro';
 import Pagination from '../components/common/Pagination.astro';
 
 const { content: allContent, settings } = await loadContentWithSettings(dataPath);
-const sidebarSections = buildSidebarTree(allContent, baseUrl, dataPath);
-const { prev, next } = getPrevNext(sidebarSections, currentPath);
+const sidebarNodes = buildSidebarTree(allContent, baseUrl, dataPath);
+const { prev, next } = getPrevNext(sidebarNodes, currentPath);
 ---
 
 <div class="docs-layout">
   <Sidebar
-    sections={sidebarSections}
+    nodes={sidebarNodes}
     currentPath={currentPath}
-    baseUrl={baseUrl}
   />
 
   <Body title={title} description={description} content={content}>

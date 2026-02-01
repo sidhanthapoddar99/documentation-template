@@ -82,7 +82,7 @@ if (!pageType) {
   for (const [name, config] of Object.entries(siteConfig.pages)) {
     if (slug.startsWith(config.base_url)) {
       // Load content dynamically
-      const content = await loadContent(dataPath, { ... });
+      const content = await loadContent(dataPath, 'docs', { ... });
       // Set pageType, doc, etc.
     }
   }

@@ -124,6 +124,8 @@ Cache loaded content in memory with error tracking:
 | **First request** | ~178ms | ~178ms | Same (cold start) |
 | **Subsequent requests** | ~178ms | **~5ms** | **97% faster** |
 | **File reads per request** | All files | 0 | 100% reduction |
+| **Sidebar tree build** | ~10-16ms | **~1ms** | **90% faster** |
+| **settings.json reads** | Per folder | 0 (cached) | 100% reduction |
 
 ### Real-World Impact
 
@@ -166,7 +168,7 @@ With cache:     10 page navigations = 178ms + (9 × 5ms) = 223ms
 │   ContentCacheState {                                                       │
 │     entries: Map<cacheKey, {                                                │
 │       content: LoadedContent[]     // All parsed markdown + headings        │
-│       fileHashes: Map<path, hash>  // For selective updates                 │
+│       fileHashes: Map<path, hash>  // For cache tracking                    │
 │       timestamp: number            // When cached                           │
 │     }>                                                                      │
 │     errors: ContentError[]         // All errors found                      │
@@ -259,10 +261,13 @@ interface ContentError {
 │                                                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
+│   ALSO CACHED:                                                              │
+│   └── src/hooks/useSidebar.ts                ◄── Sidebar tree + folder      │
+│                                                   settings cached            │
+│                                                                             │
 │   UNCHANGED (transparent integration):                                      │
 │   ├── src/layouts/docs/components/sidebar/   ◄── No changes needed          │
-│   ├── src/layouts/navbar/                    ◄── No changes needed          │
-│   └── src/hooks/useSidebar.ts                ◄── No changes needed          │
+│   └── src/layouts/navbar/                    ◄── No changes needed          │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -288,29 +293,66 @@ const watchPaths = [paths.data, paths.config, paths.assets];
 const isContentFile = watchPaths.some(p => file.startsWith(p));
 ```
 
-### Why Sidebar/Navbar Stay Unchanged
+### Multi-Level Caching
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                     TRANSPARENT INTEGRATION                                 │
+│                     MULTI-LEVEL CACHING                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   Sidebar.astro                                                             │
+│   Layout.astro                                                              │
 │        │                                                                    │
 │        ▼                                                                    │
 │   loadContent(dataPath)  ──────▶  Check cache  ──┬──▶  Return cached        │
-│                                        │         │     (5ms)                │
+│        │                               │         │     (5ms)                │
+│        │                               ▼         │                          │
+│        │                          Cache miss?    │                          │
+│        │                               │         │                          │
+│        │                               ▼         │                          │
+│        │                          Read files  ───┘                          │
+│        │                          Store in cache                            │
+│        │                          (178ms)                                   │
+│        ▼                                                                    │
+│   buildSidebarTree()  ─────────▶  Check cache  ──┬──▶  Return cached tree   │
+│                                        │         │     (~1ms)               │
 │                                        ▼         │                          │
 │                                   Cache miss?    │                          │
 │                                        │         │                          │
 │                                        ▼         │                          │
-│                                   Read files  ───┘                          │
-│                                   Store in cache                            │
-│                                   (178ms)                                   │
-│                                                                             │
-│   Same function signature, same return type → No changes to consumers       │
+│                                   Build tree  ───┘                          │
+│                                   Cache settings.json                       │
+│                                   Cache folder lookups                      │
+│                                   Store tree (~10ms)                        │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Sidebar Caching (useSidebar.ts)
+
+The sidebar tree builder has its own cache layer:
+
+```typescript
+// Three caches using globalThis for persistence:
+
+1. Sidebar Tree Cache
+   - Caches the full SidebarNode[] structure
+   - Invalidates when content slugs change
+   - Key: dataPath + basePath
+
+2. Folder Settings Cache
+   - Caches settings.json per folder
+   - Avoids repeated disk reads
+
+3. Folder Lookup Cache
+   - Caches directory listings (fs.readdirSync)
+   - Maps clean names → actual folder names with XX_ prefix
+```
+
+Console output shows cache status:
+```
+[SIDEBAR CACHE HIT] /path/to/docs:/docs    ← Instant return
+[SIDEBAR CACHE MISS] /path/to/docs:/docs   ← Building tree
+[SIDEBAR CACHE SET] /path/to/docs:/docs    ← Cached for next request
 ```
 
 ---
@@ -374,49 +416,17 @@ Errors are exposed via `/api/dev/errors`:
 
 ---
 
-## Selective Cache Invalidation
-
-File hashes are stored for future selective updates:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                     SELECTIVE CACHE INVALIDATION                            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   File changed: docs/05_content/03_docs.md                                  │
-│                        │                                                    │
-│                        ▼                                                    │
-│   ┌──────────────────────────────────────┐                                  │
-│   │   Vite HMR detects file change       │                                  │
-│   │   Compare hash with cached hash      │                                  │
-│   └──────────────────────────────────────┘                                  │
-│                        │                                                    │
-│                        ▼                                                    │
-│   ┌──────────────────────────────────────┐                                  │
-│   │   Re-process ONLY changed file       │  ~10-20ms                        │
-│   │   Update single cache entry          │                                  │
-│   │   Clear old errors for file          │                                  │
-│   │   Rest of cache untouched            │                                  │
-│   └──────────────────────────────────────┘                                  │
-│                                                                             │
-│   (Not yet implemented - file hashes are stored for future use)             │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
 ## Trade-offs
 
 ### Pros
 - **97% faster** subsequent page loads (5ms vs 178ms)
 - Reduces disk I/O and CPU usage
 - **Headings extracted once** - TOC/outline uses cached headings, no re-parsing
+- **Sidebar tree cached** - No repeated tree building or settings.json reads
 - Better dev experience when testing layouts
 - Centralized error visibility in dev toolbar
-- File hashes stored for future selective updates
 
 ### Cons
-- Increased memory usage (cached content + hashes)
+- Increased memory usage (cached content + sidebar trees)
 - First request still takes ~178ms (cold start)
 - Cache persists until server restart (no auto-invalidation yet)

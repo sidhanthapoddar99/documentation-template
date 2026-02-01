@@ -3,11 +3,51 @@
  *
  * Sorting: XX_ prefix is the SOLE determining factor for order
  * Both files and folders use the same XX_ prefix system
+ *
+ * Caching: Sidebar tree is cached using globalThis for persistence across requests
  */
 
 import fs from 'fs';
 import path from 'path';
 import type { LoadedContent } from '@loaders/data';
+
+// ============================================
+// Sidebar Cache (using globalThis)
+// ============================================
+
+interface SidebarCacheEntry {
+  nodes: SidebarNode[];
+  timestamp: number;
+  contentLength: number; // Quick check before deep comparison
+  contentSlugs: Set<string>; // For fast lookup
+}
+
+const SIDEBAR_CACHE_KEY = '__astro_sidebar_cache__';
+
+function getSidebarCache(): Map<string, SidebarCacheEntry> {
+  if (!(globalThis as any)[SIDEBAR_CACHE_KEY]) {
+    console.log('[SIDEBAR CACHE] Initializing new cache');
+    (globalThis as any)[SIDEBAR_CACHE_KEY] = new Map<string, SidebarCacheEntry>();
+  }
+  return (globalThis as any)[SIDEBAR_CACHE_KEY];
+}
+
+/**
+ * Quick cache validation - checks if content matches cached state
+ */
+function isCacheValid(cached: SidebarCacheEntry, content: LoadedContent[]): boolean {
+  // Quick length check first (O(1))
+  if (cached.contentLength !== content.length) {
+    return false;
+  }
+  // Check all slugs match (O(n) but with Set lookup)
+  for (const item of content) {
+    if (!cached.contentSlugs.has(item.slug)) {
+      return false;
+    }
+  }
+  return true;
+}
 
 // ============================================
 // Types
@@ -59,20 +99,40 @@ function extractPosition(name: string): { position: number; cleanName: string } 
   return { position: 999, cleanName: name };
 }
 
+// Folder settings cache
+const FOLDER_SETTINGS_CACHE_KEY = '__astro_folder_settings_cache__';
+
+function getFolderSettingsCache(): Map<string, FolderSettings> {
+  if (!(globalThis as any)[FOLDER_SETTINGS_CACHE_KEY]) {
+    (globalThis as any)[FOLDER_SETTINGS_CACHE_KEY] = new Map<string, FolderSettings>();
+  }
+  return (globalThis as any)[FOLDER_SETTINGS_CACHE_KEY];
+}
+
 /**
- * Load settings.json from a folder
+ * Load settings.json from a folder (cached)
  */
 function loadFolderSettings(folderPath: string): FolderSettings {
+  // Check cache first
+  const cache = getFolderSettingsCache();
+  if (cache.has(folderPath)) {
+    return cache.get(folderPath)!;
+  }
+
   const settingsPath = path.join(folderPath, 'settings.json');
 
   if (!fs.existsSync(settingsPath)) {
+    cache.set(folderPath, {});
     return {};
   }
 
   try {
     const raw = fs.readFileSync(settingsPath, 'utf-8');
-    return JSON.parse(raw) as FolderSettings;
+    const settings = JSON.parse(raw) as FolderSettings;
+    cache.set(folderPath, settings);
+    return settings;
   } catch {
+    cache.set(folderPath, {});
     return {};
   }
 }
@@ -86,29 +146,49 @@ function formatTitle(slug: string): string {
     .replace(/\b\w/g, c => c.toUpperCase());
 }
 
+// Folder lookup cache (parent path -> map of clean names to actual folder names)
+const FOLDER_LOOKUP_CACHE_KEY = '__astro_folder_lookup_cache__';
+
+function getFolderLookupCache(): Map<string, Map<string, string>> {
+  if (!(globalThis as any)[FOLDER_LOOKUP_CACHE_KEY]) {
+    (globalThis as any)[FOLDER_LOOKUP_CACHE_KEY] = new Map<string, Map<string, string>>();
+  }
+  return (globalThis as any)[FOLDER_LOOKUP_CACHE_KEY];
+}
+
 /**
- * Find folder with XX_ prefix that matches clean name
+ * Find folder with XX_ prefix that matches clean name (cached)
  */
 function findFolderWithPrefix(parentPath: string, cleanName: string): string | null {
-  if (!parentPath || !fs.existsSync(parentPath)) {
+  if (!parentPath) {
     return null;
   }
 
-  try {
-    const entries = fs.readdirSync(parentPath, { withFileTypes: true });
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const { cleanName: entryClean } = extractPosition(entry.name);
-        if (entryClean === cleanName) {
-          return entry.name;
+  const cache = getFolderLookupCache();
+
+  // Check if we have cached folder mappings for this parent
+  if (!cache.has(parentPath)) {
+    // Build mapping for this parent directory
+    const folderMap = new Map<string, string>();
+
+    if (fs.existsSync(parentPath)) {
+      try {
+        const entries = fs.readdirSync(parentPath, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory()) {
+            const { cleanName: entryClean } = extractPosition(entry.name);
+            folderMap.set(entryClean, entry.name);
+          }
         }
+      } catch {
+        // Ignore errors
       }
     }
-  } catch {
-    // Ignore errors
+
+    cache.set(parentPath, folderMap);
   }
 
-  return null;
+  return cache.get(parentPath)?.get(cleanName) || null;
 }
 
 // ============================================
@@ -129,13 +209,31 @@ interface TreeNode {
 /**
  * Build a sidebar tree from flat content array
  * Sorting is based ONLY on XX_ prefix
+ *
+ * Returns mixed array: root-level files become items, folders become sections
+ * Results are cached for performance
  */
 export function buildSidebarTree(
   content: LoadedContent[],
   basePath: string = '/docs',
   dataPath?: string
-): SidebarSection[] {
+): SidebarNode[] {
+  // Generate cache key
+  const cacheKey = `${dataPath || 'default'}:${basePath}`;
+
+  // Check cache first (before any expensive operations)
+  const cache = getSidebarCache();
+  const cached = cache.get(cacheKey);
+
+  if (cached && isCacheValid(cached, content)) {
+    console.log(`[SIDEBAR CACHE HIT] ${cacheKey}`);
+    return cached.nodes;
+  }
+
+  console.log(`[SIDEBAR CACHE MISS] ${cacheKey}`);
+
   const root: Map<string, TreeNode> = new Map();
+  const rootItems: LoadedContent[] = []; // Root-level files (no folder)
 
   // Group content by directory structure
   for (const item of content) {
@@ -173,22 +271,8 @@ export function buildSidebarTree(
 
     // Add item to appropriate level
     if (parts.length === 1) {
-      // Top-level item - treat as section with no children
-      const { position } = extractPosition(parts[0]);
-      if (!root.has(parts[0])) {
-        root.set(parts[0], {
-          name: parts[0],
-          cleanName: parts[0],
-          fullPath: '',
-          slugPath: parts[0],
-          position,
-          settings: {},
-          items: [item],
-          children: new Map(),
-        });
-      } else {
-        root.get(parts[0])!.items.push(item);
-      }
+      // Top-level file - collect as direct items
+      rootItems.push(item);
     } else {
       // Add to parent folder
       const parentSlug = parts.slice(0, -1).join('/');
@@ -199,8 +283,38 @@ export function buildSidebarTree(
     }
   }
 
-  // Convert tree to SidebarSection array
-  return convertToSections(root, basePath);
+  // Build result: mix of items (root files) and sections (folders)
+  const result: SidebarNode[] = [];
+
+  // Add root-level items directly
+  for (const item of rootItems) {
+    result.push({
+      type: 'item',
+      title: item.data.sidebar_label || item.data.title,
+      href: `${basePath}/${item.slug}`,
+      slug: item.slug,
+      position: item.data.sidebar_position ?? 999,
+    });
+  }
+
+  // Add folder sections
+  for (const [, node] of root) {
+    result.push(nodeToSection(node, basePath));
+  }
+
+  // Sort everything by position
+  const sortedResult = result.sort((a, b) => a.position - b.position);
+
+  // Cache the result
+  cache.set(cacheKey, {
+    nodes: sortedResult,
+    timestamp: Date.now(),
+    contentLength: content.length,
+    contentSlugs: new Set(content.map(c => c.slug)),
+  });
+  console.log(`[SIDEBAR CACHE SET] ${cacheKey} - ${sortedResult.length} nodes`);
+
+  return sortedResult;
 }
 
 /**
@@ -218,20 +332,6 @@ function findNode(root: Map<string, TreeNode>, slugPath: string): TreeNode | nul
   }
 
   return null;
-}
-
-/**
- * Convert tree nodes to sidebar sections
- */
-function convertToSections(nodes: Map<string, TreeNode>, basePath: string): SidebarSection[] {
-  const sections: SidebarSection[] = [];
-
-  for (const [, node] of nodes) {
-    sections.push(nodeToSection(node, basePath));
-  }
-
-  // Sort by position (XX_ prefix)
-  return sections.sort((a, b) => a.position - b.position);
 }
 
 /**
@@ -326,10 +426,10 @@ function flattenSidebar(nodes: SidebarNode[]): SidebarItem[] {
  * Get previous and next items for pagination
  */
 export function getPrevNext(
-  sections: SidebarSection[],
+  nodes: SidebarNode[],
   currentPath: string
 ): { prev: SidebarItem | null; next: SidebarItem | null } {
-  const flatItems = flattenSidebar(sections);
+  const flatItems = flattenSidebar(nodes);
   const currentIndex = flatItems.findIndex(item => item.href === currentPath);
 
   return {

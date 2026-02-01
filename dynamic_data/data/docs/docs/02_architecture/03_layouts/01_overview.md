@@ -115,7 +115,7 @@ Layouts compose from shared components rather than extending base classes:
 ```astro
 <!-- doc_style1/Layout.astro -->
 <div class="docs-layout three-column">
-  <Sidebar sections={sidebarSections} />
+  <Sidebar nodes={sidebarNodes} currentPath={currentPath} />
   <Body title={title} content={content}>
     <Pagination prev={prev} next={next} />
   </Body>

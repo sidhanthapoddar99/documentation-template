@@ -21,7 +21,7 @@ Posts are automatically:
 Posts are sorted by the `date` field (newest first):
 
 ```typescript
-const posts = await loadContent(dataPath, {
+const posts = await loadContent(dataPath, 'blog', {
   pattern: '*.{md,mdx}',
   sort: 'date',
   order: 'desc',

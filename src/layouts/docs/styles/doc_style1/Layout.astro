@@ -47,12 +47,12 @@ try {
 }
 
 // dataPath is already an absolute path from resolveAliasPath() in [..slug].astro
-// Build sidebar sections using the hook with proper folder settings
-const sidebarSections = buildSidebarTree(allContent, baseUrl, dataPath);
+// Build sidebar tree (mixed items and sections)
+const sidebarNodes = buildSidebarTree(allContent, baseUrl, dataPath);
 
 // Pagination
 const currentPath = `${baseUrl}/${currentSlug}`;
-const { prev: prevItem, next: nextItem } = getPrevNext(sidebarSections, currentPath);
+const { prev: prevItem, next: nextItem } = getPrevNext(sidebarNodes, currentPath);
 
 // Outline
 const outlineEnabled = settings.outline?.enabled !== false;
@@ -63,7 +63,7 @@ const paginationEnabled = settings.pagination?.enabled !== false;
 
 <div class="docs-layout">
   <Sidebar
-    sections={sidebarSections}
+    nodes={sidebarNodes}
     currentPath={currentPath}
   />
 

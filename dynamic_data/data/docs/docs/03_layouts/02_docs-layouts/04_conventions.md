@@ -176,8 +176,8 @@ try {
 ### Check for Empty States
 
 ```astro
-{sidebarSections.length > 0 ? (
-  <Sidebar sections={sidebarSections} currentPath={currentPath} />
+{sidebarNodes.length > 0 ? (
+  <Sidebar nodes={sidebarNodes} currentPath={currentPath} />
 ) : (
   <div class="sidebar-empty">No navigation available</div>
 )}
@@ -303,9 +303,9 @@ try {
 }
 
 // Build navigation
-const sidebarSections = buildSidebarTree(allContent, baseUrl, dataPath);
+const sidebarNodes = buildSidebarTree(allContent, baseUrl, dataPath);
 const currentPath = `${baseUrl}/${currentSlug}`;
-const { prev, next } = getPrevNext(sidebarSections, currentPath);
+const { prev, next } = getPrevNext(sidebarNodes, currentPath);
 
 // Configure features from settings
 const outlineEnabled = settings.outline?.enabled !== false;
@@ -315,7 +315,7 @@ const paginationEnabled = settings.pagination?.enabled !== false;
 ---
 
 <div class="docs-layout">
-  <Sidebar sections={sidebarSections} currentPath={currentPath} />
+  <Sidebar nodes={sidebarNodes} currentPath={currentPath} />
 
   <Body title={title} description={description} content={content}>
     {paginationEnabled && (prev || next) && (

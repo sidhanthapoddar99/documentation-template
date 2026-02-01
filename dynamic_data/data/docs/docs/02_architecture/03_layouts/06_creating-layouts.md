@@ -58,14 +58,14 @@ const { title, description, dataPath, baseUrl, currentSlug, content, headings } 
 
 // Load sidebar data
 const { content: allContent, settings } = await loadContentWithSettings(dataPath);
-const sidebarSections = buildSidebarTree(allContent, baseUrl, dataPath);
+const sidebarNodes = buildSidebarTree(allContent, baseUrl, dataPath);
 const currentPath = `${baseUrl}/${currentSlug}`;
-const { prev, next } = getPrevNext(sidebarSections, currentPath);
+const { prev, next } = getPrevNext(sidebarNodes, currentPath);
 ---
 
 <div class="docs-layout doc-style3">
   <!-- Your custom structure here -->
-  <Sidebar sections={sidebarSections} currentPath={currentPath} baseUrl={baseUrl} />
+  <Sidebar nodes={sidebarNodes} currentPath={currentPath} />
 
   <div class="main-area">
     <Body title={title} description={description} content={content}>

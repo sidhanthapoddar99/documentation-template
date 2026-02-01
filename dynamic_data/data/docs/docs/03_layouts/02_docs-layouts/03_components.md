@@ -41,25 +41,29 @@ The sidebar renders hierarchical navigation from your docs structure.
 
 ```typescript
 interface Props {
-  sections: SidebarSection[];   // Navigation tree
-  currentPath: string;          // Current page URL
+  nodes: SidebarNode[];    // Mixed: items (root files) + sections (folders)
+  currentPath: string;     // Current page URL
+}
+
+type SidebarNode = SidebarItem | SidebarSection;
+
+interface SidebarItem {
+  type: 'item';
+  title: string;
+  href: string;
+  slug: string;
+  position: number;
 }
 
 interface SidebarSection {
+  type: 'section';
   title: string;                // Section display name
   slug: string;                 // URL slug
   href?: string;                // Optional link target
   position: number;             // Sort order
   collapsed: boolean;           // Initial state
   collapsible: boolean;         // Can collapse?
-  children: (SidebarSection | SidebarItem)[];
-}
-
-interface SidebarItem {
-  title: string;
-  href: string;
-  slug: string;
-  position: number;
+  children: SidebarNode[];
 }
 ```
 
@@ -70,11 +74,11 @@ interface SidebarItem {
 import Sidebar from '../../components/sidebar/default/Sidebar.astro';
 import { buildSidebarTree } from '@/hooks/useSidebar';
 
-const sidebarSections = buildSidebarTree(content, baseUrl, dataPath);
+const sidebarNodes = buildSidebarTree(content, baseUrl, dataPath);
 const currentPath = `${baseUrl}/${currentSlug}`;
 ---
 
-<Sidebar sections={sidebarSections} currentPath={currentPath} />
+<Sidebar nodes={sidebarNodes} currentPath={currentPath} />
 ```
 
 ### Features
@@ -279,11 +283,11 @@ mkdir -p src/layouts/docs/components/sidebar/modern/
 ---
 // src/layouts/docs/components/sidebar/modern/Sidebar.astro
 interface Props {
-  sections: SidebarSection[];
+  nodes: SidebarNode[];    // Mixed: items (root files) + sections (folders)
   currentPath: string;
 }
 
-const { sections, currentPath } = Astro.props;
+const { nodes, currentPath } = Astro.props;
 ---
 
 <nav class="modern-sidebar">
@@ -328,7 +332,7 @@ import './layout.css';
 ---
 
 <div class="docs-layout">
-  <Sidebar sections={sidebarSections} currentPath={currentPath} />
+  <Sidebar nodes={sidebarNodes} currentPath={currentPath} />
 
   <Body title={title} description={description} content={content}>
     {paginationEnabled && <Pagination prev={prev} next={next} />}

@@ -100,8 +100,8 @@ Both layouts use the same data loading:
 ```typescript
 // Inside Layout.astro
 const { content: allContent, settings } = await loadContentWithSettings(dataPath);
-const sidebarSections = buildSidebarTree(allContent, baseUrl, dataPath);
-const { prev, next } = getPrevNext(sidebarSections, currentPath);
+const sidebarNodes = buildSidebarTree(allContent, baseUrl, dataPath);
+const { prev, next } = getPrevNext(sidebarNodes, currentPath);
 ```
 
 ## Blog Layouts

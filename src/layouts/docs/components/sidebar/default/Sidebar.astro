@@ -1,16 +1,17 @@
 ---
 /**
  * Sidebar - Documentation navigation sidebar with recursive nesting
+ * Accepts mixed array of items (files) and sections (folders)
  */
 
-import type { SidebarSection, SidebarItem } from '@/hooks/useSidebar';
+import type { SidebarSection, SidebarItem, SidebarNode } from '@/hooks/useSidebar';
 
 interface Props {
-  sections: SidebarSection[];
+  nodes: SidebarNode[];  // Mixed: items (root files) + sections (folders)
   currentPath: string;
 }
 
-const { sections, currentPath } = Astro.props;
+const { nodes, currentPath } = Astro.props;
 
 function isActive(href: string): boolean {
   return currentPath === href;
@@ -37,94 +38,106 @@ function shouldBeExpanded(section: SidebarSection): boolean {
 
 <aside class="sidebar">
   <nav class="sidebar__nav" aria-label="Documentation">
-    {sections.map((section, index) => (
-      <div
-        class:list={['sidebar__section', { 'sidebar__section--active': isSectionActive(section) }]}
-        data-section={index}
-        data-collapsed={!shouldBeExpanded(section)}
-      >
-        {section.children.length > 0 ? (
-          <>
-            {section.collapsible ? (
-              <button
-                class="sidebar__header sidebar__header--collapsible"
-                aria-expanded={shouldBeExpanded(section)}
-                data-collapse-trigger
-              >
-                <span>{section.title}</span>
-                <svg class="sidebar__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-            ) : (
-              <span class="sidebar__header">{section.title}</span>
-            )}
+    {nodes.map((node, index) => (
+      node.type === 'item' ? (
+        /* Root-level item (file without folder) */
+        <a
+          href={node.href}
+          class:list={['sidebar__link sidebar__link--top', { 'sidebar__link--active': isActive(node.href) }]}
+          aria-current={isActive(node.href) ? 'page' : undefined}
+        >
+          {node.title}
+        </a>
+      ) : (
+        /* Section (folder with children) */
+        <div
+          class:list={['sidebar__section', { 'sidebar__section--active': isSectionActive(node) }]}
+          data-section={index}
+          data-collapsed={!shouldBeExpanded(node)}
+        >
+          {node.children.length > 0 ? (
+            <>
+              {node.collapsible ? (
+                <button
+                  class="sidebar__header sidebar__header--collapsible"
+                  aria-expanded={shouldBeExpanded(node)}
+                  data-collapse-trigger
+                >
+                  <span>{node.title}</span>
+                  <svg class="sidebar__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+              ) : (
+                <span class="sidebar__header">{node.title}</span>
+              )}
 
-            <ul class="sidebar__list" data-collapse-content>
-              {section.children.map((child) => (
-                child.type === 'item' ? (
-                  <li>
-                    <a
-                      href={child.href}
-                      class:list={['sidebar__link', { 'sidebar__link--active': isActive(child.href) }]}
-                      aria-current={isActive(child.href) ? 'page' : undefined}
-                    >
-                      {child.title}
-                    </a>
-                  </li>
-                ) : (
-                  <li class="sidebar__nested">
-                    <div
-                      class:list={['sidebar__section', 'sidebar__section--nested', { 'sidebar__section--active': isSectionActive(child) }]}
-                      data-collapsed={!shouldBeExpanded(child)}
-                    >
-                      {child.collapsible ? (
-                        <button
-                          class="sidebar__header sidebar__header--collapsible sidebar__header--nested"
-                          aria-expanded={shouldBeExpanded(child)}
-                          data-collapse-trigger
-                        >
-                          <span>{child.title}</span>
-                          <svg class="sidebar__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9" />
-                          </svg>
-                        </button>
-                      ) : (
-                        <span class="sidebar__header sidebar__header--nested">{child.title}</span>
-                      )}
-                      <ul class="sidebar__list" data-collapse-content>
-                        {child.children.map((subChild) => (
-                          subChild.type === 'item' ? (
-                            <li>
-                              <a
-                                href={subChild.href}
-                                class:list={['sidebar__link', { 'sidebar__link--active': isActive(subChild.href) }]}
-                                aria-current={isActive(subChild.href) ? 'page' : undefined}
-                              >
-                                {subChild.title}
-                              </a>
-                            </li>
-                          ) : null
-                        ))}
-                      </ul>
-                    </div>
-                  </li>
-                )
-              ))}
-            </ul>
-          </>
-        ) : section.href ? (
-          <a
-            href={section.href}
-            class:list={['sidebar__link sidebar__link--top', { 'sidebar__link--active': isActive(section.href) }]}
-            aria-current={isActive(section.href) ? 'page' : undefined}
-          >
-            {section.title}
-          </a>
-        ) : (
-          <span class="sidebar__header">{section.title}</span>
-        )}
-      </div>
+              <ul class="sidebar__list" data-collapse-content>
+                {node.children.map((child) => (
+                  child.type === 'item' ? (
+                    <li>
+                      <a
+                        href={child.href}
+                        class:list={['sidebar__link', { 'sidebar__link--active': isActive(child.href) }]}
+                        aria-current={isActive(child.href) ? 'page' : undefined}
+                      >
+                        {child.title}
+                      </a>
+                    </li>
+                  ) : (
+                    <li class="sidebar__nested">
+                      <div
+                        class:list={['sidebar__section', 'sidebar__section--nested', { 'sidebar__section--active': isSectionActive(child) }]}
+                        data-collapsed={!shouldBeExpanded(child)}
+                      >
+                        {child.collapsible ? (
+                          <button
+                            class="sidebar__header sidebar__header--collapsible sidebar__header--nested"
+                            aria-expanded={shouldBeExpanded(child)}
+                            data-collapse-trigger
+                          >
+                            <span>{child.title}</span>
+                            <svg class="sidebar__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          </button>
+                        ) : (
+                          <span class="sidebar__header sidebar__header--nested">{child.title}</span>
+                        )}
+                        <ul class="sidebar__list" data-collapse-content>
+                          {child.children.map((subChild) => (
+                            subChild.type === 'item' ? (
+                              <li>
+                                <a
+                                  href={subChild.href}
+                                  class:list={['sidebar__link', { 'sidebar__link--active': isActive(subChild.href) }]}
+                                  aria-current={isActive(subChild.href) ? 'page' : undefined}
+                                >
+                                  {subChild.title}
+                                </a>
+                              </li>
+                            ) : null
+                          ))}
+                        </ul>
+                      </div>
+                    </li>
+                  )
+                ))}
+              </ul>
+            </>
+          ) : node.href ? (
+            <a
+              href={node.href}
+              class:list={['sidebar__link sidebar__link--top', { 'sidebar__link--active': isActive(node.href) }]}
+              aria-current={isActive(node.href) ? 'page' : undefined}
+            >
+              {node.title}
+            </a>
+          ) : (
+            <span class="sidebar__header">{node.title}</span>
+          )}
+        </div>
+      )
     ))}
   </nav>
 </aside>
