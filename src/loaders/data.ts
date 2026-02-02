@@ -1,6 +1,10 @@
 /**
  * Unified Data Loader
- * Loads content using the modular parser system with caching and error collection
+ *
+ * Loads content using the modular parser system with:
+ * - mtime-based caching (no hash computation)
+ * - Dependency tracking for selective invalidation
+ * - Error/warning collection
  */
 import fs from 'fs';
 import path from 'path';
@@ -14,19 +18,17 @@ import {
   type LoadOptions,
   type ContentSettings,
 } from '../parsers/types';
-import {
-  shouldCache,
-  getCached,
-  setCache,
-  computeFileHash,
-  addError,
-  addWarning,
-  type CacheEntry,
-} from './cache';
+import cacheManager from './cache-manager';
+
+// Keep error functions from old cache for compatibility
+import { addError, addWarning } from './cache';
 
 // Re-export types from parsers for backward compatibility
 export type { LoadedContent, LoadOptions, ContentSettings, Heading } from '../parsers/types';
 export { ParserError as DataLoaderError } from '../parsers/types';
+
+// Re-export clearSettingsCache for backward compatibility
+export { clearSettingsCache } from './cache-manager';
 
 // ============================================
 // Sorting
@@ -99,7 +101,7 @@ function collectContentWarnings(content: LoadedContent, relativePath: string): v
 // ============================================
 
 /**
- * Load content from a directory with caching and error collection
+ * Load content from a directory with mtime-based caching
  */
 export async function loadContent(
   dataPath: string,
@@ -121,31 +123,26 @@ export async function loadContent(
     ? dataPath
     : getDataPath(dataPath);
 
-  // Generate cache key
-  const cacheKey = `${absolutePath}:${pattern}:${contentType}`;
+  // Generate cache key (include sort for proper caching)
+  const cacheKey = `${absolutePath}:${pattern}:${contentType}:${sort}:${order}`;
 
-  // Check cache first (works in both dev and prod now)
-  if (shouldCache()) {
-    const cached = getCached(cacheKey);
-    if (cached) {
-      console.log(`[CACHE HIT] ${cacheKey} - ${cached.content.length} items`);
-      // Return cached content (already sorted and filtered)
-      let content = [...cached.content];
+  // Check cache first (uses mtime-based validation)
+  const cached = cacheManager.getCached<LoadedContent[]>('content', cacheKey);
+  if (cached) {
+    // Return cached content (already sorted)
+    let content = [...cached];
 
-      // Filter drafts (may change between requests in dev)
-      if (!includeDrafts) {
-        content = content.filter((item) => !item.data.draft);
-      }
-
-      // Apply custom filter
-      if (filter) {
-        content = content.filter(filter);
-      }
-
-      return content;
-    } else {
-      console.log(`[CACHE MISS] ${cacheKey}`);
+    // Filter drafts (may change between requests in dev)
+    if (!includeDrafts) {
+      content = content.filter((item) => !item.data.draft);
     }
+
+    // Apply custom filter
+    if (filter) {
+      content = content.filter(filter);
+    }
+
+    return content;
   }
 
   // Check if directory exists
@@ -176,14 +173,10 @@ export async function loadContent(
   // Parse files and collect errors
   let content: LoadedContent[] = [];
   const missingPrefixFiles: string[] = [];
-  const fileHashes = new Map<string, string>();
 
   for (const file of files) {
     try {
-      // Compute file hash for selective invalidation
-      const hash = computeFileHash(file);
-      fileHashes.set(file, hash);
-
+      // No hash computation - mtime-based validation instead
       const parsed = await parser.parse(file, absolutePath);
       if (parsed) {
         // Check for required position prefix (docs only)
@@ -245,16 +238,8 @@ export async function loadContent(
   // Sort content
   content = sortContent(content, sort, order);
 
-  // Store in cache (before filtering, so filters can vary between requests)
-  if (shouldCache()) {
-    const cacheEntry: CacheEntry = {
-      content,
-      timestamp: Date.now(),
-      fileHashes,
-    };
-    setCache(cacheKey, cacheEntry);
-    console.log(`[CACHE SET] ${cacheKey} - ${content.length} items cached`);
-  }
+  // Store in cache with file dependencies (for mtime-based validation)
+  cacheManager.setCache('content', cacheKey, content, files);
 
   // Filter drafts
   if (!includeDrafts) {
@@ -270,7 +255,7 @@ export async function loadContent(
 }
 
 /**
- * Load a single file
+ * Load a single file (no caching - single file load is fast)
  */
 export async function loadFile(
   filePath: string,
@@ -325,10 +310,8 @@ export async function loadFile(
 }
 
 // ============================================
-// Settings Cache
+// Settings Loading (with mtime-based caching)
 // ============================================
-
-const settingsCache = new Map<string, ContentSettings>();
 
 /**
  * Load settings.json from a content directory
@@ -337,11 +320,6 @@ export function loadSettings(dataPath: string): ContentSettings {
   const absolutePath = path.isAbsolute(dataPath)
     ? dataPath
     : getDataPath(dataPath);
-
-  // Check cache
-  if (shouldCache() && settingsCache.has(absolutePath)) {
-    return settingsCache.get(absolutePath)!;
-  }
 
   const settingsPath = path.join(absolutePath, 'settings.json');
 
@@ -364,7 +342,15 @@ export function loadSettings(dataPath: string): ContentSettings {
     },
   };
 
+  // Check cache with dependency on settings file
+  const cached = cacheManager.getCached<ContentSettings>('settings', absolutePath);
+  if (cached) {
+    return cached;
+  }
+
   if (!fs.existsSync(settingsPath)) {
+    // Cache the default (no file dependency)
+    cacheManager.setCache('settings', absolutePath, defaultSettings, []);
     return defaultSettings;
   }
 
@@ -379,10 +365,8 @@ export function loadSettings(dataPath: string): ContentSettings {
       pagination: { ...defaultSettings.pagination, ...settings.pagination },
     };
 
-    // Cache
-    if (shouldCache()) {
-      settingsCache.set(absolutePath, merged);
-    }
+    // Cache with settings.json as dependency
+    cacheManager.setCache('settings', absolutePath, merged, [settingsPath]);
 
     return merged;
   } catch (error) {

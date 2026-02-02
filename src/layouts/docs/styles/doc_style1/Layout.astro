@@ -30,10 +30,6 @@ interface Props {
 
 const { title, description, dataPath, baseUrl, currentSlug, content, headings = [] } = Astro.props;
 
-// DEBUG: Log what baseUrl we're receiving
-console.log('[Layout DEBUG] baseUrl received:', baseUrl);
-console.log('[Layout DEBUG] dataPath received:', dataPath);
-
 // Load sidebar content and settings
 let allContent: LoadedContent[] = [];
 let settings: ContentSettings = {};

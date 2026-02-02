@@ -3,6 +3,12 @@
  *
  * Registers the layout & theme selector app with Astro's dev toolbar.
  * Only active during development (npm run start).
+ *
+ * Uses unified cache manager for selective invalidation:
+ * - Content changes: invalidate content + sidebar
+ * - Settings changes: invalidate sidebar + settings
+ * - Theme changes: invalidate theme only
+ * - Config changes: invalidate config (+ theme if site.yaml)
  */
 
 import type { AstroIntegration } from 'astro';
@@ -10,17 +16,23 @@ import type { ViteDevServer } from 'vite';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { invalidateAll } from '../loaders/cache';
-import { invalidateSidebarCache } from '../hooks/useSidebar';
+import cacheManager from '../loaders/cache-manager';
 
 // Track the Vite dev server for sending reload messages
 let viteServer: ViteDevServer | null = null;
+
+interface WatchPathsConfig {
+  data: string;
+  config: string;
+  assets: string;
+  themes: string;
+}
 
 /**
  * Read paths from .env file directly
  * This ensures we get the configured paths even during Vite plugin setup
  */
-function getWatchPaths(): string[] {
+function getWatchPaths(): { paths: WatchPathsConfig; array: string[] } {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   const projectRoot = path.resolve(__dirname, '../..');
@@ -56,12 +68,17 @@ function getWatchPaths(): string[] {
   // Resolve paths (handle both relative and absolute)
   const resolvePath = (p: string) => path.isAbsolute(p) ? p : path.resolve(projectRoot, p);
 
-  return [
-    resolvePath(dataDir),
-    resolvePath(configDir),
-    resolvePath(assetsDir),
-    resolvePath(themesDir),
-  ];
+  const paths = {
+    data: resolvePath(dataDir),
+    config: resolvePath(configDir),
+    assets: resolvePath(assetsDir),
+    themes: resolvePath(themesDir),
+  };
+
+  return {
+    paths,
+    array: [paths.data, paths.config, paths.assets, paths.themes],
+  };
 }
 
 export function devToolbarIntegration(): AstroIntegration {
@@ -70,7 +87,10 @@ export function devToolbarIntegration(): AstroIntegration {
     hooks: {
       'astro:config:setup': ({ addDevToolbarApp, updateConfig }) => {
         // Get watch paths from .env configuration
-        const watchPaths = getWatchPaths();
+        const { paths: watchPathsConfig, array: watchPaths } = getWatchPaths();
+
+        // Configure cache manager with watch paths for file type detection
+        cacheManager.setWatchPaths(watchPathsConfig);
 
         // Extensions to ignore (temp files, system files, etc.)
         const ignoreExtensions = ['.DS_Store', '.gitkeep', '.tmp', '.swp', '.bak'];
@@ -98,25 +118,24 @@ export function devToolbarIntegration(): AstroIntegration {
                     console.log('[HMR] Watching:', watchPath);
                   });
 
-                  // Watch for file additions and deletions
+                  // Watch for file additions
                   server.watcher.on('add', (file) => {
                     if (shouldTriggerReload(file)) {
                       const shortPath = file.split('/').slice(-3).join('/');
-                      console.log('[cache] File added:', shortPath);
-                      invalidateAll();
-                      invalidateSidebarCache();
-                      console.log('[cache] Cache invalidated, triggering reload...');
+                      const { type, invalidated } = cacheManager.onFileAdd(file);
+                      console.log(`[cache] File added (${type}):`, shortPath);
+                      console.log(`[cache] Invalidated: ${invalidated.join(', ') || 'none'}`);
                       server.ws.send({ type: 'full-reload' });
                     }
                   });
 
+                  // Watch for file deletions
                   server.watcher.on('unlink', (file) => {
                     if (shouldTriggerReload(file)) {
                       const shortPath = file.split('/').slice(-3).join('/');
-                      console.log('[cache] File deleted:', shortPath);
-                      invalidateAll();
-                      invalidateSidebarCache();
-                      console.log('[cache] Cache invalidated, triggering reload...');
+                      const { type, invalidated } = cacheManager.onFileDelete(file);
+                      console.log(`[cache] File deleted (${type}):`, shortPath);
+                      console.log(`[cache] Invalidated: ${invalidated.join(', ') || 'none'}`);
                       server.ws.send({ type: 'full-reload' });
                     }
                   });
@@ -126,12 +145,9 @@ export function devToolbarIntegration(): AstroIntegration {
                   if (!shouldTriggerReload(file)) return;
 
                   const shortPath = file.split('/').slice(-3).join('/');
-                  console.log('[cache] File changed:', shortPath);
-
-                  // Invalidate cache and trigger full reload
-                  invalidateAll();
-                  invalidateSidebarCache();
-                  console.log('[cache] Cache invalidated, triggering reload...');
+                  const { type, invalidated } = cacheManager.onFileChange(file);
+                  console.log(`[cache] File changed (${type}):`, shortPath);
+                  console.log(`[cache] Invalidated: ${invalidated.join(', ') || 'none'}`);
 
                   // Send full page reload to browser
                   server.ws.send({ type: 'full-reload' });
@@ -143,6 +159,7 @@ export function devToolbarIntegration(): AstroIntegration {
             ],
           },
         });
+
         // Layout & Theme Selector
         addDevToolbarApp({
           id: 'layout-theme-selector',

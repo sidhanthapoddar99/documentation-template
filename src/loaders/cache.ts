@@ -1,14 +1,11 @@
 /**
- * Content Cache Manager
+ * Error/Warning Manager
  *
- * Provides in-memory caching for content loading with:
- * - Error/warning collection
- * - Full cache invalidation on file changes (via HMR)
+ * Collects and manages errors and warnings during content processing.
+ * Used by the dev toolbar to display issues.
+ *
+ * Note: Content caching is now handled by cache-manager.ts
  */
-
-import crypto from 'crypto';
-import fs from 'fs';
-import type { LoadedContent, ContentSettings } from '../parsers/types';
 
 // ============================================
 // Types
@@ -26,6 +23,7 @@ export type ErrorType =
   | 'theme-missing-variable'
   | 'theme-invalid-manifest'
   | 'theme-circular-extends';
+
 export type WarningType = 'missing-description' | 'missing-image' | 'deprecated' | 'draft';
 
 export interface ContentError {
@@ -46,15 +44,15 @@ export interface ContentWarning {
   timestamp: number;
 }
 
+// Legacy type for backward compatibility
 export interface CacheEntry {
-  content: LoadedContent[];
-  settings?: ContentSettings;
+  content: any[];
+  settings?: any;
   timestamp: number;
   fileHashes: Map<string, string>;
 }
 
-export interface ContentCacheState {
-  entries: Map<string, CacheEntry>;
+interface ErrorWarningState {
   errors: ContentError[];
   warnings: ContentWarning[];
   initialized: boolean;
@@ -62,83 +60,21 @@ export interface ContentCacheState {
 }
 
 // ============================================
-// Global Cache Instance (using globalThis for cross-module sharing)
+// Global State (using globalThis)
 // ============================================
 
-// Use globalThis to ensure cache is shared across module instances
-// This is necessary because Vite plugins and page rendering may use different module instances
-const CACHE_KEY = '__astro_content_cache__';
+const ERROR_STATE_KEY = '__astro_error_state__';
 
-function getCacheState(): ContentCacheState {
-  if (!(globalThis as any)[CACHE_KEY]) {
-    console.log('[CACHE] Initializing new cache state');
-    (globalThis as any)[CACHE_KEY] = {
-      entries: new Map<string, CacheEntry>(),
+function getState(): ErrorWarningState {
+  if (!(globalThis as any)[ERROR_STATE_KEY]) {
+    (globalThis as any)[ERROR_STATE_KEY] = {
       errors: [] as ContentError[],
       warnings: [] as ContentWarning[],
       initialized: false,
       lastUpdate: 0,
     };
   }
-  return (globalThis as any)[CACHE_KEY];
-}
-
-// ============================================
-// Cache Operations
-// ============================================
-
-/**
- * Check if caching should be used
- * In dev mode with server output, we always cache for performance
- */
-export function shouldCache(): boolean {
-  // Always cache in server mode for dev performance
-  return true;
-}
-
-/**
- * Get cached content for a given key
- */
-export function getCached(cacheKey: string): CacheEntry | undefined {
-  return getCacheState().entries.get(cacheKey);
-}
-
-/**
- * Set cached content
- */
-export function setCache(cacheKey: string, entry: CacheEntry): void {
-  getCacheState().entries.set(cacheKey, entry);
-  getCacheState().lastUpdate = Date.now();
-  getCacheState().initialized = true;
-}
-
-/**
- * Invalidate cache for a specific key
- */
-export function invalidateCache(cacheKey: string): void {
-  getCacheState().entries.delete(cacheKey);
-}
-
-/**
- * Invalidate all caches
- */
-export function invalidateAll(): void {
-  getCacheState().entries.clear();
-  getCacheState().errors = [];
-  getCacheState().warnings = [];
-  getCacheState().initialized = false;
-}
-
-/**
- * Compute hash for a file
- */
-export function computeFileHash(filePath: string): string {
-  try {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    return crypto.createHash('md5').update(content).digest('hex');
-  } catch {
-    return '';
-  }
+  return (globalThis as any)[ERROR_STATE_KEY];
 }
 
 // ============================================
@@ -146,36 +82,42 @@ export function computeFileHash(filePath: string): string {
 // ============================================
 
 /**
- * Add an error to the cache
+ * Add an error
  */
 export function addError(error: Omit<ContentError, 'timestamp'>): void {
+  const state = getState();
+
   // Avoid duplicates
-  const exists = getCacheState().errors.some(
+  const exists = state.errors.some(
     e => e.file === error.file && e.message === error.message && e.line === error.line
   );
 
   if (!exists) {
-    getCacheState().errors.push({
+    state.errors.push({
       ...error,
       timestamp: Date.now(),
     });
+    state.lastUpdate = Date.now();
   }
 }
 
 /**
- * Add a warning to the cache
+ * Add a warning
  */
 export function addWarning(warning: Omit<ContentWarning, 'timestamp'>): void {
+  const state = getState();
+
   // Avoid duplicates
-  const exists = getCacheState().warnings.some(
+  const exists = state.warnings.some(
     w => w.file === warning.file && w.message === warning.message
   );
 
   if (!exists) {
-    getCacheState().warnings.push({
+    state.warnings.push({
       ...warning,
       timestamp: Date.now(),
     });
+    state.lastUpdate = Date.now();
   }
 }
 
@@ -183,14 +125,14 @@ export function addWarning(warning: Omit<ContentWarning, 'timestamp'>): void {
  * Get all errors
  */
 export function getErrors(): ContentError[] {
-  return [...getCacheState().errors];
+  return [...getState().errors];
 }
 
 /**
  * Get all warnings
  */
 export function getWarnings(): ContentWarning[] {
-  return [...getCacheState().warnings];
+  return [...getState().warnings];
 }
 
 /**
@@ -207,25 +149,34 @@ export function getAllIssues(): { errors: ContentError[]; warnings: ContentWarni
  * Get error count
  */
 export function getErrorCount(): number {
-  return getCacheState().errors.length;
+  return getState().errors.length;
 }
 
 /**
  * Get warning count
  */
 export function getWarningCount(): number {
-  return getCacheState().warnings.length;
+  return getState().warnings.length;
 }
 
 /**
- * Check if cache is initialized
+ * Clear all errors and warnings
+ */
+export function clearErrors(): void {
+  const state = getState();
+  state.errors = [];
+  state.warnings = [];
+}
+
+/**
+ * Check if initialized
  */
 export function isCacheInitialized(): boolean {
-  return getCacheState().initialized;
+  return getState().initialized;
 }
 
 /**
- * Get cache statistics
+ * Get statistics (for dev toolbar)
  */
 export function getCacheStats(): {
   initialized: boolean;
@@ -234,28 +185,28 @@ export function getCacheStats(): {
   warningCount: number;
   lastUpdate: number;
 } {
+  const state = getState();
   return {
-    initialized: getCacheState().initialized,
-    entryCount: getCacheState().entries.size,
-    errorCount: getCacheState().errors.length,
-    warningCount: getCacheState().warnings.length,
-    lastUpdate: getCacheState().lastUpdate,
+    initialized: state.initialized,
+    entryCount: 0, // No longer tracking entries here
+    errorCount: state.errors.length,
+    warningCount: state.warnings.length,
+    lastUpdate: state.lastUpdate,
   };
 }
 
 // ============================================
-// Export cache state for API endpoint
+// Export state for API endpoint
 // ============================================
 
-export { getCacheState };
+export function getCacheState(): ErrorWarningState & { entries: Map<string, any> } {
+  return {
+    ...getState(),
+    entries: new Map(), // Empty for backward compatibility
+  };
+}
 
 export default {
-  shouldCache,
-  getCached,
-  setCache,
-  invalidateCache,
-  invalidateAll,
-  computeFileHash,
   addError,
   addWarning,
   getErrors,
@@ -263,6 +214,7 @@ export default {
   getAllIssues,
   getErrorCount,
   getWarningCount,
+  clearErrors,
   isCacheInitialized,
   getCacheStats,
   getCacheState,

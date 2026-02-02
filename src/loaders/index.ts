@@ -59,13 +59,25 @@ export {
   type ResolvedAlias,
 } from './alias';
 
-// Cache utilities
+// Cache manager (unified caching with mtime-based validation)
 export {
-  shouldCache,
   getCached,
   setCache,
-  invalidateCache,
+  clearCache,
+  clearAllCaches,
+  onFileChange,
+  onFileAdd,
+  onFileDelete,
+  getCacheStats as getUnifiedCacheStats,
+  getHitRate,
   invalidateAll,
+  invalidateSidebarCache,
+  clearThemeCache,
+  clearSettingsCache,
+} from './cache-manager';
+
+// Error/warning utilities (from old cache for backward compatibility)
+export {
   addError,
   addWarning,
   getErrors,

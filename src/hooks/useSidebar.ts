@@ -4,75 +4,18 @@
  * Sorting: XX_ prefix is the SOLE determining factor for order
  * Both files and folders use the same XX_ prefix system
  *
- * Caching: Sidebar tree is cached using globalThis for persistence across requests
+ * Caching: Uses unified cache manager with mtime-based validation
+ * - Tracks dependencies on folder settings.json files
+ * - Automatically invalidates when settings change
  */
 
 import fs from 'fs';
 import path from 'path';
 import type { LoadedContent } from '@loaders/data';
+import cacheManager from '@loaders/cache-manager';
 
-// ============================================
-// Cache Keys (defined early for invalidation function)
-// ============================================
-
-const SIDEBAR_CACHE_KEY = '__astro_sidebar_cache__';
-const FOLDER_SETTINGS_CACHE_KEY = '__astro_folder_settings_cache__';
-const FOLDER_LOOKUP_CACHE_KEY = '__astro_folder_lookup_cache__';
-
-// ============================================
-// Sidebar Cache (using globalThis)
-// ============================================
-
-interface SidebarCacheEntry {
-  nodes: SidebarNode[];
-  timestamp: number;
-  contentLength: number; // Quick check before deep comparison
-  contentSlugs: Set<string>; // For fast lookup
-}
-
-function getSidebarCache(): Map<string, SidebarCacheEntry> {
-  if (!(globalThis as any)[SIDEBAR_CACHE_KEY]) {
-    console.log('[SIDEBAR CACHE] Initializing new cache');
-    (globalThis as any)[SIDEBAR_CACHE_KEY] = new Map<string, SidebarCacheEntry>();
-  }
-  return (globalThis as any)[SIDEBAR_CACHE_KEY];
-}
-
-/**
- * Invalidate all sidebar caches (called on file add/delete/change)
- */
-export function invalidateSidebarCache(): void {
-  // Clear sidebar tree cache
-  if ((globalThis as any)[SIDEBAR_CACHE_KEY]) {
-    (globalThis as any)[SIDEBAR_CACHE_KEY].clear();
-    console.log('[SIDEBAR CACHE] Invalidated');
-  }
-  // Clear folder settings cache
-  if ((globalThis as any)[FOLDER_SETTINGS_CACHE_KEY]) {
-    (globalThis as any)[FOLDER_SETTINGS_CACHE_KEY].clear();
-  }
-  // Clear folder lookup cache
-  if ((globalThis as any)[FOLDER_LOOKUP_CACHE_KEY]) {
-    (globalThis as any)[FOLDER_LOOKUP_CACHE_KEY].clear();
-  }
-}
-
-/**
- * Quick cache validation - checks if content matches cached state
- */
-function isCacheValid(cached: SidebarCacheEntry, content: LoadedContent[]): boolean {
-  // Quick length check first (O(1))
-  if (cached.contentLength !== content.length) {
-    return false;
-  }
-  // Check all slugs match (O(n) but with Set lookup)
-  for (const item of content) {
-    if (!cached.contentSlugs.has(item.slug)) {
-      return false;
-    }
-  }
-  return true;
-}
+// Re-export for backward compatibility
+export { invalidateSidebarCache } from '@loaders/cache-manager';
 
 // ============================================
 // Types
@@ -124,39 +67,23 @@ function extractPosition(name: string): { position: number; cleanName: string } 
   return { position: 999, cleanName: name };
 }
 
-// Folder settings cache
-function getFolderSettingsCache(): Map<string, FolderSettings> {
-  if (!(globalThis as any)[FOLDER_SETTINGS_CACHE_KEY]) {
-    (globalThis as any)[FOLDER_SETTINGS_CACHE_KEY] = new Map<string, FolderSettings>();
-  }
-  return (globalThis as any)[FOLDER_SETTINGS_CACHE_KEY];
-}
-
 /**
- * Load settings.json from a folder (cached)
+ * Load settings.json from a folder
+ * Returns settings and the file path (for dependency tracking)
  */
-function loadFolderSettings(folderPath: string): FolderSettings {
-  // Check cache first
-  const cache = getFolderSettingsCache();
-  if (cache.has(folderPath)) {
-    return cache.get(folderPath)!;
-  }
-
+function loadFolderSettings(folderPath: string): { settings: FolderSettings; settingsPath: string | null } {
   const settingsPath = path.join(folderPath, 'settings.json');
 
   if (!fs.existsSync(settingsPath)) {
-    cache.set(folderPath, {});
-    return {};
+    return { settings: {}, settingsPath: null };
   }
 
   try {
     const raw = fs.readFileSync(settingsPath, 'utf-8');
     const settings = JSON.parse(raw) as FolderSettings;
-    cache.set(folderPath, settings);
-    return settings;
+    return { settings, settingsPath };
   } catch {
-    cache.set(folderPath, {});
-    return {};
+    return { settings: {}, settingsPath: null };
   }
 }
 
@@ -169,47 +96,29 @@ function formatTitle(slug: string): string {
     .replace(/\b\w/g, c => c.toUpperCase());
 }
 
-// Folder lookup cache (parent path -> map of clean names to actual folder names)
-function getFolderLookupCache(): Map<string, Map<string, string>> {
-  if (!(globalThis as any)[FOLDER_LOOKUP_CACHE_KEY]) {
-    (globalThis as any)[FOLDER_LOOKUP_CACHE_KEY] = new Map<string, Map<string, string>>();
-  }
-  return (globalThis as any)[FOLDER_LOOKUP_CACHE_KEY];
-}
-
 /**
- * Find folder with XX_ prefix that matches clean name (cached)
+ * Find folder with XX_ prefix that matches clean name
  */
 function findFolderWithPrefix(parentPath: string, cleanName: string): string | null {
-  if (!parentPath) {
+  if (!parentPath || !fs.existsSync(parentPath)) {
     return null;
   }
 
-  const cache = getFolderLookupCache();
-
-  // Check if we have cached folder mappings for this parent
-  if (!cache.has(parentPath)) {
-    // Build mapping for this parent directory
-    const folderMap = new Map<string, string>();
-
-    if (fs.existsSync(parentPath)) {
-      try {
-        const entries = fs.readdirSync(parentPath, { withFileTypes: true });
-        for (const entry of entries) {
-          if (entry.isDirectory()) {
-            const { cleanName: entryClean } = extractPosition(entry.name);
-            folderMap.set(entryClean, entry.name);
-          }
+  try {
+    const entries = fs.readdirSync(parentPath, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const { cleanName: entryClean } = extractPosition(entry.name);
+        if (entryClean === cleanName) {
+          return entry.name;
         }
-      } catch {
-        // Ignore errors
       }
     }
-
-    cache.set(parentPath, folderMap);
+  } catch {
+    // Ignore errors
   }
 
-  return cache.get(parentPath)?.get(cleanName) || null;
+  return null;
 }
 
 // ============================================
@@ -232,7 +141,7 @@ interface TreeNode {
  * Sorting is based ONLY on XX_ prefix
  *
  * Returns mixed array: root-level files become items, folders become sections
- * Results are cached for performance
+ * Results are cached with dependency tracking on settings.json files
  */
 export function buildSidebarTree(
   content: LoadedContent[],
@@ -242,19 +151,15 @@ export function buildSidebarTree(
   // Generate cache key
   const cacheKey = `${dataPath || 'default'}:${basePath}`;
 
-  // Check cache first (before any expensive operations)
-  const cache = getSidebarCache();
-  const cached = cache.get(cacheKey);
-
-  if (cached && isCacheValid(cached, content)) {
-    console.log(`[SIDEBAR CACHE HIT] ${cacheKey}`);
-    return cached.nodes;
+  // Check cache first (uses mtime-based validation on dependencies)
+  const cached = cacheManager.getCached<SidebarNode[]>('sidebar', cacheKey);
+  if (cached) {
+    return cached;
   }
-
-  console.log(`[SIDEBAR CACHE MISS] ${cacheKey}`);
 
   const root: Map<string, TreeNode> = new Map();
   const rootItems: LoadedContent[] = []; // Root-level files (no folder)
+  const settingsDeps: string[] = []; // Track settings.json files for cache deps
 
   // Group content by directory structure
   for (const item of content) {
@@ -271,7 +176,12 @@ export function buildSidebarTree(
         const actualFolderName = findFolderWithPrefix(currentFsPath, slugPart) || slugPart;
         const { position } = extractPosition(actualFolderName);
         const folderFsPath = path.join(currentFsPath, actualFolderName);
-        const settings = dataPath ? loadFolderSettings(folderFsPath) : {};
+
+        // Load folder settings and track dependency
+        const { settings, settingsPath } = dataPath ? loadFolderSettings(folderFsPath) : { settings: {}, settingsPath: null };
+        if (settingsPath) {
+          settingsDeps.push(settingsPath);
+        }
 
         currentLevel.set(slugPart, {
           name: actualFolderName,
@@ -326,14 +236,9 @@ export function buildSidebarTree(
   // Sort everything by position
   const sortedResult = result.sort((a, b) => a.position - b.position);
 
-  // Cache the result
-  cache.set(cacheKey, {
-    nodes: sortedResult,
-    timestamp: Date.now(),
-    contentLength: content.length,
-    contentSlugs: new Set(content.map(c => c.slug)),
-  });
-  console.log(`[SIDEBAR CACHE SET] ${cacheKey} - ${sortedResult.length} nodes`);
+  // Cache with settings.json files as dependencies
+  // When any settings.json changes, this cache entry will be invalidated
+  cacheManager.setCache('sidebar', cacheKey, sortedResult, settingsDeps);
 
   return sortedResult;
 }

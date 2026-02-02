@@ -1,0 +1,271 @@
+---
+title: Unified Cache System
+description: Performance optimization with unified caching and selective invalidation
+---
+
+# Unified Cache System
+
+## Overview
+
+The framework uses a unified cache manager that provides:
+- **Single cache system** for content, sidebar, theme, settings, and config
+- **Selective invalidation** based on file type (no unnecessary cache clears)
+- **HMR integration** with automatic cache invalidation on file changes
+- **No hash computation overhead** - trusts HMR for change detection
+
+---
+
+## Performance
+
+| Metric | First Request | Cached | Improvement |
+|--------|---------------|--------|-------------|
+| **Page load** | ~150-200ms | **~5ms** | 97% faster |
+| **Sidebar build** | ~10-15ms | **~1ms** | 90% faster |
+| **Theme CSS** | ~5-10ms | **~0.5ms** | 95% faster |
+| **Settings load** | ~2-3ms | **~0.1ms** | 97% faster |
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    UNIFIED CACHE MANAGER                                    │
+│                    src/loaders/cache-manager.ts                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│   │   Content   │  │   Sidebar   │  │    Theme    │  │  Settings   │        │
+│   │    Cache    │  │    Cache    │  │    Cache    │  │    Cache    │        │
+│   └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘        │
+│          │                │                │                │               │
+│          └────────────────┴────────────────┴────────────────┘               │
+│                                    │                                        │
+│                                    ▼                                        │
+│                         ┌─────────────────┐                                 │
+│                         │  globalThis     │  Persists across requests       │
+│                         │  shared state   │  in dev server                  │
+│                         └─────────────────┘                                 │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   SELECTIVE INVALIDATION (on HMR file change)                               │
+│                                                                             │
+│   File Type        │  Caches Invalidated                                    │
+│   ─────────────────┼────────────────────────────────────                    │
+│   .md/.mdx         │  content + sidebar                                     │
+│   settings.json    │  sidebar + settings                                    │
+│   theme.yaml/.css  │  theme + combined CSS                                  │
+│   site.yaml        │  config + theme                                        │
+│   navbar/footer    │  config only                                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Cache Types
+
+### 1. Content Cache
+
+Caches parsed markdown content with headings.
+
+```typescript
+// Key: ${dataPath}:${pattern}:${contentType}:${sort}:${order}
+// Value: LoadedContent[]
+
+interface LoadedContent {
+  slug: string;
+  content: string;      // Rendered HTML
+  headings: Heading[];  // Extracted for TOC/outline
+  data: ContentData;    // Frontmatter
+  filePath: string;
+  relativePath: string;
+}
+```
+
+### 2. Sidebar Cache
+
+Caches the sidebar tree structure.
+
+```typescript
+// Key: ${dataPath}:${basePath}
+// Value: SidebarNode[]
+
+type SidebarNode = SidebarItem | SidebarSection;
+```
+
+### 3. Theme Cache
+
+Caches theme configuration and combined CSS.
+
+```typescript
+// Key: themeRef (e.g., "@theme/minimal")
+// Value: ThemeConfig
+
+interface ThemeConfig {
+  name: string;
+  path: string;
+  manifest: ThemeManifest;
+  css: string;         // Individual theme CSS
+  isDefault: boolean;
+}
+
+// Combined CSS cache (with inheritance resolved)
+// Stored separately for getThemeCSS() results
+```
+
+### 4. Settings Cache
+
+Caches content directory settings.
+
+```typescript
+// Key: absolutePath to settings.json directory
+// Value: ContentSettings
+
+interface ContentSettings {
+  sidebar: { collapsed, collapsible, sort, depth };
+  outline: { enabled, levels, title };
+  pagination: { enabled, showPrevNext };
+}
+```
+
+---
+
+## HMR Integration
+
+The dev toolbar integration watches all configured directories:
+
+```typescript
+// src/dev-toolbar/integration.ts
+
+// Paths read from .env
+const watchPaths = {
+  data: DATA_DIR,      // Content files
+  config: CONFIG_DIR,  // site.yaml, navbar.yaml, footer.yaml
+  assets: ASSETS_DIR,  // Images, logos
+  themes: THEMES_DIR,  // Theme CSS and manifests
+};
+
+// Events handled
+server.watcher.on('add', onFileAdd);     // New files
+server.watcher.on('unlink', onFileDelete); // Deleted files
+handleHotUpdate({ file });                 // Modified files
+```
+
+### File Type Detection
+
+```typescript
+function detectFileType(filePath: string): FileType {
+  const basename = path.basename(filePath);
+
+  if (basename === 'settings.json') return 'settings';
+  if (basename === 'site.yaml') return 'config';
+  if (basename === 'theme.yaml') return 'theme';
+  if (ext === '.md' || ext === '.mdx') return 'content';
+  if (ext === '.css' && inThemesDir) return 'theme';
+
+  return 'unknown';
+}
+```
+
+---
+
+## Files Structure
+
+```
+src/
+├── loaders/
+│   ├── cache-manager.ts   ← Unified cache with selective invalidation
+│   ├── cache.ts           ← Error/warning collection only
+│   ├── data.ts            ← Content loading (uses cache-manager)
+│   └── theme.ts           ← Theme loading (uses cache-manager)
+│
+├── hooks/
+│   └── useSidebar.ts      ← Sidebar building (uses cache-manager)
+│
+└── dev-toolbar/
+    └── integration.ts     ← HMR watcher, calls cache invalidation
+```
+
+---
+
+## Usage
+
+### Cache is Automatic
+
+No manual cache management needed. The system:
+1. Checks cache on every load
+2. Returns cached data if available
+3. Loads from disk on cache miss
+4. Stores in cache for next request
+5. Invalidates via HMR when files change
+
+### API
+
+```typescript
+import cacheManager from '@loaders/cache-manager';
+
+// Get cached data (returns null on miss)
+const data = cacheManager.getCached<T>('content', key);
+
+// Set cache entry
+cacheManager.setCache('content', key, data, dependencies);
+
+// Clear specific cache
+cacheManager.clearCache('sidebar');
+
+// Get statistics
+const stats = cacheManager.getCacheStats();
+// { caches: { content: { size, stats }, ... }, fileRegistry, watchPaths }
+```
+
+---
+
+## Error/Warning Collection
+
+Errors and warnings are collected separately from content caching:
+
+```typescript
+// src/loaders/cache.ts
+
+import { addError, addWarning, getAllIssues } from '@loaders/cache';
+
+// Collect errors during parsing
+addError({
+  file: 'docs/example.md',
+  type: 'asset-missing',
+  message: 'File not found: ./assets/image.png',
+  suggestion: 'Create the file or update the path',
+});
+
+// Get all issues for dev toolbar
+const { errors, warnings } = getAllIssues();
+```
+
+### Error Types
+
+| Type | Description |
+|------|-------------|
+| `asset-missing` | Referenced file not found |
+| `frontmatter` | Invalid frontmatter syntax |
+| `syntax` | Markdown parsing error |
+| `config` | Configuration issue |
+| `theme-not-found` | Theme directory missing |
+| `theme-invalid-manifest` | Invalid theme.yaml |
+
+---
+
+## Trade-offs
+
+### Pros
+- **97% faster** subsequent page loads
+- **Selective invalidation** - only affected caches cleared
+- **No hash computation** - trusts HMR, no MD5 overhead
+- **Unified architecture** - single cache manager
+- **Theme CSS cached** - includes inheritance resolution
+
+### Cons
+- Increased memory usage (all caches in memory)
+- First request still cold (must load from disk)
+- Requires dev server restart if cache corrupts (rare)

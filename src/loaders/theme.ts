@@ -2,6 +2,7 @@
  * Theme Loader
  *
  * Loads, validates, and provides theme CSS for the documentation framework.
+ * Uses unified cache manager with mtime-based validation and dependency tracking.
  * Supports theme inheritance and both default and custom themes.
  */
 
@@ -10,6 +11,7 @@ import path from 'path';
 import yaml from 'js-yaml';
 import { paths, getThemePath } from './paths';
 import { addError } from './cache';
+import cacheManager from './cache-manager';
 import type {
   ThemeManifest,
   ThemeConfig,
@@ -18,8 +20,8 @@ import type {
   ResolvedTheme,
 } from './theme-types';
 
-// Cache for loaded themes to avoid re-reading files
-const themeCache = new Map<string, ThemeConfig>();
+// Re-export for backward compatibility
+export { clearThemeCache } from './cache-manager';
 
 /**
  * Resolve a theme alias to its actual path
@@ -87,26 +89,38 @@ export function loadThemeManifest(themePath: string): ThemeManifest | null {
 
 /**
  * Load and combine CSS files from a theme
+ * Returns CSS content and list of file paths (for dependency tracking)
  *
  * @param themePath - Absolute path to theme directory
  * @param manifest - Theme manifest
- * @returns Combined CSS content
+ * @returns Combined CSS content and file dependencies
  */
-export function loadThemeCSS(themePath: string, manifest: ThemeManifest): string {
+export function loadThemeCSS(
+  themePath: string,
+  manifest: ThemeManifest
+): { css: string; deps: string[] } {
   const cssFiles = manifest.files.filter((f) => f.endsWith('.css'));
   let combinedCSS = `/* Theme: ${manifest.name} v${manifest.version} */\n\n`;
+  const deps: string[] = [];
+
+  // Add theme.yaml as dependency
+  const manifestPath = path.join(themePath, 'theme.yaml');
+  if (fs.existsSync(manifestPath)) {
+    deps.push(manifestPath);
+  }
 
   for (const file of cssFiles) {
     const filePath = path.join(themePath, file);
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf-8');
       combinedCSS += `/* --- ${file} --- */\n${content}\n\n`;
+      deps.push(filePath);
     } else {
       console.warn(`Theme CSS file not found: ${filePath}`);
     }
   }
 
-  return combinedCSS;
+  return { css: combinedCSS, deps };
 }
 
 /**
@@ -138,7 +152,7 @@ export function validateTheme(
 
   // Check for required CSS variables
   if (manifest.required_variables) {
-    const css = loadThemeCSS(themePath, manifest);
+    const { css } = loadThemeCSS(themePath, manifest);
     const allRequired = [
       ...(manifest.required_variables.colors || []),
       ...(manifest.required_variables.fonts || []),
@@ -194,15 +208,16 @@ export function validateTheme(
 }
 
 /**
- * Load complete theme configuration
+ * Load complete theme configuration with mtime-based caching
  *
  * @param themeRef - Theme reference (default: "@theme/default")
  * @returns Theme configuration or null if not found
  */
 export function loadThemeConfig(themeRef: string = '@theme/default'): ThemeConfig | null {
-  // Check cache first
-  if (themeCache.has(themeRef)) {
-    return themeCache.get(themeRef)!;
+  // Check cache first (uses mtime-based validation)
+  const cached = cacheManager.getCached<ThemeConfig>('theme', themeRef);
+  if (cached) {
+    return cached;
   }
 
   const resolved = resolveThemeAlias(themeRef);
@@ -263,8 +278,8 @@ export function loadThemeConfig(themeRef: string = '@theme/default'): ThemeConfi
     }
   }
 
-  // Load CSS
-  const css = loadThemeCSS(resolved.path, manifest);
+  // Load CSS with dependency tracking
+  const { css, deps } = loadThemeCSS(resolved.path, manifest);
 
   const config: ThemeConfig = {
     name: resolved.name,
@@ -274,19 +289,36 @@ export function loadThemeConfig(themeRef: string = '@theme/default'): ThemeConfi
     isDefault: resolved.isDefault,
   };
 
-  // Cache the result
-  themeCache.set(themeRef, config);
+  // Cache with file dependencies (theme.yaml + CSS files)
+  cacheManager.setCache('theme', themeRef, config, deps);
 
   return config;
 }
 
+// Cache for combined CSS (with inheritance resolved)
+const COMBINED_CSS_CACHE_KEY = '__theme_combined_css__';
+
+function getCombinedCSSCache(): Map<string, string> {
+  if (!(globalThis as any)[COMBINED_CSS_CACHE_KEY]) {
+    (globalThis as any)[COMBINED_CSS_CACHE_KEY] = new Map<string, string>();
+  }
+  return (globalThis as any)[COMBINED_CSS_CACHE_KEY];
+}
+
 /**
  * Get combined theme CSS for injection (handles inheritance)
+ * Result is cached to avoid rebuilding on every call.
  *
  * @param themeRef - Theme reference (default: "@theme/default")
  * @returns Combined CSS string (parent + child)
  */
 export function getThemeCSS(themeRef: string = '@theme/default'): string {
+  // Check combined CSS cache first
+  const cssCache = getCombinedCSSCache();
+  if (cssCache.has(themeRef)) {
+    return cssCache.get(themeRef)!;
+  }
+
   const theme = loadThemeConfig(themeRef);
   if (!theme) {
     // Return empty string if theme not found (errors already logged)
@@ -304,14 +336,10 @@ export function getThemeCSS(themeRef: string = '@theme/default'): string {
   // Then add this theme's CSS (overrides parent)
   css += theme.css;
 
-  return css;
-}
+  // Cache the combined result
+  cssCache.set(themeRef, css);
 
-/**
- * Clear the theme cache (useful for HMR)
- */
-export function clearThemeCache(): void {
-  themeCache.clear();
+  return css;
 }
 
 /**
@@ -346,6 +374,5 @@ export default {
   validateTheme,
   loadThemeConfig,
   getThemeCSS,
-  clearThemeCache,
   getAvailableThemes,
 };

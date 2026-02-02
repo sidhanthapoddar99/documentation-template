@@ -298,14 +298,10 @@ if (pageType === 'docs' || pageType === 'docs-index') {
   contentType = 'custom';
 }
 
-// Layout props
-let layoutProps: Record<string, any> = { dataPath };
+// Layout props - always include baseUrl so sidebar builds correctly
+let layoutProps: Record<string, any> = { dataPath, baseUrl: pageConfig?.base_url };
 
 if (pageType === 'docs' && doc) {
-  // DEBUG: Log what we're passing
-  console.log('[slug.astro DEBUG] pageConfig.base_url:', pageConfig?.base_url);
-  console.log('[slug.astro DEBUG] pageName:', pageName);
-
   layoutProps = {
     title: doc.data.title,
     description: doc.data.description,
@@ -314,6 +310,17 @@ if (pageType === 'docs' && doc) {
     currentSlug: doc.slug,
     content: doc.content,
     headings: doc.headings, // Headings extracted during parsing
+  };
+} else if (pageType === 'docs' && !doc && pageConfig) {
+  // Doc not found (possibly deleted) - still provide baseUrl for sidebar
+  layoutProps = {
+    title: 'Page Not Found',
+    description: '',
+    dataPath,
+    baseUrl: pageConfig.base_url,
+    currentSlug: '',
+    content: '<p>This page does not exist or has been deleted.</p>',
+    headings: [],
   };
 } else if (pageType === 'blog-post' && post) {
   layoutProps = {
