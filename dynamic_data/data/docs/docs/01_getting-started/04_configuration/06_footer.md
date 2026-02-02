@@ -40,15 +40,30 @@ social:
 | `columns` | `array` | No | Link columns |
 | `social` | `array` | No | Social media links |
 
-## Layout
+## Layout Styles
 
-Specify which footer layout to use:
+Specify which footer style to use:
 
 ```yaml
 layout: "@footer/default"
 ```
 
-Resolves to: `src/layouts/footer/styles/default/Layout.astro`
+### Available Styles
+
+| Style | Alias | Description |
+|-------|-------|-------------|
+| **Default** | `@footer/default` | Multi-column footer with social links |
+| **Minimal** | `@footer/minimal` | Simple single-line footer |
+
+### Style Resolution
+
+The layout alias resolves to the component file:
+- `@footer/default` → `src/layouts/footer/default/index.astro`
+- `@footer/minimal` → `src/layouts/footer/minimal/index.astro`
+
+### Dev Toolbar Switching
+
+In development mode, you can switch footer styles without editing config files using the dev toolbar. See [Layout & Theme Switcher](../03_development/02_layout-switcher.md) for details.
 
 ## Copyright
 
@@ -259,3 +274,13 @@ social:
   - platform: "discord"
     href: "https://discord.gg/example"
 ```
+
+## Creating Custom Footer Styles
+
+To create a new footer style:
+
+1. Create a folder: `src/layouts/footer/my-style/`
+2. Add `index.astro` with your footer design
+3. Reference it in config: `layout: "@footer/my-style"`
+
+The component receives footer config (columns, social, copyright) via the config loader. See existing styles for implementation patterns.

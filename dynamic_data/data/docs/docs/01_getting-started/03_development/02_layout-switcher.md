@@ -1,18 +1,18 @@
 ---
 title: Layout & Theme Switcher
-description: Dev toolbar for switching layouts and themes during development
+description: Dev toolbar for switching layouts, themes, navbar, and footer during development
 ---
 
 # Layout & Theme Switcher
 
-The framework includes a custom dev toolbar app for rapid layout iteration. This is a **development-only** feature that allows you to preview different layouts without modifying configuration files.
+The framework includes a custom dev toolbar app for rapid layout iteration. This is a **development-only** feature that allows you to preview different layouts, themes, navbars, and footers without modifying configuration files.
 
 ## Accessing the Selector
 
 1. Start the dev server (`npm run start`)
-2. Navigate to any docs or blog page
+2. Navigate to any page
 3. Click the **grid icon** in the dev toolbar
-4. Select a layout or theme
+4. Select a layout, theme, navbar, or footer style
 
 ## Layout Selector
 
@@ -26,35 +26,63 @@ When on `/blog/*` pages:
 - Preview different post card layouts
 - Test index vs post layouts
 
+## Navbar Selector
+
+Switch between navbar styles globally:
+
+| Style | Description |
+|-------|-------------|
+| **Style 1** | Full-featured navbar with dropdowns, mobile menu, theme toggle |
+| **Minimal** | Simple flat navbar with basic links |
+
+## Footer Selector
+
+Switch between footer styles globally:
+
+| Style | Description |
+|-------|-------------|
+| **Default** | Multi-column footer with social links |
+| **Minimal** | Simple single-line footer |
+
 ## Theme Selector
 
-Toggle between themes globally:
+### Color Themes
 
-| Theme | Behavior |
-|-------|----------|
+Switch between color themes defined in `dynamic_data/themes/`:
+- Default theme
+- Minimal theme
+- Custom themes
+
+### Display Mode
+
+Toggle between display modes:
+
+| Mode | Behavior |
+|------|----------|
 | **Light** | Force light mode |
 | **Dark** | Force dark mode |
 | **System** | Follow OS preference |
 
-Theme selection persists in localStorage across sessions.
+Display mode selection persists in localStorage across sessions.
 
-## URL-Based Layout Override
+## Reset Overrides
 
-You can also override layouts via URL query parameter:
-
-```
-/docs/overview?layout=doc_style2
-/blog?layout=blog_style2
-```
-
-This is useful for:
-- Sharing specific layout previews with team members
-- Testing layouts without opening the toolbar
-- Bookmarking layout comparisons
+Click "Reset All Overrides" to clear all dev toolbar selections and return to config defaults.
 
 ## How It Works
 
-The layout switcher operates through several components working together:
+The layout switcher uses **cookies** to persist selections across page reloads. This allows the server to read the override values during rendering.
+
+### Cookie-Based Persistence
+
+| Cookie | Purpose | Default |
+|--------|---------|---------|
+| `dev-layout` | Content layout override | Config value |
+| `dev-color-theme` | Color theme override | Config value |
+| `dev-navbar` | Navbar style override | `style1` |
+| `dev-footer` | Footer style override | `default` |
+
+Cookies expire after 7 days and are only used in development mode.
 
 ### 1. Dev Toolbar Integration (`src/dev-toolbar/integration.ts`)
 
@@ -81,41 +109,36 @@ export function devToolbarIntegration(): AstroIntegration {
 ### 2. Layout Selector UI (`src/dev-toolbar/layout-selector.ts`)
 
 The client-side code that:
-- Renders layout/theme options in the toolbar panel
+- Renders layout/theme/navbar/footer options in the toolbar panel
 - Detects current page type (docs, blog, custom)
-- Adds `?layout=` query parameter to URL on selection
-- Triggers page reload with new layout
+- Sets cookies for selected overrides
+- Triggers page reload with new settings
 
-### 3. Middleware (`src/middleware.ts`)
+### 3. Page Handler (`src/pages/[...slug].astro`)
 
-Captures the `layout` query parameter from the HTTP request:
-
-```typescript
-export const onRequest = defineMiddleware(async (context, next) => {
-  if (import.meta.env.DEV) {
-    const layoutOverride = context.url.searchParams.get('layout');
-    if (layoutOverride) {
-      context.locals.layoutOverride = layoutOverride;
-    }
-  }
-  return next();
-});
-```
-
-### 4. Page Handler (`src/pages/[...slug].astro`)
-
-Reads the layout override and applies it:
+Reads cookies and applies overrides in dev mode:
 
 ```typescript
-const layoutOverride = isDev ? Astro.locals.layoutOverride : null;
+// Get navbar/footer layouts from config
+let navbarLayoutRef = getNavbarLayout();
+let footerLayoutRef = getFooterLayout();
 
-let layout = configLayout;
-if (layoutOverride && isDev) {
-  if (pageType === 'docs') {
-    layout = `@docs/${layoutOverride}`;
+// Dev mode: Allow override via cookies
+if (isDev) {
+  const navbarCookie = Astro.cookies.get('dev-navbar');
+  if (navbarCookie?.value && navbarCookie.value !== '__reset__') {
+    navbarLayoutRef = `@navbar/${navbarCookie.value}`;
   }
-  // ... similar for blog, custom
+
+  const footerCookie = Astro.cookies.get('dev-footer');
+  if (footerCookie?.value && footerCookie.value !== '__reset__') {
+    footerLayoutRef = `@footer/${footerCookie.value}`;
+  }
 }
+
+// Dynamically load navbar and footer components
+const NavbarComponent = (await resolveNavbarFooter(navbarLayoutRef, 'navbar')()).default;
+const FooterComponent = (await resolveNavbarFooter(footerLayoutRef, 'footer')()).default;
 ```
 
 ## Available Layouts
@@ -124,19 +147,50 @@ Layouts are auto-discovered via glob patterns:
 
 ```typescript
 const docsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
+const navbarLayouts = import.meta.glob('/src/layouts/navbar/*/index.astro');
+const footerLayouts = import.meta.glob('/src/layouts/footer/*/index.astro');
 ```
 
-Any folder in `src/layouts/docs/styles/` with a `Layout.astro` file becomes available for switching.
-
-### Current Doc Layouts
+### Doc Layouts
 
 | Layout | Description |
 |--------|-------------|
 | `doc_style1` | Full layout with sidebar, body, and outline |
 | `doc_style2` | Minimal layout without sidebar |
 
-### Adding New Layouts
+Location: `src/layouts/docs/styles/{style}/Layout.astro`
 
+### Navbar Styles
+
+| Style | Description |
+|-------|-------------|
+| `style1` | Full-featured with dropdowns and mobile menu |
+| `minimal` | Simple flat navbar |
+
+Location: `src/layouts/navbar/{style}/index.astro`
+
+### Footer Styles
+
+| Style | Description |
+|-------|-------------|
+| `default` | Multi-column with social links |
+| `minimal` | Single-line footer |
+
+Location: `src/layouts/footer/{style}/index.astro`
+
+### Adding New Styles
+
+**Doc Layout:**
 1. Create folder: `src/layouts/docs/styles/doc_style3/`
 2. Add `Layout.astro` with your design
 3. The layout appears automatically in the dev toolbar
+
+**Navbar:**
+1. Create folder: `src/layouts/navbar/my-style/`
+2. Add `index.astro` with your design
+3. Update `navbar.yaml`: `layout: "@navbar/my-style"`
+
+**Footer:**
+1. Create folder: `src/layouts/footer/my-style/`
+2. Add `index.astro` with your design
+3. Update `footer.yaml`: `layout: "@footer/my-style"`

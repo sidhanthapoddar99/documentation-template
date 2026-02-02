@@ -57,6 +57,7 @@ export interface NavbarLogo {
 }
 
 export interface NavbarConfig {
+  layout?: string;  // Layout alias (e.g., "@navbar/style1" or "@navbar/minimal")
   logo?: NavbarLogo;
   items: NavItem[];
 }
@@ -160,6 +161,22 @@ export function getFavicon(): string {
 export function getTheme(): string {
   const config = loadSiteConfig();
   return config.theme || '@theme/default';
+}
+
+/**
+ * Get navbar layout from config (default: @navbar/style1)
+ */
+export function getNavbarLayout(): string {
+  const config = loadNavbarConfig();
+  return config.layout || '@navbar/style1';
+}
+
+/**
+ * Get footer layout from config (default: @footer/default)
+ */
+export function getFooterLayout(): string {
+  const config = loadFooterConfig();
+  return config.layout || '@footer/default';
 }
 
 /**
@@ -279,6 +296,8 @@ export default {
   getSiteLogo,
   getFavicon,
   getTheme,
+  getNavbarLayout,
+  getFooterLayout,
   resolvePageUrl,
   processCopyright,
   validateRoutes,

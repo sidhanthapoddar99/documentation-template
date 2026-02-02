@@ -6,7 +6,7 @@ sidebar_position: 5
 
 # Navbar Configuration
 
-The `navbar.yaml` file configures your site's top navigation bar items.
+The `navbar.yaml` file configures your site's top navigation bar style and items.
 
 ## Location
 
@@ -17,6 +17,9 @@ config/navbar.yaml
 ## Structure
 
 ```yaml
+# Navbar layout style
+layout: "@navbar/style1"
+
 # Note: Logo configuration has moved to site.yaml
 
 items:
@@ -29,6 +32,31 @@ items:
   - label: "Blog"
     href: "/blog"
 ```
+
+## Layout Styles
+
+Specify which navbar style to use:
+
+```yaml
+layout: "@navbar/style1"
+```
+
+### Available Styles
+
+| Style | Alias | Description |
+|-------|-------|-------------|
+| **Style 1** | `@navbar/style1` | Full-featured navbar with dropdowns, mobile menu, theme toggle |
+| **Minimal** | `@navbar/minimal` | Simple flat navbar with basic links and theme toggle |
+
+### Style Resolution
+
+The layout alias resolves to the component file:
+- `@navbar/style1` → `src/layouts/navbar/style1/index.astro`
+- `@navbar/minimal` → `src/layouts/navbar/minimal/index.astro`
+
+### Dev Toolbar Switching
+
+In development mode, you can switch navbar styles without editing config files using the dev toolbar. See [Layout & Theme Switcher](../03_development/02_layout-switcher.md) for details.
 
 ## Logo Configuration
 
@@ -115,6 +143,7 @@ interface NavItem {
 }
 
 interface NavbarConfig {
+  layout?: string;  // Layout alias (e.g., "@navbar/style1")
   items: NavItem[];
 }
 ```
@@ -122,10 +151,13 @@ interface NavbarConfig {
 ## Loading in Code
 
 ```typescript
-import { loadNavbarConfig, getSiteLogo } from '@loaders/config';
+import { loadNavbarConfig, getSiteLogo, getNavbarLayout } from '@loaders/config';
 
 const navbar = loadNavbarConfig();
 const { items } = navbar;
+
+// Get the configured navbar layout
+const navbarLayout = getNavbarLayout(); // Returns "@navbar/style1" by default
 
 // Logo is now loaded separately from site config
 const logo = getSiteLogo();
@@ -133,10 +165,11 @@ const logo = getSiteLogo();
 
 ## Default Values
 
-If `navbar.yaml` is missing:
+If `navbar.yaml` is missing or `layout` is not specified:
 
 ```typescript
 {
+  layout: '@navbar/style1',  // Default navbar style
   items: [],
 }
 ```
@@ -145,6 +178,10 @@ If `navbar.yaml` is missing:
 
 ```yaml
 # navbar.yaml
+
+# Layout style: @navbar/style1 (full-featured) or @navbar/minimal (simple)
+layout: "@navbar/style1"
+
 items:
   - label: "Home"
     href: "/"
@@ -152,7 +189,7 @@ items:
   - label: "Docs"
     href: "/docs/final-docs"
 
-  - label: "Docs"
+  - label: "Resources"
     items:
       - label: "Layouts"
         href: "/docs/layouts"
@@ -168,6 +205,16 @@ items:
   - label: "GitHub"
     href: "https://github.com/user/repo"
 ```
+
+## Creating Custom Navbar Styles
+
+To create a new navbar style:
+
+1. Create a folder: `src/layouts/navbar/my-style/`
+2. Add `index.astro` with your navbar design
+3. Reference it in config: `layout: "@navbar/my-style"`
+
+The component receives navbar items via the config loader. See existing styles for implementation patterns.
 
 ## Migration Note
 

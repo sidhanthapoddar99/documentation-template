@@ -10,10 +10,9 @@
  * Errors thrown if layout doesn't exist (no silent fallbacks)
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
-import NavbarStyle1 from '@layouts/navbar/style1/index.astro';
-import FooterDefault from '@layouts/footer/default/index.astro';
 
 import { loadSiteConfig, loadContent } from '@loaders/index';
+import { getNavbarLayout, getFooterLayout } from '@loaders/config';
 import { resolveAliasPath } from '@loaders/alias';
 
 // Auto-discover all layouts using glob patterns
@@ -22,10 +21,16 @@ const blogIndexLayouts = import.meta.glob('/src/layouts/blogs/styles/*/IndexLayo
 const blogPostLayouts = import.meta.glob('/src/layouts/blogs/styles/*/PostLayout.astro');
 const customLayouts = import.meta.glob('/src/layouts/custom/styles/*/Layout.astro');
 
+// Auto-discover navbar and footer layouts
+const navbarLayouts = import.meta.glob('/src/layouts/navbar/*/index.astro');
+const footerLayouts = import.meta.glob('/src/layouts/footer/*/index.astro');
+
 // Available styles for error messages
 const availableDocsStyles = Object.keys(docsLayouts).map(p => p.match(/\/styles\/([^/]+)\//)?.[1]).filter(Boolean);
 const availableBlogStyles = Object.keys(blogIndexLayouts).map(p => p.match(/\/styles\/([^/]+)\//)?.[1]).filter(Boolean);
 const availableCustomStyles = Object.keys(customLayouts).map(p => p.match(/\/styles\/([^/]+)\//)?.[1]).filter(Boolean);
+const availableNavbarStyles = Object.keys(navbarLayouts).map(p => p.match(/\/navbar\/([^/]+)\//)?.[1]).filter(Boolean);
+const availableFooterStyles = Object.keys(footerLayouts).map(p => p.match(/\/footer\/([^/]+)\//)?.[1]).filter(Boolean);
 
 export async function getStaticPaths() {
   const siteConfig = loadSiteConfig();
@@ -178,6 +183,23 @@ if (layoutOverride && isDev) {
   // Custom pages don't have layout overrides (use config only)
 }
 
+// Get navbar/footer layouts from config
+let navbarLayoutRef = getNavbarLayout();
+let footerLayoutRef = getFooterLayout();
+
+// Dev mode: Allow navbar/footer override via cookies
+if (isDev) {
+  const navbarCookie = Astro.cookies.get('dev-navbar');
+  if (navbarCookie?.value && navbarCookie.value !== '__reset__') {
+    navbarLayoutRef = `@navbar/${navbarCookie.value}`;
+  }
+
+  const footerCookie = Astro.cookies.get('dev-footer');
+  if (footerCookie?.value && footerCookie.value !== '__reset__') {
+    footerLayoutRef = `@footer/${footerCookie.value}`;
+  }
+}
+
 // Handle docs index redirect
 if (pageType === 'docs-index' && allContent?.length > 0) {
   return Astro.redirect(`${pageConfig.base_url}/${allContent[0].slug}`);
@@ -268,6 +290,37 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
   return loader;
 }
 
+/**
+ * Validate and resolve navbar/footer layout
+ */
+function resolveNavbarFooter(layoutAlias: string, type: 'navbar' | 'footer') {
+  const match = layoutAlias.match(/^@(navbar|footer)\/(.+)$/);
+  if (!match) {
+    throw new Error(
+      `\n[CONFIG ERROR] Invalid ${type} layout format: "${layoutAlias}"\n` +
+      `  Expected format: @${type}/{style}\n` +
+      `  Examples: @navbar/style1, @footer/default\n`
+    );
+  }
+
+  const [, , style] = match;
+  const layouts = type === 'navbar' ? navbarLayouts : footerLayouts;
+  const available = type === 'navbar' ? availableNavbarStyles : availableFooterStyles;
+  const expectedPath = `/src/layouts/${type}/${style}/index.astro`;
+  const loader = layouts[expectedPath];
+
+  if (!loader) {
+    throw new Error(
+      `\n[CONFIG ERROR] ${type.charAt(0).toUpperCase() + type.slice(1)} layout "${style}" does not exist.\n` +
+      `  Config: ${layoutAlias}\n` +
+      `  Expected: src/layouts/${type}/${style}/index.astro\n` +
+      `  Available: ${(available as string[]).join(', ') || '(none)'}\n`
+    );
+  }
+
+  return loader;
+}
+
 // Resolve layout component
 let LayoutComponent: any;
 
@@ -281,6 +334,10 @@ if (pageType === 'custom' || pageType === 'docs') {
   const loader = validateAndResolve(layout, 'post');
   LayoutComponent = (await loader()).default;
 }
+
+// Resolve navbar and footer components
+const NavbarComponent = (await resolveNavbarFooter(navbarLayoutRef, 'navbar')()).default;
+const FooterComponent = (await resolveNavbarFooter(footerLayoutRef, 'footer')()).default;
 
 // Page title
 let title = 'Page';
@@ -335,7 +392,7 @@ if (pageType === 'docs' && doc) {
 ---
 
 <BaseLayout title={title} contentType={contentType}>
-  <NavbarStyle1 slot="navbar" />
+  <NavbarComponent slot="navbar" />
   <LayoutComponent {...layoutProps} />
-  <FooterDefault slot="footer" />
+  <FooterComponent slot="footer" />
 </BaseLayout>

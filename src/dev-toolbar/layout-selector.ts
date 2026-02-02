@@ -13,6 +13,8 @@
 const LAYOUTS = {
   docs: ['doc_style1', 'doc_style2'],
   blog: ['blog_style1'],  // Only blog_style1 exists currently
+  navbar: ['style1', 'minimal'],
+  footer: ['default', 'minimal'],
 } as const;
 
 // Display modes for light/dark toggle (used in UI rendering)
@@ -38,7 +40,15 @@ export default {
   name: 'Layout & Theme',
   icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
 
-  async init(canvas: ShadowRoot, _app: any, _server: any) {
+  async init(canvas: ShadowRoot, app: any, _server: any) {
+    // Check if panel should auto-open (after a reload from style change)
+    const shouldAutoOpen = sessionStorage.getItem('dev-toolbar-keep-open');
+    if (shouldAutoOpen) {
+      sessionStorage.removeItem('dev-toolbar-keep-open');
+      // Small delay to ensure toolbar is ready
+      setTimeout(() => app.toggleState({ state: true }), 100);
+    }
+
     // Detect content type from data attribute (config-driven, not URL-based)
     const contentType = document.documentElement.getAttribute('data-content-type');
     const isDocsPage = contentType === 'docs';
@@ -58,6 +68,13 @@ export default {
     // Get layout from cookie
     const layoutCookie = getCookie('dev-layout');
     const activeLayout = (layoutCookie && layoutCookie !== '__reset__') ? layoutCookie : null;
+
+    // Get navbar/footer from cookies
+    const navbarCookie = getCookie('dev-navbar');
+    const activeNavbar = (navbarCookie && navbarCookie !== '__reset__') ? navbarCookie : null;
+
+    const footerCookie = getCookie('dev-footer');
+    const activeFooter = (footerCookie && footerCookie !== '__reset__') ? footerCookie : null;
 
     // Get current display mode (light/dark/system)
     const currentDisplayMode = localStorage.getItem('theme') || 'system';
@@ -82,10 +99,36 @@ export default {
     // Create styles
     const styles = document.createElement('style');
     styles.textContent = `
+      astro-dev-toolbar-window {
+        max-height: 80vh !important;
+        overflow: hidden !important;
+      }
+
       .panel-content {
         padding: 12px;
         font-family: system-ui, -apple-system, sans-serif;
         min-width: 260px;
+        max-height: 70vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+      }
+
+      .panel-content::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .panel-content::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      .panel-content::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
+
+      .panel-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
       }
 
       .section {
@@ -265,6 +308,45 @@ export default {
         height: 14px;
       }
 
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .panel-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .close-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 4px;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .close-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .close-btn svg {
+        width: 14px;
+        height: 14px;
+      }
+
       .current-config {
         font-size: 10px;
         color: rgba(255, 255, 255, 0.4);
@@ -277,6 +359,17 @@ export default {
 
     // Build content
     let html = '<div class="panel-content">';
+
+    // Header with close button
+    html += `<div class="panel-header">
+      <span class="panel-title">Layout & Theme</span>
+      <button class="close-btn" id="close-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>`;
 
     // Layout Section
     html += '<div class="section">';
@@ -401,8 +494,63 @@ export default {
     html += '</div>';
     html += '</div>';
 
+    // Divider before Navbar
+    html += '<div class="divider"></div>';
+
+    // Navbar Section
+    html += '<div class="section">';
+    html += `<div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+      Navbar Style
+    </div>`;
+    html += '<div class="option-list">';
+    for (const style of LAYOUTS.navbar) {
+      const isActive = activeNavbar === style || (!activeNavbar && style === 'style1');
+      const displayName = style.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+      html += `
+        <button class="option-btn ${isActive ? 'active' : ''}" data-navbar="${style}">
+          <span class="radio-circle"><span class="radio-dot"></span></span>
+          <span class="option-text">${displayName}</span>
+          ${isActive ? '<span class="active-tag">Active</span>' : ''}
+        </button>
+      `;
+    }
+    html += '</div>';
+    html += '</div>';
+
+    // Divider before Footer
+    html += '<div class="divider"></div>';
+
+    // Footer Section
+    html += '<div class="section">';
+    html += `<div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="16" width="18" height="5" rx="1"/>
+        <path d="M3 11h18"/>
+      </svg>
+      Footer Style
+    </div>`;
+    html += '<div class="option-list">';
+    for (const style of LAYOUTS.footer) {
+      const isActive = activeFooter === style || (!activeFooter && style === 'default');
+      const displayName = style.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+      html += `
+        <button class="option-btn ${isActive ? 'active' : ''}" data-footer="${style}">
+          <span class="radio-circle"><span class="radio-dot"></span></span>
+          <span class="option-text">${displayName}</span>
+          ${isActive ? '<span class="active-tag">Active</span>' : ''}
+        </button>
+      `;
+    }
+    html += '</div>';
+    html += '</div>';
+
     // Show current config info and reset button
-    const hasOverrides = activeColorTheme || activeLayout;
+    const hasOverrides = activeColorTheme || activeLayout || activeNavbar || activeFooter;
     if (hasOverrides) {
       html += '<div class="divider"></div>';
       html += `
@@ -425,8 +573,24 @@ export default {
 
     // Create a wrapper div for the content (can't query custom elements directly)
     const contentWrapper = document.createElement('div');
+    contentWrapper.style.maxHeight = '65vh';
+    contentWrapper.style.overflowY = 'auto';
     contentWrapper.innerHTML = html;
     windowEl.appendChild(contentWrapper);
+
+    // Helper to reload page while keeping panel open
+    const reloadKeepOpen = () => {
+      sessionStorage.setItem('dev-toolbar-keep-open', 'true');
+      window.location.reload();
+    };
+
+    // Add event listener for close button
+    const closeBtn = contentWrapper.querySelector('#close-panel');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        app.toggleState({ state: false });
+      });
+    }
 
     // Add event listeners for layout buttons
     contentWrapper.querySelectorAll('.option-btn[data-layout]').forEach(button => {
@@ -439,9 +603,7 @@ export default {
           document.cookie = `dev-layout=${layout}; expires=${expires}; path=/`;
 
           console.log('[dev-toolbar] Set layout cookie:', layout);
-
-          // Reload page to apply layout (server reads cookie)
-          window.location.reload();
+          reloadKeepOpen();
         }
       });
     });
@@ -457,9 +619,7 @@ export default {
           document.cookie = `dev-color-theme=${themeName}; expires=${expires}; path=/`;
 
           console.log('[dev-toolbar] Set theme cookie:', themeName);
-
-          // Reload page to apply theme (server reads cookie)
-          window.location.reload();
+          reloadKeepOpen();
         }
       });
     });
@@ -488,15 +648,49 @@ export default {
       });
     });
 
+    // Add event listeners for navbar buttons
+    contentWrapper.querySelectorAll('.option-btn[data-navbar]').forEach(button => {
+      button.addEventListener('click', () => {
+        const style = button.getAttribute('data-navbar');
+        if (style) {
+          const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+          document.cookie = `dev-navbar=${style}; expires=${expires}; path=/`;
+          console.log('[dev-toolbar] Set navbar cookie:', style);
+          reloadKeepOpen();
+        }
+      });
+    });
+
+    // Add event listeners for footer buttons
+    contentWrapper.querySelectorAll('.option-btn[data-footer]').forEach(button => {
+      button.addEventListener('click', () => {
+        const style = button.getAttribute('data-footer');
+        if (style) {
+          const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+          document.cookie = `dev-footer=${style}; expires=${expires}; path=/`;
+          console.log('[dev-toolbar] Set footer cookie:', style);
+          reloadKeepOpen();
+        }
+      });
+    });
+
     // Add event listener for reset button
     const resetBtn = contentWrapper.querySelector('#reset-overrides');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
+        const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+
         // Clear theme cookie (set to '__reset__' which server ignores, using site.yaml config)
-        document.cookie = 'dev-color-theme=__reset__; expires=' + new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString() + '; path=/';
+        document.cookie = `dev-color-theme=__reset__; expires=${expires}; path=/`;
 
         // Clear layout cookie
-        document.cookie = 'dev-layout=__reset__; expires=' + new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString() + '; path=/';
+        document.cookie = `dev-layout=__reset__; expires=${expires}; path=/`;
+
+        // Clear navbar cookie
+        document.cookie = `dev-navbar=__reset__; expires=${expires}; path=/`;
+
+        // Clear footer cookie
+        document.cookie = `dev-footer=__reset__; expires=${expires}; path=/`;
 
         // Clear old localStorage values
         localStorage.removeItem('dev-layout-docs');
@@ -504,7 +698,7 @@ export default {
         localStorage.removeItem('dev-color-theme');
 
         // Reload to apply
-        window.location.reload();
+        reloadKeepOpen();
       });
     }
 
