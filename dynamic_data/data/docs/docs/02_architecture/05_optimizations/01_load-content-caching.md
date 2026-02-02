@@ -256,14 +256,16 @@ interface ContentError {
 │   │       └── asset-embed.ts   ◄── MODIFIED: Collect asset errors           │
 │   │                                                                         │
 │   └── dev-toolbar/                                                          │
-│       ├── integration.ts       ◄── MODIFIED: HMR + external paths support   │
+│       ├── integration.ts       ◄── MODIFIED: HMR reads .env, watches        │
+│       │                             add/delete/change events                 │
 │       └── error-logger.ts      ◄── NEW: Error panel UI                      │
 │                                                                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   ALSO CACHED:                                                              │
 │   └── src/hooks/useSidebar.ts                ◄── Sidebar tree + folder      │
-│                                                   settings cached            │
+│                                                   settings + folder lookups  │
+│                                                   (invalidated on HMR)       │
 │                                                                             │
 │   UNCHANGED (transparent integration):                                      │
 │   ├── src/layouts/docs/components/sidebar/   ◄── No changes needed          │
@@ -272,26 +274,31 @@ interface ContentError {
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### External Paths Support
+### File Watching
 
-Hot reload works with content paths configured via `.env`:
+HMR reads paths from `.env` and watches all configured directories:
 
 ```bash
-# .env - Content can be anywhere on the filesystem
-DATA_DIR=/Users/external/my-docs
-CONFIG_DIR=/Users/external/my-config
-ASSETS_DIR=/Users/external/my-assets
+# .env - Paths can be relative or absolute
+DATA_DIR=./dynamic_data/data       # Docs, blog content
+CONFIG_DIR=./dynamic_data/config   # Site config, navbar, footer
+ASSETS_DIR=./dynamic_data/assets   # Images, logos
+THEMES_DIR=./dynamic_data/themes   # Theme CSS and config
 ```
-
-The HMR handler reads configured paths from `src/loaders/paths.ts` and watches all of them:
 
 ```typescript
 // src/dev-toolbar/integration.ts
-const watchPaths = [paths.data, paths.config, paths.assets];
+// Reads .env directly to get configured paths
+const watchPaths = getWatchPaths(); // [DATA_DIR, CONFIG_DIR, ASSETS_DIR, THEMES_DIR]
 
-// Check if changed file is in any watched path
-const isContentFile = watchPaths.some(p => file.startsWith(p));
+// Ignore temp/system files
+const ignoreExtensions = ['.DS_Store', '.gitkeep', '.tmp', '.swp', '.bak'];
 ```
+
+**Watched events:**
+- File changes (content edits)
+- File additions (new docs/assets)
+- File deletions (removed files)
 
 ### Multi-Level Caching
 

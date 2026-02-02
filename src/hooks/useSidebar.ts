@@ -12,6 +12,14 @@ import path from 'path';
 import type { LoadedContent } from '@loaders/data';
 
 // ============================================
+// Cache Keys (defined early for invalidation function)
+// ============================================
+
+const SIDEBAR_CACHE_KEY = '__astro_sidebar_cache__';
+const FOLDER_SETTINGS_CACHE_KEY = '__astro_folder_settings_cache__';
+const FOLDER_LOOKUP_CACHE_KEY = '__astro_folder_lookup_cache__';
+
+// ============================================
 // Sidebar Cache (using globalThis)
 // ============================================
 
@@ -22,14 +30,31 @@ interface SidebarCacheEntry {
   contentSlugs: Set<string>; // For fast lookup
 }
 
-const SIDEBAR_CACHE_KEY = '__astro_sidebar_cache__';
-
 function getSidebarCache(): Map<string, SidebarCacheEntry> {
   if (!(globalThis as any)[SIDEBAR_CACHE_KEY]) {
     console.log('[SIDEBAR CACHE] Initializing new cache');
     (globalThis as any)[SIDEBAR_CACHE_KEY] = new Map<string, SidebarCacheEntry>();
   }
   return (globalThis as any)[SIDEBAR_CACHE_KEY];
+}
+
+/**
+ * Invalidate all sidebar caches (called on file add/delete/change)
+ */
+export function invalidateSidebarCache(): void {
+  // Clear sidebar tree cache
+  if ((globalThis as any)[SIDEBAR_CACHE_KEY]) {
+    (globalThis as any)[SIDEBAR_CACHE_KEY].clear();
+    console.log('[SIDEBAR CACHE] Invalidated');
+  }
+  // Clear folder settings cache
+  if ((globalThis as any)[FOLDER_SETTINGS_CACHE_KEY]) {
+    (globalThis as any)[FOLDER_SETTINGS_CACHE_KEY].clear();
+  }
+  // Clear folder lookup cache
+  if ((globalThis as any)[FOLDER_LOOKUP_CACHE_KEY]) {
+    (globalThis as any)[FOLDER_LOOKUP_CACHE_KEY].clear();
+  }
 }
 
 /**
@@ -100,8 +125,6 @@ function extractPosition(name: string): { position: number; cleanName: string } 
 }
 
 // Folder settings cache
-const FOLDER_SETTINGS_CACHE_KEY = '__astro_folder_settings_cache__';
-
 function getFolderSettingsCache(): Map<string, FolderSettings> {
   if (!(globalThis as any)[FOLDER_SETTINGS_CACHE_KEY]) {
     (globalThis as any)[FOLDER_SETTINGS_CACHE_KEY] = new Map<string, FolderSettings>();
@@ -147,8 +170,6 @@ function formatTitle(slug: string): string {
 }
 
 // Folder lookup cache (parent path -> map of clean names to actual folder names)
-const FOLDER_LOOKUP_CACHE_KEY = '__astro_folder_lookup_cache__';
-
 function getFolderLookupCache(): Map<string, Map<string, string>> {
   if (!(globalThis as any)[FOLDER_LOOKUP_CACHE_KEY]) {
     (globalThis as any)[FOLDER_LOOKUP_CACHE_KEY] = new Map<string, Map<string, string>>();

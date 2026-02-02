@@ -8,4 +8,44 @@
 
 @import './color.css';
 
-/* Additional minimal theme customizations can be added here */
+/* =================================
+   Minimal Scrollbar - Light Mode
+   ================================= */
+:root {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-default) transparent;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* =================================
+   Minimal Scrollbar - Dark Mode
+   ================================= */
+[data-theme="dark"] {
+  scrollbar-color: var(--color-border-light) transparent;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
