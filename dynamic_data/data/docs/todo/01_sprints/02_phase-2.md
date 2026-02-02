@@ -66,6 +66,97 @@ sidebar_label: Phase 2
 - [ ] Skill to write blog posts
 - [ ] Skill to create custom pages
 
+## 7. Dev-Only Content (Hide in Production)
+
+Allow certain pages/sections to be visible only during development.
+
+### Page-Level Hiding
+
+- [ ] Add `hideInProd: true` option in page config (site.yaml)
+- [ ] Add `draft: true` or `devOnly: true` frontmatter option for individual docs
+- [ ] Filter out dev-only pages during production build
+- [ ] Show visual indicator in dev mode for hidden pages
+
+**Use Case:** Todo/roadmap docs visible during development but hidden in production.
+
+```yaml
+# site.yaml example
+pages:
+  todo:
+    base_url: "/todo"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/docs/todo"
+    hideInProd: true  # Only visible in dev mode
+```
+
+### Navbar Item Hiding (Independent)
+
+- [ ] Add `hideInProd: true` option for navbar items
+- [ ] Filter navbar items during production build
+- [ ] Show visual indicator (e.g., badge/icon) in dev mode for hidden items
+- [ ] Support hiding nested dropdown items independently
+
+```yaml
+# navbar.yaml example
+layout: "@navbar/style1"
+
+items:
+  - label: "Home"
+    href: "/"
+  - label: "Docs"
+    href: "/docs/final-docs"
+  - label: "Todo"
+    href: "/todo"
+    hideInProd: true  # Only visible in dev navbar
+  - label: "Debug"
+    hideInProd: true
+    items:
+      - label: "Cache Stats"
+        href: "/debug/cache"
+      - label: "Config Viewer"
+        href: "/debug/config"
+```
+
+- [ ] Document the feature with examples
+
+## 8. Multiple Data Paths
+
+Support multiple named data paths instead of single DATA_DIR.
+
+- [ ] Update `.env` to support multiple paths:
+  ```env
+  DATA_PATHS=docs:./dynamic_data/data/docs,blog:./dynamic_data/data/blog,external:/abs/path/to/data
+  ```
+- [ ] Or use YAML config for paths:
+  ```yaml
+  # In site.yaml or separate paths.yaml
+  dataPaths:
+    docs: "./dynamic_data/data/docs"
+    blog: "./dynamic_data/data/blog"
+    external: "/absolute/path/to/data"
+  ```
+- [ ] Create path resolution utilities in `@loaders/paths.ts`
+- [ ] Support `@data/<path_name>/subpath` alias format
+- [ ] Standardize all path inputs to use this pattern
+- [ ] Handle both relative and absolute paths
+- [ ] Validate paths exist on startup
+- [ ] Update documentation for new path system
+
+## 9. Codebase Refactoring
+
+Clean up and improve code quality.
+
+- [ ] Audit and refactor loaders for consistency
+- [ ] Standardize error handling patterns
+- [ ] Remove dead code and unused imports
+- [ ] Improve TypeScript types coverage
+- [ ] Add JSDoc comments to public APIs
+- [ ] Refactor large files into smaller modules
+- [ ] Create shared utilities for common operations
+- [ ] Update all documentation after refactoring
+- [ ] Ensure all code examples in docs match refactored code
+
 ---
 
 ## Deliverables
@@ -79,6 +170,9 @@ sidebar_label: Phase 2
 | 3 custom page templates | Pending |
 | Additional navbar/footer styles | Partial |
 | 7 Claude skills | Pending |
+| Dev-only content feature | Pending |
+| Multiple data paths support | Pending |
+| Codebase refactoring | Pending |
 
 ---
 
@@ -89,3 +183,6 @@ sidebar_label: Phase 2
 - At least 4 doc layout styles available
 - Landing, about, and contact templates ready to use
 - Claude skills accelerate development workflow
+- Dev-only pages hidden in production builds
+- Multiple data sources can be configured and accessed via aliases
+- Codebase is clean with updated documentation

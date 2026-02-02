@@ -28,6 +28,9 @@ Add rich content features and expand layout options.
 - Custom page templates
 - Navbar & footer variations
 - Claude skills for development
+- Dev-only content (hide in production)
+- Multiple data paths support
+- Codebase refactoring
 
 ### [Phase 3: Configuration & Deployment](./01_sprints/03_phase-3)
 Production-ready deployment and mobile compatibility.
