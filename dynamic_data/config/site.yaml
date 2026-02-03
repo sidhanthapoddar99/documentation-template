@@ -4,6 +4,15 @@ site:
   title: "My Documentation"
   description: "Modern documentation built with Astro"
 
+# Vite Server Configuration
+server:
+  allowedHosts:
+    - ".localhost"
+    - "127.0.0.1"
+    # Add your custom domains here:
+    # - "my-app.local"
+    # - ".ngrok.io"
+
 # Theme Configuration (optional - defaults to @theme/default)
 # Options: "@theme/default", "@theme/minimal", or custom theme path
 theme: "@theme/minimal"

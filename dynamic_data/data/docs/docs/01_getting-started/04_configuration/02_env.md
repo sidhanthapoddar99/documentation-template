@@ -41,6 +41,52 @@ Paths can be:
 
 This allows pointing to external folders outside your project.
 
+## Server Settings
+
+Configure the development server:
+
+```env
+PORT=3088
+HOST=true
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `4321` | Port number for the dev server |
+| `HOST` | `false` | Enable network access (`true` = listen on all interfaces, `false` = localhost only) |
+
+### `PORT`
+
+The port number for the development server:
+
+```env
+# Default Astro port
+PORT=4321
+
+# Custom port
+PORT=3088
+```
+
+### `HOST`
+
+Controls whether the server is accessible from other devices on the network:
+
+```env
+# Localhost only (default, more secure)
+HOST=false
+
+# Network access (accessible from other devices)
+HOST=true
+```
+
+When `HOST=true`, the server binds to `0.0.0.0` allowing access from:
+- Other devices on your local network
+- Docker containers
+- Virtual machines
+- Remote tunneling services (ngrok, localtunnel)
+
+**Security Note:** When enabling network access, consider using `server.allowedHosts` in `site.yaml` to restrict which hostnames can connect.
+
 ## Site Settings
 
 ```env
@@ -114,6 +160,12 @@ CONFIG_DIR=./dynamic_data/config
 DATA_DIR=./dynamic_data/data
 ASSETS_DIR=./dynamic_data/assets
 THEMES_DIR=./dynamic_data/themes
+
+# ============================================
+# SERVER SETTINGS
+# ============================================
+PORT=3088
+HOST=true
 
 # ============================================
 # SITE SETTINGS

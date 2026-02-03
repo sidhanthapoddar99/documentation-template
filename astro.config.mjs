@@ -3,13 +3,33 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs';
 import { loadEnv } from 'vite';
+import yaml from 'js-yaml';
 import { devToolbarIntegration } from './src/dev-toolbar/integration.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Load environment variables from .env
-const { PORT } = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
+const { PORT, HOST } = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
+
+// Load site config for server.allowedHosts
+
+function loadSiteConfigForServer() {
+  const configDir = process.env.CONFIG_DIR || './dynamic_data/config';
+  const siteConfigPath = path.resolve(process.cwd(), configDir, 'site.yaml');
+  try {
+    if (fs.existsSync(siteConfigPath)) {
+      const content = fs.readFileSync(siteConfigPath, 'utf-8');
+      return yaml.load(content);
+    }
+  } catch (error) {
+    console.warn('Could not load site.yaml for server config:', error.message);
+  }
+  return null;
+}
+
+const siteConfig = loadSiteConfigForServer();
 
 // https://astro.build/config
 // Server mode in dev (enables layout switcher), static in production (fast CDN builds)
@@ -19,6 +39,7 @@ export default defineConfig({
   output: isDev ? 'server' : 'static',
   server: {
     port: PORT ? parseInt(PORT, 10) : 4321,
+    host: HOST === 'true' || HOST === '1',
   },
   integrations: [
     mdx(),
@@ -31,6 +52,9 @@ export default defineConfig({
     },
   },
   vite: {
+    server: {
+      allowedHosts: siteConfig?.server?.allowedHosts || [],
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
