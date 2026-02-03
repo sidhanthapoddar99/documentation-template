@@ -11,12 +11,13 @@ import { devToolbarIntegration } from './src/dev-toolbar/integration.ts';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Load environment variables from .env
-const { PORT, HOST } = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
+const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
+const { PORT, HOST, CONFIG_DIR } = env;
 
 // Load site config for server.allowedHosts
 
 function loadSiteConfigForServer() {
-  const configDir = process.env.CONFIG_DIR || './dynamic_data/config';
+  const configDir = CONFIG_DIR || './dynamic_data/config';
   const siteConfigPath = path.resolve(process.cwd(), configDir, 'site.yaml');
   try {
     if (fs.existsSync(siteConfigPath)) {
@@ -53,7 +54,8 @@ export default defineConfig({
   },
   vite: {
     server: {
-      allowedHosts: siteConfig?.server?.allowedHosts || [],
+      // allowedHosts can be: array of hostnames, true (allow all), or undefined
+      allowedHosts: siteConfig?.server?.allowedHosts ?? true,
     },
     resolve: {
       alias: {

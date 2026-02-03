@@ -25,9 +25,7 @@ site:
 
 # Vite server configuration (optional)
 server:
-  allowedHosts:
-    - ".localhost"
-    - "127.0.0.1"
+  allowedHosts: true  # or array of specific hosts
 
 # Theme configuration
 theme: "@theme/default"  # or "@theme/minimal" for custom theme
@@ -124,20 +122,35 @@ The `server` block configures Vite's development server settings, particularly f
 
 ```yaml
 server:
+  allowedHosts: true  # Allow all hosts
+```
+
+Or with specific hosts:
+
+```yaml
+server:
   allowedHosts:
     - ".localhost"
     - "127.0.0.1"
     - "my-app.local"
-    - ".ngrok.io"
 ```
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `allowedHosts` | `string[]` | No | List of hostnames allowed to connect to the dev server |
+| `allowedHosts` | `true` \| `string[]` | No | Allow all hosts (`true`) or list of specific hostnames |
 
 ### `allowedHosts`
 
 Controls which hostnames are permitted to access the development server. This is a security feature from Vite that prevents DNS rebinding attacks when the server is exposed to the network.
+
+**Option 1: Allow all hosts (convenient for development)**
+
+```yaml
+server:
+  allowedHosts: true
+```
+
+**Option 2: Specific hosts only (more secure)**
 
 ```yaml
 server:
@@ -157,7 +170,7 @@ server:
     - "dev.example.com"
 ```
 
-**Pattern Syntax:**
+**Pattern Syntax (when using array):**
 - Use `.` prefix for wildcard subdomains: `.ngrok.io` matches `abc123.ngrok.io`
 - Exact hostnames: `my-app.local` matches only that hostname
 - IP addresses: `127.0.0.1`, `192.168.1.100`
@@ -283,7 +296,7 @@ interface SiteLogo {
 }
 
 interface ServerConfig {
-  allowedHosts?: string[];
+  allowedHosts?: true | string[];
 }
 
 interface SiteConfig {
@@ -323,10 +336,7 @@ site:
 
 # Vite server configuration (optional)
 server:
-  allowedHosts:
-    - ".localhost"
-    - "127.0.0.1"
-    - ".ngrok.io"
+  allowedHosts: true  # or use array: [".localhost", "127.0.0.1"]
 
 # Theme (optional - defaults to @theme/default)
 theme: "@theme/default"
