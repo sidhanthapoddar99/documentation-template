@@ -34,6 +34,46 @@ Or using npm:
 npm install
 ```
 
+### Claude Code Skills (Optional)
+
+Install AI-powered documentation skills for Claude Code to help you write and configure documentation.
+
+**Using curl (Linux/macOS):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sidhanthapoddar99/documentation-template/main/download-skills.sh | bash -s -- --dest ./.claude
+```
+
+**Using wget:**
+
+```bash
+wget -qO- https://raw.githubusercontent.com/sidhanthapoddar99/documentation-template/main/download-skills.sh | bash -s -- --dest ./.claude
+```
+
+**Using Node.js (cross-platform):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sidhanthapoddar99/documentation-template/main/download-skills.mjs -o /tmp/download-skills.mjs && node /tmp/download-skills.mjs --dest ./.claude
+```
+
+| Skill | Purpose |
+|-------|---------|
+| `docs-guide` | Writing documentation content (markdown, frontmatter, folder settings) |
+| `docs-settings` | Configuring documentation sites (YAML files, .env, project structure) |
+
+After installing, add skill permissions to `.claude/settings.local.json`:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Skill(docs-guide)",
+      "Skill(docs-settings)"
+    ]
+  }
+}
+```
+
 ## Step 3: Environment Setup
 
 Create your environment file:

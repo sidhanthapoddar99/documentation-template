@@ -23,9 +23,32 @@ You are helping the user write and navigate documentation files. This guide cove
 
 ## How to Use This Skill
 
-### Step 1: Get Context (Always Do This First)
+### Step 1: Choose Your Approach
 
-Before helping with any docs task, run the scan script to understand the current documentation structure:
+**Match the task type to the right tool:**
+
+| Task Type | Best Approach | Why |
+|-----------|---------------|-----|
+| **Understand / Explore** | | |
+| "What docs exist?" / "Overview" | Run scan script | Need full picture of structure |
+| "Understand this folder" | Scan + read a few files | Get structure + content context |
+| "Find X" / "Where is Y mentioned" | Use `Grep` directly | Faster than scanning everything |
+| "Read specific file" | Use `Read` directly | You already know the path |
+| **Create / Structure** | | |
+| "Create new folder/section" | Scan → `mkdir` → create `settings.json` | See existing structure first |
+| "Create new page" | Scan → create with `XX_` prefix | Need to know next available prefix |
+| "How to structure docs" | Read [workflows.md](./workflows.md) | Has step-by-step patterns |
+| "Add nested subsection" | Scan parent → create subfolder + settings.json | Match existing hierarchy |
+| **Edit / Modify** | | |
+| "Edit existing file" | `Read` → `Edit` directly | No scan needed |
+| "Rename/reorder pages" | Scan → rename with new `XX_` prefix | See current ordering |
+| "Move files between folders" | Scan both folders → move + update prefixes | Understand both structures |
+| **Reference / Rules** | | |
+| "Frontmatter options" | Read [frontmatter.md](./frontmatter.md) | Rules don't change |
+| "Folder settings.json" | Read [folder-settings.md](./folder-settings.md) | Rules don't change |
+| "Markdown syntax" | Read [markdown-reference.md](./markdown-reference.md) | Rules don't change |
+
+**Scan script (use selectively, not always):**
 
 ```bash
 node .claude/skills/docs-guide/scripts/scan-docs.js <docs-path>
@@ -36,7 +59,10 @@ This outputs:
 - Frontmatter summary (title, description for each file)
 - Statistics (total files, missing frontmatter, drafts)
 
-Use this to understand what exists before creating or modifying docs.
+**When to skip the scan:**
+- You already know the file path → just `Read` it
+- Looking for specific content → use `Grep` instead
+- Following up on previous work → you have context already
 
 ### Step 2: Handle the Request
 

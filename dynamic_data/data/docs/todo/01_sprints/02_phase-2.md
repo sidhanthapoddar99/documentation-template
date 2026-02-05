@@ -61,10 +61,16 @@ sidebar_label: Phase 2
 - [ ] Skill to create and validate themes
 - [ ] Skill to create and validate layouts
 - [ ] Skill to create and validate components
-- [ ] Skill to create and validate configs
-- [ ] Skill to write documentation pages
+- [x] ~~Skill to create and validate configs~~ → `docs-settings` skill
+- [x] ~~Skill to write documentation pages~~ → `docs-guide` skill
 - [ ] Skill to write blog posts
 - [ ] Skill to create custom pages
+
+**Completed Skills:**
+- `docs-guide` - Writing documentation content (markdown, frontmatter, folder settings)
+- `docs-settings` - Configuring documentation sites (YAML files, .env, project structure)
+
+See [Claude Skills documentation](/docs/final-docs/getting-started/claude-skills) for usage.
 
 ## 7. Dev-Only Content (Hide in Production)
 
@@ -169,7 +175,7 @@ Clean up and improve code quality.
 | 2 new doc layouts | Pending |
 | 3 custom page templates | Pending |
 | Additional navbar/footer styles | Partial |
-| 7 Claude skills | Pending |
+| 7 Claude skills | Partial (2/7) |
 | Dev-only content feature | Pending |
 | Multiple data paths support | Pending |
 | Codebase refactoring | Pending |

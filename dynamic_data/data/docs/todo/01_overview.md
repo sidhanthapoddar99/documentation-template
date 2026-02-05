@@ -78,3 +78,6 @@ Collection of ideas for future consideration.
 - ✅ Navbar style switcher in dev toolbar
 - ✅ Footer style switcher in dev toolbar
 - ✅ Documentation updates for navbar/footer config
+- ✅ Claude skills: `docs-guide` (write documentation content)
+- ✅ Claude skills: `docs-settings` (configure documentation sites)
+- ✅ Skills downloader scripts (bash & Node.js)
