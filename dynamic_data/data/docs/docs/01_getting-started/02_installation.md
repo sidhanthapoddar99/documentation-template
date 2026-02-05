@@ -16,7 +16,7 @@ Get your documentation site running in under 5 minutes.
 ## Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/documentation-template.git my-docs
+git clone https://github.com/sidhanthapoddar99/documentation-template.git my-docs
 cd my-docs
 ```
 
