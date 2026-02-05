@@ -239,20 +239,20 @@ for SKILL in "${SKILLS[@]}"; do
                         read -p "Install this skill? [y/n]: " install_choice
                         if [[ "$install_choice" != "y" && "$install_choice" != "Y" ]]; then
                             print_info "Skipping $SKILL"
-                            ((SKIPPED_COUNT++))
+                            SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
                             continue
                         fi
                         rm -rf "$DEST_PATH"
                     else
                         print_warning "diff command not available"
                         print_info "Skipping $SKILL"
-                        ((SKIPPED_COUNT++))
+                        SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
                         continue
                     fi
                     ;;
                 s|S|*)
                     print_info "Skipping $SKILL"
-                    ((SKIPPED_COUNT++))
+                    SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
                     continue
                     ;;
             esac
@@ -270,7 +270,7 @@ for SKILL in "${SKILLS[@]}"; do
         echo "    - ${file#$DEST_DIR/skills/}"
     done
 
-    ((INSTALLED_COUNT++))
+    INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
     echo ""
 done
 
