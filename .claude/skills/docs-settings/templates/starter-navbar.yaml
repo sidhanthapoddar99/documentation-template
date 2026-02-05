@@ -1,0 +1,33 @@
+# Navbar Configuration Template
+# Copy this to: docs/data/config/navbar.yaml
+# Replace [PLACEHOLDERS] with your values
+
+layout: "@navbar/style1"
+
+items:
+  - label: "Home"
+    href: "/"
+
+  - label: "Docs"
+    href: "/docs"
+
+  - label: "Guides"
+    items:
+      - label: "User Guide"
+        href: "/user-guide"
+      - label: "PRD"
+        href: "/prd"
+      - label: "Internal Docs"
+        href: "/internal-docs"
+
+  - label: "Roadmap"
+    href: "/roadmap"
+
+  - label: "Blog"
+    href: "/blog"
+
+  - label: "About"
+    href: "/about"
+
+  - label: "GitHub"
+    href: "[GITHUB_URL]"

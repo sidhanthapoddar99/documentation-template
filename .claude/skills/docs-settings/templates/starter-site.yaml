@@ -1,0 +1,90 @@
+# Site Configuration Template
+# Copy this to: docs/data/config/site.yaml
+# Replace [PLACEHOLDERS] with your values
+
+site:
+  name: "[PRODUCT_NAME]"
+  title: "[PRODUCT_NAME] Documentation"
+  description: "[PRODUCT_DESCRIPTION]"
+
+server:
+  allowedHosts: true
+
+theme: "@theme/minimal"
+
+logo:
+  src: "@assets/logo.svg"
+  alt: "[PRODUCT_NAME]"
+  theme:
+    dark: "@assets/logo-dark.svg"
+    light: "@assets/logo-light.svg"
+  favicon: "@assets/favicon.png"
+
+pages:
+  # Main Documentation
+  docs:
+    base_url: "/docs"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/docs"
+
+  # User Guide
+  user-guide:
+    base_url: "/user-guide"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/user-guide"
+
+  # PRD Documentation
+  prd:
+    base_url: "/prd"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/prd"
+
+  # Internal Documentation
+  internal-docs:
+    base_url: "/internal-docs"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/internal-docs"
+
+  # Template Documentation (reference)
+  doc-template-docs:
+    base_url: "/doc-template/docs"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/doc-template/docs"
+
+  doc-template-components:
+    base_url: "/doc-template/components"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/doc-template/components"
+
+  # Roadmap
+  roadmap:
+    base_url: "/roadmap"
+    type: docs
+    layout: "@docs/doc_style1"
+    data: "@data/roadmap"
+
+  # Blog
+  blog:
+    base_url: "/blog"
+    type: blog
+    layout: "@blog/blog_style1"
+    data: "@data/blog"
+
+  # Custom Pages
+  home:
+    base_url: "/"
+    type: custom
+    layout: "@custom/home"
+    data: "@data/pages/home.yaml"
+
+  about:
+    base_url: "/about"
+    type: custom
+    layout: "@custom/info"
+    data: "@data/pages/about.yaml"

@@ -1,0 +1,37 @@
+# Footer Configuration Template
+# Copy this to: docs/data/config/footer.yaml
+# Replace [PLACEHOLDERS] with your values
+
+layout: "@footer/default"
+
+copyright: "© {year} [PRODUCT_NAME]. All rights reserved."
+
+columns:
+  - title: "Documentation"
+    links:
+      - label: "Getting Started"
+        href: "/docs"
+      - label: "User Guide"
+        href: "/user-guide"
+      - label: "Roadmap"
+        href: "/roadmap"
+
+  - title: "Resources"
+    links:
+      - label: "Blog"
+        page: "blog"
+      - label: "Template Docs"
+        href: "/doc-template/docs"
+      - label: "Components"
+        href: "/doc-template/components"
+
+  - title: "Company"
+    links:
+      - label: "About"
+        page: "about"
+      - label: "GitHub"
+        href: "[GITHUB_URL]"
+
+social:
+  - platform: "github"
+    href: "[GITHUB_URL]"
