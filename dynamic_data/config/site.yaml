@@ -28,6 +28,18 @@ logo:
     light: "@assets/astro-light.svg"
   favicon: "@assets/astro.png"
 
+# Editor Configuration (required for dev toolbar live editor)
+editor:
+  autosave_interval: 10000  # Auto-save interval in milliseconds
+  presence:
+    ping_interval: 5000       # How often clients ping the server (ms)
+    stale_threshold: 30000    # Remove users with no heartbeat after this (ms)
+    cursor_throttle: 100      # Min interval between cursor position broadcasts (ms)
+    content_debounce: 150     # Debounce for raw text diff sync (ms)
+    render_interval: 5000     # Interval for rendered preview updates (ms)
+    sse_keepalive: 15000      # SSE keepalive comment interval (ms)
+    sse_reconnect: 2000       # SSE auto-reconnect delay on disconnect (ms)
+
 # Page Definitions
 pages:
   # Documentation Sections (each is independent in navbar)

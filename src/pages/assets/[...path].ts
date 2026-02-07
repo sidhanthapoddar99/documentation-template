@@ -64,7 +64,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   }));
 };
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async ({ params, request }) => {
   const filePath = params.path;
 
   if (!filePath) {
@@ -84,6 +84,16 @@ export const GET: APIRoute = async ({ params }) => {
     return new Response('Not found', { status: 404 });
   }
 
+  const stat = fs.statSync(fullPath);
+  const etag = `"${stat.size}-${stat.mtimeMs}"`;
+  const lastModified = stat.mtime.toUTCString();
+
+  // Check If-None-Match for 304
+  const ifNoneMatch = request.headers.get('If-None-Match');
+  if (ifNoneMatch === etag) {
+    return new Response(null, { status: 304 });
+  }
+
   const ext = path.extname(filePath).toLowerCase();
   const contentType = mimeTypes[ext] || 'application/octet-stream';
 
@@ -94,6 +104,8 @@ export const GET: APIRoute = async ({ params }) => {
     headers: {
       'Content-Type': contentType,
       'Cache-Control': 'public, max-age=31536000',
+      'ETag': etag,
+      'Last-Modified': lastModified,
     },
   });
 };
