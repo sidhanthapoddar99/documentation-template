@@ -74,16 +74,6 @@ export class PresenceManager {
 
     this.streams.set(userId, res);
 
-    // Send client config (timing values from site.yaml)
-    this.sendToStream(res, 'config', {
-      type: 'config',
-      pingInterval: this.config.pingInterval,
-      cursorThrottle: this.config.cursorThrottle,
-      contentDebounce: this.config.contentDebounce,
-      renderInterval: this.config.renderInterval,
-      sseReconnect: this.config.sseReconnect,
-    });
-
     // Send initial presence snapshot
     this.sendToStream(res, 'presence', {
       type: 'presence',
@@ -254,22 +244,6 @@ export class PresenceManager {
   }
 
   /**
-   * Broadcast a text diff to co-editors of the same file (excludes sender).
-   */
-  broadcastTextDiff(
-    fromUserId: string,
-    file: string,
-    op: { offset: number; deleteCount: number; insert: string }
-  ): void {
-    this.broadcastToFileEditors(fromUserId, file, 'text-diff', {
-      type: 'text-diff',
-      userId: fromUserId,
-      file,
-      op,
-    });
-  }
-
-  /**
    * Broadcast a rendered HTML update to ALL editors of a file (including requester).
    */
   broadcastRenderUpdate(file: string, rendered: string): void {
@@ -290,26 +264,6 @@ export class PresenceManager {
   }
 
   /**
-   * Broadcast external file change to ALL editors of a file.
-   */
-  broadcastFileChanged(file: string, raw: string): void {
-    const formatted = `event: file-changed\ndata: ${JSON.stringify({
-      type: 'file-changed',
-      file,
-      raw,
-    })}\n\n`;
-
-    for (const [userId, user] of this.users) {
-      if (user.editingFile !== file) continue;
-
-      const stream = this.streams.get(userId);
-      if (stream && !stream.writableEnded) {
-        try { stream.write(formatted); } catch { /* stream broken */ }
-      }
-    }
-  }
-
-  /**
    * Send an SSE event to a single stream.
    */
   private sendToStream(res: ServerResponse, event: string, data: any): void {
@@ -317,6 +271,26 @@ export class PresenceManager {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     } catch {
       /* stream broken — will be cleaned up */
+    }
+  }
+
+  /**
+   * Get a single user by ID.
+   */
+  getUser(userId: string): PresenceUser | undefined {
+    return this.users.get(userId);
+  }
+
+  /**
+   * Update a user's cursor state without SSE broadcast.
+   * Used by YjsSync — WS handles cursor distribution directly.
+   */
+  updateCursorState(userId: string, file: string, cursor: { line: number; col: number; offset: number }): void {
+    const user = this.users.get(userId);
+    if (user) {
+      user.editingFile = file;
+      user.cursor = cursor;
+      user.lastSeen = Date.now();
     }
   }
 

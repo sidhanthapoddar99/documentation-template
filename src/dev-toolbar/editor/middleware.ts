@@ -2,16 +2,16 @@
  * Editor Middleware - HTTP endpoints for the live editor
  *
  * Adds Vite middleware to handle editor API requests:
- * - GET  /__editor/events    — SSE stream for presence + cursor + diff events
+ * - GET  /__editor/events    — SSE stream for presence + cursor events
  * - GET  /__editor/styles    — Combined content CSS
- * - POST /__editor/open      — Open a document for editing
+ * - POST /__editor/open      — Open document + create Yjs room
  * - POST /__editor/update    — Full content sync (used before save)
- * - POST /__editor/diff      — Apply a small text diff (fast, no render)
  * - POST /__editor/render    — Re-render document and broadcast preview
  * - POST /__editor/save      — Save document to disk
- * - POST /__editor/close     — Close document (save if dirty)
+ * - POST /__editor/close     — Close document (save if dirty, destroy Yjs room)
  * - POST /__editor/presence  — Presence actions (join/leave/page/cursor/cursor-clear)
  * - POST /__editor/ping      — Latency measurement
+ * - WS   /__editor/yjs       — Yjs CRDT sync (handled by YjsSync, not this middleware)
  *
  * Dev-only: never loaded in production builds.
  */
@@ -19,6 +19,7 @@
 import type { ViteDevServer } from 'vite';
 import type { EditorStore } from './server';
 import type { PresenceManager, PresenceAction } from './presence';
+import type { YjsSync } from './yjs-sync';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -54,6 +55,7 @@ export function setupEditorMiddleware(
   server: ViteDevServer,
   store: EditorStore,
   presence: PresenceManager,
+  yjsSync: YjsSync,
 ): void {
   /**
    * Build combined CSS for the editor preview from theme + content styles.
@@ -123,8 +125,11 @@ export function setupEditorMiddleware(
       presence.addStream(userId, res);
 
       // Send keepalive comments at configurable interval
+      // Also update lastSeen to prevent stale removal for SSE-only (non-editing) users
       const keepalive = setInterval(() => {
         if (!res.writableEnded) {
+          const user = presence.getUser(userId);
+          if (user) user.lastSeen = Date.now();
           try { res.write(': keepalive\n\n'); } catch { /* stream closed */ }
         }
       }, presence.config.sseKeepalive);
@@ -176,6 +181,8 @@ export function setupEditorMiddleware(
           }
 
           const doc = await store.openDocument(filePath);
+          // Create Yjs room (idempotent — returns existing if already open)
+          yjsSync.getOrCreateRoom(filePath, doc.raw);
           return sendJson(res, 200, {
             raw: doc.raw,
             rendered: doc.rendered,
@@ -200,24 +207,6 @@ export function setupEditorMiddleware(
           });
         }
 
-        case '/__editor/diff': {
-          const { filePath, op, userId } = body;
-          if (!filePath || typeof filePath !== 'string') {
-            return sendJson(res, 400, { error: 'filePath is required' });
-          }
-          if (!op || typeof op.offset !== 'number' || typeof op.deleteCount !== 'number' || typeof op.insert !== 'string') {
-            return sendJson(res, 400, { error: 'op {offset, deleteCount, insert} is required' });
-          }
-
-          store.applyDiff(filePath, op);
-
-          if (userId) {
-            presence.broadcastTextDiff(userId, filePath, op);
-          }
-
-          return sendJson(res, 200, { ok: true });
-        }
-
         case '/__editor/render': {
           const { filePath } = body;
           if (!filePath || typeof filePath !== 'string') {
@@ -225,7 +214,7 @@ export function setupEditorMiddleware(
           }
 
           const doc = await store.renderDocument(filePath);
-          presence.broadcastRenderUpdate(filePath, doc.rendered);
+          yjsSync.broadcastRenderUpdate(filePath, doc.rendered);
 
           return sendJson(res, 200, { rendered: doc.rendered });
         }
@@ -247,6 +236,10 @@ export function setupEditorMiddleware(
           }
 
           store.closeDocument(filePath);
+          // Destroy Yjs room if no more WebSocket connections
+          if (!yjsSync.hasConnections(filePath)) {
+            yjsSync.destroyRoom(filePath);
+          }
 
           return sendJson(res, 200, { success: true });
         }
