@@ -74,16 +74,6 @@ export class PresenceManager {
 
     this.streams.set(userId, res);
 
-    // Send client config (timing values from site.yaml)
-    this.sendToStream(res, 'config', {
-      type: 'config',
-      pingInterval: this.config.pingInterval,
-      cursorThrottle: this.config.cursorThrottle,
-      contentDebounce: this.config.contentDebounce,
-      renderInterval: this.config.renderInterval,
-      sseReconnect: this.config.sseReconnect,
-    });
-
     // Send initial presence snapshot
     this.sendToStream(res, 'presence', {
       type: 'presence',
@@ -281,6 +271,26 @@ export class PresenceManager {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     } catch {
       /* stream broken — will be cleaned up */
+    }
+  }
+
+  /**
+   * Get a single user by ID.
+   */
+  getUser(userId: string): PresenceUser | undefined {
+    return this.users.get(userId);
+  }
+
+  /**
+   * Update a user's cursor state without SSE broadcast.
+   * Used by YjsSync — WS handles cursor distribution directly.
+   */
+  updateCursorState(userId: string, file: string, cursor: { line: number; col: number; offset: number }): void {
+    const user = this.users.get(userId);
+    if (user) {
+      user.editingFile = file;
+      user.cursor = cursor;
+      user.lastSeen = Date.now();
     }
   }
 

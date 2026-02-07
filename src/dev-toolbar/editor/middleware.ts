@@ -125,8 +125,11 @@ export function setupEditorMiddleware(
       presence.addStream(userId, res);
 
       // Send keepalive comments at configurable interval
+      // Also update lastSeen to prevent stale removal for SSE-only (non-editing) users
       const keepalive = setInterval(() => {
         if (!res.writableEnded) {
+          const user = presence.getUser(userId);
+          if (user) user.lastSeen = Date.now();
           try { res.write(': keepalive\n\n'); } catch { /* stream closed */ }
         }
       }, presence.config.sseKeepalive);
@@ -211,7 +214,7 @@ export function setupEditorMiddleware(
           }
 
           const doc = await store.renderDocument(filePath);
-          presence.broadcastRenderUpdate(filePath, doc.rendered);
+          yjsSync.broadcastRenderUpdate(filePath, doc.rendered);
 
           return sendJson(res, 200, { rendered: doc.rendered });
         }

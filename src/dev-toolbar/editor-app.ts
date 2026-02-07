@@ -19,16 +19,13 @@ import {
   setupHmrGuard,
   setPresenceUpdateCallback,
   sendPresenceAction,
-  setRenderUpdateCallback,
-  getServerRenderInterval,
-  getServerSseReconnect,
   getPresenceUsers,
 } from './editor-ui/sse-presence.js';
 import { highlightMarkdown } from './editor-ui/highlight.js';
 import { createEditorOverlay } from './editor-ui/overlay-dom.js';
 import { initRemoteCursors } from './editor-ui/cursors.js';
 import { initScrollSync } from './editor-ui/scroll-sync.js';
-import { initYjsClient } from './editor-ui/yjs-client.js';
+import { initYjsClient, type YjsClientHandle } from './editor-ui/yjs-client.js';
 
 // ---- Module-level identity & presence ----
 
@@ -361,21 +358,23 @@ async function openFullScreenEditor(filePath: string) {
     setIsApplyingRemote: (v) => { isApplyingRemote = v; },
   };
 
-  // Wire up subsystems in dependency order
-  const cursors = initRemoteCursors(ctx);
+  // Wire up subsystems in dependency order (late-binding for circular cursor↔yjs dep)
+  let yjs: YjsClientHandle | null = null;
+
+  const cursors = initRemoteCursors(ctx, {
+    sendCursor: (cursor) => yjs?.sendCursorUpdate(cursor),
+    getCursorThrottle: () => yjs?.getCursorThrottle() ?? 100,
+  });
 
   const scrollSync = initScrollSync(ctx, {
     repositionAllRemoteCursors: cursors.repositionAllRemoteCursors,
     highlightMarkdown,
   });
 
-  const yjs = initYjsClient(ctx, {
+  yjs = initYjsClient(ctx, {
     updateHighlight: scrollSync.updateHighlight,
     remeasureAllCursors: cursors.remeasureAllCursors,
-    sendPresenceAction,
-    setRenderUpdateCallback,
-    getServerRenderInterval,
-    getServerSseReconnect,
+    handleRemoteCursor: cursors.handleRemoteCursor,
   });
 
   // ---- Resize handle ----

@@ -176,6 +176,7 @@ export function devToolbarIntegration(): AstroIntegration {
                   yjsSync.setContentChangeHandler((filePath, raw) => {
                     editorStore.updateRaw(filePath, raw);
                   });
+                  yjsSync.setDependencies(presenceManager, editorStore, editorConfig.presence);
                   if (server.httpServer) {
                     yjsSync.attachToServer(server.httpServer);
                   }
@@ -216,7 +217,7 @@ export function devToolbarIntegration(): AstroIntegration {
                           console.log(`[editor] External file add detected: ${shortPath}`);
                           editorStore.reloadFromDisk(file).then(doc => {
                             yjsSync.resetContent(file, doc.raw);
-                            presenceManager.broadcastRenderUpdate(file, doc.rendered);
+                            yjsSync.broadcastRenderUpdate(file, doc.rendered);
                           }).catch(() => {});
                         }
                       } else {
@@ -261,7 +262,7 @@ export function devToolbarIntegration(): AstroIntegration {
                       try {
                         const doc = await editorStore.reloadFromDisk(file);
                         yjsSync.resetContent(file, doc.raw);
-                        presenceManager.broadcastRenderUpdate(file, doc.rendered);
+                        yjsSync.broadcastRenderUpdate(file, doc.rendered);
                       } catch (err) {
                         console.error(`[editor] Failed to reload from disk: ${shortPath}`, err);
                       }

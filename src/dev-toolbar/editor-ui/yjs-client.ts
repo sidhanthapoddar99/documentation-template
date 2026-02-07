@@ -1,4 +1,5 @@
-// Yjs CRDT sync, input handler, tab/keydown, save, close, refresh, render timer
+// Yjs CRDT sync, multiplexed WS messages (cursor/ping/config/render),
+// input handler, tab/keydown, save, close, refresh, render timer
 
 import * as Y from 'yjs';
 import * as syncProtocol from 'y-protocols/sync';
@@ -7,23 +8,39 @@ import * as decoding from 'lib0/decoding';
 
 import type { EditorContext, SaveStatus, Disposable } from './types.js';
 
+// WS message types — must match server (yjs-sync.ts)
+const MSG_SYNC       = 0;
+const MSG_CURSOR     = 1;
+const MSG_PING       = 2;
+const MSG_CONFIG     = 3;
+const MSG_RENDER     = 4;
+const MSG_RENDER_REQ = 5;
+
+export interface YjsClientHandle extends Disposable {
+  sendCursorUpdate: (cursor: { line: number; col: number; offset: number }) => void;
+  getCursorThrottle: () => number;
+}
+
 export function initYjsClient(ctx: EditorContext, deps: {
   updateHighlight: () => void;
   remeasureAllCursors: () => void;
-  sendPresenceAction: (action: Record<string, any>) => void;
-  setRenderUpdateCallback: (cb: ((data: any) => void) | null) => void;
-  getServerRenderInterval: () => number;
-  getServerSseReconnect: () => number;
-}): Disposable {
+  handleRemoteCursor: (data: any) => void;
+}): YjsClientHandle {
   const { textarea, preview, refreshBtn, saveBtn, closeBtn } = ctx.dom;
 
-  const MSG_SYNC = 0;
   const ydoc = new Y.Doc();
   const ytext = ydoc.getText('content');
   let contentChangedSinceLastRender = false;
   let renderTimer: ReturnType<typeof setInterval> | null = null;
   let yjsWs: WebSocket | null = null;
   let yjsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Config state — updated by MSG_CONFIG from server, defaults until then
+  let configPingInterval = 5000;
+  let configCursorThrottle = 100;
+  let configRenderInterval = 5000;
+  let lastLatencyMs = 0;
+  let pingTimer: ReturnType<typeof setInterval> | null = null;
 
   // Update status indicator
   function updateStatus(status: SaveStatus) {
@@ -63,22 +80,59 @@ export function initYjsClient(ctx: EditorContext, deps: {
     preview.scrollTop = scrollTop;
   }
 
-  // Request a server render and update preview
-  async function requestRender(): Promise<void> {
-    if (!contentChangedSinceLastRender) return;
-    try {
-      const data = await editorFetch('render', { filePath: ctx.filePath });
-      setPreviewContent(data.rendered);
-      contentChangedSinceLastRender = false;
-    } catch (err: any) {
-      console.error('[editor] Render request failed:', err);
+  // ---- WS JSON helpers ----
+
+  function sendWsJson(type: number, payload: Record<string, any>): void {
+    if (!yjsWs || yjsWs.readyState !== WebSocket.OPEN) return;
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, type);
+    encoding.writeVarString(encoder, JSON.stringify(payload));
+    try { yjsWs.send(encoding.toUint8Array(encoder)); } catch { /* broken */ }
+  }
+
+  // ---- Ping loop ----
+
+  function startPingLoop(): void {
+    if (pingTimer) clearInterval(pingTimer);
+    pingTimer = setInterval(() => {
+      sendWsJson(MSG_PING, { clientTime: Date.now(), latencyMs: lastLatencyMs });
+    }, configPingInterval);
+  }
+
+  function stopPingLoop(): void {
+    if (pingTimer) {
+      clearInterval(pingTimer);
+      pingTimer = null;
     }
+  }
+
+  // ---- Render timer ----
+
+  function restartRenderTimer(): void {
+    if (renderTimer) clearInterval(renderTimer);
+    renderTimer = setInterval(requestRender, configRenderInterval);
+  }
+
+  // Request a server render via WS
+  function requestRender(): void {
+    if (!contentChangedSinceLastRender) return;
+    sendWsJson(MSG_RENDER_REQ, {});
+  }
+
+  // ---- Cursor send (exposed for late-binding from cursors.ts) ----
+
+  function sendCursorUpdate(cursor: { line: number; col: number; offset: number }): void {
+    sendWsJson(MSG_CURSOR, { cursor });
+  }
+
+  function getCursorThrottle(): number {
+    return configCursorThrottle;
   }
 
   // -- Yjs WebSocket connection --
   function connectYjsWs(): void {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/__editor/yjs?file=${encodeURIComponent(ctx.filePath)}`;
+    const wsUrl = `${wsProtocol}//${window.location.host}/__editor/yjs?file=${encodeURIComponent(ctx.filePath)}&userId=${encodeURIComponent(ctx.identity.userId)}`;
     yjsWs = new WebSocket(wsUrl);
     yjsWs.binaryType = 'arraybuffer';
 
@@ -87,6 +141,7 @@ export function initYjsClient(ctx: EditorContext, deps: {
       encoding.writeVarUint(encoder, MSG_SYNC);
       syncProtocol.writeSyncStep1(encoder, ydoc);
       yjsWs!.send(encoding.toUint8Array(encoder));
+      startPingLoop();
     });
 
     yjsWs.addEventListener('message', (event) => {
@@ -94,19 +149,64 @@ export function initYjsClient(ctx: EditorContext, deps: {
       const decoder = decoding.createDecoder(data);
       const msgType = decoding.readVarUint(decoder);
 
-      if (msgType === MSG_SYNC) {
-        const responseEncoder = encoding.createEncoder();
-        encoding.writeVarUint(responseEncoder, MSG_SYNC);
-        syncProtocol.readSyncMessage(decoder, responseEncoder, ydoc, 'remote');
-        if (encoding.length(responseEncoder) > 1) {
-          yjsWs!.send(encoding.toUint8Array(responseEncoder));
+      switch (msgType) {
+        case MSG_SYNC: {
+          const responseEncoder = encoding.createEncoder();
+          encoding.writeVarUint(responseEncoder, MSG_SYNC);
+          syncProtocol.readSyncMessage(decoder, responseEncoder, ydoc, 'remote');
+          if (encoding.length(responseEncoder) > 1) {
+            yjsWs!.send(encoding.toUint8Array(responseEncoder));
+          }
+          break;
+        }
+
+        case MSG_CURSOR: {
+          try {
+            const payload = JSON.parse(decoding.readVarString(decoder));
+            deps.handleRemoteCursor(payload);
+          } catch { /* ignore parse errors */ }
+          break;
+        }
+
+        case MSG_PING: {
+          try {
+            const payload = JSON.parse(decoding.readVarString(decoder));
+            if (payload.clientTime) {
+              lastLatencyMs = Date.now() - payload.clientTime;
+            }
+          } catch { /* ignore */ }
+          break;
+        }
+
+        case MSG_CONFIG: {
+          try {
+            const payload = JSON.parse(decoding.readVarString(decoder));
+            if (payload.pingInterval) configPingInterval = payload.pingInterval;
+            if (payload.cursorThrottle) configCursorThrottle = payload.cursorThrottle;
+            if (payload.renderInterval) configRenderInterval = payload.renderInterval;
+            startPingLoop();
+            restartRenderTimer();
+          } catch { /* ignore */ }
+          break;
+        }
+
+        case MSG_RENDER: {
+          try {
+            const payload = JSON.parse(decoding.readVarString(decoder));
+            if (payload.file === ctx.filePath) {
+              setPreviewContent(payload.rendered);
+              contentChangedSinceLastRender = false;
+            }
+          } catch { /* ignore */ }
+          break;
         }
       }
     });
 
     yjsWs.addEventListener('close', () => {
       yjsWs = null;
-      yjsReconnectTimer = setTimeout(connectYjsWs, deps.getServerSseReconnect());
+      stopPingLoop();
+      yjsReconnectTimer = setTimeout(connectYjsWs, 2000);
     });
 
     yjsWs.addEventListener('error', () => {
@@ -174,13 +274,6 @@ export function initYjsClient(ctx: EditorContext, deps: {
     contentChangedSinceLastRender = true;
   });
 
-  // Rendered preview update from server (via SSE)
-  deps.setRenderUpdateCallback((data: any) => {
-    if (data.file !== ctx.filePath) return;
-    setPreviewContent(data.rendered);
-    contentChangedSinceLastRender = false;
-  });
-
   // Open document on server (creates Yjs room), then connect Yjs WebSocket
   editorFetch('open', { filePath: ctx.filePath }).then((data) => {
     // Show initial content from HTTP while Yjs syncs
@@ -191,7 +284,7 @@ export function initYjsClient(ctx: EditorContext, deps: {
     textarea.focus();
 
     connectYjsWs();
-    renderTimer = setInterval(requestRender, deps.getServerRenderInterval());
+    renderTimer = setInterval(requestRender, configRenderInterval);
   }).catch((err) => {
     preview.innerHTML = `<div style="color: var(--color-error, #f7768e); padding: 16px;">Failed to open file: ${err.message}</div>`;
   });
@@ -297,7 +390,7 @@ export function initYjsClient(ctx: EditorContext, deps: {
     textarea.removeEventListener('input', onInput);
     textarea.removeEventListener('keydown', onKeydown);
 
-    deps.setRenderUpdateCallback(null);
+    stopPingLoop();
 
     if (renderTimer) {
       clearInterval(renderTimer);
@@ -316,5 +409,7 @@ export function initYjsClient(ctx: EditorContext, deps: {
 
   return {
     cleanup: masterCleanup,
+    sendCursorUpdate,
+    getCursorThrottle,
   };
 }

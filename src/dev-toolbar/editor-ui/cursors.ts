@@ -2,15 +2,20 @@
 
 import type { EditorContext, Disposable } from './types.js';
 import { escapeHtml } from './types.js';
-import { setCursorUpdateCallback, sendPresenceAction, getServerCursorThrottle } from './sse-presence.js';
+
+export interface CursorDeps {
+  sendCursor: (cursor: { line: number; col: number; offset: number }) => void;
+  getCursorThrottle: () => number;
+}
 
 export interface CursorHandle extends Disposable {
   remeasureAllCursors: () => void;
   repositionAllRemoteCursors: () => void;
   syncMirrorWidth: () => void;
+  handleRemoteCursor: (data: any) => void;
 }
 
-export function initRemoteCursors(ctx: EditorContext): CursorHandle {
+export function initRemoteCursors(ctx: EditorContext, deps: CursorDeps): CursorHandle {
   const { textarea, cursorsDiv, overlay } = ctx.dom;
 
   // Mirror div for accurate cursor measurement (handles word-wrap correctly)
@@ -103,12 +108,12 @@ export function initRemoteCursors(ctx: EditorContext): CursorHandle {
     }
   }
 
-  // Register cursor update callback for SSE events
-  setCursorUpdateCallback((data: any) => {
+  // Handle incoming remote cursor data (called by yjs-client on WS message)
+  function handleRemoteCursor(data: any): void {
     if (data.userId === ctx.identity.userId) return;
     if (data.file !== ctx.filePath) return;
     updateRemoteCursor(data.userId, data.name, data.color, data.cursor);
-  });
+  }
 
   // ---- Local cursor tracking ----
   let cursorThrottleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -130,12 +135,8 @@ export function initRemoteCursors(ctx: EditorContext): CursorHandle {
       const cursor = getLocalCursorPosition();
       if (cursor.offset === lastSentOffset) return;
       lastSentOffset = cursor.offset;
-      sendPresenceAction({
-        type: 'cursor',
-        file: ctx.filePath,
-        cursor,
-      });
-    }, getServerCursorThrottle());
+      deps.sendCursor(cursor);
+    }, deps.getCursorThrottle());
   }
 
   function onCursorMove(): void {
@@ -146,17 +147,11 @@ export function initRemoteCursors(ctx: EditorContext): CursorHandle {
   textarea.addEventListener('mouseup', onCursorMove);
   textarea.addEventListener('click', onCursorMove);
 
-  // Send initial cursor position when editor opens
-  sendPresenceAction({
-    type: 'cursor',
-    file: ctx.filePath,
-    cursor: { line: 0, col: 0, offset: 0 },
-  });
-
   return {
     remeasureAllCursors,
     repositionAllRemoteCursors,
     syncMirrorWidth,
+    handleRemoteCursor,
     cleanup() {
       if (cursorThrottleTimer) {
         clearTimeout(cursorThrottleTimer);
@@ -165,9 +160,6 @@ export function initRemoteCursors(ctx: EditorContext): CursorHandle {
       textarea.removeEventListener('keyup', onCursorMove);
       textarea.removeEventListener('mouseup', onCursorMove);
       textarea.removeEventListener('click', onCursorMove);
-
-      sendPresenceAction({ type: 'cursor-clear' });
-      setCursorUpdateCallback(null);
 
       cursorMirror.remove();
       for (const el of remoteCursorElements.values()) el.remove();
