@@ -19,6 +19,14 @@ export interface PresenceConfig {
   staleThreshold: number;
   /** Min interval between cursor position broadcasts on the client (ms). Sent to clients in SSE init. */
   cursorThrottle: number;
+  /** Debounce for raw text diff sync (ms). Sent to clients in SSE init. */
+  contentDebounce: number;
+  /** Interval for rendered preview updates (ms). Sent to clients in SSE init. */
+  renderInterval: number;
+  /** SSE keepalive comment interval (ms). */
+  sseKeepalive: number;
+  /** SSE auto-reconnect delay on disconnect (ms). Sent to clients in SSE init. */
+  sseReconnect: number;
 }
 
 export interface PresenceUser {
@@ -71,6 +79,9 @@ export class PresenceManager {
       type: 'config',
       pingInterval: this.config.pingInterval,
       cursorThrottle: this.config.cursorThrottle,
+      contentDebounce: this.config.contentDebounce,
+      renderInterval: this.config.renderInterval,
+      sseReconnect: this.config.sseReconnect,
     });
 
     // Send initial presence snapshot
@@ -243,21 +254,59 @@ export class PresenceManager {
   }
 
   /**
-   * Broadcast content update to all users editing the same file (excludes sender).
+   * Broadcast a text diff to co-editors of the same file (excludes sender).
    */
-  broadcastContentUpdate(
+  broadcastTextDiff(
     fromUserId: string,
     file: string,
-    raw: string,
-    rendered: string
+    op: { offset: number; deleteCount: number; insert: string }
   ): void {
-    this.broadcastToFileEditors(fromUserId, file, 'content', {
-      type: 'content',
+    this.broadcastToFileEditors(fromUserId, file, 'text-diff', {
+      type: 'text-diff',
       userId: fromUserId,
       file,
-      raw,
-      rendered,
+      op,
     });
+  }
+
+  /**
+   * Broadcast a rendered HTML update to ALL editors of a file (including requester).
+   */
+  broadcastRenderUpdate(file: string, rendered: string): void {
+    const formatted = `event: render-update\ndata: ${JSON.stringify({
+      type: 'render-update',
+      file,
+      rendered,
+    })}\n\n`;
+
+    for (const [userId, user] of this.users) {
+      if (user.editingFile !== file) continue;
+
+      const stream = this.streams.get(userId);
+      if (stream && !stream.writableEnded) {
+        try { stream.write(formatted); } catch { /* stream broken */ }
+      }
+    }
+  }
+
+  /**
+   * Broadcast external file change to ALL editors of a file.
+   */
+  broadcastFileChanged(file: string, raw: string): void {
+    const formatted = `event: file-changed\ndata: ${JSON.stringify({
+      type: 'file-changed',
+      file,
+      raw,
+    })}\n\n`;
+
+    for (const [userId, user] of this.users) {
+      if (user.editingFile !== file) continue;
+
+      const stream = this.streams.get(userId);
+      if (stream && !stream.writableEnded) {
+        try { stream.write(formatted); } catch { /* stream broken */ }
+      }
+    }
   }
 
   /**

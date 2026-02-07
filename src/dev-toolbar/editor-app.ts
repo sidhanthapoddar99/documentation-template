@@ -72,13 +72,18 @@ let lastLatencyMs = 0;
 let presenceUsers: any[] = [];
 let presenceUpdateCallback: ((users: any[]) => void) | null = null;
 let cursorUpdateCallback: ((data: any) => void) | null = null;
-let contentUpdateCallback: ((data: any) => void) | null = null;
+let textDiffCallback: ((data: any) => void) | null = null;
+let renderUpdateCallback: ((data: any) => void) | null = null;
+let fileChangedCallback: ((data: any) => void) | null = null;
 let sseReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Server-provided config (from site.yaml via SSE config event)
 // Defaults used until config event arrives
 let serverPingInterval = 5000;
 let serverCursorThrottle = 100;
+let serverContentDebounce = 150;
+let serverRenderInterval = 5000;
+let serverSseReconnect = 2000;
 
 function connectSSE(): void {
   if (eventSource) {
@@ -93,6 +98,9 @@ function connectSSE(): void {
       const data = JSON.parse(e.data);
       if (data.pingInterval) serverPingInterval = data.pingInterval;
       if (data.cursorThrottle) serverCursorThrottle = data.cursorThrottle;
+      if (data.contentDebounce) serverContentDebounce = data.contentDebounce;
+      if (data.renderInterval) serverRenderInterval = data.renderInterval;
+      if (data.sseReconnect) serverSseReconnect = data.sseReconnect;
       // Restart ping loop with new interval
       restartPingLoop();
     } catch { /* ignore parse errors */ }
@@ -113,19 +121,33 @@ function connectSSE(): void {
     } catch { /* ignore parse errors */ }
   });
 
-  eventSource.addEventListener('content', (e: MessageEvent) => {
+  eventSource.addEventListener('text-diff', (e: MessageEvent) => {
     try {
       const data = JSON.parse(e.data);
-      contentUpdateCallback?.(data);
+      textDiffCallback?.(data);
+    } catch { /* ignore parse errors */ }
+  });
+
+  eventSource.addEventListener('render-update', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      renderUpdateCallback?.(data);
+    } catch { /* ignore parse errors */ }
+  });
+
+  eventSource.addEventListener('file-changed', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      fileChangedCallback?.(data);
     } catch { /* ignore parse errors */ }
   });
 
   eventSource.onerror = () => {
     eventSource?.close();
     eventSource = null;
-    // Auto-reconnect after 2 seconds
+    // Auto-reconnect with configurable delay
     if (sseReconnectTimer) clearTimeout(sseReconnectTimer);
-    sseReconnectTimer = setTimeout(connectSSE, 2000);
+    sseReconnectTimer = setTimeout(connectSSE, serverSseReconnect);
   };
 }
 
@@ -221,7 +243,9 @@ function softCleanup(): void {
   disconnectSSE();
   presenceUpdateCallback = null;
   cursorUpdateCallback = null;
-  contentUpdateCallback = null;
+  textDiffCallback = null;
+  renderUpdateCallback = null;
+  fileChangedCallback = null;
 }
 const HMR_KEY = '__editorPresenceCleanup';
 if (typeof (window as any)[HMR_KEY] === 'function') {
@@ -928,6 +952,7 @@ async function openFullScreenEditor(filePath: string) {
     <div class="editor-header">
       <span class="editor-filename">${filePath.split('/').slice(-3).join('/')}</span>
       <span class="editor-status saved" id="editor-status">Saved</span>
+      <button class="editor-btn" id="editor-refresh">Refresh Preview</button>
       <button class="editor-btn primary" id="editor-save">Save</button>
       <button class="editor-btn" id="editor-close">Close</button>
     </div>
@@ -961,6 +986,7 @@ async function openFullScreenEditor(filePath: string) {
   const cursorsDiv = overlay.querySelector('#editor-cursors') as HTMLDivElement;
   const preview = overlay.querySelector('#editor-preview') as HTMLDivElement;
   const statusEl = overlay.querySelector('#editor-status') as HTMLSpanElement;
+  const refreshBtn = overlay.querySelector('#editor-refresh') as HTMLButtonElement;
   const saveBtn = overlay.querySelector('#editor-save') as HTMLButtonElement;
   const closeBtn = overlay.querySelector('#editor-close') as HTMLButtonElement;
   const resizeHandle = overlay.querySelector('#editor-resize') as HTMLDivElement;
@@ -1196,66 +1222,166 @@ async function openFullScreenEditor(filePath: string) {
     preview.scrollTop = scrollTop;
   }
 
+  // ---- Diff Utilities ----
+
+  interface DiffOp {
+    offset: number;
+    deleteCount: number;
+    insert: string;
+  }
+
+  function computeDiff(oldText: string, newText: string): DiffOp | null {
+    if (oldText === newText) return null;
+
+    // Find common prefix
+    let prefixLen = 0;
+    const minLen = Math.min(oldText.length, newText.length);
+    while (prefixLen < minLen && oldText[prefixLen] === newText[prefixLen]) {
+      prefixLen++;
+    }
+
+    // Find common suffix (from the end, not overlapping the prefix)
+    let oldSuffixStart = oldText.length;
+    let newSuffixStart = newText.length;
+    while (
+      oldSuffixStart > prefixLen &&
+      newSuffixStart > prefixLen &&
+      oldText[oldSuffixStart - 1] === newText[newSuffixStart - 1]
+    ) {
+      oldSuffixStart--;
+      newSuffixStart--;
+    }
+
+    return {
+      offset: prefixLen,
+      deleteCount: oldSuffixStart - prefixLen,
+      insert: newText.slice(prefixLen, newSuffixStart),
+    };
+  }
+
+  function applyDiffToText(text: string, op: DiffOp): string {
+    return text.slice(0, op.offset) + op.insert + text.slice(op.offset + op.deleteCount);
+  }
+
+  function adjustCursorForOp(cursorPos: number, op: DiffOp): number {
+    if (cursorPos <= op.offset) return cursorPos;
+    if (cursorPos <= op.offset + op.deleteCount) return op.offset + op.insert.length;
+    return cursorPos - op.deleteCount + op.insert.length;
+  }
+
+  // ---- State for diff-based sync ----
+  let previousContent = '';
+  let contentChangedSinceLastRender = false;
+  let isApplyingRemoteUpdate = false;
+  let renderTimer: ReturnType<typeof setInterval> | null = null;
+
+  // Request a server render and update preview
+  async function requestRender(): Promise<void> {
+    if (!contentChangedSinceLastRender) return;
+    try {
+      const data = await editorFetch('render', { filePath });
+      setPreviewContent(data.rendered);
+      contentChangedSinceLastRender = false;
+    } catch (err: any) {
+      console.error('[editor] Render request failed:', err);
+    }
+  }
+
   // Open document
   editorFetch('open', { filePath }).then((data) => {
     textarea.value = data.raw;
+    previousContent = data.raw;
     updateHighlight();
     setPreviewContent(data.rendered);
     updateStatus('saved');
     textarea.focus();
+
+    // Start render timer after document is loaded
+    renderTimer = setInterval(requestRender, serverRenderInterval);
   }).catch((err) => {
     preview.innerHTML = `<div style="color: var(--color-error, #f7768e); padding: 16px;">Failed to open file: ${err.message}</div>`;
   });
 
-  // Remote content sync
-  let isApplyingRemoteUpdate = false;
+  // ---- SSE event handlers ----
 
-  contentUpdateCallback = (data: any) => {
+  // Remote text diff from a co-editor
+  textDiffCallback = (data: any) => {
     if (data.userId === identity.userId) return;
     if (data.file !== filePath) return;
 
-    // Save cursor position
+    const op = data.op as DiffOp;
     const selStart = textarea.selectionStart;
     const selEnd = textarea.selectionEnd;
 
-    // Clear any pending local debounce (remote content is newer)
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-      debounceTimer = null;
-    }
-
-    // Apply remote content
     isApplyingRemoteUpdate = true;
-    textarea.value = data.raw;
+    textarea.value = applyDiffToText(textarea.value, op);
+    previousContent = textarea.value;
     updateHighlight();
-    setPreviewContent(data.rendered);
     isApplyingRemoteUpdate = false;
 
-    // Restore cursor (clamped to new content length)
-    textarea.selectionStart = Math.min(selStart, data.raw.length);
-    textarea.selectionEnd = Math.min(selEnd, data.raw.length);
+    // Smart cursor adjustment
+    textarea.selectionStart = adjustCursorForOp(selStart, op);
+    textarea.selectionEnd = adjustCursorForOp(selEnd, op);
+
+    contentChangedSinceLastRender = true;
   };
 
-  // Debounced update on keystroke
+  // Rendered preview update from server
+  renderUpdateCallback = (data: any) => {
+    if (data.file !== filePath) return;
+    setPreviewContent(data.rendered);
+    contentChangedSinceLastRender = false;
+  };
+
+  // External file change (e.g. edited in VS Code)
+  fileChangedCallback = (data: any) => {
+    if (data.file !== filePath) return;
+
+    const selStart = textarea.selectionStart;
+    const selEnd = textarea.selectionEnd;
+
+    isApplyingRemoteUpdate = true;
+    textarea.value = data.raw;
+    previousContent = data.raw;
+    updateHighlight();
+    isApplyingRemoteUpdate = false;
+
+    // Clamp cursor
+    textarea.selectionStart = Math.min(selStart, data.raw.length);
+    textarea.selectionEnd = Math.min(selEnd, data.raw.length);
+
+    // Trigger immediate render for the new content
+    contentChangedSinceLastRender = true;
+    requestRender();
+  };
+
+  // Debounced diff on keystroke
   textarea.addEventListener('input', () => {
     if (isApplyingRemoteUpdate) return;
 
     updateHighlight();
     updateStatus('unsaved');
 
+    const currentContent = textarea.value;
+    const diff = computeDiff(previousContent, currentContent);
+    previousContent = currentContent;
+
+    if (!diff) return;
+
+    contentChangedSinceLastRender = true;
+
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       try {
-        const data = await editorFetch('update', {
+        await editorFetch('diff', {
           filePath,
-          content: textarea.value,
+          op: diff,
           userId: identity.userId,
         });
-        setPreviewContent(data.rendered);
       } catch (err: any) {
-        console.error('[editor] Update failed:', err);
+        console.error('[editor] Diff send failed:', err);
       }
-    }, 300);
+    }, serverContentDebounce);
   });
 
   // Tab key support in textarea
@@ -1289,8 +1415,8 @@ async function openFullScreenEditor(filePath: string) {
 
     updateStatus('saving');
     try {
-      // Send the latest content first, then save
-      await editorFetch('update', { filePath, content: textarea.value, userId: identity.userId });
+      // Full content sync before disk write to ensure server has latest
+      await editorFetch('update', { filePath, content: textarea.value });
       await editorFetch('save', { filePath });
       updateStatus('saved');
     } catch (err: any) {
@@ -1299,13 +1425,19 @@ async function openFullScreenEditor(filePath: string) {
     }
   }
 
+  // Refresh preview button
+  refreshBtn.addEventListener('click', () => {
+    contentChangedSinceLastRender = true;
+    requestRender();
+  });
+
   // Close
   async function doClose() {
     // Clean up listeners and timers first to prevent anything firing after close
     cleanup();
 
     try {
-      // If there are unsaved changes, send final update before close
+      // If there are unsaved changes, send final full content sync before close
       if (saveStatus === 'unsaved') {
         await editorFetch('update', { filePath, content: textarea.value });
       }
@@ -1373,7 +1505,15 @@ async function openFullScreenEditor(filePath: string) {
 
     // Unregister callbacks
     cursorUpdateCallback = null;
-    contentUpdateCallback = null;
+    textDiffCallback = null;
+    renderUpdateCallback = null;
+    fileChangedCallback = null;
+
+    // Clear render timer
+    if (renderTimer) {
+      clearInterval(renderTimer);
+      renderTimer = null;
+    }
 
     // Remove all remote cursor elements
     for (const el of remoteCursorElements.values()) el.remove();

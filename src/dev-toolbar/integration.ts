@@ -122,6 +122,10 @@ function getEditorConfig(configDir: string): { autosaveInterval: number; presenc
     pingInterval: Math.max(Number(p.ping_interval) || 5000, 1000),
     staleThreshold: Math.max(Number(p.stale_threshold) || 30000, 5000),
     cursorThrottle: Math.max(Number(p.cursor_throttle) || 100, 16),
+    contentDebounce: Math.max(Number(p.content_debounce) || 150, 50),
+    renderInterval: Math.max(Number(p.render_interval) || 5000, 1000),
+    sseKeepalive: Math.max(Number(p.sse_keepalive) || 15000, 5000),
+    sseReconnect: Math.max(Number(p.sse_reconnect) || 2000, 500),
   };
 
   return { autosaveInterval, presence };
@@ -168,7 +172,6 @@ export function devToolbarIntegration(): AstroIntegration {
                     server,
                     editorStore,
                     presenceManager,
-                    () => server.ws.send({ type: 'full-reload' })
                   );
                   editorStore.startBackgroundSave();
                   presenceManager.startCleanup();
@@ -194,7 +197,14 @@ export function devToolbarIntegration(): AstroIntegration {
                       console.log(`[cache] Invalidated: ${invalidated.join(', ') || 'none'}`);
 
                       // Suppress reload if file is being edited
-                      if (!editorStore.isEditing(file)) {
+                      if (editorStore.isEditing(file)) {
+                        if (!editorStore.isEditorSave(file)) {
+                          console.log(`[editor] External file add detected: ${shortPath}`);
+                          editorStore.reloadFromDisk(file).then(doc => {
+                            presenceManager.broadcastFileChanged(file, doc.raw);
+                          }).catch(() => {});
+                        }
+                      } else {
                         server.ws.send({ type: 'full-reload' });
                       }
                     }
@@ -227,7 +237,19 @@ export function devToolbarIntegration(): AstroIntegration {
                   // Suppress full-reload if file is being edited
                   // Caches are still cleared above, but we don't reload the page
                   if (editorStore.isEditing(file)) {
-                    console.log(`[editor] HMR suppressed for: ${shortPath}`);
+                    if (editorStore.isEditorSave(file)) {
+                      // Our own save — just suppress HMR, no need to notify
+                      console.log(`[editor] HMR suppressed (editor save): ${shortPath}`);
+                    } else {
+                      // External edit — reload from disk and notify all editors
+                      console.log(`[editor] External edit detected: ${shortPath}`);
+                      try {
+                        const doc = await editorStore.reloadFromDisk(file);
+                        presenceManager.broadcastFileChanged(file, doc.raw);
+                      } catch (err) {
+                        console.error(`[editor] Failed to reload from disk: ${shortPath}`, err);
+                      }
+                    }
                     return [];
                   }
 

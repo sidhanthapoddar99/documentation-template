@@ -45,6 +45,12 @@ export interface EditorConfig {
   watchPaths: string[];
 }
 
+export interface DiffOp {
+  offset: number;
+  deleteCount: number;
+  insert: string;
+}
+
 export class EditorStore {
   private documents = new Map<string, EditorDocument>();
   private docsParser: DocsParser;
@@ -52,6 +58,8 @@ export class EditorStore {
   private render: (content: string) => string;
   private autosaveTimer: ReturnType<typeof setInterval> | null = null;
   private config: EditorConfig;
+  /** Paths currently being saved by the editor — used to distinguish editor saves from external edits */
+  private ignoreSaveSet = new Set<string>();
 
   constructor(config: EditorConfig) {
     this.config = config;
@@ -198,6 +206,71 @@ export class EditorStore {
   }
 
   /**
+   * Apply a small diff operation to a document's raw content.
+   * Marks the document dirty but does NOT re-parse or re-render (deferred to render interval).
+   */
+  applyDiff(filePath: string, op: DiffOp): void {
+    const doc = this.documents.get(filePath);
+    if (!doc) {
+      throw new Error(`Document not open: ${filePath}`);
+    }
+
+    doc.raw = doc.raw.slice(0, op.offset) + op.insert + doc.raw.slice(op.offset + op.deleteCount);
+    doc.dirty = true;
+  }
+
+  /**
+   * Re-parse frontmatter and re-render the document through the full pipeline.
+   * Returns the updated document.
+   */
+  async renderDocument(filePath: string): Promise<EditorDocument> {
+    const doc = this.documents.get(filePath);
+    if (!doc) {
+      throw new Error(`Document not open: ${filePath}`);
+    }
+
+    const { data: frontmatter, content: body } = matter(doc.raw);
+    const rendered = await this.renderBody(body, filePath, doc.contentType, doc.basePath, frontmatter);
+
+    doc.frontmatter = frontmatter;
+    doc.body = body;
+    doc.rendered = rendered;
+
+    return doc;
+  }
+
+  /**
+   * Reload a document from disk (for external edit detection).
+   * Re-reads the file, re-parses frontmatter, and re-renders.
+   */
+  async reloadFromDisk(filePath: string): Promise<EditorDocument> {
+    const doc = this.documents.get(filePath);
+    if (!doc) {
+      throw new Error(`Document not open: ${filePath}`);
+    }
+
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    const { data: frontmatter, content: body } = matter(raw);
+    const rendered = await this.renderBody(body, filePath, doc.contentType, doc.basePath, frontmatter);
+
+    doc.raw = raw;
+    doc.frontmatter = frontmatter;
+    doc.body = body;
+    doc.rendered = rendered;
+    doc.dirty = false;
+
+    console.log(`[editor] Reloaded from disk: ${path.basename(filePath)}`);
+    return doc;
+  }
+
+  /**
+   * Check if a file write was initiated by the editor (not an external edit).
+   */
+  isEditorSave(filePath: string): boolean {
+    return this.ignoreSaveSet.has(filePath);
+  }
+
+  /**
    * Save document to disk
    */
   saveDocument(filePath: string): { success: boolean; savedAt: string } {
@@ -207,9 +280,11 @@ export class EditorStore {
     }
 
     if (doc.dirty) {
+      this.ignoreSaveSet.add(filePath);
       fs.writeFileSync(filePath, doc.raw, 'utf-8');
       doc.dirty = false;
       console.log(`[editor] Saved: ${path.basename(filePath)}`);
+      setTimeout(() => this.ignoreSaveSet.delete(filePath), 1000);
     }
 
     return { success: true, savedAt: new Date().toISOString() };
@@ -223,8 +298,10 @@ export class EditorStore {
     if (!doc) return;
 
     if (doc.dirty) {
+      this.ignoreSaveSet.add(filePath);
       fs.writeFileSync(filePath, doc.raw, 'utf-8');
       console.log(`[editor] Auto-saved on close: ${path.basename(filePath)}`);
+      setTimeout(() => this.ignoreSaveSet.delete(filePath), 1000);
     }
 
     this.documents.delete(filePath);
@@ -248,9 +325,11 @@ export class EditorStore {
       for (const [filePath, doc] of this.documents) {
         if (doc.dirty) {
           try {
+            this.ignoreSaveSet.add(filePath);
             fs.writeFileSync(filePath, doc.raw, 'utf-8');
             doc.dirty = false;
             console.log(`[editor] Auto-saved: ${path.basename(filePath)}`);
+            setTimeout(() => this.ignoreSaveSet.delete(filePath), 1000);
           } catch (err) {
             console.error(`[editor] Auto-save failed for ${path.basename(filePath)}:`, err);
           }

@@ -2,12 +2,14 @@
  * Editor Middleware - HTTP endpoints for the live editor
  *
  * Adds Vite middleware to handle editor API requests:
- * - GET  /__editor/events    — SSE stream for presence + cursor events
+ * - GET  /__editor/events    — SSE stream for presence + cursor + diff events
  * - GET  /__editor/styles    — Combined content CSS
  * - POST /__editor/open      — Open a document for editing
- * - POST /__editor/update    — Update content and get re-rendered preview
+ * - POST /__editor/update    — Full content sync (used before save)
+ * - POST /__editor/diff      — Apply a small text diff (fast, no render)
+ * - POST /__editor/render    — Re-render document and broadcast preview
  * - POST /__editor/save      — Save document to disk
- * - POST /__editor/close     — Close document (save + trigger reload)
+ * - POST /__editor/close     — Close document (save if dirty)
  * - POST /__editor/presence  — Presence actions (join/leave/page/cursor/cursor-clear)
  * - POST /__editor/ping      — Latency measurement
  *
@@ -52,7 +54,6 @@ export function setupEditorMiddleware(
   server: ViteDevServer,
   store: EditorStore,
   presence: PresenceManager,
-  sendReload: () => void
 ): void {
   /**
    * Build combined CSS for the editor preview from theme + content styles.
@@ -121,12 +122,12 @@ export function setupEditorMiddleware(
       // Register stream with presence manager (sends initial snapshot)
       presence.addStream(userId, res);
 
-      // Send keepalive comments every 15 seconds
+      // Send keepalive comments at configurable interval
       const keepalive = setInterval(() => {
         if (!res.writableEnded) {
           try { res.write(': keepalive\n\n'); } catch { /* stream closed */ }
         }
-      }, 15_000);
+      }, presence.config.sseKeepalive);
 
       // Cleanup on disconnect
       req.on('close', () => {
@@ -183,7 +184,7 @@ export function setupEditorMiddleware(
         }
 
         case '/__editor/update': {
-          const { filePath, content, userId } = body;
+          const { filePath, content } = body;
           if (!filePath || typeof filePath !== 'string') {
             return sendJson(res, 400, { error: 'filePath is required' });
           }
@@ -193,15 +194,40 @@ export function setupEditorMiddleware(
 
           const doc = await store.updateDocument(filePath, content);
 
-          // Broadcast content to other editors of the same file
-          if (userId) {
-            presence.broadcastContentUpdate(userId, filePath, content, doc.rendered);
-          }
-
           return sendJson(res, 200, {
             rendered: doc.rendered,
             frontmatter: doc.frontmatter,
           });
+        }
+
+        case '/__editor/diff': {
+          const { filePath, op, userId } = body;
+          if (!filePath || typeof filePath !== 'string') {
+            return sendJson(res, 400, { error: 'filePath is required' });
+          }
+          if (!op || typeof op.offset !== 'number' || typeof op.deleteCount !== 'number' || typeof op.insert !== 'string') {
+            return sendJson(res, 400, { error: 'op {offset, deleteCount, insert} is required' });
+          }
+
+          store.applyDiff(filePath, op);
+
+          if (userId) {
+            presence.broadcastTextDiff(userId, filePath, op);
+          }
+
+          return sendJson(res, 200, { ok: true });
+        }
+
+        case '/__editor/render': {
+          const { filePath } = body;
+          if (!filePath || typeof filePath !== 'string') {
+            return sendJson(res, 400, { error: 'filePath is required' });
+          }
+
+          const doc = await store.renderDocument(filePath);
+          presence.broadcastRenderUpdate(filePath, doc.rendered);
+
+          return sendJson(res, 200, { rendered: doc.rendered });
         }
 
         case '/__editor/save': {
@@ -221,9 +247,6 @@ export function setupEditorMiddleware(
           }
 
           store.closeDocument(filePath);
-
-          // Trigger full reload so the page refreshes with saved content
-          sendReload();
 
           return sendJson(res, 200, { success: true });
         }
