@@ -165,11 +165,14 @@ export function devToolbarIntegration(): AstroIntegration {
         updateConfig({
           vite: {
             plugins: [
-              {
+              (() => {
+                // yjsSync is shared between configureServer and handleHotUpdate
+                let yjsSync: YjsSync;
+                return {
                 name: 'cache-invalidation',
                 configureServer(server) {
                   // Create Yjs sync manager and attach to HTTP server
-                  const yjsSync = new YjsSync();
+                  yjsSync = new YjsSync();
                   yjsSync.setContentChangeHandler((filePath, raw) => {
                     editorStore.updateRaw(filePath, raw);
                   });
@@ -213,6 +216,7 @@ export function devToolbarIntegration(): AstroIntegration {
                           console.log(`[editor] External file add detected: ${shortPath}`);
                           editorStore.reloadFromDisk(file).then(doc => {
                             yjsSync.resetContent(file, doc.raw);
+                            presenceManager.broadcastRenderUpdate(file, doc.rendered);
                           }).catch(() => {});
                         }
                       } else {
@@ -257,6 +261,7 @@ export function devToolbarIntegration(): AstroIntegration {
                       try {
                         const doc = await editorStore.reloadFromDisk(file);
                         yjsSync.resetContent(file, doc.raw);
+                        presenceManager.broadcastRenderUpdate(file, doc.rendered);
                       } catch (err) {
                         console.error(`[editor] Failed to reload from disk: ${shortPath}`, err);
                       }
@@ -270,7 +275,8 @@ export function devToolbarIntegration(): AstroIntegration {
                   // Return empty array to prevent Vite's default HMR
                   return [];
                 },
-              },
+              };
+              })(),
             ],
           },
         });
