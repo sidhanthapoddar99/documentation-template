@@ -6,11 +6,202 @@
  * Right pane: live-rendered HTML preview
  * Scroll sync: both panes scroll proportionally together
  *
+ * Multi-user presence: shows connected users, their pages, latency, and
+ * renders remote cursors in the editor when editing the same file.
+ *
  * Only active on pages with a `data-editor-path` attribute (docs/blog).
  * Full-screen overlay appended to document.body for proper viewport coverage.
  */
 
 type SaveStatus = 'saved' | 'unsaved' | 'saving';
+
+// ============================================================================
+// User Identity — persisted in sessionStorage so refreshes keep same identity
+// ============================================================================
+
+const ADJECTIVES = [
+  'Swift', 'Bright', 'Calm', 'Deft', 'Keen',
+  'Bold', 'Warm', 'Quick', 'Wise', 'Neat',
+];
+
+const ANIMALS = [
+  'Otter', 'Falcon', 'Panda', 'Lynx', 'Heron',
+  'Fox', 'Owl', 'Crane', 'Wolf', 'Finch',
+];
+
+const COLORS = [
+  '#f7768e', '#ff9e64', '#e0af68', '#9ece6a', '#73daca',
+  '#7aa2f7', '#bb9af7', '#2ac3de', '#7dcfff', '#c0caf5',
+];
+
+function getOrCreateIdentity(): { userId: string; name: string; color: string } {
+  const stored = sessionStorage.getItem('__editor_identity');
+  if (stored) {
+    try { return JSON.parse(stored); } catch { /* regenerate */ }
+  }
+
+  const userId = crypto.randomUUID();
+  const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+  const animal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
+  const name = `${adj} ${animal}`;
+  const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+
+  const identity = { userId, name, color };
+  sessionStorage.setItem('__editor_identity', JSON.stringify(identity));
+  return identity;
+}
+
+const identity = getOrCreateIdentity();
+
+// ============================================================================
+// Global SSE Connection & Presence State
+// ============================================================================
+
+let eventSource: EventSource | null = null;
+let pingIntervalTimer: ReturnType<typeof setInterval> | null = null;
+let lastPingClientTime = 0;
+let lastLatencyMs = 0;
+let presenceUsers: any[] = [];
+let presenceUpdateCallback: ((users: any[]) => void) | null = null;
+let cursorUpdateCallback: ((data: any) => void) | null = null;
+let sseReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+// Server-provided config (from site.yaml via SSE config event)
+// Defaults used until config event arrives
+let serverPingInterval = 5000;
+let serverCursorThrottle = 100;
+
+function connectSSE(): void {
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+
+  eventSource = new EventSource(`/__editor/events?userId=${identity.userId}`);
+
+  eventSource.addEventListener('config', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (data.pingInterval) serverPingInterval = data.pingInterval;
+      if (data.cursorThrottle) serverCursorThrottle = data.cursorThrottle;
+      // Restart ping loop with new interval
+      restartPingLoop();
+    } catch { /* ignore parse errors */ }
+  });
+
+  eventSource.addEventListener('presence', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      presenceUsers = data.users || [];
+      presenceUpdateCallback?.(presenceUsers);
+    } catch { /* ignore parse errors */ }
+  });
+
+  eventSource.addEventListener('cursor', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      cursorUpdateCallback?.(data);
+    } catch { /* ignore parse errors */ }
+  });
+
+  eventSource.onerror = () => {
+    eventSource?.close();
+    eventSource = null;
+    // Auto-reconnect after 2 seconds
+    if (sseReconnectTimer) clearTimeout(sseReconnectTimer);
+    sseReconnectTimer = setTimeout(connectSSE, 2000);
+  };
+}
+
+function disconnectSSE(): void {
+  if (sseReconnectTimer) {
+    clearTimeout(sseReconnectTimer);
+    sseReconnectTimer = null;
+  }
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+}
+
+function doPing(): void {
+  const clientTime = Date.now();
+  fetch('/__editor/ping', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId: identity.userId,
+      clientTime,
+      latencyMs: lastLatencyMs,
+    }),
+  }).then(res => {
+    if (res.ok) return res.json();
+  }).then(data => {
+    if (data?.clientTime) {
+      lastLatencyMs = Date.now() - data.clientTime;
+    }
+    lastPingClientTime = clientTime;
+  }).catch(() => { /* ignore ping failures */ });
+}
+
+function startPingLoop(): void {
+  if (pingIntervalTimer) return;
+  pingIntervalTimer = setInterval(doPing, serverPingInterval);
+}
+
+function stopPingLoop(): void {
+  if (pingIntervalTimer) {
+    clearInterval(pingIntervalTimer);
+    pingIntervalTimer = null;
+  }
+}
+
+function restartPingLoop(): void {
+  stopPingLoop();
+  startPingLoop();
+}
+
+function sendPresenceAction(action: Record<string, any>): void {
+  fetch('/__editor/presence', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: identity.userId, ...action }),
+  }).catch(() => { /* ignore errors */ });
+}
+
+// ============================================================================
+// Page lifecycle — join on load, leave on unload
+// ============================================================================
+
+function initPresence(): void {
+  connectSSE();
+  sendPresenceAction({
+    type: 'join',
+    name: identity.name,
+    color: identity.color,
+    page: window.location.pathname,
+  });
+  startPingLoop();
+}
+
+function teardownPresence(): void {
+  stopPingLoop();
+  disconnectSSE();
+  // sendBeacon for reliable leave on page unload
+  const blob = new Blob(
+    [JSON.stringify({ type: 'leave', userId: identity.userId })],
+    { type: 'application/json' }
+  );
+  navigator.sendBeacon('/__editor/presence', blob);
+}
+
+// Initialize on module load (dev toolbar app context)
+initPresence();
+window.addEventListener('beforeunload', teardownPresence);
+
+// ============================================================================
+// Toolbar App Export
+// ============================================================================
 
 export default {
   id: 'doc-editor',
@@ -32,7 +223,7 @@ export default {
       .panel-content {
         padding: 12px;
         font-family: system-ui, -apple-system, sans-serif;
-        min-width: 220px;
+        min-width: 260px;
       }
       .panel-header {
         display: flex;
@@ -68,6 +259,88 @@ export default {
         width: 14px;
         height: 14px;
       }
+
+      /* Presence table */
+      .presence-section {
+        margin-bottom: 12px;
+      }
+      .presence-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 6px;
+      }
+      .presence-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: rgba(99, 102, 241, 0.3);
+        color: #a5b4fc;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .presence-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+      .presence-table th {
+        text-align: left;
+        padding: 4px 6px;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 500;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .presence-table td {
+        padding: 4px 6px;
+        color: rgba(255, 255, 255, 0.7);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100px;
+      }
+      .presence-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+      .presence-you {
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.35);
+        margin-left: 2px;
+      }
+      .ping-good { color: #9ece6a; }
+      .ping-ok { color: #e0af68; }
+      .ping-bad { color: #f7768e; }
+      .jump-btn {
+        padding: 2px 6px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        font-size: 10px;
+        transition: all 0.15s ease;
+      }
+      .jump-btn:hover {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.4);
+        color: #a5b4fc;
+      }
+
       .edit-btn {
         display: flex;
         align-items: center;
@@ -128,6 +401,21 @@ export default {
       </button>
     </div>`;
 
+    // Presence section
+    html += `
+      <div class="presence-section">
+        <div class="presence-header">
+          Connected <span class="presence-count" id="presence-count">0</span>
+        </div>
+        <table class="presence-table">
+          <thead>
+            <tr><th>User</th><th>Page</th><th>Ping</th><th></th></tr>
+          </thead>
+          <tbody id="presence-body"></tbody>
+        </table>
+      </div>
+    `;
+
     if (editorPath) {
       html += `
         <button class="edit-btn" id="open-editor">
@@ -157,6 +445,46 @@ export default {
     const contentWrapper = document.createElement('div');
     contentWrapper.innerHTML = html;
     windowEl.appendChild(contentWrapper);
+
+    // Presence table rendering
+    const presenceBody = contentWrapper.querySelector('#presence-body') as HTMLTableSectionElement;
+    const presenceCount = contentWrapper.querySelector('#presence-count') as HTMLSpanElement;
+
+    function renderPresenceTable(users: any[]): void {
+      presenceCount.textContent = String(users.length);
+
+      presenceBody.innerHTML = users.map((u: any) => {
+        const isYou = u.userId === identity.userId;
+        const pagePath = u.currentPage || '/';
+        const shortPage = pagePath === '/' ? '/' : pagePath.replace(/^\/docs/, '').replace(/\/$/, '').split('/').slice(-2).join('/') || '/';
+
+        let pingClass = 'ping-good';
+        if (u.latencyMs >= 300) pingClass = 'ping-bad';
+        else if (u.latencyMs >= 100) pingClass = 'ping-ok';
+
+        const pingText = u.latencyMs > 0 ? `${u.latencyMs}ms` : '-';
+
+        return `<tr>
+          <td><span class="presence-dot" style="background:${u.color}"></span>${u.name}${isYou ? '<span class="presence-you">(you)</span>' : ''}</td>
+          <td title="${pagePath}">${shortPage}</td>
+          <td class="${pingClass}">${pingText}</td>
+          <td>${!isYou ? `<button class="jump-btn" data-page="${pagePath}">Jump</button>` : ''}</td>
+        </tr>`;
+      }).join('');
+
+      // Bind jump buttons
+      presenceBody.querySelectorAll('.jump-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const page = (btn as HTMLElement).dataset.page;
+          if (page) window.location.href = page;
+        });
+      });
+    }
+
+    // Register presence update callback
+    presenceUpdateCallback = renderPresenceTable;
+    // Render initial state
+    renderPresenceTable(presenceUsers);
 
     // Close button
     const closeBtn = contentWrapper.querySelector('#close-panel');
@@ -433,6 +761,7 @@ async function openFullScreenEditor(filePath: string) {
       }
 
       .editor-highlight,
+      .editor-cursors,
       .editor-textarea {
         position: absolute;
         inset: 0;
@@ -458,13 +787,21 @@ async function openFullScreenEditor(filePath: string) {
         z-index: 0;
       }
 
+      .editor-cursors {
+        background: transparent;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+        padding: 0;
+      }
+
       .editor-textarea {
         background: transparent;
         color: transparent;
         caret-color: var(--color-text-primary, #c0caf5);
         outline: none;
         resize: none;
-        z-index: 1;
+        z-index: 2;
         -webkit-text-fill-color: transparent;
       }
 
@@ -485,6 +822,34 @@ async function openFullScreenEditor(filePath: string) {
       .hl-list-marker { color: #f7768e; }
       .hl-hr { color: #565f89; }
       .hl-frontmatter { color: #565f89; }
+
+      /* Remote cursors */
+      .remote-cursor {
+        position: absolute;
+        pointer-events: none;
+        z-index: 10;
+        transition: top 0.1s ease, left 0.1s ease;
+      }
+      .remote-cursor-line {
+        width: 2px;
+        height: 1.7em;
+        background: var(--cursor-color, #f7768e);
+        border-radius: 1px;
+      }
+      .remote-cursor-label {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        padding: 1px 5px;
+        border-radius: 3px 3px 3px 0;
+        background: var(--cursor-color, #f7768e);
+        color: #fff;
+        font-size: 9px;
+        font-weight: 600;
+        font-family: system-ui, -apple-system, sans-serif;
+        white-space: nowrap;
+        line-height: 1.4;
+      }
 
       /* Preview pane - themed using site's CSS variables */
       .editor-preview {
@@ -533,6 +898,7 @@ async function openFullScreenEditor(filePath: string) {
         <div class="pane-header">Markdown</div>
         <div class="editor-input-wrap">
           <pre class="editor-highlight" id="editor-highlight" aria-hidden="true"></pre>
+          <div class="editor-cursors" id="editor-cursors"></div>
           <textarea class="editor-textarea" id="editor-textarea" spellcheck="false"></textarea>
         </div>
       </div>
@@ -554,11 +920,138 @@ async function openFullScreenEditor(filePath: string) {
   // Get DOM elements
   const textarea = overlay.querySelector('#editor-textarea') as HTMLTextAreaElement;
   const highlightPre = overlay.querySelector('#editor-highlight') as HTMLPreElement;
+  const cursorsDiv = overlay.querySelector('#editor-cursors') as HTMLDivElement;
   const preview = overlay.querySelector('#editor-preview') as HTMLDivElement;
   const statusEl = overlay.querySelector('#editor-status') as HTMLSpanElement;
   const saveBtn = overlay.querySelector('#editor-save') as HTMLButtonElement;
   const closeBtn = overlay.querySelector('#editor-close') as HTMLButtonElement;
   const resizeHandle = overlay.querySelector('#editor-resize') as HTMLDivElement;
+
+  // ---- Remote Cursor Rendering ----
+  // Measure monospace character dimensions for cursor positioning
+  let charWidth = 7.8;
+  let lineHeight = 22.1;
+
+  function measureFont(): void {
+    const probe = document.createElement('span');
+    probe.style.cssText = `
+      font-family: var(--font-family-mono, 'JetBrains Mono', 'Fira Code', monospace);
+      font-size: 13px;
+      line-height: 1.7;
+      position: absolute;
+      visibility: hidden;
+      white-space: pre;
+    `;
+    probe.textContent = 'X';
+    document.body.appendChild(probe);
+    const rect = probe.getBoundingClientRect();
+    if (rect.width > 0) charWidth = rect.width;
+    if (rect.height > 0) lineHeight = rect.height;
+    probe.remove();
+  }
+  measureFont();
+
+  // Remote cursor data and DOM elements
+  const remoteCursorData = new Map<string, { name: string; color: string; cursor: { line: number; col: number; offset: number } }>();
+  const remoteCursorElements = new Map<string, HTMLDivElement>();
+
+  function positionRemoteCursor(el: HTMLDivElement, cursor: { line: number; col: number }, color: string): void {
+    const padding = 16; // matches editor padding
+    const top = cursor.line * lineHeight + padding - textarea.scrollTop;
+    const left = cursor.col * charWidth + padding - textarea.scrollLeft;
+
+    // Hide if scrolled out of view
+    const wrapRect = cursorsDiv.getBoundingClientRect();
+    if (top < -lineHeight || top > wrapRect.height || left < -charWidth || left > wrapRect.width) {
+      el.style.display = 'none';
+    } else {
+      el.style.display = '';
+    }
+
+    el.style.top = `${top}px`;
+    el.style.left = `${left}px`;
+    el.style.setProperty('--cursor-color', color);
+  }
+
+  function updateRemoteCursor(userId: string, name: string, color: string, cursor: { line: number; col: number; offset: number }): void {
+    remoteCursorData.set(userId, { name, color, cursor });
+
+    let el = remoteCursorElements.get(userId);
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'remote-cursor';
+      el.innerHTML = `<div class="remote-cursor-label">${name}</div><div class="remote-cursor-line"></div>`;
+      cursorsDiv.appendChild(el);
+      remoteCursorElements.set(userId, el);
+    }
+
+    positionRemoteCursor(el, cursor, color);
+  }
+
+  function removeRemoteCursor(userId: string): void {
+    remoteCursorData.delete(userId);
+    const el = remoteCursorElements.get(userId);
+    if (el) {
+      el.remove();
+      remoteCursorElements.delete(userId);
+    }
+  }
+
+  function repositionAllRemoteCursors(): void {
+    for (const [userId, data] of remoteCursorData) {
+      const el = remoteCursorElements.get(userId);
+      if (el) {
+        positionRemoteCursor(el, data.cursor, data.color);
+      }
+    }
+  }
+
+  // Register cursor update callback for SSE events
+  cursorUpdateCallback = (data: any) => {
+    if (data.userId === identity.userId) return;
+    if (data.file !== filePath) return;
+    updateRemoteCursor(data.userId, data.name, data.color, data.cursor);
+  };
+
+  // ---- Local Cursor Tracking ----
+  let cursorThrottleTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function getLocalCursorPosition(): { line: number; col: number; offset: number } {
+    const offset = textarea.selectionStart;
+    const text = textarea.value.substring(0, offset);
+    const lines = text.split('\n');
+    const line = lines.length - 1;
+    const col = lines[lines.length - 1].length;
+    return { line, col, offset };
+  }
+
+  function sendLocalCursor(): void {
+    if (cursorThrottleTimer) return;
+    cursorThrottleTimer = setTimeout(() => {
+      cursorThrottleTimer = null;
+      const cursor = getLocalCursorPosition();
+      sendPresenceAction({
+        type: 'cursor',
+        file: filePath,
+        cursor,
+      });
+    }, serverCursorThrottle);
+  }
+
+  function onCursorMove(): void {
+    sendLocalCursor();
+  }
+
+  textarea.addEventListener('keyup', onCursorMove);
+  textarea.addEventListener('mouseup', onCursorMove);
+  textarea.addEventListener('click', onCursorMove);
+
+  // Send initial cursor position when editor opens
+  sendPresenceAction({
+    type: 'cursor',
+    file: filePath,
+    cursor: { line: 0, col: 0, offset: 0 },
+  });
 
   // Sync highlight overlay with textarea content
   function updateHighlight() {
@@ -584,6 +1077,9 @@ async function openFullScreenEditor(filePath: string) {
     // Sync highlight overlay
     syncHighlightScroll();
 
+    // Reposition remote cursors on scroll
+    repositionAllRemoteCursors();
+
     // Proportional scroll: map textarea scroll % to preview scroll %
     const maxScroll = textarea.scrollHeight - textarea.clientHeight;
     if (maxScroll > 0) {
@@ -606,6 +1102,8 @@ async function openFullScreenEditor(filePath: string) {
       textarea.scrollTop = ratio * textareaMax;
       // Keep highlight in sync too
       syncHighlightScroll();
+      // Reposition remote cursors
+      repositionAllRemoteCursors();
     }
 
     requestAnimationFrame(() => { scrollSyncSource = 'none'; });
@@ -784,6 +1282,26 @@ async function openFullScreenEditor(filePath: string) {
 
   // Cleanup function to remove document-level listeners and timers
   function cleanup() {
+    // Clear cursor tracking
+    if (cursorThrottleTimer) {
+      clearTimeout(cursorThrottleTimer);
+      cursorThrottleTimer = null;
+    }
+    textarea.removeEventListener('keyup', onCursorMove);
+    textarea.removeEventListener('mouseup', onCursorMove);
+    textarea.removeEventListener('click', onCursorMove);
+
+    // Send cursor-clear to indicate we're no longer editing
+    sendPresenceAction({ type: 'cursor-clear' });
+
+    // Unregister cursor callback
+    cursorUpdateCallback = null;
+
+    // Remove all remote cursor elements
+    for (const el of remoteCursorElements.values()) el.remove();
+    remoteCursorElements.clear();
+    remoteCursorData.clear();
+
     if (debounceTimer) {
       clearTimeout(debounceTimer);
       debounceTimer = null;

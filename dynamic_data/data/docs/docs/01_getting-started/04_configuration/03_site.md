@@ -42,6 +42,10 @@ logo:
 # Editor configuration (required for dev toolbar live editor)
 editor:
   autosave_interval: 10000  # milliseconds (minimum: 1000)
+  presence:
+    ping_interval: 5000       # How often clients ping the server (ms)
+    stale_threshold: 30000    # Remove users with no heartbeat after this (ms)
+    cursor_throttle: 100      # Min interval between cursor broadcasts (ms)
 ```
 
 ## Site Metadata
@@ -200,16 +204,24 @@ See [Environment Variables](./02_env.md#server-settings) for more details.
 
 ## Editor Configuration
 
-The `editor` block configures the live documentation editor in the dev toolbar. This section is **required** — the dev server will throw an error if it's missing.
+The `editor` block configures the live documentation editor in the dev toolbar. The `autosave_interval` field is **required** — the dev server will throw an error if it's missing. The `presence` sub-block is optional.
 
 ```yaml
 editor:
   autosave_interval: 10000  # Auto-save interval in milliseconds
+  presence:
+    ping_interval: 5000       # How often clients ping the server (ms)
+    stale_threshold: 30000    # Remove users with no heartbeat after this (ms)
+    cursor_throttle: 100      # Min interval between cursor broadcasts (ms)
 ```
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `autosave_interval` | `number` | Yes | Interval in milliseconds for auto-saving edited documents. Minimum: `1000` |
+| `autosave_interval` | `number` | Yes | Interval in ms for auto-saving edited documents. Minimum: `1000` |
+| `presence` | `object` | No | Multi-user presence timing configuration |
+| `presence.ping_interval` | `number` | No | Client ping frequency in ms. Default: `5000`. Minimum: `1000` |
+| `presence.stale_threshold` | `number` | No | Remove silent users after this ms. Default: `30000`. Minimum: `5000` |
+| `presence.cursor_throttle` | `number` | No | Min ms between cursor position sends. Default: `100`. Minimum: `16` |
 
 ### `autosave_interval`
 
@@ -226,6 +238,22 @@ editor:
 - **Higher values**: Fewer saves, more data at risk if the server crashes
 
 If this field is missing or invalid, the dev server will fail to start with a clear error message explaining what to add.
+
+### `presence`
+
+Controls timing for multi-user presence awareness and live cursor tracking. All fields are optional — sensible defaults are used when omitted. The server sends these values to clients via SSE on connection.
+
+```yaml
+editor:
+  presence:
+    ping_interval: 5000       # Clients ping every 5 seconds
+    stale_threshold: 30000    # Remove users after 30 seconds of silence
+    cursor_throttle: 100      # Send cursor updates at most every 100ms
+```
+
+- **`ping_interval`** — How often each browser tab pings the server for latency measurement and heartbeat. Lower values give more responsive latency readings but more network traffic.
+- **`stale_threshold`** — How long to wait before removing a user who stops sending heartbeats (e.g. crashed tab, lost network). The cleanup check runs at 1/3 of this interval.
+- **`cursor_throttle`** — Minimum delay between cursor position broadcasts from the client. Lower values give smoother remote cursors but more network traffic.
 
 ## Logo Configuration
 
@@ -332,8 +360,15 @@ interface ServerConfig {
   allowedHosts?: true | string[];
 }
 
+interface PresenceSettings {
+  ping_interval?: number;    // Client ping frequency (ms, default: 5000)
+  stale_threshold?: number;  // Remove silent users after (ms, default: 30000)
+  cursor_throttle?: number;  // Min interval between cursor sends (ms, default: 100)
+}
+
 interface EditorSettings {
-  autosave_interval: number;  // Auto-save interval in milliseconds
+  autosave_interval: number;    // Auto-save interval in milliseconds
+  presence?: PresenceSettings;  // Multi-user presence timing (optional)
 }
 
 interface SiteConfig {
@@ -390,6 +425,10 @@ logo:
 # Editor configuration (required)
 editor:
   autosave_interval: 10000  # 10 seconds
+  presence:
+    ping_interval: 5000
+    stale_threshold: 30000
+    cursor_throttle: 100
 
 pages:
   docs:
@@ -421,6 +460,11 @@ If `site.yaml` is missing, defaults are used:
   },
   editor: {
     autosave_interval: 10000,
+    presence: {
+      ping_interval: 5000,
+      stale_threshold: 30000,
+      cursor_throttle: 100,
+    },
   },
   pages: {},
 }

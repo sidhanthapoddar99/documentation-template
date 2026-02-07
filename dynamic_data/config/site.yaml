@@ -31,6 +31,10 @@ logo:
 # Editor Configuration (required for dev toolbar live editor)
 editor:
   autosave_interval: 10000  # Auto-save interval in milliseconds
+  presence:
+    ping_interval: 5000       # How often clients ping the server (ms)
+    stale_threshold: 30000    # Remove users with no heartbeat after this (ms)
+    cursor_throttle: 100      # Min interval between cursor position broadcasts (ms)
 
 # Page Definitions
 pages:

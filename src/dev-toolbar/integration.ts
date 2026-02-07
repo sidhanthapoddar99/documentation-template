@@ -19,6 +19,7 @@ import yaml from 'js-yaml';
 import cacheManager from '../loaders/cache-manager';
 import { EditorStore } from './editor/server';
 import { setupEditorMiddleware } from './editor/middleware';
+import { PresenceManager, type PresenceConfig } from './editor/presence';
 
 
 interface WatchPathsConfig {
@@ -82,10 +83,11 @@ function getWatchPaths(): { paths: WatchPathsConfig; array: string[] } {
 }
 
 /**
- * Read autosave interval from site.yaml config.
+ * Read editor configuration from site.yaml.
  * Throws a clear error if editor.autosave_interval is missing.
+ * Presence settings are optional with sensible defaults.
  */
-function getAutosaveInterval(configDir: string): number {
+function getEditorConfig(configDir: string): { autosaveInterval: number; presence: PresenceConfig } {
   const siteYamlPath = path.join(configDir, 'site.yaml');
 
   if (!fs.existsSync(siteYamlPath)) {
@@ -106,15 +108,23 @@ function getAutosaveInterval(configDir: string): number {
     );
   }
 
-  const interval = Number(config.editor.autosave_interval);
-  if (isNaN(interval) || interval < 1000) {
+  const autosaveInterval = Number(config.editor.autosave_interval);
+  if (isNaN(autosaveInterval) || autosaveInterval < 1000) {
     throw new Error(
       `\n[CONFIG ERROR] "editor.autosave_interval" must be a number >= 1000 (ms).\n` +
       `  Current value: ${config.editor.autosave_interval}\n`
     );
   }
 
-  return interval;
+  // Presence config with defaults
+  const p = config.editor?.presence || {};
+  const presence: PresenceConfig = {
+    pingInterval: Math.max(Number(p.ping_interval) || 5000, 1000),
+    staleThreshold: Math.max(Number(p.stale_threshold) || 30000, 5000),
+    cursorThrottle: Math.max(Number(p.cursor_throttle) || 100, 16),
+  };
+
+  return { autosaveInterval, presence };
 }
 
 export function devToolbarIntegration(): AstroIntegration {
@@ -128,12 +138,13 @@ export function devToolbarIntegration(): AstroIntegration {
         // Configure cache manager with watch paths for file type detection
         cacheManager.setWatchPaths(watchPathsConfig);
 
-        // Create editor store
-        const autosaveInterval = getAutosaveInterval(watchPathsConfig.config);
+        // Create editor store and presence manager
+        const editorConfig = getEditorConfig(watchPathsConfig.config);
         const editorStore = new EditorStore({
-          autosaveInterval,
+          autosaveInterval: editorConfig.autosaveInterval,
           watchPaths,
         });
+        const presenceManager = new PresenceManager(editorConfig.presence);
 
         // Extensions to ignore (temp files, system files, etc.)
         const ignoreExtensions = ['.DS_Store', '.gitkeep', '.tmp', '.swp', '.bak'];
@@ -152,13 +163,20 @@ export function devToolbarIntegration(): AstroIntegration {
               {
                 name: 'cache-invalidation',
                 configureServer(server) {
-                  // Set up editor middleware and start background save
+                  // Set up editor middleware, presence, and start background save
                   setupEditorMiddleware(
                     server,
                     editorStore,
+                    presenceManager,
                     () => server.ws.send({ type: 'full-reload' })
                   );
                   editorStore.startBackgroundSave();
+                  presenceManager.startCleanup();
+
+                  // Stop presence cleanup when server closes
+                  server.httpServer?.on('close', () => {
+                    presenceManager.stopCleanup();
+                  });
 
                   // Explicitly add watch paths to Vite's watcher
                   // Vite only watches src/ by default, not external content directories

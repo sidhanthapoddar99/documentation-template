@@ -2,16 +2,21 @@
  * Editor Middleware - HTTP endpoints for the live editor
  *
  * Adds Vite middleware to handle editor API requests:
- * - POST /__editor/open   — Open a document for editing
- * - POST /__editor/update — Update content and get re-rendered preview
- * - POST /__editor/save   — Save document to disk
- * - POST /__editor/close  — Close document (save + trigger reload)
+ * - GET  /__editor/events    — SSE stream for presence + cursor events
+ * - GET  /__editor/styles    — Combined content CSS
+ * - POST /__editor/open      — Open a document for editing
+ * - POST /__editor/update    — Update content and get re-rendered preview
+ * - POST /__editor/save      — Save document to disk
+ * - POST /__editor/close     — Close document (save + trigger reload)
+ * - POST /__editor/presence  — Presence actions (join/leave/page/cursor/cursor-clear)
+ * - POST /__editor/ping      — Latency measurement
  *
  * Dev-only: never loaded in production builds.
  */
 
 import type { ViteDevServer } from 'vite';
 import type { EditorStore } from './server';
+import type { PresenceManager, PresenceAction } from './presence';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -46,6 +51,7 @@ function sendJson(res: any, statusCode: number, data: any): void {
 export function setupEditorMiddleware(
   server: ViteDevServer,
   store: EditorStore,
+  presence: PresenceManager,
   sendReload: () => void
 ): void {
   /**
@@ -96,7 +102,43 @@ export function setupEditorMiddleware(
       return;
     }
 
-    // Only accept POST for other endpoints
+    // GET /__editor/events?userId=xxx — SSE stream for presence + cursor events
+    if (url.startsWith('/__editor/events') && req.method === 'GET') {
+      const parsedUrl = new URL(url, 'http://localhost');
+      const userId = parsedUrl.searchParams.get('userId');
+
+      if (!userId) {
+        return sendJson(res, 400, { error: 'userId query parameter is required' });
+      }
+
+      // Set SSE headers
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      });
+
+      // Register stream with presence manager (sends initial snapshot)
+      presence.addStream(userId, res);
+
+      // Send keepalive comments every 15 seconds
+      const keepalive = setInterval(() => {
+        if (!res.writableEnded) {
+          try { res.write(': keepalive\n\n'); } catch { /* stream closed */ }
+        }
+      }, 15_000);
+
+      // Cleanup on disconnect
+      req.on('close', () => {
+        clearInterval(keepalive);
+        presence.removeStream(userId);
+      });
+
+      // Do NOT call next() — keep connection open
+      return;
+    }
+
+    // Only accept POST for remaining endpoints
     if (req.method !== 'POST') {
       return sendJson(res, 405, { error: 'Method not allowed' });
     }
@@ -105,6 +147,27 @@ export function setupEditorMiddleware(
       const body = await parseBody(req);
 
       switch (url) {
+        case '/__editor/presence': {
+          const action = body as PresenceAction;
+          if (!action.type || !action.userId) {
+            return sendJson(res, 400, { error: 'type and userId are required' });
+          }
+          presence.handleAction(action);
+          return sendJson(res, 200, { ok: true });
+        }
+
+        case '/__editor/ping': {
+          const { userId, clientTime, latencyMs } = body;
+          if (!userId) {
+            return sendJson(res, 400, { error: 'userId is required' });
+          }
+          // Update latency from the previous round-trip measurement
+          if (typeof latencyMs === 'number') {
+            presence.updateLatency(userId, latencyMs);
+          }
+          return sendJson(res, 200, { clientTime });
+        }
+
         case '/__editor/open': {
           const { filePath } = body;
           if (!filePath || typeof filePath !== 'string') {
