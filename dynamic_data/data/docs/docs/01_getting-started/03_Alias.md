@@ -1,7 +1,6 @@
 ---
 title: Path Aliases
 description: Complete reference for all path aliases and how to use them
-sidebar_position: 5
 ---
 
 # Path Aliases

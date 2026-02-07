@@ -1,7 +1,6 @@
 ---
 title: Pages Configuration
 description: Define pages and their layouts in site.yaml
-sidebar_position: 4
 ---
 
 # Pages Configuration
