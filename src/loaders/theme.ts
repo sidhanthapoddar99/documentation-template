@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import { paths, getThemePath, getPathsByCategory } from './paths';
+import { resolveAliasPath, extractPrefix } from './alias';
 import { addError } from './cache';
 import cacheManager from './cache-manager';
 import type {
@@ -24,36 +25,58 @@ import type {
 export { clearThemeCache } from './cache-manager';
 
 /**
- * Resolve a theme alias to its actual path
+ * Resolve a theme alias to its actual path.
  *
- * @param themeRef - Theme reference (e.g., "@theme/default" or "@theme/minimal")
+ * Accepts any alias path (e.g. "@theme/minimal", "@themes/minimal", "@data/mytheme")
+ * as long as the resolved directory contains a valid theme.yaml manifest.
+ *
+ * - `@theme/default` maps to the built-in styles directory (paths.styles)
+ * - `@theme/<name>` maps via getThemePath (theme-category directory)
+ * - Any other `@` alias is resolved via the generic alias resolver
+ * - Non-alias paths are resolved as absolute/relative paths
+ *
+ * @param themeRef - Theme reference string
  * @returns Resolved theme path information
  */
 export function resolveThemeAlias(themeRef: string): ResolvedTheme {
-  // Handle default theme
+  // Special case: built-in default theme
   if (themeRef === '@theme/default') {
     return {
       path: paths.styles,
-      isDefault: true,
       name: 'default',
     };
   }
 
-  // Handle custom themes
+  // @theme/<name> — resolve via theme-category directory
   if (themeRef.startsWith('@theme/')) {
     const themeName = themeRef.slice('@theme/'.length);
     return {
       path: getThemePath(themeName),
-      isDefault: false,
       name: themeName,
     };
   }
 
-  // Handle direct paths (fallback)
+  // Any other @ alias — resolve via generic alias system
+  if (themeRef.startsWith('@')) {
+    const prefix = extractPrefix(themeRef);
+    if (!prefix) {
+      throw new Error(
+        `Unknown alias prefix in theme reference: "${themeRef}". ` +
+        `Check your site.yaml "theme" value. Available aliases can be defined in site.yaml "paths".`
+      );
+    }
+    const resolved = resolveAliasPath(themeRef);
+    return {
+      path: resolved,
+      name: path.basename(resolved),
+    };
+  }
+
+  // Non-alias: treat as absolute or relative path
+  const resolved = path.isAbsolute(themeRef) ? themeRef : path.resolve(themeRef);
   return {
-    path: themeRef,
-    isDefault: false,
-    name: path.basename(themeRef),
+    path: resolved,
+    name: path.basename(resolved),
   };
 }
 
@@ -213,7 +236,7 @@ export function validateTheme(
  * @param themeRef - Theme reference (default: "@theme/default")
  * @returns Theme configuration or null if not found
  */
-export function loadThemeConfig(themeRef: string = '@theme/default'): ThemeConfig | null {
+export function loadThemeConfig(themeRef: string): ThemeConfig {
   // Check cache first (uses mtime-based validation)
   const cached = cacheManager.getCached<ThemeConfig>('theme', themeRef);
   if (cached) {
@@ -222,42 +245,22 @@ export function loadThemeConfig(themeRef: string = '@theme/default'): ThemeConfi
 
   const resolved = resolveThemeAlias(themeRef);
 
-  // Check if theme directory exists
+  // Check if theme directory exists — throw instead of silent fallback
   if (!fs.existsSync(resolved.path)) {
-    console.error(`Theme directory not found: ${resolved.path}`);
-    addError({
-      file: themeRef,
-      type: 'theme-not-found',
-      message: `Theme not found: ${themeRef}`,
-      suggestion: `Check that the theme exists at: ${resolved.path}`,
-    });
-    return null;
+    throw new Error(
+      `Theme directory not found: "${resolved.path}" (from theme ref "${themeRef}"). ` +
+      `Check the "theme" value in site.yaml and ensure the directory exists.`
+    );
   }
 
-  // Load manifest
-  let manifest = loadThemeManifest(resolved.path);
-
-  // For default theme without explicit manifest, create a basic one
-  if (!manifest && resolved.isDefault) {
-    manifest = {
-      name: 'Default Theme',
-      version: '1.0.0',
-      description: 'Built-in default theme',
-      extends: null,
-      supports_dark_mode: true,
-      files: ['index.css'],
-    };
-  }
+  // Load manifest — every theme MUST have a theme.yaml
+  const manifest = loadThemeManifest(resolved.path);
 
   if (!manifest) {
-    console.error(`Theme manifest not found: ${resolved.path}/theme.yaml`);
-    addError({
-      file: themeRef,
-      type: 'theme-invalid-manifest',
-      message: `Theme manifest (theme.yaml) not found in: ${themeRef}`,
-      suggestion: 'Create a theme.yaml file with name, version, and files fields',
-    });
-    return null;
+    throw new Error(
+      `Theme manifest (theme.yaml) not found or invalid in: "${resolved.path}" (from theme ref "${themeRef}"). ` +
+      `Every theme must have a theme.yaml with name, version, and files fields.`
+    );
   }
 
   // Validate theme in development mode
@@ -286,7 +289,6 @@ export function loadThemeConfig(themeRef: string = '@theme/default'): ThemeConfi
     path: resolved.path,
     manifest,
     css,
-    isDefault: resolved.isDefault,
   };
 
   // Cache with file dependencies (theme.yaml + CSS files)
@@ -312,7 +314,7 @@ function getCombinedCSSCache(): Map<string, string> {
  * @param themeRef - Theme reference (default: "@theme/default")
  * @returns Combined CSS string (parent + child)
  */
-export function getThemeCSS(themeRef: string = '@theme/default'): string {
+export function getThemeCSS(themeRef: string): string {
   // Check combined CSS cache first
   const cssCache = getCombinedCSSCache();
   if (cssCache.has(themeRef)) {
@@ -320,10 +322,6 @@ export function getThemeCSS(themeRef: string = '@theme/default'): string {
   }
 
   const theme = loadThemeConfig(themeRef);
-  if (!theme) {
-    // Return empty string if theme not found (errors already logged)
-    return '';
-  }
 
   let css = '';
 
@@ -348,8 +346,14 @@ export function getThemeCSS(themeRef: string = '@theme/default'): string {
  * @returns Array of theme names
  */
 export function getAvailableThemes(): string[] {
-  const themes: string[] = ['default'];
-  const seen = new Set<string>(themes);
+  const themes: string[] = [];
+  const seen = new Set<string>();
+
+  // Check built-in styles directory for a theme.yaml
+  if (fs.existsSync(path.join(paths.styles, 'theme.yaml'))) {
+    themes.push('default');
+    seen.add('default');
+  }
 
   // Scan all theme-category directories
   const themeDirs = getPathsByCategory('theme');

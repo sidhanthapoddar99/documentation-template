@@ -47,9 +47,6 @@ export interface ThemeConfig {
 
   /** Combined CSS content from all theme files */
   css: string;
-
-  /** Whether this is the built-in default theme */
-  isDefault: boolean;
 }
 
 /**
@@ -92,9 +89,6 @@ export interface ThemeValidationResult {
 export interface ResolvedTheme {
   /** Absolute path to theme directory */
   path: string;
-
-  /** Whether this is the built-in default theme */
-  isDefault: boolean;
 
   /** Theme name extracted from alias */
   name: string;

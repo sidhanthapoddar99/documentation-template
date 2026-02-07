@@ -19,30 +19,52 @@ export const GET: APIRoute = async () => {
   }
 
   const themes = getAvailableThemes();
-  const currentThemeRef = getTheme();
-  const currentConfig = loadThemeConfig(currentThemeRef);
+
+  let currentThemeRef: string;
+  let currentName = 'Unknown';
+  try {
+    currentThemeRef = getTheme();
+    const currentConfig = loadThemeConfig(currentThemeRef);
+    currentName = currentConfig.manifest.name;
+  } catch (err) {
+    currentThemeRef = '';
+    currentName = `Error: ${(err as Error).message}`;
+  }
 
   // Get details for each available theme
   const themeDetails = themes.map((themeName) => {
     const themeRef = themeName === 'default' ? '@theme/default' : `@theme/${themeName}`;
-    const config = loadThemeConfig(themeRef);
-
-    return {
-      name: themeName,
-      ref: themeRef,
-      displayName: config?.manifest.name || themeName,
-      description: config?.manifest.description || '',
-      version: config?.manifest.version || 'unknown',
-      extends: config?.manifest.extends || null,
-      supportsDarkMode: config?.manifest.supports_dark_mode ?? true,
-    };
+    try {
+      const config = loadThemeConfig(themeRef);
+      return {
+        name: themeName,
+        ref: themeRef,
+        displayName: config.manifest.name,
+        description: config.manifest.description || '',
+        version: config.manifest.version,
+        extends: config.manifest.extends || null,
+        supportsDarkMode: config.manifest.supports_dark_mode ?? true,
+        error: null,
+      };
+    } catch (err) {
+      return {
+        name: themeName,
+        ref: themeRef,
+        displayName: themeName,
+        description: '',
+        version: 'unknown',
+        extends: null,
+        supportsDarkMode: true,
+        error: (err as Error).message,
+      };
+    }
   });
 
   return new Response(
     JSON.stringify({
       current: {
         ref: currentThemeRef,
-        name: currentConfig?.manifest.name || 'Unknown',
+        name: currentName,
       },
       themes: themeDetails,
     }),

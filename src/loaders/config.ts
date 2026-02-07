@@ -169,7 +169,13 @@ export function getFavicon(): string {
  */
 export function getTheme(): string {
   const config = loadSiteConfig();
-  return config.theme || '@theme/default';
+  if (!config.theme) {
+    throw new Error(
+      `No "theme" field set in site.yaml. ` +
+      `Please add a theme reference, e.g.: theme: "@theme/default"`
+    );
+  }
+  return config.theme;
 }
 
 /**
