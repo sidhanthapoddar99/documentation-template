@@ -2,8 +2,9 @@
  * Dev Toolbar - Live Documentation Editor
  *
  * Overleaf-style split-pane editor for docs/blog pages.
- * Left pane: raw markdown textarea
+ * Left pane: syntax-highlighted markdown editor (textarea + highlight overlay)
  * Right pane: live-rendered HTML preview
+ * Scroll sync: both panes scroll proportionally together
  *
  * Only active on pages with a `data-editor-path` attribute (docs/blog).
  * Full-screen overlay appended to document.body for proper viewport coverage.
@@ -178,6 +179,107 @@ export default {
 };
 
 // ============================================================================
+// Markdown Syntax Highlighting
+// ============================================================================
+
+/**
+ * Highlight markdown syntax by wrapping tokens in colored spans.
+ * Input must be HTML-escaped first. Returns HTML string.
+ */
+function highlightMarkdown(text: string): string {
+  // HTML-escape the raw text first
+  let html = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Process line by line to handle block-level syntax
+  const lines = html.split('\n');
+  let inCodeBlock = false;
+  let inFrontmatter = false;
+  let frontmatterDashCount = 0;
+
+  const result = lines.map((line, i) => {
+    // Frontmatter detection (--- at start and end)
+    if (i === 0 && line === '---') {
+      inFrontmatter = true;
+      frontmatterDashCount = 1;
+      return `<span class="hl-frontmatter">${line}</span>`;
+    }
+    if (inFrontmatter) {
+      if (line === '---') {
+        frontmatterDashCount++;
+        if (frontmatterDashCount >= 2) inFrontmatter = false;
+      }
+      return `<span class="hl-frontmatter">${line}</span>`;
+    }
+
+    // Fenced code blocks
+    if (line.trimStart().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      return `<span class="hl-codeblock">${line}</span>`;
+    }
+    if (inCodeBlock) {
+      return `<span class="hl-codeblock">${line}</span>`;
+    }
+
+    // Headings: # ## ### etc.
+    const headingMatch = line.match(/^(#{1,6}\s)/);
+    if (headingMatch) {
+      return `<span class="hl-heading">${line}</span>`;
+    }
+
+    // Blockquotes: > text
+    if (line.match(/^\s*&gt;\s/)) {
+      return `<span class="hl-blockquote">${line}</span>`;
+    }
+
+    // Horizontal rule: --- or *** or ___
+    if (line.match(/^\s*[-*_](\s*[-*_]){2,}\s*$/)) {
+      return `<span class="hl-hr">${line}</span>`;
+    }
+
+    // List items: - item, * item, 1. item
+    const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s/);
+    if (listMatch) {
+      const prefix = line.substring(0, listMatch[0].length);
+      const rest = line.substring(listMatch[0].length);
+      return `<span class="hl-list-marker">${prefix}</span>${highlightInline(rest)}`;
+    }
+
+    // Regular line — apply inline highlighting
+    return highlightInline(line);
+  });
+
+  return result.join('\n');
+}
+
+/**
+ * Highlight inline markdown syntax: bold, italic, code, links, images
+ */
+function highlightInline(line: string): string {
+  // Process inline patterns with a single pass using replacements
+  // Order matters: bold before italic, code before others
+
+  // Inline code: `code`
+  line = line.replace(/(`[^`]+`)/g, '<span class="hl-code">$1</span>');
+
+  // Bold: **text** or __text__
+  line = line.replace(/(\*\*[^*]+\*\*|__[^_]+__)/g, '<span class="hl-bold">$1</span>');
+
+  // Italic: *text* or _text_ (but not inside bold/code spans)
+  line = line.replace(/(?<![*_])(\*[^*]+\*|_[^_]+_)(?![*_])/g, '<span class="hl-italic">$1</span>');
+
+  // Images: ![alt](url)
+  line = line.replace(/(!\[[^\]]*\]\([^)]*\))/g, '<span class="hl-image">$1</span>');
+
+  // Links: [text](url)
+  line = line.replace(/(?<!!)(\[[^\]]*\]\([^)]*\))/g, '<span class="hl-link">$1</span>');
+
+  return line;
+}
+
+// ============================================================================
 // Full-screen editor overlay
 // ============================================================================
 
@@ -323,25 +425,66 @@ async function openFullScreenEditor(filePath: string) {
         flex-shrink: 0;
       }
 
-      .editor-textarea {
+      /* Syntax-highlighted editor: textarea overlaid on a highlighted pre */
+      .editor-input-wrap {
+        position: relative;
         flex: 1;
+        overflow: hidden;
+      }
+
+      .editor-highlight,
+      .editor-textarea {
+        position: absolute;
+        inset: 0;
         width: 100%;
+        height: 100%;
         padding: 16px;
-        background: var(--color-bg-secondary, #1a1b26);
-        color: var(--color-text-primary, #c0caf5);
+        margin: 0;
         border: none;
-        outline: none;
-        resize: none;
         font-family: var(--font-family-mono, 'JetBrains Mono', 'Fira Code', monospace);
         font-size: 13px;
         line-height: 1.7;
         tab-size: 2;
+        white-space: pre-wrap;
+        word-wrap: break-word;
         overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .editor-highlight {
+        background: var(--color-bg-secondary, #1a1b26);
+        color: var(--color-text-primary, #c0caf5);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .editor-textarea {
+        background: transparent;
+        color: transparent;
+        caret-color: var(--color-text-primary, #c0caf5);
+        outline: none;
+        resize: none;
+        z-index: 1;
+        -webkit-text-fill-color: transparent;
       }
 
       .editor-textarea::selection {
         background: rgba(99, 102, 241, 0.3);
+        -webkit-text-fill-color: transparent;
       }
+
+      /* Syntax highlight token colors */
+      .hl-heading { color: #e0af68; font-weight: 600; }
+      .hl-bold { color: #ff9e64; font-weight: 600; }
+      .hl-italic { color: #bb9af7; font-style: italic; }
+      .hl-code { color: #9ece6a; }
+      .hl-codeblock { color: #9ece6a; }
+      .hl-link { color: #7aa2f7; }
+      .hl-image { color: #2ac3de; }
+      .hl-blockquote { color: #565f89; font-style: italic; }
+      .hl-list-marker { color: #f7768e; }
+      .hl-hr { color: #565f89; }
+      .hl-frontmatter { color: #565f89; }
 
       /* Preview pane - themed using site's CSS variables */
       .editor-preview {
@@ -388,7 +531,10 @@ async function openFullScreenEditor(filePath: string) {
     <div class="editor-body">
       <div class="editor-pane-left">
         <div class="pane-header">Markdown</div>
-        <textarea class="editor-textarea" id="editor-textarea" spellcheck="false"></textarea>
+        <div class="editor-input-wrap">
+          <pre class="editor-highlight" id="editor-highlight" aria-hidden="true"></pre>
+          <textarea class="editor-textarea" id="editor-textarea" spellcheck="false"></textarea>
+        </div>
       </div>
       <div class="editor-resize-handle" id="editor-resize"></div>
       <div class="editor-pane-right">
@@ -407,11 +553,66 @@ async function openFullScreenEditor(filePath: string) {
 
   // Get DOM elements
   const textarea = overlay.querySelector('#editor-textarea') as HTMLTextAreaElement;
+  const highlightPre = overlay.querySelector('#editor-highlight') as HTMLPreElement;
   const preview = overlay.querySelector('#editor-preview') as HTMLDivElement;
   const statusEl = overlay.querySelector('#editor-status') as HTMLSpanElement;
   const saveBtn = overlay.querySelector('#editor-save') as HTMLButtonElement;
   const closeBtn = overlay.querySelector('#editor-close') as HTMLButtonElement;
   const resizeHandle = overlay.querySelector('#editor-resize') as HTMLDivElement;
+
+  // Sync highlight overlay with textarea content
+  function updateHighlight() {
+    // Add a trailing newline so the pre height always matches the textarea
+    highlightPre.innerHTML = highlightMarkdown(textarea.value) + '\n';
+  }
+
+  // Sync highlight scroll with textarea scroll
+  function syncHighlightScroll() {
+    highlightPre.scrollTop = textarea.scrollTop;
+    highlightPre.scrollLeft = textarea.scrollLeft;
+  }
+
+  textarea.addEventListener('scroll', syncHighlightScroll);
+
+  // --- Synchronized scrolling between textarea and preview ---
+  let scrollSyncSource: 'none' | 'textarea' | 'preview' = 'none';
+
+  function onTextareaScroll() {
+    if (scrollSyncSource === 'preview') return;
+    scrollSyncSource = 'textarea';
+
+    // Sync highlight overlay
+    syncHighlightScroll();
+
+    // Proportional scroll: map textarea scroll % to preview scroll %
+    const maxScroll = textarea.scrollHeight - textarea.clientHeight;
+    if (maxScroll > 0) {
+      const ratio = textarea.scrollTop / maxScroll;
+      const previewMax = preview.scrollHeight - preview.clientHeight;
+      preview.scrollTop = ratio * previewMax;
+    }
+
+    requestAnimationFrame(() => { scrollSyncSource = 'none'; });
+  }
+
+  function onPreviewScroll() {
+    if (scrollSyncSource === 'textarea') return;
+    scrollSyncSource = 'preview';
+
+    const maxScroll = preview.scrollHeight - preview.clientHeight;
+    if (maxScroll > 0) {
+      const ratio = preview.scrollTop / maxScroll;
+      const textareaMax = textarea.scrollHeight - textarea.clientHeight;
+      textarea.scrollTop = ratio * textareaMax;
+      // Keep highlight in sync too
+      syncHighlightScroll();
+    }
+
+    requestAnimationFrame(() => { scrollSyncSource = 'none'; });
+  }
+
+  textarea.addEventListener('scroll', onTextareaScroll);
+  preview.addEventListener('scroll', onPreviewScroll);
 
   // Update status indicator
   function updateStatus(status: SaveStatus) {
@@ -445,13 +646,17 @@ async function openFullScreenEditor(filePath: string) {
   }
 
   // Helper to wrap rendered HTML in docs-body for proper theme styling
+  // Preserves scroll position across updates to avoid jarring jumps
   function setPreviewContent(html: string) {
+    const scrollTop = preview.scrollTop;
     preview.innerHTML = `<div class="docs-content"><article class="docs-article"><div class="docs-body">${html}</div></article></div>`;
+    preview.scrollTop = scrollTop;
   }
 
   // Open document
   editorFetch('open', { filePath }).then((data) => {
     textarea.value = data.raw;
+    updateHighlight();
     setPreviewContent(data.rendered);
     updateStatus('saved');
     textarea.focus();
@@ -461,6 +666,7 @@ async function openFullScreenEditor(filePath: string) {
 
   // Debounced update on keystroke
   textarea.addEventListener('input', () => {
+    updateHighlight();
     updateStatus('unsaved');
 
     if (debounceTimer) clearTimeout(debounceTimer);
@@ -485,6 +691,7 @@ async function openFullScreenEditor(filePath: string) {
       const end = textarea.selectionEnd;
       textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
       textarea.selectionStart = textarea.selectionEnd = start + 2;
+      updateHighlight();
       textarea.dispatchEvent(new Event('input'));
     }
 
@@ -519,6 +726,9 @@ async function openFullScreenEditor(filePath: string) {
 
   // Close
   async function doClose() {
+    // Clean up listeners and timers first to prevent anything firing after close
+    cleanup();
+
     try {
       // If there are unsaved changes, send final update before close
       if (saveStatus === 'unsaved') {
@@ -537,7 +747,7 @@ async function openFullScreenEditor(filePath: string) {
   saveBtn.addEventListener('click', doSave);
   closeBtn.addEventListener('click', doClose);
 
-  // Resize handle
+  // Resize handle — use named handlers so we can remove them on close
   let isResizing = false;
   const leftPane = overlay.querySelector('.editor-pane-left') as HTMLDivElement;
   const rightPane = overlay.querySelector('.editor-pane-right') as HTMLDivElement;
@@ -548,7 +758,7 @@ async function openFullScreenEditor(filePath: string) {
     e.preventDefault();
   });
 
-  document.addEventListener('mousemove', (e) => {
+  function onMouseMove(e: MouseEvent) {
     if (!isResizing) return;
 
     const bodyRect = overlay.querySelector('.editor-body')!.getBoundingClientRect();
@@ -560,14 +770,29 @@ async function openFullScreenEditor(filePath: string) {
 
     leftPane.style.flex = `${ratio}`;
     rightPane.style.flex = `${1 - ratio}`;
-  });
+  }
 
-  document.addEventListener('mouseup', () => {
+  function onMouseUp() {
     if (isResizing) {
       isResizing = false;
       resizeHandle.classList.remove('dragging');
     }
-  });
+  }
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+
+  // Cleanup function to remove document-level listeners and timers
+  function cleanup() {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    textarea.removeEventListener('scroll', onTextareaScroll);
+    preview.removeEventListener('scroll', onPreviewScroll);
+  }
 
   // Prevent the overlay from being affected by page scroll
   overlay.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });

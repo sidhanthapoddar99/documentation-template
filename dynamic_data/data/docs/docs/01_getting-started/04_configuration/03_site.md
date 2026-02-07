@@ -38,6 +38,10 @@ logo:
     dark: "logo-dark.svg"
     light: "logo-light.svg"
   favicon: "@assets/favicon.png"
+
+# Editor configuration (required for dev toolbar live editor)
+editor:
+  autosave_interval: 10000  # milliseconds (minimum: 1000)
 ```
 
 ## Site Metadata
@@ -194,6 +198,35 @@ HOST=true
 
 See [Environment Variables](./02_env.md#server-settings) for more details.
 
+## Editor Configuration
+
+The `editor` block configures the live documentation editor in the dev toolbar. This section is **required** — the dev server will throw an error if it's missing.
+
+```yaml
+editor:
+  autosave_interval: 10000  # Auto-save interval in milliseconds
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `autosave_interval` | `number` | Yes | Interval in milliseconds for auto-saving edited documents. Minimum: `1000` |
+
+### `autosave_interval`
+
+Controls how frequently the live editor auto-saves changes to disk while you're editing. During editing, changes are held in memory and periodically flushed to disk at this interval.
+
+```yaml
+editor:
+  autosave_interval: 10000  # Save every 10 seconds
+```
+
+- **Minimum value**: `1000` (1 second)
+- **Recommended**: `10000` (10 seconds) — balances responsiveness with disk I/O
+- **Lower values**: More frequent saves, more disk writes
+- **Higher values**: Fewer saves, more data at risk if the server crashes
+
+If this field is missing or invalid, the dev server will fail to start with a clear error message explaining what to add.
+
 ## Logo Configuration
 
 The `logo` block configures the site logo displayed in the navbar and the favicon.
@@ -299,11 +332,16 @@ interface ServerConfig {
   allowedHosts?: true | string[];
 }
 
+interface EditorSettings {
+  autosave_interval: number;  // Auto-save interval in milliseconds
+}
+
 interface SiteConfig {
   site: SiteMetadata;
   server?: ServerConfig;    // Vite server configuration
   theme?: string;           // Theme alias (e.g., "@theme/default")
   logo?: SiteLogo;
+  editor: EditorSettings;   // Required — must be in site.yaml
   pages: Record<string, PageConfig>;
 }
 ```
@@ -349,6 +387,10 @@ logo:
     light: "astro.svg"
   favicon: "@assets/astro.png"
 
+# Editor configuration (required)
+editor:
+  autosave_interval: 10000  # 10 seconds
+
 pages:
   docs:
     base_url: "/docs/final-docs"
@@ -376,6 +418,9 @@ If `site.yaml` is missing, defaults are used:
   },
   logo: {
     alt: 'Docs',
+  },
+  editor: {
+    autosave_interval: 10000,
   },
   pages: {},
 }

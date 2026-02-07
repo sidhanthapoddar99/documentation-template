@@ -48,16 +48,12 @@ export function setupEditorMiddleware(
   store: EditorStore,
   sendReload: () => void
 ): void {
-  // Cache for combined content CSS
-  let contentCSSCache: string | null = null;
-
   /**
    * Build combined CSS for the editor preview from theme + content styles.
-   * Reads the theme CSS files and docs body styles, scopes them to .editor-preview.
+   * No caching — reads fresh on each request so theme edits are reflected immediately.
+   * These are small files so the overhead is negligible.
    */
   function getContentCSS(): string {
-    if (contentCSSCache) return contentCSSCache;
-
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     const srcRoot = path.resolve(__dirname, '../..');
@@ -79,7 +75,6 @@ export function setupEditorMiddleware(
       } catch { /* skip missing files */ }
     }
 
-    contentCSSCache = combined;
     return combined;
   }
 

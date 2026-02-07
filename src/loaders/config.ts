@@ -38,10 +38,15 @@ export interface PageConfig {
   data: string;
 }
 
+export interface EditorSettings {
+  autosave_interval: number;  // Auto-save interval in milliseconds
+}
+
 export interface SiteConfig {
   site: SiteMetadata;
   theme?: string;  // Theme alias (e.g., "@theme/default" or "@theme/minimal")
   logo?: SiteLogo;
+  editor: EditorSettings;  // Required — must be in site.yaml
   pages: Record<string, PageConfig>;
 }
 
@@ -122,6 +127,9 @@ export function loadSiteConfig(): SiteConfig {
       },
       logo: {
         alt: 'Docs',
+      },
+      editor: {
+        autosave_interval: 10000,
       },
       pages: {},
     };

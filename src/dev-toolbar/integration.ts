@@ -12,16 +12,14 @@
  */
 
 import type { AstroIntegration } from 'astro';
-import type { ViteDevServer } from 'vite';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import yaml from 'js-yaml';
 import cacheManager from '../loaders/cache-manager';
 import { EditorStore } from './editor/server';
 import { setupEditorMiddleware } from './editor/middleware';
 
-// Track the Vite dev server for sending reload messages
-let viteServer: ViteDevServer | null = null;
 
 interface WatchPathsConfig {
   data: string;
@@ -84,20 +82,39 @@ function getWatchPaths(): { paths: WatchPathsConfig; array: string[] } {
 }
 
 /**
- * Read autosave interval from site.yaml config
+ * Read autosave interval from site.yaml config.
+ * Throws a clear error if editor.autosave_interval is missing.
  */
 function getAutosaveInterval(configDir: string): number {
-  const DEFAULT_INTERVAL = 10000;
-  try {
-    const siteYamlPath = path.join(configDir, 'site.yaml');
-    if (fs.existsSync(siteYamlPath)) {
-      const content = fs.readFileSync(siteYamlPath, 'utf-8');
-      // Simple regex extraction to avoid importing yaml in the integration
-      const match = content.match(/autosave_interval:\s*(\d+)/);
-      if (match) return parseInt(match[1], 10);
-    }
-  } catch { /* use default */ }
-  return DEFAULT_INTERVAL;
+  const siteYamlPath = path.join(configDir, 'site.yaml');
+
+  if (!fs.existsSync(siteYamlPath)) {
+    throw new Error(
+      `\n[CONFIG ERROR] site.yaml not found at: ${siteYamlPath}\n`
+    );
+  }
+
+  const content = fs.readFileSync(siteYamlPath, 'utf-8');
+  const config = yaml.load(content) as Record<string, any>;
+
+  if (!config?.editor?.autosave_interval) {
+    throw new Error(
+      `\n[CONFIG ERROR] Missing required field "editor.autosave_interval" in site.yaml.\n` +
+      `  Add the following to your site.yaml:\n\n` +
+      `  editor:\n` +
+      `    autosave_interval: 10000  # milliseconds\n`
+    );
+  }
+
+  const interval = Number(config.editor.autosave_interval);
+  if (isNaN(interval) || interval < 1000) {
+    throw new Error(
+      `\n[CONFIG ERROR] "editor.autosave_interval" must be a number >= 1000 (ms).\n` +
+      `  Current value: ${config.editor.autosave_interval}\n`
+    );
+  }
+
+  return interval;
 }
 
 export function devToolbarIntegration(): AstroIntegration {
@@ -135,8 +152,6 @@ export function devToolbarIntegration(): AstroIntegration {
               {
                 name: 'cache-invalidation',
                 configureServer(server) {
-                  viteServer = server;
-
                   // Set up editor middleware and start background save
                   setupEditorMiddleware(
                     server,

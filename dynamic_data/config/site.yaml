@@ -28,6 +28,10 @@ logo:
     light: "@assets/astro-light.svg"
   favicon: "@assets/astro.png"
 
+# Editor Configuration (required for dev toolbar live editor)
+editor:
+  autosave_interval: 10000  # Auto-save interval in milliseconds
+
 # Page Definitions
 pages:
   # Documentation Sections (each is independent in navbar)

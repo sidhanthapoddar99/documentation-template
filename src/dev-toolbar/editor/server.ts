@@ -58,6 +58,21 @@ export class EditorStore {
     this.docsParser = new DocsParser();
     this.blogParser = new BlogParser();
     this.render = createMarkdownRenderer();
+
+    // Safety: close all orphaned documents on process signals (dev server restart)
+    const closeAll = () => this.closeAll();
+    process.once('SIGINT', closeAll);
+    process.once('SIGTERM', closeAll);
+  }
+
+  /**
+   * Close all open documents (save dirty ones). Used for cleanup.
+   */
+  closeAll(): void {
+    for (const filePath of [...this.documents.keys()]) {
+      this.closeDocument(filePath);
+    }
+    this.stopBackgroundSave();
   }
 
   /**

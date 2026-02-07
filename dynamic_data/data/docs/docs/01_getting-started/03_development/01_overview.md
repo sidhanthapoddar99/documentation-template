@@ -45,6 +45,14 @@ The dev toolbar appears at the bottom of every page during development. Click th
 | **Audit** | Accessibility checks, performance hints |
 | **Settings** | Toggle verbose logging, disable toolbar |
 
+### Custom Tools
+
+| Tool | Purpose |
+|------|---------|
+| **Layout & Theme** | Switch layouts, themes, navbar, and footer styles on the fly |
+| **Doc Errors** | View documentation warnings and errors |
+| **Edit Page** | Live split-pane markdown editor with preview ([details](./06_live-editor.md)) |
+
 ## Development Workflow Tips
 
 ### 1. Content Iteration
