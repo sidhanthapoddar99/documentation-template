@@ -42,8 +42,10 @@ export function initYjsClient(ctx: EditorContext, deps: {
   let lastLatencyMs = 0;
   let pingTimer: ReturnType<typeof setInterval> | null = null;
 
-  // Update status indicator
+  // Update status indicator (skips DOM write if unchanged to avoid
+  // triggering Astro audit's MutationObserver on every keystroke)
   function updateStatus(status: SaveStatus) {
+    if (ctx.getSaveStatus() === status) return;
     ctx.setSaveStatus(status);
     ctx.dom.statusEl.className = `editor-status ${status}`;
     switch (status) {
@@ -73,8 +75,13 @@ export function initYjsClient(ctx: EditorContext, deps: {
     return res.json();
   }
 
-  // Wrap rendered HTML in docs-body for proper theme styling
+  // Wrap rendered HTML in docs-body for proper theme styling.
+  // Skips innerHTML replacement when content is unchanged to avoid
+  // re-triggering cached image loads on every render cycle.
+  let lastPreviewHtml = '';
   function setPreviewContent(html: string) {
+    if (html === lastPreviewHtml) return;
+    lastPreviewHtml = html;
     const scrollTop = preview.scrollTop;
     preview.innerHTML = `<div class="docs-content"><article class="docs-article"><div class="docs-body">${html}</div></article></div>`;
     preview.scrollTop = scrollTop;

@@ -11,6 +11,8 @@ export function getEditorCSS(): string {
         background: var(--color-bg-secondary, #1a1b26);
         color: var(--color-text-primary, #c0caf5);
         font-family: var(--font-family-base, system-ui, -apple-system, sans-serif);
+        contain: layout style paint;
+        isolation: isolate;
       }
 
       .editor-header {
@@ -147,6 +149,7 @@ export function getEditorCSS(): string {
         color: var(--color-text-primary, #c0caf5);
         pointer-events: none;
         z-index: 0;
+        contain: layout style paint;
       }
 
       .editor-cursors {

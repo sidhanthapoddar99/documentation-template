@@ -11,7 +11,7 @@ export interface Identity {
 export interface EditorDom {
   overlay: HTMLDivElement;
   textarea: HTMLTextAreaElement;
-  highlightPre: HTMLPreElement;
+  highlightPre: HTMLDivElement;
   cursorsDiv: HTMLDivElement;
   preview: HTMLDivElement;
   statusEl: HTMLSpanElement;

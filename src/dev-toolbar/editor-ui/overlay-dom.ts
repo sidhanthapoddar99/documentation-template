@@ -41,7 +41,7 @@ export async function createEditorOverlay(filePath: string): Promise<OverlayResu
     </style>
 
     <!-- Site content styles (markdown.css + docs body styles) scoped to preview -->
-    <style>${contentCSS}</style>
+    <style>.editor-preview { ${contentCSS} }</style>
 
     <div class="editor-header">
       <span class="editor-filename">${filePath.split('/').slice(-3).join('/')}</span>
@@ -54,7 +54,7 @@ export async function createEditorOverlay(filePath: string): Promise<OverlayResu
       <div class="editor-pane-left">
         <div class="pane-header">Markdown</div>
         <div class="editor-input-wrap">
-          <pre class="editor-highlight" id="editor-highlight" aria-hidden="true"></pre>
+          <div class="editor-highlight" id="editor-highlight" aria-hidden="true"></div>
           <div class="editor-cursors" id="editor-cursors"></div>
           <textarea class="editor-textarea" id="editor-textarea" spellcheck="false"></textarea>
         </div>
@@ -75,7 +75,7 @@ export async function createEditorOverlay(filePath: string): Promise<OverlayResu
   const dom: EditorDom = {
     overlay,
     textarea: overlay.querySelector('#editor-textarea') as HTMLTextAreaElement,
-    highlightPre: overlay.querySelector('#editor-highlight') as HTMLPreElement,
+    highlightPre: overlay.querySelector('#editor-highlight') as HTMLDivElement,
     cursorsDiv: overlay.querySelector('#editor-cursors') as HTMLDivElement,
     preview: overlay.querySelector('#editor-preview') as HTMLDivElement,
     statusEl: overlay.querySelector('#editor-status') as HTMLSpanElement,

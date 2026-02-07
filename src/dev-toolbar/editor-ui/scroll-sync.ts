@@ -12,6 +12,33 @@ export function initScrollSync(ctx: EditorContext, deps: {
 }): ScrollSyncHandle {
   const { textarea, highlightPre, preview } = ctx.dom;
 
+  // Attach shadow DOM to the highlight host so innerHTML mutations are
+  // invisible to external MutationObservers (Astro's audit perf.js).
+  const shadowRoot = highlightPre.attachShadow({ mode: 'open' });
+  const shadowStyle = document.createElement('style');
+  shadowStyle.textContent = `
+    :host { display: block; }
+    pre {
+      margin: 0; padding: 0; border: none; background: none;
+      font: inherit; white-space: inherit; word-wrap: inherit;
+      color: inherit; overflow: visible;
+    }
+    .hl-heading { color: #e0af68; font-weight: 600; }
+    .hl-bold { color: #ff9e64; font-weight: 600; }
+    .hl-italic { color: #bb9af7; font-style: italic; }
+    .hl-code { color: #9ece6a; }
+    .hl-codeblock { color: #9ece6a; }
+    .hl-link { color: #7aa2f7; }
+    .hl-image { color: #2ac3de; }
+    .hl-blockquote { color: #565f89; font-style: italic; }
+    .hl-list-marker { color: #f7768e; }
+    .hl-hr { color: #565f89; }
+    .hl-frontmatter { color: #565f89; }
+  `;
+  shadowRoot.appendChild(shadowStyle);
+  const innerPre = document.createElement('pre');
+  shadowRoot.appendChild(innerPre);
+
   // Sync highlight overlay with textarea content (rAF-batched)
   let highlightRafId: number | null = null;
 
@@ -19,7 +46,7 @@ export function initScrollSync(ctx: EditorContext, deps: {
     if (highlightRafId !== null) return;
     highlightRafId = requestAnimationFrame(() => {
       highlightRafId = null;
-      highlightPre.innerHTML = deps.highlightMarkdown(textarea.value) + '\n';
+      innerPre.innerHTML = deps.highlightMarkdown(textarea.value) + '\n';
     });
   }
 
