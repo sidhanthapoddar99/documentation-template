@@ -17,24 +17,49 @@ const { PORT, HOST, CONFIG_DIR } = env;
 
 // Load site config for server.allowedHosts and paths initialization
 
-function loadSiteConfigForServer() {
-  const configDir = CONFIG_DIR || './dynamic_data/config';
-  const siteConfigPath = path.resolve(process.cwd(), configDir, 'site.yaml');
-  try {
-    if (fs.existsSync(siteConfigPath)) {
-      const content = fs.readFileSync(siteConfigPath, 'utf-8');
-      return yaml.load(content);
-    }
-  } catch (error) {
-    console.warn('Could not load site.yaml for server config:', error.message);
-  }
-  return null;
+// CONFIG_DIR is required — it bootstraps the entire config system
+if (!CONFIG_DIR) {
+  throw new Error(
+    '[config] CONFIG_DIR is not set in .env. This variable is required to locate site.yaml.\n' +
+    '  Add to your .env file: CONFIG_DIR=./dynamic_data/config\n' +
+    '  (relative to project root, or use an absolute path)'
+  );
 }
 
-const siteConfig = loadSiteConfigForServer();
+const resolvedConfigDir = path.resolve(process.cwd(), CONFIG_DIR);
 
-// Initialize path system from site.yaml's paths: section (or env var defaults)
-initPaths(siteConfig ? { paths: siteConfig.paths } : undefined);
+if (!fs.existsSync(resolvedConfigDir)) {
+  throw new Error(
+    `[config] Config directory not found: ${resolvedConfigDir}\n` +
+    `  CONFIG_DIR="${CONFIG_DIR}" (from .env) resolved to this path.\n` +
+    `  Ensure the directory exists and contains site.yaml.`
+  );
+}
+
+// Load site.yaml — required for paths and page definitions
+const siteConfigPath = path.join(resolvedConfigDir, 'site.yaml');
+if (!fs.existsSync(siteConfigPath)) {
+  throw new Error(
+    `[config] site.yaml not found at: ${siteConfigPath}\n` +
+    `  CONFIG_DIR="${CONFIG_DIR}" (from .env) points to this directory.\n` +
+    `  Ensure site.yaml exists in the config directory.`
+  );
+}
+
+let siteConfig;
+try {
+  const content = fs.readFileSync(siteConfigPath, 'utf-8');
+  siteConfig = yaml.load(content);
+} catch (error) {
+  throw new Error(
+    `[config] Failed to parse site.yaml at: ${siteConfigPath}\n` +
+    `  ${error.message}`
+  );
+}
+
+// Initialize path system — pass resolvedConfigDir to fix timing gap where
+// CONFIG_DIR from .env isn't available when paths.ts module first loads
+initPaths({ paths: siteConfig?.paths, configDir: resolvedConfigDir });
 
 // https://astro.build/config
 // Server mode in dev (enables layout switcher), static in production (fast CDN builds)

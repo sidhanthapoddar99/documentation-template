@@ -1,6 +1,6 @@
 # Environment Variables Reference
 
-The `.env` file configures paths and server settings for the documentation template.
+The `.env` file provides the bootstrap path to locate `site.yaml` and configures server settings and feature flags. Directory paths for data, assets, and themes are configured in `site.yaml`'s `paths:` section, not in `.env`.
 
 ## Location
 
@@ -10,21 +10,11 @@ The `.env` file should be placed at `docs/.env` (same level as `documentation-te
 
 ```env
 # ============================================
-# DIRECTORY PATHS
+# CONFIG BOOTSTRAP
 # ============================================
-# Paths relative to documentation-template folder
-
-# Configuration files (site.yaml, navbar.yaml, footer.yaml)
+# Points to the directory containing site.yaml, navbar.yaml, footer.yaml
+# Relative to the project root (documentation-template/), or absolute
 CONFIG_DIR=../data/config
-
-# User content (docs, blog, pages)
-DATA_DIR=../data/data
-
-# Static assets (logos, favicons, images)
-ASSETS_DIR=../data/assets
-
-# Custom themes (optional)
-THEMES_DIR=../data/themes
 
 # ============================================
 # SERVER SETTINGS
@@ -61,26 +51,17 @@ ENABLE_DARK_MODE=true
 
 ## Variable Details
 
-### Directory Paths
+### Config Bootstrap
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `CONFIG_DIR` | Location of YAML config files | `./dynamic_data/config` |
-| `DATA_DIR` | Location of content (docs, blog, pages) | `./dynamic_data/data` |
-| `ASSETS_DIR` | Location of static assets | `./dynamic_data/assets` |
-| `THEMES_DIR` | Location of custom themes | `./dynamic_data/themes` |
+| `CONFIG_DIR` | Location of YAML config files (site.yaml, navbar.yaml, footer.yaml) | `./dynamic_data/config` |
 
-**Path Resolution:**
-- Paths are relative to the `documentation-template/` folder
-- Use `../` to go up to the `docs/` folder
-- Can be absolute paths if needed
+> **Path relativity:** `CONFIG_DIR` is relative to the **project root** (where `.env` / `documentation-template/` lives). All other directory paths (`data`, `assets`, `themes`) are configured in `site.yaml`'s `paths:` section, relative to the **config directory**.
 
-**Standard Setup Paths:**
+**Standard Setup Path:**
 ```env
 CONFIG_DIR=../data/config
-DATA_DIR=../data/data
-ASSETS_DIR=../data/assets
-THEMES_DIR=../data/themes
 ```
 
 ### Server Settings
@@ -120,9 +101,6 @@ THEMES_DIR=../data/themes
 
 ```env
 CONFIG_DIR=../data/config
-DATA_DIR=../data/data
-ASSETS_DIR=../data/assets
-THEMES_DIR=../data/themes
 PORT=3088
 HOST=true
 SITE_URL=http://localhost:3088
@@ -135,9 +113,6 @@ ENABLE_DARK_MODE=true
 
 ```env
 CONFIG_DIR=../data/config
-DATA_DIR=../data/data
-ASSETS_DIR=../data/assets
-THEMES_DIR=../data/themes
 SITE_URL=https://docs.yourproduct.com
 BASE_PATH=
 ENABLE_SEARCH=true
@@ -148,21 +123,32 @@ ENABLE_DARK_MODE=true
 
 ```env
 CONFIG_DIR=../data/config
-DATA_DIR=../data/data
-ASSETS_DIR=../data/assets
-THEMES_DIR=../data/themes
 SITE_URL=https://username.github.io
 BASE_PATH=/repository-name
 ENABLE_SEARCH=true
 ENABLE_DARK_MODE=true
 ```
 
+## Where Are Directory Paths?
+
+Directory paths are configured in `site.yaml`'s `paths:` section, **not** in `.env`:
+
+```yaml
+# In site.yaml
+paths:
+  data: "../data"       # Relative to config dir (where site.yaml lives)
+  assets: "../assets"
+  themes: "../themes"
+```
+
+See [site-yaml.md](./site-yaml.md) for full details on the `paths:` section.
+
 ## Troubleshooting
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
-| "Config not found" | Wrong CONFIG_DIR path | Check path is relative to documentation-template/ |
-| Assets not loading | Wrong ASSETS_DIR path | Verify path and check browser console |
+| "Config not found" | Wrong CONFIG_DIR path | Check path is relative to project root (documentation-template/) |
+| Assets not loading | Wrong `paths.assets` in site.yaml | Verify path in site.yaml `paths:` section is relative to config dir |
 | "Address in use" | PORT already taken | Change PORT to different number |
 | Can't access from other devices | HOST is false | Set HOST=true |
 | Wrong URLs in production | Incorrect SITE_URL | Set correct production URL |

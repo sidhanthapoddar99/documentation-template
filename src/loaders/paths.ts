@@ -1,12 +1,14 @@
 /**
  * Path Resolver - Two-phase initialization
  *
- * Phase 1 (module load): Resolve CONFIG_DIR from env + internal structural paths.
- *   paths.data/assets/themes are set to hardcoded defaults (relative to config dir).
+ * Phase 1 (module load): Resolve internal structural paths (src, layouts, etc.).
+ *   CONFIG_DIR may not be available yet (ES imports run before loadEnv()),
+ *   so config/data/assets/themes are placeholders only.
  *
- * Phase 2 (initPaths): Called from astro.config.mjs after site.yaml is parsed.
- *   Reads the `paths:` section, resolves relative to config dir, populates
- *   the user paths map. Only CONFIG_DIR comes from .env (bootstrap).
+ * Phase 2 (initPaths): Called from astro.config.mjs after .env is loaded and
+ *   site.yaml is parsed. Receives the authoritative configDir, reads the
+ *   required `paths:` section, resolves relative to config dir. Errors on
+ *   missing config — no silent fallbacks.
  */
 import path from 'path';
 import fs from 'fs';
@@ -47,11 +49,14 @@ interface UserPathEntry {
 }
 
 // ============================================
-// Phase 1: Module-load defaults
+// Phase 1: Module-load (structural paths only)
 // ============================================
 
-// Only CONFIG_DIR comes from .env — it's the bootstrap to find site.yaml
-const CONFIG_DIR = getEnv('CONFIG_DIR', './dynamic_data/config');
+// CONFIG_DIR is read from .env but may NOT be available at module load time
+// (ES imports run before loadEnv() in astro.config.mjs). The authoritative
+// config path is set later by initPaths(). Phase 1 only uses it as a
+// best-effort initial value for paths.config — never rely on it directly.
+const CONFIG_DIR_EARLY = getEnv('CONFIG_DIR', '');
 
 /**
  * Resolve a path relative to project root
@@ -74,11 +79,15 @@ export function resolvePathFromConfig(relativePath: string): string {
   return path.resolve(paths.config, relativePath);
 }
 
-const resolvedConfigDir = resolvePath(CONFIG_DIR);
+// Phase 1 config dir: best-effort from env, overridden by initPaths()
+const earlyConfigDir = CONFIG_DIR_EARLY
+  ? resolvePath(CONFIG_DIR_EARLY)
+  : path.resolve(projectRoot, 'dynamic_data/config');
 
 /**
  * Resolved absolute paths for directories.
- * data/assets/themes default to sibling dirs of config; initPaths() overrides them.
+ * config/data/assets/themes are placeholders until initPaths() sets the real values.
+ * Internal structural paths (src, layouts, etc.) are final at module load.
  */
 export const paths: {
   root: string;
@@ -97,11 +106,11 @@ export const paths: {
   srcAssets: string;
 } = {
   root: projectRoot,
-  config: resolvedConfigDir,
-  // Defaults: sibling directories of config dir (overridden by initPaths)
-  data: path.resolve(resolvedConfigDir, '../data'),
-  assets: path.resolve(resolvedConfigDir, '../assets'),
-  themes: path.resolve(resolvedConfigDir, '../themes'),
+  config: earlyConfigDir,
+  // Placeholders — overridden by initPaths() with values from site.yaml paths:
+  data: path.resolve(earlyConfigDir, '../data'),
+  assets: path.resolve(earlyConfigDir, '../assets'),
+  themes: path.resolve(earlyConfigDir, '../themes'),
   src: path.resolve(projectRoot, 'src'),
   layouts: path.resolve(projectRoot, 'src/layouts'),
   loaders: path.resolve(projectRoot, 'src/loaders'),
@@ -159,48 +168,84 @@ export function getPathCategory(key: string): PathCategory {
 /**
  * Initialize user paths from site.yaml's `paths:` section.
  * Relative paths are resolved from the config directory (where site.yaml lives).
- * Falls back to hardcoded defaults when called without args or with empty paths.
  * Idempotent — repeated calls are no-ops.
+ *
+ * @param siteConfig.configDir - Required. Resolved absolute path to the config directory.
+ *   Must be passed explicitly because CONFIG_DIR from .env isn't available during
+ *   ES module load of paths.ts (before loadEnv() runs in astro.config.mjs).
+ * @param siteConfig.paths     - The paths: section from site.yaml. Required — at minimum
+ *   `data` and `assets` must be defined.
  */
-export function initPaths(siteConfig?: { paths?: Record<string, string> }): void {
+export function initPaths(siteConfig: { paths?: Record<string, string>; configDir: string }): void {
   const state = getPathsState();
   if (state.initialized) return;
   state.initialized = true;
 
-  const rawPaths = siteConfig?.paths;
+  // configDir is required — set paths.config to the authoritative value
+  const newConfigDir = path.isAbsolute(siteConfig.configDir)
+    ? siteConfig.configDir
+    : path.resolve(paths.root, siteConfig.configDir);
+  (paths as any).config = newConfigDir;
 
-  if (rawPaths && Object.keys(rawPaths).length > 0) {
-    // site.yaml paths: section — resolve relative to config dir
-    for (const [key, value] of Object.entries(rawPaths)) {
-      if (RESERVED_KEYS.has(key)) {
-        throw new Error(
-          `[paths] Reserved alias key "${key}" cannot be used in site.yaml paths: section. ` +
-          `Reserved keys: ${[...RESERVED_KEYS].join(', ')}`
-        );
-      }
+  const rawPaths = siteConfig.paths;
 
-      const absolutePath = resolvePathFromConfig(value);
-
-      if (!fs.existsSync(absolutePath)) {
-        console.warn(`[paths] Warning: path "${key}" does not exist: ${absolutePath}`);
-      }
-
-      const category = getPathCategory(key);
-      state.userPaths.set(key, { key, absolutePath, category });
-
-      // Update the legacy paths object for the primary keys
-      if (key === 'data') (paths as any).data = absolutePath;
-      if (key === 'assets') (paths as any).assets = absolutePath;
-      if (key === 'themes') (paths as any).themes = absolutePath;
-      if (key === 'config') (paths as any).config = absolutePath;
-    }
-  } else {
-    // No paths: section — register defaults as user paths
-    state.userPaths.set('data', { key: 'data', absolutePath: paths.data, category: 'content' });
-    state.userPaths.set('assets', { key: 'assets', absolutePath: paths.assets, category: 'asset' });
-    state.userPaths.set('themes', { key: 'themes', absolutePath: paths.themes, category: 'theme' });
-    state.userPaths.set('config', { key: 'config', absolutePath: paths.config, category: 'config' });
+  if (!rawPaths || Object.keys(rawPaths).length === 0) {
+    throw new Error(
+      `[paths] Missing "paths:" section in site.yaml.\n` +
+      `  site.yaml must define directory paths. Add at minimum:\n` +
+      `    paths:\n` +
+      `      data: "../data"\n` +
+      `      assets: "../assets"\n` +
+      `      themes: "../themes"\n` +
+      `  (paths are relative to the config directory: ${newConfigDir})`
+    );
   }
+
+  // site.yaml paths: section — resolve relative to config dir
+  for (const [key, value] of Object.entries(rawPaths)) {
+    if (RESERVED_KEYS.has(key)) {
+      throw new Error(
+        `[paths] Reserved alias key "${key}" cannot be used in site.yaml paths: section. ` +
+        `Reserved keys: ${[...RESERVED_KEYS].join(', ')}`
+      );
+    }
+
+    const absolutePath = resolvePathFromConfig(value);
+
+    if (!fs.existsSync(absolutePath)) {
+      throw new Error(
+        `[paths] Directory not found for "${key}": ${absolutePath}\n` +
+        `  Configured as "${value}" in site.yaml paths: section.\n` +
+        `  Resolved relative to config directory: ${newConfigDir}\n` +
+        `  Create the directory or fix the path in site.yaml.`
+      );
+    }
+
+    const category = getPathCategory(key);
+    state.userPaths.set(key, { key, absolutePath, category });
+
+    // Update the legacy paths object for the primary keys
+    if (key === 'data') (paths as any).data = absolutePath;
+    if (key === 'assets') (paths as any).assets = absolutePath;
+    if (key === 'themes') (paths as any).themes = absolutePath;
+  }
+
+  // Ensure required keys are defined
+  if (!state.userPaths.has('data')) {
+    throw new Error(
+      `[paths] Missing required "data" key in site.yaml paths: section.\n` +
+      `  Add: data: "../data"  (relative to config directory)`
+    );
+  }
+  if (!state.userPaths.has('assets')) {
+    throw new Error(
+      `[paths] Missing required "assets" key in site.yaml paths: section.\n` +
+      `  Add: assets: "../assets"  (relative to config directory)`
+    );
+  }
+
+  // Register config path in user paths
+  state.userPaths.set('config', { key: 'config', absolutePath: newConfigDir, category: 'config' });
 }
 
 /**

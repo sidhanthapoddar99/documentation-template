@@ -95,7 +95,7 @@ After setup, the structure should be:
 <project-root>/
 └── docs/
     ├── README.md                    # Setup instructions
-    ├── .env                         # Environment config
+    ├── .env                         # Config bootstrap (CONFIG_DIR) + server settings
     ├── documentation-template/      # Git clone (DO NOT MODIFY)
     │   └── ...                      # Template source code
     └── data/
@@ -165,11 +165,11 @@ items:
 
 - [ ] Create docs folder structure
 - [ ] Clone documentation-template
-- [ ] Copy and configure .env
+- [ ] Configure .env (CONFIG_DIR only)
 - [ ] Create data/ folder structure
-- [ ] Configure site.yaml with product info
+- [ ] Configure site.yaml with product info and directory paths
 - [ ] Configure navbar.yaml with navigation
 - [ ] Configure footer.yaml
 - [ ] Create placeholder docs for each section
 - [ ] Add settings.json to each docs folder
-- [ ] Test with `npm run start`
+- [ ] Test with `bun run dev`

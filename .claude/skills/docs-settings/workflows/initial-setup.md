@@ -6,7 +6,7 @@ This workflow guides you through setting up a documentation site from scratch.
 
 - User has a project that needs documentation
 - Git is installed
-- Node.js is installed
+- Bun is installed
 
 ## Step-by-Step Process
 
@@ -43,12 +43,12 @@ This folder contains the documentation for [PRODUCT_NAME].
 
 2. Install dependencies:
    ```bash
-   npm install
+   bun install
    ```
 
 3. Start development server:
    ```bash
-   npm run start
+   bun run dev
    ```
 
 4. Open http://localhost:3088 in your browser
@@ -109,25 +109,15 @@ cp -r documentation-template/dynamic_data/data/pages/* data/data/pages/
 cp documentation-template/.env.copy .env
 ```
 
-Edit `.env` to point to the data folder:
+Edit `.env` — only `CONFIG_DIR` is needed to locate `site.yaml`. All other directory paths are configured in `site.yaml`'s `paths:` section:
 
 ```env
 # ============================================
-# DIRECTORY PATHS
+# CONFIG BOOTSTRAP
 # ============================================
-# Paths relative to documentation-template folder
-
-# Configuration files (site.yaml, navbar.yaml, footer.yaml)
+# Points to the directory containing site.yaml, navbar.yaml, footer.yaml
+# Relative to the project root (documentation-template/), or absolute
 CONFIG_DIR=../data/config
-
-# User content (docs, blog, pages)
-DATA_DIR=../data/data
-
-# Static assets (logos, favicons, images)
-ASSETS_DIR=../data/assets
-
-# Custom themes (optional)
-THEMES_DIR=../data/themes
 
 # ============================================
 # SERVER SETTINGS
@@ -148,6 +138,8 @@ ENABLE_SEARCH=false
 ENABLE_DARK_MODE=true
 ```
 
+> **Path relativity:** `CONFIG_DIR` in `.env` is relative to the **project root** (where `documentation-template/` lives).
+
 ### Step 7: Create site.yaml
 
 Create `data/config/site.yaml`:
@@ -158,6 +150,13 @@ site:
   name: "[PRODUCT_NAME]"
   title: "[PRODUCT_NAME] Documentation"
   description: "[PRODUCT_DESCRIPTION]"
+
+# Directory Paths (relative to this config directory, or absolute)
+# Each key becomes an @key alias (e.g., data → @data/, assets → @assets/)
+paths:
+  data: "../data"
+  assets: "../assets"
+  themes: "../themes"
 
 # Vite Server Configuration
 server:
@@ -462,8 +461,8 @@ EOF
 
 ```bash
 cd documentation-template
-npm install
-npm run start
+bun install
+bun run dev
 ```
 
 Open http://localhost:3088 to see the documentation site.
@@ -518,7 +517,8 @@ docs/
 
 | Issue | Solution |
 |-------|----------|
-| "Module not found" | Check .env paths are correct relative to documentation-template |
+| "Config not found" | Check CONFIG_DIR in .env is correct relative to project root |
+| "Module not found" | Check `paths:` in site.yaml are correct relative to config dir |
 | Blank sidebar | Ensure settings.json exists in each docs folder |
 | 404 errors | Verify base_url in site.yaml matches navbar hrefs |
-| Assets not loading | Check ASSETS_DIR path in .env |
+| Assets not loading | Check `paths.assets` in site.yaml is correct relative to config dir |

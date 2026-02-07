@@ -212,4 +212,4 @@ Each subfolder needs its own `settings.json`:
 - [ ] Added page definition to `site.yaml`
 - [ ] Added navigation item to `navbar.yaml`
 - [ ] (Optional) Added to `footer.yaml`
-- [ ] Tested locally with `npm run start`
+- [ ] Tested locally with `bun run dev`

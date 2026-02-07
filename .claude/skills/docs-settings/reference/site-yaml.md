@@ -15,6 +15,13 @@ site:
   title: "Product Name Documentation"
   description: "Documentation for Product Name"
 
+# Directory Paths (relative to this config directory, or absolute)
+# Each key becomes an @key alias (e.g., data → @data/, assets → @assets/)
+paths:
+  data: "../data"
+  assets: "../assets"
+  themes: "../themes"
+
 # Server Configuration
 server:
   allowedHosts: true
@@ -87,6 +94,29 @@ server:
     - ".ngrok.io"
   ```
 
+### `paths` - Directory Paths
+
+```yaml
+paths:
+  data: "../data"        # Content directory (relative to config dir)
+  assets: "../assets"    # Static assets directory
+  themes: "../themes"    # Custom themes directory
+  # data2: "/other/data" # Additional data dir → @data2/ alias (absolute path)
+```
+
+Each key becomes an `@key` alias. For example, `data` → `@data/`, `assets` → `@assets/`, a custom key `data2` → `@data2/`.
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `data` | No | Content directory (default: `../data`) |
+| `assets` | No | Static assets directory (default: `../assets`) |
+| `themes` | No | Custom themes directory (default: `../themes`) |
+| _custom keys_ | No | Additional directories, each becomes an `@key` alias |
+
+> **Path relativity:** Relative paths in `paths:` are resolved from the **config directory** (where `site.yaml` lives), not the project root. Absolute paths are used as-is.
+
+**Reserved keys** (cannot be used): `docs`, `blog`, `custom`, `navbar`, `footer`, `mdx` — these are reserved for layout aliases.
+
 ### `theme` - Theme Configuration
 
 ```yaml
@@ -117,7 +147,7 @@ logo:
 | `theme.light` | No | Logo for light mode |
 | `favicon` | No | Browser tab icon |
 
-**Path Alias:** `@assets/` resolves to the ASSETS_DIR folder and becomes `/assets/` URL.
+**Path Alias:** `@assets/` resolves to the assets directory (configured in `site.yaml` `paths:` section) and becomes `/assets/` URL.
 
 ### `editor` - Live Editor Configuration
 
@@ -232,6 +262,12 @@ site:
   name: "My Product"
   title: "My Product Documentation"
   description: "Complete documentation for My Product"
+
+# Directory paths (relative to this config directory, or absolute)
+paths:
+  data: "../data"
+  assets: "../assets"
+  themes: "../themes"
 
 server:
   allowedHosts: true
