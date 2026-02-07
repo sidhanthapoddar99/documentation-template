@@ -2,8 +2,9 @@
  * Presence Manager - Multi-user presence tracking for the live editor
  *
  * Tracks connected users, their current pages, cursor positions, and latency.
- * Uses SSE (Server-Sent Events) for server→client push and HTTP POST for
- * client→server actions. Cursor broadcasts are file-scoped to reduce traffic.
+ * SSE pushes only the global presence table (join/leave/page/latency).
+ * Per-file editing traffic (cursors, ping, config, render) goes through the
+ * Yjs WebSocket — see yjs-sync.ts.
  *
  * All timing values are configurable via site.yaml → editor.presence.
  *
@@ -13,19 +14,19 @@
 import type { ServerResponse } from 'http';
 
 export interface PresenceConfig {
-  /** How often clients should ping the server (ms). Sent to clients in SSE init. */
+  /** How often clients should ping the server (ms). Sent to clients via WS MSG_CONFIG. */
   pingInterval: number;
   /** Remove users with no heartbeat after this duration (ms). */
   staleThreshold: number;
-  /** Min interval between cursor position broadcasts on the client (ms). Sent to clients in SSE init. */
+  /** Min interval between cursor position broadcasts on the client (ms). Sent via WS MSG_CONFIG. */
   cursorThrottle: number;
-  /** Debounce for raw text diff sync (ms). Sent to clients in SSE init. */
+  /** Debounce for raw text diff sync (ms). */
   contentDebounce: number;
-  /** Interval for rendered preview updates (ms). Sent to clients in SSE init. */
+  /** Interval for rendered preview updates (ms). Sent via WS MSG_CONFIG. */
   renderInterval: number;
   /** SSE keepalive comment interval (ms). */
   sseKeepalive: number;
-  /** SSE auto-reconnect delay on disconnect (ms). Sent to clients in SSE init. */
+  /** SSE auto-reconnect delay on disconnect (ms). */
   sseReconnect: number;
 }
 
@@ -41,13 +42,11 @@ export interface PresenceUser {
 }
 
 export interface PresenceAction {
-  type: 'join' | 'leave' | 'page' | 'cursor' | 'cursor-clear';
+  type: 'join' | 'leave' | 'page' | 'cursor-clear';
   userId: string;
   name?: string;
   color?: string;
   page?: string;
-  file?: string;
-  cursor?: { line: number; col: number; offset: number };
 }
 
 export class PresenceManager {
@@ -139,17 +138,6 @@ export class PresenceManager {
         break;
       }
 
-      case 'cursor': {
-        const user = this.users.get(userId);
-        if (user && action.file && action.cursor) {
-          user.editingFile = action.file;
-          user.cursor = action.cursor;
-          user.lastSeen = Date.now();
-          this.broadcastCursor(userId, action.file, action.cursor);
-        }
-        break;
-      }
-
       case 'cursor-clear': {
         const user = this.users.get(userId);
         if (user) {
@@ -195,70 +183,6 @@ export class PresenceManager {
         try { stream.write(formatted); } catch { /* stream broken */ }
       } else {
         this.streams.delete(userId);
-      }
-    }
-  }
-
-  /**
-   * Broadcast an SSE event to all users editing the same file (excludes sender).
-   * Pre-serializes the payload once to avoid repeated JSON.stringify per recipient.
-   */
-  private broadcastToFileEditors(
-    fromUserId: string,
-    file: string,
-    event: string,
-    payload: Record<string, any>
-  ): void {
-    const formatted = `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
-
-    for (const [userId, user] of this.users) {
-      if (userId === fromUserId) continue;
-      if (user.editingFile !== file) continue;
-
-      const stream = this.streams.get(userId);
-      if (stream && !stream.writableEnded) {
-        try { stream.write(formatted); } catch { /* stream broken */ }
-      }
-    }
-  }
-
-  /**
-   * Broadcast cursor update ONLY to users editing the same file.
-   */
-  private broadcastCursor(
-    fromUserId: string,
-    file: string,
-    cursor: { line: number; col: number; offset: number }
-  ): void {
-    const fromUser = this.users.get(fromUserId);
-    if (!fromUser) return;
-
-    this.broadcastToFileEditors(fromUserId, file, 'cursor', {
-      type: 'cursor',
-      userId: fromUserId,
-      name: fromUser.name,
-      color: fromUser.color,
-      cursor,
-      file,
-    });
-  }
-
-  /**
-   * Broadcast a rendered HTML update to ALL editors of a file (including requester).
-   */
-  broadcastRenderUpdate(file: string, rendered: string): void {
-    const formatted = `event: render-update\ndata: ${JSON.stringify({
-      type: 'render-update',
-      file,
-      rendered,
-    })}\n\n`;
-
-    for (const [userId, user] of this.users) {
-      if (user.editingFile !== file) continue;
-
-      const stream = this.streams.get(userId);
-      if (stream && !stream.writableEnded) {
-        try { stream.write(formatted); } catch { /* stream broken */ }
       }
     }
   }

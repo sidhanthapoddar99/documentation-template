@@ -20,6 +20,18 @@ logo:
     light: "@assets/logo-light.svg"
   favicon: "@assets/favicon.png"
 
+# Editor Configuration (required for dev toolbar live editor)
+editor:
+  autosave_interval: 10000
+  presence:
+    ping_interval: 5000
+    stale_threshold: 30000
+    cursor_throttle: 100
+    content_debounce: 150
+    render_interval: 5000
+    sse_keepalive: 15000
+    sse_reconnect: 2000
+
 pages:
   # Main Documentation
   docs:

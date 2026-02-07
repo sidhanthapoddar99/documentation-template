@@ -31,6 +31,18 @@ logo:
     light: "@assets/logo-light.svg"
   favicon: "@assets/favicon.png"
 
+# Editor Configuration (required for dev toolbar live editor)
+editor:
+  autosave_interval: 10000  # milliseconds (minimum: 1000)
+  presence:
+    ping_interval: 5000       # Client ping frequency via WebSocket (ms)
+    stale_threshold: 30000    # Remove users with no heartbeat after this (ms)
+    cursor_throttle: 100      # Min interval between cursor broadcasts (ms)
+    content_debounce: 150     # Debounce for raw text diff sync (ms)
+    render_interval: 5000     # Interval for rendered preview updates (ms)
+    sse_keepalive: 15000      # SSE keepalive comment interval (ms)
+    sse_reconnect: 2000       # SSE auto-reconnect delay on disconnect (ms)
+
 # Page Definitions
 pages:
   page-name:
@@ -106,6 +118,36 @@ logo:
 | `favicon` | No | Browser tab icon |
 
 **Path Alias:** `@assets/` resolves to the ASSETS_DIR folder and becomes `/assets/` URL.
+
+### `editor` - Live Editor Configuration
+
+The `editor` block configures the dev toolbar's live editor. `autosave_interval` is **required** — the dev server fails to start without it. The `presence` sub-block is optional (sensible defaults used).
+
+```yaml
+editor:
+  autosave_interval: 10000  # Required. Auto-save interval in ms (min: 1000)
+  presence:
+    ping_interval: 5000       # Client ping frequency via WS (ms, default: 5000, min: 1000)
+    stale_threshold: 30000    # Remove silent users after (ms, default: 30000, min: 5000)
+    cursor_throttle: 100      # Min ms between cursor sends (default: 100, min: 16)
+    content_debounce: 150     # Text diff debounce (ms, default: 150, min: 50)
+    render_interval: 5000     # Preview re-render interval (ms, default: 5000, min: 1000)
+    sse_keepalive: 15000      # SSE keepalive interval (ms, default: 15000, min: 5000)
+    sse_reconnect: 2000       # SSE reconnect delay (ms, default: 2000, min: 500)
+```
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `autosave_interval` | Yes | How often dirty documents are flushed to disk (ms) |
+| `presence.ping_interval` | No | Client→server ping frequency for latency measurement |
+| `presence.stale_threshold` | No | Duration before removing a user with no heartbeat |
+| `presence.cursor_throttle` | No | Minimum delay between cursor position broadcasts |
+| `presence.content_debounce` | No | Debounce for raw text diff sync to Yjs CRDT |
+| `presence.render_interval` | No | How often the server re-renders and pushes preview updates |
+| `presence.sse_keepalive` | No | SSE keepalive comment interval (also updates lastSeen) |
+| `presence.sse_reconnect` | No | Client SSE reconnect delay after disconnect |
+
+Timing values (`pingInterval`, `cursorThrottle`, `renderInterval`) are sent to editor clients via WebSocket `MSG_CONFIG` on connect.
 
 ### `pages` - Page Definitions
 
@@ -203,6 +245,17 @@ logo:
     dark: "@assets/logo-dark.svg"
     light: "@assets/logo-light.svg"
   favicon: "@assets/favicon.png"
+
+editor:
+  autosave_interval: 10000
+  presence:
+    ping_interval: 5000
+    stale_threshold: 30000
+    cursor_throttle: 100
+    content_debounce: 150
+    render_interval: 5000
+    sse_keepalive: 15000
+    sse_reconnect: 2000
 
 pages:
   # Main Documentation

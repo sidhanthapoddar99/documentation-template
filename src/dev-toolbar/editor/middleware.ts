@@ -2,16 +2,13 @@
  * Editor Middleware - HTTP endpoints for the live editor
  *
  * Adds Vite middleware to handle editor API requests:
- * - GET  /__editor/events    — SSE stream for presence + cursor events
- * - GET  /__editor/styles    — Combined content CSS
+ * - GET  /__editor/events    — SSE stream for presence table updates
+ * - GET  /__editor/styles    — Combined content CSS for preview
  * - POST /__editor/open      — Open document + create Yjs room
- * - POST /__editor/update    — Full content sync (used before save)
- * - POST /__editor/render    — Re-render document and broadcast preview
  * - POST /__editor/save      — Save document to disk
- * - POST /__editor/close     — Close document (save if dirty, destroy Yjs room)
- * - POST /__editor/presence  — Presence actions (join/leave/page/cursor/cursor-clear)
- * - POST /__editor/ping      — Latency measurement
- * - WS   /__editor/yjs       — Yjs CRDT sync (handled by YjsSync, not this middleware)
+ * - POST /__editor/close     — Close document, destroy Yjs room
+ * - POST /__editor/presence  — Presence actions (join/leave/page/cursor-clear)
+ * - WS   /__editor/yjs       — Yjs CRDT sync + cursors, ping, config, render (handled by YjsSync)
  *
  * Dev-only: never loaded in production builds.
  */
@@ -105,7 +102,7 @@ export function setupEditorMiddleware(
       return;
     }
 
-    // GET /__editor/events?userId=xxx — SSE stream for presence + cursor events
+    // GET /__editor/events?userId=xxx — SSE stream for presence table updates
     if (url.startsWith('/__editor/events') && req.method === 'GET') {
       const parsedUrl = new URL(url, 'http://localhost');
       const userId = parsedUrl.searchParams.get('userId');
@@ -162,18 +159,6 @@ export function setupEditorMiddleware(
           return sendJson(res, 200, { ok: true });
         }
 
-        case '/__editor/ping': {
-          const { userId, clientTime, latencyMs } = body;
-          if (!userId) {
-            return sendJson(res, 400, { error: 'userId is required' });
-          }
-          // Update latency from the previous round-trip measurement
-          if (typeof latencyMs === 'number') {
-            presence.updateLatency(userId, latencyMs);
-          }
-          return sendJson(res, 200, { clientTime });
-        }
-
         case '/__editor/open': {
           const { filePath } = body;
           if (!filePath || typeof filePath !== 'string') {
@@ -188,35 +173,6 @@ export function setupEditorMiddleware(
             rendered: doc.rendered,
             title: doc.frontmatter.title || 'Untitled',
           });
-        }
-
-        case '/__editor/update': {
-          const { filePath, content } = body;
-          if (!filePath || typeof filePath !== 'string') {
-            return sendJson(res, 400, { error: 'filePath is required' });
-          }
-          if (typeof content !== 'string') {
-            return sendJson(res, 400, { error: 'content is required' });
-          }
-
-          const doc = await store.updateDocument(filePath, content);
-
-          return sendJson(res, 200, {
-            rendered: doc.rendered,
-            frontmatter: doc.frontmatter,
-          });
-        }
-
-        case '/__editor/render': {
-          const { filePath } = body;
-          if (!filePath || typeof filePath !== 'string') {
-            return sendJson(res, 400, { error: 'filePath is required' });
-          }
-
-          const doc = await store.renderDocument(filePath);
-          yjsSync.broadcastRenderUpdate(filePath, doc.rendered);
-
-          return sendJson(res, 200, { rendered: doc.rendered });
         }
 
         case '/__editor/save': {
