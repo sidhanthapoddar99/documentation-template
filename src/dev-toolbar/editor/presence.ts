@@ -254,22 +254,6 @@ export class PresenceManager {
   }
 
   /**
-   * Broadcast a text diff to co-editors of the same file (excludes sender).
-   */
-  broadcastTextDiff(
-    fromUserId: string,
-    file: string,
-    op: { offset: number; deleteCount: number; insert: string }
-  ): void {
-    this.broadcastToFileEditors(fromUserId, file, 'text-diff', {
-      type: 'text-diff',
-      userId: fromUserId,
-      file,
-      op,
-    });
-  }
-
-  /**
    * Broadcast a rendered HTML update to ALL editors of a file (including requester).
    */
   broadcastRenderUpdate(file: string, rendered: string): void {
@@ -277,26 +261,6 @@ export class PresenceManager {
       type: 'render-update',
       file,
       rendered,
-    })}\n\n`;
-
-    for (const [userId, user] of this.users) {
-      if (user.editingFile !== file) continue;
-
-      const stream = this.streams.get(userId);
-      if (stream && !stream.writableEnded) {
-        try { stream.write(formatted); } catch { /* stream broken */ }
-      }
-    }
-  }
-
-  /**
-   * Broadcast external file change to ALL editors of a file.
-   */
-  broadcastFileChanged(file: string, raw: string): void {
-    const formatted = `event: file-changed\ndata: ${JSON.stringify({
-      type: 'file-changed',
-      file,
-      raw,
     })}\n\n`;
 
     for (const [userId, user] of this.users) {

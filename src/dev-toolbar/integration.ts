@@ -20,6 +20,7 @@ import cacheManager from '../loaders/cache-manager';
 import { EditorStore } from './editor/server';
 import { setupEditorMiddleware } from './editor/middleware';
 import { PresenceManager, type PresenceConfig } from './editor/presence';
+import { YjsSync } from './editor/yjs-sync';
 
 
 interface WatchPathsConfig {
@@ -167,11 +168,21 @@ export function devToolbarIntegration(): AstroIntegration {
               {
                 name: 'cache-invalidation',
                 configureServer(server) {
+                  // Create Yjs sync manager and attach to HTTP server
+                  const yjsSync = new YjsSync();
+                  yjsSync.setContentChangeHandler((filePath, raw) => {
+                    editorStore.updateRaw(filePath, raw);
+                  });
+                  if (server.httpServer) {
+                    yjsSync.attachToServer(server.httpServer);
+                  }
+
                   // Set up editor middleware, presence, and start background save
                   setupEditorMiddleware(
                     server,
                     editorStore,
                     presenceManager,
+                    yjsSync,
                   );
                   editorStore.startBackgroundSave();
                   presenceManager.startCleanup();
@@ -201,7 +212,7 @@ export function devToolbarIntegration(): AstroIntegration {
                         if (!editorStore.isEditorSave(file)) {
                           console.log(`[editor] External file add detected: ${shortPath}`);
                           editorStore.reloadFromDisk(file).then(doc => {
-                            presenceManager.broadcastFileChanged(file, doc.raw);
+                            yjsSync.resetContent(file, doc.raw);
                           }).catch(() => {});
                         }
                       } else {
@@ -241,11 +252,11 @@ export function devToolbarIntegration(): AstroIntegration {
                       // Our own save — just suppress HMR, no need to notify
                       console.log(`[editor] HMR suppressed (editor save): ${shortPath}`);
                     } else {
-                      // External edit — reload from disk and notify all editors
+                      // External edit — reload from disk and push via Yjs
                       console.log(`[editor] External edit detected: ${shortPath}`);
                       try {
                         const doc = await editorStore.reloadFromDisk(file);
-                        presenceManager.broadcastFileChanged(file, doc.raw);
+                        yjsSync.resetContent(file, doc.raw);
                       } catch (err) {
                         console.error(`[editor] Failed to reload from disk: ${shortPath}`, err);
                       }

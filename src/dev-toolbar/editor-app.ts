@@ -1,3 +1,8 @@
+import * as Y from 'yjs';
+import * as syncProtocol from 'y-protocols/sync';
+import * as encoding from 'lib0/encoding';
+import * as decoding from 'lib0/decoding';
+
 /**
  * Dev Toolbar - Live Documentation Editor
  *
@@ -72,16 +77,13 @@ let lastLatencyMs = 0;
 let presenceUsers: any[] = [];
 let presenceUpdateCallback: ((users: any[]) => void) | null = null;
 let cursorUpdateCallback: ((data: any) => void) | null = null;
-let textDiffCallback: ((data: any) => void) | null = null;
 let renderUpdateCallback: ((data: any) => void) | null = null;
-let fileChangedCallback: ((data: any) => void) | null = null;
 let sseReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Server-provided config (from site.yaml via SSE config event)
 // Defaults used until config event arrives
 let serverPingInterval = 5000;
 let serverCursorThrottle = 100;
-let serverContentDebounce = 150;
 let serverRenderInterval = 5000;
 let serverSseReconnect = 2000;
 
@@ -98,7 +100,6 @@ function connectSSE(): void {
       const data = JSON.parse(e.data);
       if (data.pingInterval) serverPingInterval = data.pingInterval;
       if (data.cursorThrottle) serverCursorThrottle = data.cursorThrottle;
-      if (data.contentDebounce) serverContentDebounce = data.contentDebounce;
       if (data.renderInterval) serverRenderInterval = data.renderInterval;
       if (data.sseReconnect) serverSseReconnect = data.sseReconnect;
       // Restart ping loop with new interval
@@ -121,24 +122,10 @@ function connectSSE(): void {
     } catch { /* ignore parse errors */ }
   });
 
-  eventSource.addEventListener('text-diff', (e: MessageEvent) => {
-    try {
-      const data = JSON.parse(e.data);
-      textDiffCallback?.(data);
-    } catch { /* ignore parse errors */ }
-  });
-
   eventSource.addEventListener('render-update', (e: MessageEvent) => {
     try {
       const data = JSON.parse(e.data);
       renderUpdateCallback?.(data);
-    } catch { /* ignore parse errors */ }
-  });
-
-  eventSource.addEventListener('file-changed', (e: MessageEvent) => {
-    try {
-      const data = JSON.parse(e.data);
-      fileChangedCallback?.(data);
     } catch { /* ignore parse errors */ }
   });
 
@@ -243,9 +230,7 @@ function softCleanup(): void {
   disconnectSSE();
   presenceUpdateCallback = null;
   cursorUpdateCallback = null;
-  textDiffCallback = null;
   renderUpdateCallback = null;
-  fileChangedCallback = null;
 }
 const HMR_KEY = '__editorPresenceCleanup';
 if (typeof (window as any)[HMR_KEY] === 'function') {
@@ -678,7 +663,6 @@ async function openFullScreenEditor(filePath: string) {
   if (document.getElementById('doc-editor-overlay')) return;
 
   let saveStatus: SaveStatus = 'saved';
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Grab site theme CSS from the page (contains all CSS variables for light/dark)
   const themeStyleEl = document.getElementById('theme-styles');
@@ -992,53 +976,54 @@ async function openFullScreenEditor(filePath: string) {
   const resizeHandle = overlay.querySelector('#editor-resize') as HTMLDivElement;
 
   // ---- Remote Cursor Rendering ----
-  // Measure monospace character dimensions for cursor positioning
-  let charWidth = 7.8;
-  let lineHeight = 22.1;
+  // Mirror div for accurate cursor measurement (handles word-wrap correctly)
+  const cursorMirror = document.createElement('div');
+  cursorMirror.setAttribute('aria-hidden', 'true');
+  cursorMirror.style.cssText = `
+    position: fixed; top: -9999px; left: -9999px;
+    font-family: var(--font-family-mono, 'JetBrains Mono', 'Fira Code', monospace);
+    font-size: 13px; line-height: 1.7; tab-size: 2;
+    white-space: pre-wrap; word-wrap: break-word;
+    padding: 16px; border: none; box-sizing: border-box;
+    overflow-wrap: break-word;
+  `;
+  overlay.appendChild(cursorMirror);
 
-  function measureFont(): void {
-    const probe = document.createElement('span');
-    probe.style.cssText = `
-      font-family: var(--font-family-mono, 'JetBrains Mono', 'Fira Code', monospace);
-      font-size: 13px;
-      line-height: 1.7;
-      position: absolute;
-      visibility: hidden;
-      white-space: pre;
-    `;
-    probe.textContent = 'X';
-    document.body.appendChild(probe);
-    const rect = probe.getBoundingClientRect();
-    if (rect.width > 0) charWidth = rect.width;
-    if (rect.height > 0) lineHeight = rect.height;
-    probe.remove();
+  function syncMirrorWidth(): void {
+    cursorMirror.style.width = `${textarea.clientWidth}px`;
   }
-  measureFont();
+  syncMirrorWidth();
 
-  // Remote cursor data and DOM elements
-  const remoteCursorData = new Map<string, { name: string; color: string; cursor: { line: number; col: number; offset: number } }>();
+  // Measure pixel position of a character offset (handles word-wrap)
+  function measureCursorCoords(offset: number): { top: number; left: number } {
+    const text = textarea.value;
+    const clamped = Math.min(offset, text.length);
+
+    cursorMirror.textContent = '';
+    cursorMirror.appendChild(document.createTextNode(text.substring(0, clamped)));
+    const marker = document.createElement('span');
+    marker.textContent = '\u200b';
+    cursorMirror.appendChild(marker);
+    cursorMirror.appendChild(document.createTextNode(text.substring(clamped) || ' '));
+
+    const mRect = marker.getBoundingClientRect();
+    const dRect = cursorMirror.getBoundingClientRect();
+    return { top: mRect.top - dRect.top, left: mRect.left - dRect.left };
+  }
+
+  // Remote cursor data with cached absolute coordinates
+  const remoteCursorData = new Map<string, {
+    name: string; color: string; offset: number;
+    absTop: number; absLeft: number;
+  }>();
   const remoteCursorElements = new Map<string, HTMLDivElement>();
 
-  function positionRemoteCursor(el: HTMLDivElement, cursor: { line: number; col: number }, color: string, wrapRect?: DOMRect): void {
-    const padding = 16; // matches editor padding
-    const top = cursor.line * lineHeight + padding - textarea.scrollTop;
-    const left = cursor.col * charWidth + padding - textarea.scrollLeft;
-
-    // Hide if scrolled out of view
-    const rect = wrapRect || cursorsDiv.getBoundingClientRect();
-    if (top < -lineHeight || top > rect.height || left < -charWidth || left > rect.width) {
-      el.style.display = 'none';
-    } else {
-      el.style.display = '';
-    }
-
-    el.style.top = `${top}px`;
-    el.style.left = `${left}px`;
-    el.style.setProperty('--cursor-color', color);
-  }
-
   function updateRemoteCursor(userId: string, name: string, color: string, cursor: { line: number; col: number; offset: number }): void {
-    remoteCursorData.set(userId, { name, color, cursor });
+    const coords = measureCursorCoords(cursor.offset);
+    remoteCursorData.set(userId, {
+      name, color, offset: cursor.offset,
+      absTop: coords.top, absLeft: coords.left,
+    });
 
     let el = remoteCursorElements.get(userId);
     if (!el) {
@@ -1049,25 +1034,38 @@ async function openFullScreenEditor(filePath: string) {
       remoteCursorElements.set(userId, el);
     }
 
-    positionRemoteCursor(el, cursor, color);
+    el.style.setProperty('--cursor-color', color);
+    applyRemoteCursorPos(el, coords.top, coords.left);
   }
 
-  function removeRemoteCursor(userId: string): void {
-    remoteCursorData.delete(userId);
-    const el = remoteCursorElements.get(userId);
-    if (el) {
-      el.remove();
-      remoteCursorElements.delete(userId);
+  // Apply cached position minus scroll offset (fast, no DOM measurement)
+  function applyRemoteCursorPos(el: HTMLDivElement, absTop: number, absLeft: number): void {
+    const top = absTop - textarea.scrollTop;
+    const left = absLeft - textarea.scrollLeft;
+
+    const rect = cursorsDiv.getBoundingClientRect();
+    el.style.display = (top < -20 || top > rect.height || left < -10 || left > rect.width) ? 'none' : '';
+    el.style.top = `${top}px`;
+    el.style.left = `${left}px`;
+  }
+
+  // Reposition using cached coords (scroll handler — fast, no DOM measurement)
+  function repositionAllRemoteCursors(): void {
+    for (const [userId, data] of remoteCursorData) {
+      const el = remoteCursorElements.get(userId);
+      if (el) applyRemoteCursorPos(el, data.absTop, data.absLeft);
     }
   }
 
-  function repositionAllRemoteCursors(): void {
-    const wrapRect = cursorsDiv.getBoundingClientRect();
+  // Re-measure all cursors (after content changes that may affect wrapping)
+  function remeasureAllCursors(): void {
+    syncMirrorWidth();
     for (const [userId, data] of remoteCursorData) {
+      const coords = measureCursorCoords(data.offset);
+      data.absTop = coords.top;
+      data.absLeft = coords.left;
       const el = remoteCursorElements.get(userId);
-      if (el) {
-        positionRemoteCursor(el, data.cursor, data.color, wrapRect);
-      }
+      if (el) applyRemoteCursorPos(el, coords.top, coords.left);
     }
   }
 
@@ -1222,58 +1220,17 @@ async function openFullScreenEditor(filePath: string) {
     preview.scrollTop = scrollTop;
   }
 
-  // ---- Diff Utilities ----
+  // ---- Yjs CRDT Sync ----
 
-  interface DiffOp {
-    offset: number;
-    deleteCount: number;
-    insert: string;
-  }
-
-  function computeDiff(oldText: string, newText: string): DiffOp | null {
-    if (oldText === newText) return null;
-
-    // Find common prefix
-    let prefixLen = 0;
-    const minLen = Math.min(oldText.length, newText.length);
-    while (prefixLen < minLen && oldText[prefixLen] === newText[prefixLen]) {
-      prefixLen++;
-    }
-
-    // Find common suffix (from the end, not overlapping the prefix)
-    let oldSuffixStart = oldText.length;
-    let newSuffixStart = newText.length;
-    while (
-      oldSuffixStart > prefixLen &&
-      newSuffixStart > prefixLen &&
-      oldText[oldSuffixStart - 1] === newText[newSuffixStart - 1]
-    ) {
-      oldSuffixStart--;
-      newSuffixStart--;
-    }
-
-    return {
-      offset: prefixLen,
-      deleteCount: oldSuffixStart - prefixLen,
-      insert: newText.slice(prefixLen, newSuffixStart),
-    };
-  }
-
-  function applyDiffToText(text: string, op: DiffOp): string {
-    return text.slice(0, op.offset) + op.insert + text.slice(op.offset + op.deleteCount);
-  }
-
-  function adjustCursorForOp(cursorPos: number, op: DiffOp): number {
-    if (cursorPos <= op.offset) return cursorPos;
-    if (cursorPos <= op.offset + op.deleteCount) return op.offset + op.insert.length;
-    return cursorPos - op.deleteCount + op.insert.length;
-  }
-
-  // ---- State for diff-based sync ----
-  let previousContent = '';
+  const MSG_SYNC = 0;
+  const ydoc = new Y.Doc();
+  const ytext = ydoc.getText('content');
   let contentChangedSinceLastRender = false;
   let isApplyingRemoteUpdate = false;
+  let yjsSynced = false; // blocks input until initial Yjs sync completes
   let renderTimer: ReturnType<typeof setInterval> | null = null;
+  let yjsWs: WebSocket | null = null;
+  let yjsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Request a server render and update preview
   async function requestRender(): Promise<void> {
@@ -1287,107 +1244,169 @@ async function openFullScreenEditor(filePath: string) {
     }
   }
 
-  // Open document
-  editorFetch('open', { filePath }).then((data) => {
-    textarea.value = data.raw;
-    previousContent = data.raw;
-    updateHighlight();
-    setPreviewContent(data.rendered);
-    updateStatus('saved');
-    textarea.focus();
+  // -- Yjs WebSocket connection --
 
-    // Start render timer after document is loaded
-    renderTimer = setInterval(requestRender, serverRenderInterval);
-  }).catch((err) => {
-    preview.innerHTML = `<div style="color: var(--color-error, #f7768e); padding: 16px;">Failed to open file: ${err.message}</div>`;
+  function connectYjsWs(): void {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/__editor/yjs?file=${encodeURIComponent(filePath)}`;
+    yjsWs = new WebSocket(wsUrl);
+    yjsWs.binaryType = 'arraybuffer';
+
+    yjsWs.addEventListener('open', () => {
+      const encoder = encoding.createEncoder();
+      encoding.writeVarUint(encoder, MSG_SYNC);
+      syncProtocol.writeSyncStep1(encoder, ydoc);
+      yjsWs!.send(encoding.toUint8Array(encoder));
+    });
+
+    yjsWs.addEventListener('message', (event) => {
+      const data = new Uint8Array(event.data as ArrayBuffer);
+      const decoder = decoding.createDecoder(data);
+      const msgType = decoding.readVarUint(decoder);
+
+      if (msgType === MSG_SYNC) {
+        const responseEncoder = encoding.createEncoder();
+        encoding.writeVarUint(responseEncoder, MSG_SYNC);
+        syncProtocol.readSyncMessage(decoder, responseEncoder, ydoc, 'remote');
+        if (encoding.length(responseEncoder) > 1) {
+          yjsWs!.send(encoding.toUint8Array(responseEncoder));
+        }
+      }
+    });
+
+    yjsWs.addEventListener('close', () => {
+      yjsWs = null;
+      yjsReconnectTimer = setTimeout(connectYjsWs, serverSseReconnect);
+    });
+
+    yjsWs.addEventListener('error', () => {
+      yjsWs?.close();
+    });
+  }
+
+  // Send local Y.Doc updates to the server via WebSocket
+  ydoc.on('update', (update: Uint8Array, origin: unknown) => {
+    if (origin === 'remote') return;
+    if (!yjsWs || yjsWs.readyState !== WebSocket.OPEN) return;
+
+    const encoder = encoding.createEncoder();
+    encoding.writeVarUint(encoder, MSG_SYNC);
+    syncProtocol.writeUpdate(encoder, update);
+    yjsWs.send(encoding.toUint8Array(encoder));
   });
 
-  // ---- SSE event handlers ----
-
-  // Remote text diff from a co-editor
-  textDiffCallback = (data: any) => {
-    if (data.userId === identity.userId) return;
-    if (data.file !== filePath) return;
-
-    const op = data.op as DiffOp;
-    const selStart = textarea.selectionStart;
-    const selEnd = textarea.selectionEnd;
+  // Observe remote Y.Text changes → update textarea
+  ytext.observe((event: Y.YTextEvent, transaction: Y.Transaction) => {
+    if (transaction.origin === 'local') return;
 
     isApplyingRemoteUpdate = true;
-    textarea.value = applyDiffToText(textarea.value, op);
-    previousContent = textarea.value;
+
+    if (!yjsSynced) {
+      // First sync from server — populate textarea from Yjs (authoritative)
+      textarea.value = ytext.toString();
+      updateHighlight();
+      yjsSynced = true;
+      isApplyingRemoteUpdate = false;
+      remeasureAllCursors();
+      return;
+    }
+
+    // Subsequent remote changes — adjust local cursor around the edit
+    let selStart = textarea.selectionStart;
+    let selEnd = textarea.selectionEnd;
+    let index = 0;
+
+    for (const op of event.delta) {
+      if (op.retain != null) {
+        index += op.retain;
+      } else if (op.insert != null) {
+        const len = typeof op.insert === 'string' ? op.insert.length : 0;
+        if (index <= selStart) selStart += len;
+        if (index <= selEnd) selEnd += len;
+        index += len;
+      } else if (op.delete != null) {
+        if (index < selStart) {
+          selStart = Math.max(index, selStart - op.delete);
+        }
+        if (index < selEnd) {
+          selEnd = Math.max(index, selEnd - op.delete);
+        }
+      }
+    }
+
+    textarea.value = ytext.toString();
+    textarea.selectionStart = Math.min(selStart, textarea.value.length);
+    textarea.selectionEnd = Math.min(selEnd, textarea.value.length);
+
     updateHighlight();
+    remeasureAllCursors();
     isApplyingRemoteUpdate = false;
-
-    // Smart cursor adjustment
-    textarea.selectionStart = adjustCursorForOp(selStart, op);
-    textarea.selectionEnd = adjustCursorForOp(selEnd, op);
-
     contentChangedSinceLastRender = true;
-  };
+  });
 
-  // Rendered preview update from server
+  // Rendered preview update from server (via SSE)
   renderUpdateCallback = (data: any) => {
     if (data.file !== filePath) return;
     setPreviewContent(data.rendered);
     contentChangedSinceLastRender = false;
   };
 
-  // External file change (e.g. edited in VS Code)
-  fileChangedCallback = (data: any) => {
-    if (data.file !== filePath) return;
-
-    const selStart = textarea.selectionStart;
-    const selEnd = textarea.selectionEnd;
-
-    isApplyingRemoteUpdate = true;
+  // Open document on server (creates Yjs room), then connect Yjs WebSocket
+  editorFetch('open', { filePath }).then((data) => {
+    // Show initial content from HTTP while Yjs syncs
+    // Input is blocked (yjsSynced=false) until Yjs sync populates ytext
     textarea.value = data.raw;
-    previousContent = data.raw;
     updateHighlight();
-    isApplyingRemoteUpdate = false;
+    setPreviewContent(data.rendered);
+    updateStatus('saved');
+    textarea.focus();
 
-    // Clamp cursor
-    textarea.selectionStart = Math.min(selStart, data.raw.length);
-    textarea.selectionEnd = Math.min(selEnd, data.raw.length);
+    connectYjsWs();
 
-    // Trigger immediate render for the new content
-    contentChangedSinceLastRender = true;
-    requestRender();
-  };
+    renderTimer = setInterval(requestRender, serverRenderInterval);
+  }).catch((err) => {
+    preview.innerHTML = `<div style="color: var(--color-error, #f7768e); padding: 16px;">Failed to open file: ${err.message}</div>`;
+  });
 
-  // Debounced diff on keystroke
+  // On textarea input → compute change, apply to Y.Text
   textarea.addEventListener('input', () => {
-    if (isApplyingRemoteUpdate) return;
+    if (isApplyingRemoteUpdate || !yjsSynced) return;
 
     updateHighlight();
     updateStatus('unsaved');
 
-    const currentContent = textarea.value;
-    const diff = computeDiff(previousContent, currentContent);
-    previousContent = currentContent;
+    const ytextContent = ytext.toString();
+    const newContent = textarea.value;
+    if (ytextContent === newContent) return;
 
-    if (!diff) return;
+    // Find the changed region (prefix/suffix matching)
+    let prefixLen = 0;
+    const minLen = Math.min(ytextContent.length, newContent.length);
+    while (prefixLen < minLen && ytextContent[prefixLen] === newContent[prefixLen]) prefixLen++;
+
+    let oldSuffix = ytextContent.length;
+    let newSuffix = newContent.length;
+    while (oldSuffix > prefixLen && newSuffix > prefixLen && ytextContent[oldSuffix - 1] === newContent[newSuffix - 1]) {
+      oldSuffix--;
+      newSuffix--;
+    }
+
+    const deleteCount = oldSuffix - prefixLen;
+    const insertStr = newContent.slice(prefixLen, newSuffix);
+
+    ydoc.transact(() => {
+      if (deleteCount > 0) ytext.delete(prefixLen, deleteCount);
+      if (insertStr.length > 0) ytext.insert(prefixLen, insertStr);
+    }, 'local');
 
     contentChangedSinceLastRender = true;
-
-    if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(async () => {
-      try {
-        await editorFetch('diff', {
-          filePath,
-          op: diff,
-          userId: identity.userId,
-        });
-      } catch (err: any) {
-        console.error('[editor] Diff send failed:', err);
-      }
-    }, serverContentDebounce);
   });
 
   // Tab key support in textarea
   textarea.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') {
       e.preventDefault();
+      if (!yjsSynced) return;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
@@ -1409,14 +1428,12 @@ async function openFullScreenEditor(filePath: string) {
     }
   });
 
-  // Save
+  // Save — Yjs keeps EditorStore.doc.raw in sync, so just trigger disk write
   async function doSave() {
     if (saveStatus === 'saved' || saveStatus === 'saving') return;
 
     updateStatus('saving');
     try {
-      // Full content sync before disk write to ensure server has latest
-      await editorFetch('update', { filePath, content: textarea.value });
       await editorFetch('save', { filePath });
       updateStatus('saved');
     } catch (err: any) {
@@ -1433,21 +1450,15 @@ async function openFullScreenEditor(filePath: string) {
 
   // Close
   async function doClose() {
-    // Clean up listeners and timers first to prevent anything firing after close
     cleanup();
 
     try {
-      // If there are unsaved changes, send final full content sync before close
-      if (saveStatus === 'unsaved') {
-        await editorFetch('update', { filePath, content: textarea.value });
-      }
       await editorFetch('close', { filePath });
     } catch (err: any) {
       console.error('[editor] Close failed:', err);
     }
 
     overlay.remove();
-    // Reload to reflect saved changes
     window.location.reload();
   }
 
@@ -1483,6 +1494,9 @@ async function openFullScreenEditor(filePath: string) {
     if (isResizing) {
       isResizing = false;
       resizeHandle.classList.remove('dragging');
+      // Re-sync mirror width after pane resize for accurate cursor measurement
+      syncMirrorWidth();
+      remeasureAllCursors();
     }
   }
 
@@ -1505,9 +1519,7 @@ async function openFullScreenEditor(filePath: string) {
 
     // Unregister callbacks
     cursorUpdateCallback = null;
-    textDiffCallback = null;
     renderUpdateCallback = null;
-    fileChangedCallback = null;
 
     // Clear render timer
     if (renderTimer) {
@@ -1515,7 +1527,19 @@ async function openFullScreenEditor(filePath: string) {
       renderTimer = null;
     }
 
-    // Remove all remote cursor elements
+    // Close Yjs WebSocket and destroy document
+    if (yjsReconnectTimer) {
+      clearTimeout(yjsReconnectTimer);
+      yjsReconnectTimer = null;
+    }
+    if (yjsWs) {
+      yjsWs.close();
+      yjsWs = null;
+    }
+    ydoc.destroy();
+
+    // Remove cursor mirror and all remote cursor elements
+    cursorMirror.remove();
     for (const el of remoteCursorElements.values()) el.remove();
     remoteCursorElements.clear();
     remoteCursorData.clear();
@@ -1523,10 +1547,6 @@ async function openFullScreenEditor(filePath: string) {
     if (highlightRafId !== null) {
       cancelAnimationFrame(highlightRafId);
       highlightRafId = null;
-    }
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-      debounceTimer = null;
     }
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);

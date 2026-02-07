@@ -41,6 +41,7 @@ export default defineConfig({
   server: {
     port: PORT ? parseInt(PORT, 10) : 4321,
     host: HOST === 'true' || HOST === '1',
+    allowedHosts: siteConfig?.server?.allowedHosts ?? true,
   },
   integrations: [
     mdx(),

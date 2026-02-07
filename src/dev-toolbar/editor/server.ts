@@ -45,12 +45,6 @@ export interface EditorConfig {
   watchPaths: string[];
 }
 
-export interface DiffOp {
-  offset: number;
-  deleteCount: number;
-  insert: string;
-}
-
 export class EditorStore {
   private documents = new Map<string, EditorDocument>();
   private docsParser: DocsParser;
@@ -206,16 +200,12 @@ export class EditorStore {
   }
 
   /**
-   * Apply a small diff operation to a document's raw content.
-   * Marks the document dirty but does NOT re-parse or re-render (deferred to render interval).
+   * Update raw content from Yjs sync. Marks dirty but does NOT re-render.
    */
-  applyDiff(filePath: string, op: DiffOp): void {
+  updateRaw(filePath: string, raw: string): void {
     const doc = this.documents.get(filePath);
-    if (!doc) {
-      throw new Error(`Document not open: ${filePath}`);
-    }
-
-    doc.raw = doc.raw.slice(0, op.offset) + op.insert + doc.raw.slice(op.offset + op.deleteCount);
+    if (!doc) return;
+    doc.raw = raw;
     doc.dirty = true;
   }
 
