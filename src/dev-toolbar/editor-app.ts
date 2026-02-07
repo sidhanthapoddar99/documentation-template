@@ -54,6 +54,14 @@ function getOrCreateIdentity(): { userId: string; name: string; color: string } 
 const identity = getOrCreateIdentity();
 
 // ============================================================================
+// HTML escaping for user-provided strings interpolated into innerHTML
+// ============================================================================
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ============================================================================
 // Global SSE Connection & Presence State
 // ============================================================================
 
@@ -64,6 +72,7 @@ let lastLatencyMs = 0;
 let presenceUsers: any[] = [];
 let presenceUpdateCallback: ((users: any[]) => void) | null = null;
 let cursorUpdateCallback: ((data: any) => void) | null = null;
+let contentUpdateCallback: ((data: any) => void) | null = null;
 let sseReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Server-provided config (from site.yaml via SSE config event)
@@ -101,6 +110,13 @@ function connectSSE(): void {
     try {
       const data = JSON.parse(e.data);
       cursorUpdateCallback?.(data);
+    } catch { /* ignore parse errors */ }
+  });
+
+  eventSource.addEventListener('content', (e: MessageEvent) => {
+    try {
+      const data = JSON.parse(e.data);
+      contentUpdateCallback?.(data);
     } catch { /* ignore parse errors */ }
   });
 
@@ -195,8 +211,27 @@ function teardownPresence(): void {
   navigator.sendBeacon('/__editor/presence', blob);
 }
 
-// Initialize on module load (dev toolbar app context)
+// Guard against HMR re-execution leaking connections/intervals.
+// On re-execute, module-scope variables reset to null, orphaning running
+// EventSource and ping intervals. beforeunload listeners also accumulate.
+// We store a soft cleanup (no leave beacon) on window so the next execution
+// can tear down the previous instance before re-initializing.
+function softCleanup(): void {
+  stopPingLoop();
+  disconnectSSE();
+}
+const HMR_KEY = '__editorPresenceCleanup';
+if (typeof (window as any)[HMR_KEY] === 'function') {
+  (window as any)[HMR_KEY]();
+}
 initPresence();
+(window as any)[HMR_KEY] = softCleanup;
+
+// Use a stable reference on window so we can remove/replace on re-execute
+if ((window as any).__editorBeforeUnload) {
+  window.removeEventListener('beforeunload', (window as any).__editorBeforeUnload);
+}
+(window as any).__editorBeforeUnload = teardownPresence;
 window.addEventListener('beforeunload', teardownPresence);
 
 // ============================================================================
@@ -465,10 +500,10 @@ export default {
         const pingText = u.latencyMs > 0 ? `${u.latencyMs}ms` : '-';
 
         return `<tr>
-          <td><span class="presence-dot" style="background:${u.color}"></span>${u.name}${isYou ? '<span class="presence-you">(you)</span>' : ''}</td>
-          <td title="${pagePath}">${shortPage}</td>
+          <td><span class="presence-dot" style="background:${escapeHtml(u.color)}"></span>${escapeHtml(u.name)}${isYou ? '<span class="presence-you">(you)</span>' : ''}</td>
+          <td title="${escapeHtml(pagePath)}">${escapeHtml(shortPage)}</td>
           <td class="${pingClass}">${pingText}</td>
-          <td>${!isYou ? `<button class="jump-btn" data-page="${pagePath}">Jump</button>` : ''}</td>
+          <td>${!isYou ? `<button class="jump-btn" data-page="${escapeHtml(pagePath)}">Jump</button>` : ''}</td>
         </tr>`;
       }).join('');
 
@@ -955,14 +990,14 @@ async function openFullScreenEditor(filePath: string) {
   const remoteCursorData = new Map<string, { name: string; color: string; cursor: { line: number; col: number; offset: number } }>();
   const remoteCursorElements = new Map<string, HTMLDivElement>();
 
-  function positionRemoteCursor(el: HTMLDivElement, cursor: { line: number; col: number }, color: string): void {
+  function positionRemoteCursor(el: HTMLDivElement, cursor: { line: number; col: number }, color: string, wrapRect?: DOMRect): void {
     const padding = 16; // matches editor padding
     const top = cursor.line * lineHeight + padding - textarea.scrollTop;
     const left = cursor.col * charWidth + padding - textarea.scrollLeft;
 
     // Hide if scrolled out of view
-    const wrapRect = cursorsDiv.getBoundingClientRect();
-    if (top < -lineHeight || top > wrapRect.height || left < -charWidth || left > wrapRect.width) {
+    const rect = wrapRect || cursorsDiv.getBoundingClientRect();
+    if (top < -lineHeight || top > rect.height || left < -charWidth || left > rect.width) {
       el.style.display = 'none';
     } else {
       el.style.display = '';
@@ -980,7 +1015,7 @@ async function openFullScreenEditor(filePath: string) {
     if (!el) {
       el = document.createElement('div');
       el.className = 'remote-cursor';
-      el.innerHTML = `<div class="remote-cursor-label">${name}</div><div class="remote-cursor-line"></div>`;
+      el.innerHTML = `<div class="remote-cursor-label">${escapeHtml(name)}</div><div class="remote-cursor-line"></div>`;
       cursorsDiv.appendChild(el);
       remoteCursorElements.set(userId, el);
     }
@@ -998,10 +1033,11 @@ async function openFullScreenEditor(filePath: string) {
   }
 
   function repositionAllRemoteCursors(): void {
+    const wrapRect = cursorsDiv.getBoundingClientRect();
     for (const [userId, data] of remoteCursorData) {
       const el = remoteCursorElements.get(userId);
       if (el) {
-        positionRemoteCursor(el, data.cursor, data.color);
+        positionRemoteCursor(el, data.cursor, data.color, wrapRect);
       }
     }
   }
@@ -1162,8 +1198,39 @@ async function openFullScreenEditor(filePath: string) {
     preview.innerHTML = `<div style="color: var(--color-error, #f7768e); padding: 16px;">Failed to open file: ${err.message}</div>`;
   });
 
+  // Remote content sync
+  let isApplyingRemoteUpdate = false;
+
+  contentUpdateCallback = (data: any) => {
+    if (data.userId === identity.userId) return;
+    if (data.file !== filePath) return;
+
+    // Save cursor position
+    const selStart = textarea.selectionStart;
+    const selEnd = textarea.selectionEnd;
+
+    // Clear any pending local debounce (remote content is newer)
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
+
+    // Apply remote content
+    isApplyingRemoteUpdate = true;
+    textarea.value = data.raw;
+    updateHighlight();
+    setPreviewContent(data.rendered);
+    isApplyingRemoteUpdate = false;
+
+    // Restore cursor (clamped to new content length)
+    textarea.selectionStart = Math.min(selStart, data.raw.length);
+    textarea.selectionEnd = Math.min(selEnd, data.raw.length);
+  };
+
   // Debounced update on keystroke
   textarea.addEventListener('input', () => {
+    if (isApplyingRemoteUpdate) return;
+
     updateHighlight();
     updateStatus('unsaved');
 
@@ -1173,6 +1240,7 @@ async function openFullScreenEditor(filePath: string) {
         const data = await editorFetch('update', {
           filePath,
           content: textarea.value,
+          userId: identity.userId,
         });
         setPreviewContent(data.rendered);
       } catch (err: any) {
@@ -1294,8 +1362,9 @@ async function openFullScreenEditor(filePath: string) {
     // Send cursor-clear to indicate we're no longer editing
     sendPresenceAction({ type: 'cursor-clear' });
 
-    // Unregister cursor callback
+    // Unregister callbacks
     cursorUpdateCallback = null;
+    contentUpdateCallback = null;
 
     // Remove all remote cursor elements
     for (const el of remoteCursorElements.values()) el.remove();

@@ -163,14 +163,19 @@ export class PresenceManager {
   }
 
   /**
-   * Update a user's latency and broadcast presence.
+   * Update a user's latency. Only broadcasts presence if the latency
+   * changed by more than 20ms to avoid N² SSE writes every ping interval.
    */
   updateLatency(userId: string, ms: number): void {
     const user = this.users.get(userId);
     if (user) {
+      const delta = Math.abs(user.latencyMs - ms);
       user.latencyMs = ms;
       user.lastSeen = Date.now();
-      this.broadcastPresence();
+      // Only broadcast on meaningful latency changes or first measurement
+      if (delta > 20 || user.latencyMs === 0) {
+        this.broadcastPresence();
+      }
     }
   }
 
@@ -225,6 +230,34 @@ export class PresenceManager {
   }
 
   /**
+   * Broadcast content update to all users editing the same file (excludes sender).
+   */
+  broadcastContentUpdate(
+    fromUserId: string,
+    file: string,
+    raw: string,
+    rendered: string
+  ): void {
+    const payload = {
+      type: 'content',
+      userId: fromUserId,
+      file,
+      raw,
+      rendered,
+    };
+
+    for (const [userId, user] of this.users) {
+      if (userId === fromUserId) continue;
+      if (user.editingFile !== file) continue;
+
+      const stream = this.streams.get(userId);
+      if (stream && !stream.writableEnded) {
+        this.sendToStream(stream, 'content', payload);
+      }
+    }
+  }
+
+  /**
    * Send an SSE event to a single stream.
    */
   private sendToStream(res: ServerResponse, event: string, data: any): void {
@@ -253,12 +286,25 @@ export class PresenceManager {
 
     this.cleanupTimer = setInterval(() => {
       const now = Date.now();
+      const staleIds: string[] = [];
 
       for (const [userId, user] of this.users) {
         if (now - user.lastSeen > this.config.staleThreshold) {
           console.log(`[presence] Removing stale user: ${user.name} (${userId})`);
-          this.removeStream(userId);
+          staleIds.push(userId);
         }
+      }
+
+      if (staleIds.length > 0) {
+        for (const userId of staleIds) {
+          const stream = this.streams.get(userId);
+          if (stream && !stream.writableEnded) {
+            try { stream.end(); } catch { /* already closed */ }
+          }
+          this.streams.delete(userId);
+          this.users.delete(userId);
+        }
+        this.broadcastPresence();
       }
     }, cleanupInterval);
 

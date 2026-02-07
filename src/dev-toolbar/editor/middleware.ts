@@ -183,7 +183,7 @@ export function setupEditorMiddleware(
         }
 
         case '/__editor/update': {
-          const { filePath, content } = body;
+          const { filePath, content, userId } = body;
           if (!filePath || typeof filePath !== 'string') {
             return sendJson(res, 400, { error: 'filePath is required' });
           }
@@ -192,6 +192,12 @@ export function setupEditorMiddleware(
           }
 
           const doc = await store.updateDocument(filePath, content);
+
+          // Broadcast content to other editors of the same file
+          if (userId) {
+            presence.broadcastContentUpdate(userId, filePath, content, doc.rendered);
+          }
+
           return sendJson(res, 200, {
             rendered: doc.rendered,
             frontmatter: doc.frontmatter,
