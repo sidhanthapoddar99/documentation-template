@@ -181,19 +181,42 @@ export class PresenceManager {
 
   /**
    * Broadcast full user list to ALL connected streams.
+   * Pre-serializes once to avoid repeated JSON.stringify per recipient.
    */
   private broadcastPresence(): void {
-    const payload = {
+    const formatted = `event: presence\ndata: ${JSON.stringify({
       type: 'presence',
       users: this.getUsers(),
-    };
+    })}\n\n`;
 
     for (const [userId, stream] of this.streams) {
       if (!stream.writableEnded) {
-        this.sendToStream(stream, 'presence', payload);
+        try { stream.write(formatted); } catch { /* stream broken */ }
       } else {
-        // Clean up dead streams
         this.streams.delete(userId);
+      }
+    }
+  }
+
+  /**
+   * Broadcast an SSE event to all users editing the same file (excludes sender).
+   * Pre-serializes the payload once to avoid repeated JSON.stringify per recipient.
+   */
+  private broadcastToFileEditors(
+    fromUserId: string,
+    file: string,
+    event: string,
+    payload: Record<string, any>
+  ): void {
+    const formatted = `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
+
+    for (const [userId, user] of this.users) {
+      if (userId === fromUserId) continue;
+      if (user.editingFile !== file) continue;
+
+      const stream = this.streams.get(userId);
+      if (stream && !stream.writableEnded) {
+        try { stream.write(formatted); } catch { /* stream broken */ }
       }
     }
   }
@@ -209,24 +232,14 @@ export class PresenceManager {
     const fromUser = this.users.get(fromUserId);
     if (!fromUser) return;
 
-    const payload = {
+    this.broadcastToFileEditors(fromUserId, file, 'cursor', {
       type: 'cursor',
       userId: fromUserId,
       name: fromUser.name,
       color: fromUser.color,
       cursor,
       file,
-    };
-
-    for (const [userId, user] of this.users) {
-      if (userId === fromUserId) continue;
-      if (user.editingFile !== file) continue;
-
-      const stream = this.streams.get(userId);
-      if (stream && !stream.writableEnded) {
-        this.sendToStream(stream, 'cursor', payload);
-      }
-    }
+    });
   }
 
   /**
@@ -238,23 +251,13 @@ export class PresenceManager {
     raw: string,
     rendered: string
   ): void {
-    const payload = {
+    this.broadcastToFileEditors(fromUserId, file, 'content', {
       type: 'content',
       userId: fromUserId,
       file,
       raw,
       rendered,
-    };
-
-    for (const [userId, user] of this.users) {
-      if (userId === fromUserId) continue;
-      if (user.editingFile !== file) continue;
-
-      const stream = this.streams.get(userId);
-      if (stream && !stream.writableEnded) {
-        this.sendToStream(stream, 'content', payload);
-      }
-    }
+    });
   }
 
   /**

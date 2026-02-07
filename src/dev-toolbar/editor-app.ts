@@ -219,6 +219,9 @@ function teardownPresence(): void {
 function softCleanup(): void {
   stopPingLoop();
   disconnectSSE();
+  presenceUpdateCallback = null;
+  cursorUpdateCallback = null;
+  contentUpdateCallback = null;
 }
 const HMR_KEY = '__editorPresenceCleanup';
 if (typeof (window as any)[HMR_KEY] === 'function') {
@@ -1089,10 +1092,16 @@ async function openFullScreenEditor(filePath: string) {
     cursor: { line: 0, col: 0, offset: 0 },
   });
 
-  // Sync highlight overlay with textarea content
+  // Sync highlight overlay with textarea content (rAF-batched to avoid
+  // redundant work when multiple updates arrive in the same frame)
+  let highlightRafId: number | null = null;
+
   function updateHighlight() {
-    // Add a trailing newline so the pre height always matches the textarea
-    highlightPre.innerHTML = highlightMarkdown(textarea.value) + '\n';
+    if (highlightRafId !== null) return;
+    highlightRafId = requestAnimationFrame(() => {
+      highlightRafId = null;
+      highlightPre.innerHTML = highlightMarkdown(textarea.value) + '\n';
+    });
   }
 
   // Sync highlight scroll with textarea scroll
@@ -1281,7 +1290,7 @@ async function openFullScreenEditor(filePath: string) {
     updateStatus('saving');
     try {
       // Send the latest content first, then save
-      await editorFetch('update', { filePath, content: textarea.value });
+      await editorFetch('update', { filePath, content: textarea.value, userId: identity.userId });
       await editorFetch('save', { filePath });
       updateStatus('saved');
     } catch (err: any) {
@@ -1371,6 +1380,10 @@ async function openFullScreenEditor(filePath: string) {
     remoteCursorElements.clear();
     remoteCursorData.clear();
 
+    if (highlightRafId !== null) {
+      cancelAnimationFrame(highlightRafId);
+      highlightRafId = null;
+    }
     if (debounceTimer) {
       clearTimeout(debounceTimer);
       debounceTimer = null;
