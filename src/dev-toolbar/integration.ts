@@ -17,6 +17,8 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import cacheManager from '../loaders/cache-manager';
+import { EditorStore } from './editor/server';
+import { setupEditorMiddleware } from './editor/middleware';
 
 // Track the Vite dev server for sending reload messages
 let viteServer: ViteDevServer | null = null;
@@ -81,6 +83,23 @@ function getWatchPaths(): { paths: WatchPathsConfig; array: string[] } {
   };
 }
 
+/**
+ * Read autosave interval from site.yaml config
+ */
+function getAutosaveInterval(configDir: string): number {
+  const DEFAULT_INTERVAL = 10000;
+  try {
+    const siteYamlPath = path.join(configDir, 'site.yaml');
+    if (fs.existsSync(siteYamlPath)) {
+      const content = fs.readFileSync(siteYamlPath, 'utf-8');
+      // Simple regex extraction to avoid importing yaml in the integration
+      const match = content.match(/autosave_interval:\s*(\d+)/);
+      if (match) return parseInt(match[1], 10);
+    }
+  } catch { /* use default */ }
+  return DEFAULT_INTERVAL;
+}
+
 export function devToolbarIntegration(): AstroIntegration {
   return {
     name: 'dev-toolbar-apps',
@@ -91,6 +110,13 @@ export function devToolbarIntegration(): AstroIntegration {
 
         // Configure cache manager with watch paths for file type detection
         cacheManager.setWatchPaths(watchPathsConfig);
+
+        // Create editor store
+        const autosaveInterval = getAutosaveInterval(watchPathsConfig.config);
+        const editorStore = new EditorStore({
+          autosaveInterval,
+          watchPaths,
+        });
 
         // Extensions to ignore (temp files, system files, etc.)
         const ignoreExtensions = ['.DS_Store', '.gitkeep', '.tmp', '.swp', '.bak'];
@@ -111,6 +137,14 @@ export function devToolbarIntegration(): AstroIntegration {
                 configureServer(server) {
                   viteServer = server;
 
+                  // Set up editor middleware and start background save
+                  setupEditorMiddleware(
+                    server,
+                    editorStore,
+                    () => server.ws.send({ type: 'full-reload' })
+                  );
+                  editorStore.startBackgroundSave();
+
                   // Explicitly add watch paths to Vite's watcher
                   // Vite only watches src/ by default, not external content directories
                   watchPaths.forEach(watchPath => {
@@ -125,7 +159,11 @@ export function devToolbarIntegration(): AstroIntegration {
                       const { type, invalidated } = cacheManager.onFileAdd(file);
                       console.log(`[cache] File added (${type}):`, shortPath);
                       console.log(`[cache] Invalidated: ${invalidated.join(', ') || 'none'}`);
-                      server.ws.send({ type: 'full-reload' });
+
+                      // Suppress reload if file is being edited
+                      if (!editorStore.isEditing(file)) {
+                        server.ws.send({ type: 'full-reload' });
+                      }
                     }
                   });
 
@@ -136,7 +174,11 @@ export function devToolbarIntegration(): AstroIntegration {
                       const { type, invalidated } = cacheManager.onFileDelete(file);
                       console.log(`[cache] File deleted (${type}):`, shortPath);
                       console.log(`[cache] Invalidated: ${invalidated.join(', ') || 'none'}`);
-                      server.ws.send({ type: 'full-reload' });
+
+                      // Suppress reload if file is being edited
+                      if (!editorStore.isEditing(file)) {
+                        server.ws.send({ type: 'full-reload' });
+                      }
                     }
                   });
                 },
@@ -148,6 +190,13 @@ export function devToolbarIntegration(): AstroIntegration {
                   const { type, invalidated } = cacheManager.onFileChange(file);
                   console.log(`[cache] File changed (${type}):`, shortPath);
                   console.log(`[cache] Invalidated: ${invalidated.join(', ') || 'none'}`);
+
+                  // Suppress full-reload if file is being edited
+                  // Caches are still cleared above, but we don't reload the page
+                  if (editorStore.isEditing(file)) {
+                    console.log(`[editor] HMR suppressed for: ${shortPath}`);
+                    return [];
+                  }
 
                   // Send full page reload to browser
                   server.ws.send({ type: 'full-reload' });
@@ -174,6 +223,14 @@ export function devToolbarIntegration(): AstroIntegration {
           name: 'Doc Errors',
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
           entrypoint: './src/dev-toolbar/error-logger.ts',
+        });
+
+        // Live Documentation Editor
+        addDevToolbarApp({
+          id: 'doc-editor',
+          name: 'Edit Page',
+          icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+          entrypoint: './src/dev-toolbar/editor-app.ts',
         });
       },
     },

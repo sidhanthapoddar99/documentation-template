@@ -391,7 +391,7 @@ if (pageType === 'docs' && doc) {
 }
 ---
 
-<BaseLayout title={title} contentType={contentType}>
+<BaseLayout title={title} contentType={contentType} editorPath={doc?.filePath || post?.filePath}>
   <NavbarComponent slot="navbar" />
   <LayoutComponent {...layoutProps} />
   <FooterComponent slot="footer" />
