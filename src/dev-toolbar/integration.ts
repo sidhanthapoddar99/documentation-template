@@ -14,82 +14,21 @@
 import type { AstroIntegration } from 'astro';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 import yaml from 'js-yaml';
 import cacheManager from '../loaders/cache-manager';
+import { paths, getUserPaths, getPathsByCategory } from '../loaders/paths';
 import { EditorStore } from './editor/server';
 import { setupEditorMiddleware } from './editor/middleware';
 import { PresenceManager, type PresenceConfig } from './editor/presence';
 import { YjsSync } from './editor/yjs-sync';
-
-
-interface WatchPathsConfig {
-  data: string;
-  config: string;
-  assets: string;
-  themes: string;
-}
-
-/**
- * Read paths from .env file directly
- * This ensures we get the configured paths even during Vite plugin setup
- */
-function getWatchPaths(): { paths: WatchPathsConfig; array: string[] } {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const projectRoot = path.resolve(__dirname, '../..');
-  const envPath = path.join(projectRoot, '.env');
-
-  // Default paths relative to project root
-  let configDir = './dynamic_data/config';
-  let dataDir = './dynamic_data/data';
-  let assetsDir = './dynamic_data/assets';
-  let themesDir = './dynamic_data/themes';
-
-  // Read from .env if it exists
-  if (fs.existsSync(envPath)) {
-    const envContent = fs.readFileSync(envPath, 'utf-8');
-    const lines = envContent.split('\n');
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith('#') || !trimmed.includes('=')) continue;
-
-      const [key, ...valueParts] = trimmed.split('=');
-      const value = valueParts.join('=').trim();
-
-      switch (key.trim()) {
-        case 'CONFIG_DIR': configDir = value; break;
-        case 'DATA_DIR': dataDir = value; break;
-        case 'ASSETS_DIR': assetsDir = value; break;
-        case 'THEMES_DIR': themesDir = value; break;
-      }
-    }
-  }
-
-  // Resolve paths (handle both relative and absolute)
-  const resolvePath = (p: string) => path.isAbsolute(p) ? p : path.resolve(projectRoot, p);
-
-  const paths = {
-    data: resolvePath(dataDir),
-    config: resolvePath(configDir),
-    assets: resolvePath(assetsDir),
-    themes: resolvePath(themesDir),
-  };
-
-  return {
-    paths,
-    array: [paths.data, paths.config, paths.assets, paths.themes],
-  };
-}
 
 /**
  * Read editor configuration from site.yaml.
  * Throws a clear error if editor.autosave_interval is missing.
  * Presence settings are optional with sensible defaults.
  */
-function getEditorConfig(configDir: string): { autosaveInterval: number; presence: PresenceConfig } {
-  const siteYamlPath = path.join(configDir, 'site.yaml');
+function getEditorConfig(): { autosaveInterval: number; presence: PresenceConfig } {
+  const siteYamlPath = path.join(paths.config, 'site.yaml');
 
   if (!fs.existsSync(siteYamlPath)) {
     throw new Error(
@@ -137,14 +76,26 @@ export function devToolbarIntegration(): AstroIntegration {
     name: 'dev-toolbar-apps',
     hooks: {
       'astro:config:setup': ({ addDevToolbarApp, updateConfig }) => {
-        // Get watch paths from .env configuration
-        const { paths: watchPathsConfig, array: watchPaths } = getWatchPaths();
+        // Build watch paths from the initialized path system
+        const watchPaths: string[] = [];
+        for (const entry of getUserPaths().values()) {
+          watchPaths.push(entry.absolutePath);
+        }
+        // Always include config dir
+        if (!watchPaths.includes(paths.config)) {
+          watchPaths.push(paths.config);
+        }
 
-        // Configure cache manager with watch paths for file type detection
-        cacheManager.setWatchPaths(watchPathsConfig);
+        // Configure cache manager with categorized watch paths
+        cacheManager.setWatchPaths({
+          contentPaths: getPathsByCategory('content'),
+          configPaths: getPathsByCategory('config'),
+          assetPaths: getPathsByCategory('asset'),
+          themePaths: getPathsByCategory('theme'),
+        });
 
         // Create editor store and presence manager
-        const editorConfig = getEditorConfig(watchPathsConfig.config);
+        const editorConfig = getEditorConfig();
         const editorStore = new EditorStore({
           autosaveInterval: editorConfig.autosaveInterval,
           watchPaths,

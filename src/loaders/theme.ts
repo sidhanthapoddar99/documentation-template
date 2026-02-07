@@ -9,7 +9,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { paths, getThemePath } from './paths';
+import { paths, getThemePath, getPathsByCategory } from './paths';
 import { addError } from './cache';
 import cacheManager from './cache-manager';
 import type {
@@ -349,16 +349,19 @@ export function getThemeCSS(themeRef: string = '@theme/default'): string {
  */
 export function getAvailableThemes(): string[] {
   const themes: string[] = ['default'];
+  const seen = new Set<string>(themes);
 
-  // Check themes directory
-  if (fs.existsSync(paths.themes)) {
-    const entries = fs.readdirSync(paths.themes, { withFileTypes: true });
+  // Scan all theme-category directories
+  const themeDirs = getPathsByCategory('theme');
+  for (const themeDir of themeDirs) {
+    if (!fs.existsSync(themeDir)) continue;
+    const entries = fs.readdirSync(themeDir, { withFileTypes: true });
     for (const entry of entries) {
-      if (entry.isDirectory()) {
-        // Check if it has a theme.yaml
-        const manifestPath = path.join(paths.themes, entry.name, 'theme.yaml');
+      if (entry.isDirectory() && !seen.has(entry.name)) {
+        const manifestPath = path.join(themeDir, entry.name, 'theme.yaml');
         if (fs.existsSync(manifestPath)) {
           themes.push(entry.name);
+          seen.add(entry.name);
         }
       }
     }

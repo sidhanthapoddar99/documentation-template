@@ -8,6 +8,12 @@ export {
   getDataPath,
   getThemePath,
   getLayoutPath,
+  initPaths,
+  getUserPaths,
+  getPathsByCategory,
+  getPathCategory,
+  isInitialized,
+  type PathCategory,
 } from './paths';
 
 // Config loader
@@ -55,6 +61,7 @@ export {
   resolveDataPath,
   getLayoutType,
   getLayoutName,
+  getAliasMap,
   type AliasPrefix,
   type ResolvedAlias,
 } from './alias';

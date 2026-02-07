@@ -6,30 +6,33 @@ sidebar_position: 1
 
 # Configuration Overview
 
-Configuration is split across environment variables and YAML files.
+Configuration is centralized in YAML files. The `.env` file only provides `CONFIG_DIR` (bootstrap to locate `site.yaml`). All other directory paths are defined in `site.yaml`'s `paths:` section.
+
+> **Path relativity:** `CONFIG_DIR` in `.env` is relative to the **project root**. Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). Absolute paths work in both places.
 
 ## Directory Structure
 
 ```
 dynamic_data/
-├── config/           # Configuration files (CONFIG_DIR)
-│   ├── site.yaml     # Site metadata, logo, pages
+├── config/           # Configuration files (CONFIG_DIR from .env)
+│   ├── site.yaml     # Site metadata, logo, paths, pages
 │   ├── navbar.yaml   # Navigation items
 │   └── footer.yaml   # Footer configuration
-├── assets/           # Static assets (ASSETS_DIR)
+├── assets/           # Static assets (paths.assets in site.yaml)
 │   ├── logo.svg
 │   └── favicon.png
-└── data/             # Content (DATA_DIR)
-    ├── docs/
-    ├── blog/
-    └── pages/
+├── data/             # Content (paths.data in site.yaml)
+│   ├── docs/
+│   ├── blog/
+│   └── pages/
+└── themes/           # Custom themes (paths.themes in site.yaml)
 ```
 
 ## Configuration Files
 
 | File | Contents |
 |------|----------|
-| `site.yaml` | Site metadata, logo/favicon, and page definitions |
+| `site.yaml` | Site metadata, directory paths, logo/favicon, and page definitions |
 | `navbar.yaml` | Navigation items |
 | `footer.yaml` | Footer layout, columns, and social links |
 
@@ -43,6 +46,12 @@ site:
   name: "My Docs"
   title: "My Documentation"
   description: "Modern documentation built with Astro"
+
+# Directory paths (relative to this config directory, or absolute)
+paths:
+  data: "../data"
+  assets: "../assets"
+  themes: "../themes"
 
 # Logo and favicon
 logo:
@@ -107,8 +116,9 @@ Configuration supports path aliases for cleaner references:
 | `@blog/style_name` | `src/layouts/blogs/style_name/` | Blog layouts |
 | `@custom/style_name` | `src/layouts/custom/style_name/` | Custom page layouts |
 | `@footer/style_name` | `src/layouts/footer/style_name/` | Footer layouts |
-| `@data/path` | `DATA_DIR/path` | Content data |
-| `@assets/file` | `ASSETS_DIR/file` → `/assets/file` | Static assets |
+| `@data/path` | `paths.data/path` | Content data |
+| `@assets/file` | `paths.assets/file` → `/assets/file` | Static assets |
+| `@themes/name` | `paths.themes/name` | Custom themes |
 
 ### Assets Alias
 
@@ -120,7 +130,7 @@ logo:
   favicon: "@assets/icon.png" # Becomes /assets/icon.png
 ```
 
-Assets are served from the `ASSETS_DIR` location (configured in `.env`).
+Assets are served from the `paths.assets` location (configured in `site.yaml`).
 
 ## Config Loader
 

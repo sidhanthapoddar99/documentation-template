@@ -48,6 +48,7 @@ export interface SiteConfig {
   logo?: SiteLogo;
   editor: EditorSettings;  // Required — must be in site.yaml
   pages: Record<string, PageConfig>;
+  paths?: Record<string, string>;  // Named directory paths → @key aliases
 }
 
 export interface NavItem {

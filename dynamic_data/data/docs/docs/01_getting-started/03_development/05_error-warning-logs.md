@@ -62,9 +62,9 @@ File paths use alias notation for clarity:
 
 | Alias | Maps To |
 |-------|---------|
-| `@data/` | `dynamic_data/data/` (or configured DATA_DIR) |
-| `@config/` | `dynamic_data/config/` (or configured CONFIG_DIR) |
-| `@assets/` | `dynamic_data/assets/` (or configured ASSETS_DIR) |
+| `@data/` | `dynamic_data/data/` (or `paths.data` in site.yaml) |
+| `@config/` | `dynamic_data/config/` (or `CONFIG_DIR` in .env) |
+| `@assets/` | `dynamic_data/assets/` (or `paths.assets` in site.yaml) |
 
 ## Error Types
 

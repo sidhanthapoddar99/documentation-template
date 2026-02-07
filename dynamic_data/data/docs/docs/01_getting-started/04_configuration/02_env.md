@@ -6,40 +6,26 @@ sidebar_position: 2
 
 # Environment Variables
 
-Environment variables configure directory paths, site settings, and feature flags. These are defined in the `.env` file at the project root.
+Environment variables configure the bootstrap path, server settings, and feature flags. These are defined in the `.env` file at the project root.
 
-## Directory Paths
+> **Note:** Directory paths for data, assets, and themes are now configured in `site.yaml`'s `paths:` section, not in `.env`. Only `CONFIG_DIR` remains as the bootstrap to locate `site.yaml`. See [Site Configuration](./site) for details.
 
-Configure where the system looks for configuration and content:
+## Config Bootstrap
+
+The only directory path in `.env` is `CONFIG_DIR`, which tells the system where to find `site.yaml`:
 
 ```env
-# Configuration files (site.yaml, navbar.yaml, footer.yaml)
+# Points to the directory containing site.yaml, navbar.yaml, footer.yaml
 CONFIG_DIR=./dynamic_data/config
-
-# User content (docs, blog, pages)
-DATA_DIR=./dynamic_data/data
-
-# Static assets (logos, favicons, images)
-ASSETS_DIR=./dynamic_data/assets
-
-# Custom themes directory (contains multiple theme folders)
-THEMES_DIR=./dynamic_data/themes
 ```
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CONFIG_DIR` | `./dynamic_data/config` | Path to configuration files |
-| `DATA_DIR` | `./dynamic_data/data` | Path to content (docs, blog, pages) |
-| `ASSETS_DIR` | `./dynamic_data/assets` | Path to static assets (logos, images) |
-| `THEMES_DIR` | `./dynamic_data/themes` | Path to themes directory (contains theme folders) |
+| `CONFIG_DIR` | `./dynamic_data/config` | Path to configuration directory (relative to project root, or absolute) |
 
-### Path Types
+All other directory paths (`data`, `assets`, `themes`) are defined in `site.yaml`'s `paths:` section.
 
-Paths can be:
-- **Relative** - Relative to project root (e.g., `./dynamic_data/config`)
-- **Absolute** - Full system path (e.g., `/var/www/data`)
-
-This allows pointing to external folders outside your project.
+> **Path relativity rule:** `CONFIG_DIR` in `.env` is relative to the **project root** (where `.env` lives). Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). Absolute paths work in both places.
 
 ## Server Settings
 
@@ -156,10 +142,9 @@ ENABLE_DARK_MODE=true
 # ============================================
 # DIRECTORY PATHS
 # ============================================
+# Bootstrap: points to the config directory containing site.yaml
+# All other paths (data, assets, themes) are defined in site.yaml
 CONFIG_DIR=./dynamic_data/config
-DATA_DIR=./dynamic_data/data
-ASSETS_DIR=./dynamic_data/assets
-THEMES_DIR=./dynamic_data/themes
 
 # ============================================
 # SERVER SETTINGS
@@ -180,33 +165,9 @@ ENABLE_SEARCH=false
 ENABLE_DARK_MODE=true
 ```
 
-## Development vs Production
-
-Use different values for different environments:
-
-**Development:**
-
-```env
-CONFIG_DIR=./dynamic_data/config
-DATA_DIR=./dynamic_data/data
-ASSETS_DIR=./dynamic_data/assets
-SITE_URL=http://localhost:4321
-ENABLE_SEARCH=false
-```
-
-**Production:**
-
-```env
-CONFIG_DIR=/var/www/config
-DATA_DIR=/var/www/data
-ASSETS_DIR=/var/www/assets
-SITE_URL=https://docs.example.com
-ENABLE_SEARCH=true
-```
-
 ## Best Practices
 
 1. **Never commit secrets** - Add `.env` to `.gitignore`
 2. **Use `.env.example`** - Document required variables for other developers
-3. **Use relative paths for portability** - `./dynamic_data` works across machines
-4. **Use absolute paths for external data** - When content lives outside the project
+3. **Directory paths belong in site.yaml** - Only `CONFIG_DIR` stays in `.env`
+4. **Use absolute paths for external config** - When config lives outside the project

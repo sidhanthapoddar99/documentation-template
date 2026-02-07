@@ -35,12 +35,12 @@ Path aliases provide a clean, consistent way to reference files and directories 
 
 ### Content & Data Aliases
 
-| Alias | Resolves To | Environment Variable |
-|-------|-------------|---------------------|
-| `@data/` | `DATA_DIR/` | `DATA_DIR` (.env) |
-| `@assets/` | `ASSETS_DIR/` | `ASSETS_DIR` (.env) |
-| `@config/` | `CONFIG_DIR/` | `CONFIG_DIR` (.env) |
-| `@theme/` | Theme directory | `THEMES_DIR` (.env) |
+| Alias | Resolves To | Configured In |
+|-------|-------------|---------------|
+| `@data/` | Data directory | `site.yaml` paths section |
+| `@assets/` | Assets directory | `site.yaml` paths section |
+| `@config/` | Config directory | `CONFIG_DIR` (.env) |
+| `@theme/` | Theme directory | `site.yaml` paths section |
 
 ### Layout Aliases
 
@@ -52,18 +52,12 @@ Path aliases provide a clean, consistent way to reference files and directories 
 | `@navbar/style_name` | `src/layouts/navbar/style_name/` | Navbar layouts |
 | `@footer/style_name` | `src/layouts/footer/style_name/` | Footer layouts |
 
-### Component Aliases
-
-| Alias | Resolves To | Usage |
-|-------|-------------|-------|
-| `@mdx/component` | `src/mdx_components/component/` | MDX components |
-
 ### Theme Aliases
 
 | Alias | Resolves To | Description |
 |-------|-------------|-------------|
 | `@theme/default` | `src/styles/` | Built-in default theme |
-| `@theme/theme_name` | `THEMES_DIR/theme_name/` | Custom theme |
+| `@theme/theme_name` | `paths.themes/theme_name/` | Custom theme |
 
 ## Usage by Context
 
@@ -74,18 +68,18 @@ Path aliases provide a clean, consistent way to reference files and directories 
 pages:
   docs:
     layout: "@docs/doc_style1"    # src/layouts/docs/styles/doc_style1/
-    data: "@data/docs/final_docs" # DATA_DIR/docs/final_docs/
+    data: "@data/docs/final_docs" # paths.data/docs/final_docs/
 
   blog:
     layout: "@blog/blog_style1"   # src/layouts/blogs/styles/blog_style1/
-    data: "@data/blog"            # DATA_DIR/blog/
+    data: "@data/blog"            # paths.data/blog/
 
 # Theme alias
-theme: "@theme/minimal"           # THEMES_DIR/minimal/
+theme: "@theme/minimal"           # paths.themes/minimal/
 
 # Asset aliases
 logo:
-  src: "@assets/logo.svg"         # ASSETS_DIR/logo.svg → /assets/logo.svg
+  src: "@assets/logo.svg"         # paths.assets/logo.svg → /assets/logo.svg
   favicon: "@assets/favicon.png"
 ```
 
@@ -149,10 +143,10 @@ const themePath = getThemePath('minimal');
 
 ```typescript
 '@data/docs/overview'
-  → DATA_DIR/docs/overview
+  → paths.data/docs/overview
 
 '@data/pages/home.yaml'
-  → DATA_DIR/pages/home.yaml
+  → paths.data/pages/home.yaml
 ```
 
 ### Asset Aliases (@assets)
@@ -164,7 +158,7 @@ Asset aliases resolve to **web URLs**, not file paths:
   → '/assets/logo.svg' (web URL)
 
 // The actual file is at:
-// ASSETS_DIR/logo.svg
+// paths.assets/logo.svg
 ```
 
 ### Theme Aliases (@theme)
@@ -174,27 +168,46 @@ Asset aliases resolve to **web URLs**, not file paths:
   → src/styles/  (built-in)
 
 '@theme/minimal'
-  → THEMES_DIR/minimal/  (custom theme)
+  → paths.themes/minimal/  (custom theme)
 ```
 
-## Environment Variable Mapping
+## Path Configuration
 
-Aliases use environment variables for base paths:
+Aliases are configured in two places, each with different path relativity:
+
+| Setting | File | Relative To |
+|---------|------|-------------|
+| `CONFIG_DIR` | `.env` | **Project root** (where `.env` lives) |
+| `paths:` entries | `site.yaml` | **Config directory** (where `site.yaml` lives) |
+
+Absolute paths work in both places.
+
+```yaml
+# site.yaml — paths relative to this file's directory
+paths:
+  data: "../data"       # config dir + ../data → dynamic_data/data
+  assets: "../assets"   # config dir + ../assets → dynamic_data/assets
+  themes: "../themes"   # config dir + ../themes → dynamic_data/themes
+  # data2: "/other/project/data"   # absolute path → used as-is
+```
 
 ```env
-# .env
-CONFIG_DIR=./dynamic_data/config
-DATA_DIR=./dynamic_data/data
-ASSETS_DIR=./dynamic_data/assets
-THEMES_DIR=./dynamic_data/themes
+# .env — CONFIG_DIR relative to project root
+CONFIG_DIR=./dynamic_data/config   # project root + ./dynamic_data/config
 ```
 
-| Alias | Environment Variable | Default Value |
-|-------|---------------------|---------------|
-| `@data` | `DATA_DIR` | `./dynamic_data/data` |
-| `@assets` | `ASSETS_DIR` | `./dynamic_data/assets` |
-| `@config` | `CONFIG_DIR` | `./dynamic_data/config` |
-| `@theme` | `THEMES_DIR` | `./dynamic_data/themes` |
+For example, with the defaults above the resolution chain is:
+```
+.env:  CONFIG_DIR = ./dynamic_data/config  →  <project>/dynamic_data/config/
+site.yaml:  data = "../data"               →  <project>/dynamic_data/data/
+```
+
+| Alias | Configured In | Default |
+|-------|---------------|---------|
+| `@data` | `site.yaml` paths | `../data` (relative to config dir) |
+| `@assets` | `site.yaml` paths | `../assets` (relative to config dir) |
+| `@themes` | `site.yaml` paths | `../themes` (relative to config dir) |
+| `@config` | `.env` CONFIG_DIR | `./dynamic_data/config` (relative to project root) |
 
 ## Error Display Aliases
 
@@ -221,16 +234,11 @@ In error logs and the dev toolbar, absolute paths are converted back to aliases 
 ## TypeScript Interfaces
 
 ```typescript
-type AliasPrefix =
-  | '@docs'
-  | '@blog'
-  | '@custom'
-  | '@navbar'
-  | '@footer'
-  | '@data'
-  | '@assets'
-  | '@theme'
-  | '@mdx';
+// AliasPrefix is a dynamic string type — any @key defined in
+// site.yaml paths: section or the reserved layout aliases:
+// '@docs', '@blog', '@custom', '@navbar', '@footer',
+// '@data', '@assets', '@theme', etc.
+type AliasPrefix = string;
 
 interface ResolvedAlias {
   type: AliasPrefix;

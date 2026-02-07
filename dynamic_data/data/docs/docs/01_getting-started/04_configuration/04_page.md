@@ -111,8 +111,8 @@ home:
 
 | Alias Pattern | Resolves To |
 |---------------|-------------|
-| `@data/path` | `DATA_DIR/data/path` |
-| `@data/file.yaml` | `DATA_DIR/data/file.yaml` |
+| `@data/path` | `paths.data/path` |
+| `@data/file.yaml` | `paths.data/file.yaml` |
 
 ## Multiple Documentation Sections
 

@@ -14,7 +14,7 @@ Content type parsers are the **entry point** for the parser system. They orchest
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         CONTENT-TYPES  ◀── YOU ARE HERE                 │
+│                         CONTENT-TYPES  <── YOU ARE HERE                 │
 │                    DocsParser / BlogParser                              │
 │         (Orchestrates the entire flow, provides context)                │
 └─────────────────────────────────┬───────────────────────────────────────┘

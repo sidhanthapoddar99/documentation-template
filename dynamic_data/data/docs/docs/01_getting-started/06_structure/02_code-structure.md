@@ -25,7 +25,7 @@ src/
 │   ├── config.ts           # YAML config loader
 │   ├── data.ts             # Content loader
 │   ├── alias.ts            # Path alias resolver (@data, @assets)
-│   └── paths.ts            # Path utilities from .env
+│   └── paths.ts            # Path resolution (two-phase init from site.yaml)
 │
 ├── parsers/                # Content parsing pipeline
 │   ├── core/               # Base parser & pipeline
@@ -234,9 +234,9 @@ Handles all page requests:
 
 ### `assets/[...path].ts` - Asset Endpoint
 
-Serves static files from `ASSETS_DIR`:
+Serves static files from all asset-category directories (configured via `paths:` in `site.yaml`):
 
-- Reads files from configured assets directory
+- Searches all asset directories in order (first match wins)
 - Sets appropriate MIME types
 - Enables caching headers
 

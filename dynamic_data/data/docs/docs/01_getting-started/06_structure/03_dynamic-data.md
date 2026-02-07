@@ -12,22 +12,22 @@ The `dynamic_data/` directory contains all your content, configuration, and asse
 
 ```
 dynamic_data/
-├── assets/                 # Static assets (ASSETS_DIR)
+├── config/                 # Configuration files (CONFIG_DIR from .env)
+│   ├── site.yaml           # Site metadata, paths, logo, pages
+│   ├── navbar.yaml         # Navigation items
+│   └── footer.yaml         # Footer configuration
+│
+├── assets/                 # Static assets (paths.assets in site.yaml)
 │   ├── logo.svg
 │   ├── favicon.png
 │   └── images/
 │
-├── config/                 # Configuration files (CONFIG_DIR)
-│   ├── site.yaml           # Site metadata, logo, pages
-│   ├── navbar.yaml         # Navigation items
-│   └── footer.yaml         # Footer configuration
-│
-├── data/                   # Content (DATA_DIR)
+├── data/                   # Content (paths.data in site.yaml)
 │   ├── docs/               # Documentation
 │   ├── blog/               # Blog posts
 │   └── pages/              # Custom page data
 │
-└── themes/                 # Custom themes (THEMES_DIR)
+└── themes/                 # Custom themes (paths.themes in site.yaml)
     └── theme1/
 ```
 
@@ -162,27 +162,29 @@ Configure how folders appear in the sidebar:
 | `collapsed` | `boolean` | Start collapsed? |
 | `link` | `object` | Category link target |
 
-## Environment Configuration
+## Path Configuration
 
-The location of each directory is configurable via `.env`:
+Only `CONFIG_DIR` is set in `.env` (bootstrap to locate `site.yaml`). All other directory paths are defined in `site.yaml`:
 
-```env
-CONFIG_DIR=./dynamic_data/config
-DATA_DIR=./dynamic_data/data
-ASSETS_DIR=./dynamic_data/assets
-THEMES_DIR=./dynamic_data/themes/theme1
+```yaml
+# site.yaml
+paths:
+  data: "../data"          # Relative to config dir
+  assets: "../assets"
+  themes: "../themes"
+  # data2: "/other/data"   # Additional @data2 alias
 ```
 
 This allows you to:
-- Point to content outside the project
-- Use absolute paths for shared content
-- Separate configuration per environment
+- Point to content outside the project (absolute paths)
+- Define multiple data/asset directories with separate aliases
+- Keep all path configuration in one place
 
 ## Path Aliases Reference
 
 | Alias | Resolves To | Example |
 |-------|-------------|---------|
-| `@data/path` | `DATA_DIR/path` | `@data/docs` → `dynamic_data/data/docs` |
+| `@data/path` | `paths.data/path` | `@data/docs` → `dynamic_data/data/docs` |
 | `@assets/file` | `/assets/file` (URL) | `@assets/logo.svg` → `/assets/logo.svg` |
 | `@docs/style` | `src/layouts/docs/style` | Layout references |
 | `@blog/style` | `src/layouts/blogs/style` | Layout references |

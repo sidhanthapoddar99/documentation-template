@@ -7,9 +7,7 @@ declare namespace App {
 }
 
 interface ImportMetaEnv {
-  readonly CONFIG_DIR: string;
-  readonly DATA_DIR: string;
-  readonly THEMES_DIR: string;
+  readonly CONFIG_DIR: string;  // Bootstrap: path to config dir containing site.yaml
   readonly SITE_URL: string;
   readonly BASE_PATH: string;
   readonly ENABLE_SEARCH: string;

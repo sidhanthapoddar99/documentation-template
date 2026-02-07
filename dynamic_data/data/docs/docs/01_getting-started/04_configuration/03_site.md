@@ -23,6 +23,12 @@ site:
   title: "My Documentation"
   description: "Modern documentation built with Astro"
 
+# Directory paths (relative to this config directory, or absolute)
+paths:
+  data: "../data"
+  assets: "../assets"
+  themes: "../themes"
+
 # Vite server configuration (optional)
 server:
   allowedHosts: true  # or array of specific hosts
@@ -98,6 +104,54 @@ site:
 
 Keep under 160 characters for best SEO results.
 
+## Directory Paths
+
+The `paths:` section defines where the system looks for content, assets, and themes. Each key becomes an `@key` alias (e.g., `data` → `@data/...`).
+
+```yaml
+paths:
+  data: "../data"        # Content (docs, blog, pages)
+  assets: "../assets"    # Static assets (logos, images)
+  themes: "../themes"    # Custom theme directories
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `data` | `string` | No | Path to content directory. Default: `../data` |
+| `assets` | `string` | No | Path to static assets. Default: `../assets` |
+| `themes` | `string` | No | Path to themes directory. Default: `../themes` |
+
+**Paths are relative to the config directory** (where `site.yaml` lives). Absolute paths are also supported.
+
+> **How this differs from `.env`:** `CONFIG_DIR` in `.env` is relative to the **project root** (where `.env` lives). Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). For example, with `CONFIG_DIR=./dynamic_data/config` and `data: "../data"`, the data directory resolves to `./dynamic_data/data`.
+
+### Multiple Directories
+
+You can define additional directories — each key becomes its own `@key` alias:
+
+```yaml
+paths:
+  data: "../data"
+  assets: "../assets"
+  themes: "../themes"
+  data2: "/other/project/data"     # @data2/...
+  assets2: "/shared/brand-assets"  # @assets2/...
+```
+
+Additional directories are automatically categorized:
+- Keys starting with `data` or `content` → content category
+- Keys starting with `asset` → asset category (served at `/assets/`)
+- Keys starting with `theme` → theme category
+- `config` → config category
+
+### Reserved Keys
+
+The following keys cannot be used in `paths:` because they conflict with built-in layout aliases: `docs`, `blog`, `custom`, `navbar`, `footer`, `mdx`.
+
+### Default Behavior
+
+If `paths:` is omitted entirely, the system defaults to sibling directories of the config dir (`../data`, `../assets`, `../themes`).
+
 ## Theme Configuration
 
 The `theme` field specifies which theme to use for the site's styling.
@@ -113,14 +167,14 @@ theme: "@theme/minimal"
 | Value | Description |
 |-------|-------------|
 | `@theme/default` | Built-in theme from `src/styles/` |
-| `@theme/theme_name` | Custom theme from `THEMES_DIR/theme_name/` |
+| `@theme/theme_name` | Custom theme from `paths.themes/theme_name/` |
 
 ### Theme Inheritance
 
 Custom themes can inherit from the default theme, only overriding specific variables:
 
 ```yaml
-# In THEMES_DIR/minimal/theme.yaml
+# In themes/minimal/theme.yaml
 name: "Minimal Theme"
 extends: "@theme/default"  # Inherit from default
 supports_dark_mode: true
@@ -308,17 +362,14 @@ logo:
   favicon: "@assets/favicon.png" # Resolves to /assets/favicon.png
 ```
 
-The assets location is configured via `ASSETS_DIR` in `.env`:
+The assets location is configured via `paths.assets` in `site.yaml`:
 
-```env
-# Default location
-ASSETS_DIR=./dynamic_data/data/assets
-
-# Or use a custom location
-ASSETS_DIR=/var/www/assets
+```yaml
+# site.yaml
+paths:
+  assets: "../assets"              # Relative to config dir
+  # assets: "/var/www/assets"      # Or use an absolute path
 ```
-
-See [Environment Variables](./02_env.md) for more details.
 
 You can also use absolute paths:
 
@@ -397,6 +448,7 @@ interface EditorSettings {
 
 interface SiteConfig {
   site: SiteMetadata;
+  paths?: Record<string, string>; // Named directory paths → @key aliases
   server?: ServerConfig;    // Vite server configuration
   theme?: string;           // Theme alias (e.g., "@theme/default")
   logo?: SiteLogo;
@@ -430,6 +482,12 @@ site:
   name: "My Docs"
   title: "My Documentation"
   description: "Modern documentation built with Astro"
+
+# Directory paths (relative to this config directory, or absolute)
+paths:
+  data: "../data"
+  assets: "../assets"
+  themes: "../themes"
 
 # Vite server configuration (optional)
 server:

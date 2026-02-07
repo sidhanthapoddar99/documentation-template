@@ -85,12 +85,14 @@ cp .env.example .env
 The default `.env` works out of the box:
 
 ```env
-# Points to your content directory
-DATA_DIR=./dynamic_data
+# Bootstrap: points to the config directory containing site.yaml
+CONFIG_DIR=./dynamic_data/config
 
 # Production URL (update for deployment)
 SITE_URL=http://localhost:4321
 ```
+
+Directory paths for content, assets, and themes are configured in `site.yaml`'s `paths:` section (see [Site Configuration](/docs/getting-started/configuration/site)).
 
 ## Step 4: Start Development
 

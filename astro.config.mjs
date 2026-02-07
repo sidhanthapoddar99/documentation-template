@@ -7,6 +7,7 @@ import fs from 'fs';
 import { loadEnv } from 'vite';
 import yaml from 'js-yaml';
 import { devToolbarIntegration } from './src/dev-toolbar/integration.ts';
+import { initPaths } from './src/loaders/paths.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -14,7 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
 const { PORT, HOST, CONFIG_DIR } = env;
 
-// Load site config for server.allowedHosts
+// Load site config for server.allowedHosts and paths initialization
 
 function loadSiteConfigForServer() {
   const configDir = CONFIG_DIR || './dynamic_data/config';
@@ -31,6 +32,9 @@ function loadSiteConfigForServer() {
 }
 
 const siteConfig = loadSiteConfigForServer();
+
+// Initialize path system from site.yaml's paths: section (or env var defaults)
+initPaths(siteConfig ? { paths: siteConfig.paths } : undefined);
 
 // https://astro.build/config
 // Server mode in dev (enables layout switcher), static in production (fast CDN builds)

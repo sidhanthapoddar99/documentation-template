@@ -63,12 +63,12 @@ interface CacheManagerState {
     config: CacheStats;
   };
 
-  // Watch paths (resolved from .env)
+  // Watch paths (categorized arrays from initPaths)
   watchPaths: {
-    data: string;
-    config: string;
-    themes: string;
-    assets: string;
+    contentPaths: string[];
+    configPaths: string[];
+    assetPaths: string[];
+    themePaths: string[];
   } | null;
 }
 
@@ -116,7 +116,7 @@ export function detectFileType(filePath: string, watchPaths?: CacheManagerState[
   }
 
   // Theme files
-  if (basename === 'theme.yaml' || (watchPaths?.themes && filePath.startsWith(watchPaths.themes))) {
+  if (basename === 'theme.yaml' || (watchPaths?.themePaths && watchPaths.themePaths.some(p => filePath.startsWith(p)))) {
     return 'theme';
   }
 

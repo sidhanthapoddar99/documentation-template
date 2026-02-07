@@ -1,14 +1,14 @@
 /**
- * Dynamic route to serve assets from @assets folder
+ * Dynamic route to serve assets from all asset-category directories
  *
- * Assets location is configured via ASSETS_DIR in .env
- * Default: ./dynamic_data/data/assets/
- * Accessed via /assets/filename.ext URLs
+ * Asset directories are configured via site.yaml paths: section.
+ * Multiple asset dirs are searched in order (first match wins).
+ * Accessed via /assets/filename.ext URLs.
  */
 import type { APIRoute, GetStaticPaths } from 'astro';
 import fs from 'fs';
 import path from 'path';
-import { getAssetsPath } from '@loaders/paths';
+import { getAssetsPath, getPathsByCategory } from '@loaders/paths';
 
 // MIME type mapping
 const mimeTypes: Record<string, string> = {
@@ -55,13 +55,35 @@ function getAllFiles(dirPath: string, basePath: string = ''): string[] {
   return files;
 }
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const assetsDir = getAssetsPath();
-  const files = getAllFiles(assetsDir);
+/**
+ * Get all asset directories (from path system)
+ */
+function getAssetDirs(): string[] {
+  const dirs = getPathsByCategory('asset');
+  // Fallback to primary assets path if no asset-category paths registered
+  if (dirs.length === 0) {
+    dirs.push(getAssetsPath());
+  }
+  return dirs;
+}
 
-  return files.map((filePath) => ({
-    params: { path: filePath },
-  }));
+export const getStaticPaths: GetStaticPaths = async () => {
+  const assetDirs = getAssetDirs();
+  const seen = new Set<string>();
+  const paths: { params: { path: string } }[] = [];
+
+  // Collect files from all asset dirs (first dir wins on conflicts)
+  for (const dir of assetDirs) {
+    const files = getAllFiles(dir);
+    for (const file of files) {
+      if (!seen.has(file)) {
+        seen.add(file);
+        paths.push({ params: { path: file } });
+      }
+    }
+  }
+
+  return paths;
 };
 
 export const GET: APIRoute = async ({ params, request }) => {
@@ -71,16 +93,29 @@ export const GET: APIRoute = async ({ params, request }) => {
     return new Response('Not found', { status: 404 });
   }
 
-  const assetsDir = getAssetsPath();
-  const fullPath = path.join(assetsDir, filePath);
+  const assetDirs = getAssetDirs();
 
-  // Security: ensure the path is within the assets directory
-  const normalizedPath = path.normalize(fullPath);
-  if (!normalizedPath.startsWith(assetsDir)) {
-    return new Response('Forbidden', { status: 403 });
+  // Search all asset dirs in order (first match wins)
+  let fullPath: string | null = null;
+  let matchedDir: string | null = null;
+
+  for (const dir of assetDirs) {
+    const candidate = path.join(dir, filePath);
+    const normalized = path.normalize(candidate);
+
+    // Security: ensure the path is within the asset directory
+    if (!normalized.startsWith(dir)) {
+      continue;
+    }
+
+    if (fs.existsSync(normalized)) {
+      fullPath = normalized;
+      matchedDir = dir;
+      break;
+    }
   }
 
-  if (!fs.existsSync(fullPath)) {
+  if (!fullPath || !matchedDir) {
     return new Response('Not found', { status: 404 });
   }
 

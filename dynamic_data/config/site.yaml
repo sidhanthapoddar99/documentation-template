@@ -15,6 +15,15 @@ server:
   #   - "my-app.local"
   #   - ".ngrok.io"
 
+# Directory Paths (relative to this config directory, or absolute)
+# Each key becomes an @key alias (e.g. data → @data/..., assets → @assets/...)
+paths:
+  data: "../data"
+  assets: "../assets"
+  themes: "../themes"
+  # Additional directories example:
+  # data2: "/other/project/data"     # @data2/...
+
 # Theme Configuration (optional - defaults to @theme/default)
 # Options: "@theme/default", "@theme/minimal", or custom theme path
 theme: "@theme/minimal"
