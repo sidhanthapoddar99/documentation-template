@@ -1,10 +1,11 @@
 /**
  * Markdown Content Styles
  * Styles for rendered markdown/MDX content
+ * Scoped to .markdown-content to avoid affecting navbar, sidebar, footer, etc.
  */
 
 /* =================================
-   Base Body Styles
+   Base Body Styles (global)
    ================================= */
 body {
   background-color: var(--color-bg-primary);
@@ -13,23 +14,24 @@ body {
 }
 
 /* =================================
-   Links
+   All remaining styles scoped to
+   rendered markdown content areas
    ================================= */
-a {
+
+/* Links */
+.markdown-content a {
   color: var(--color-brand-primary);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
-a:hover {
+.markdown-content a:hover {
   color: var(--color-brand-secondary);
   text-decoration: underline;
 }
 
-/* =================================
-   Inline Code
-   ================================= */
-code {
+/* Inline Code */
+.markdown-content code {
   font-family: var(--font-family-mono);
   font-size: 0.9em;
   background-color: var(--color-bg-tertiary);
@@ -37,10 +39,8 @@ code {
   border-radius: var(--border-radius-sm);
 }
 
-/* =================================
-   Code Blocks
-   ================================= */
-pre {
+/* Code Blocks */
+.markdown-content pre {
   background-color: var(--color-bg-secondary);
   padding: var(--spacing-md);
   border-radius: var(--border-radius-md);
@@ -48,17 +48,20 @@ pre {
   border: 1px solid var(--color-border-light);
 }
 
-pre code {
+.markdown-content pre code {
   background: none;
   padding: 0;
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
 }
 
-/* =================================
-   Headings
-   ================================= */
-h1, h2, h3, h4, h5, h6 {
+/* Headings */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
   font-family: var(--font-family-heading);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
@@ -67,65 +70,61 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: var(--spacing-md);
 }
 
-h1 {
+.markdown-content h1 {
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
   margin-top: 0;
 }
 
-h2 {
+.markdown-content h2 {
   font-size: var(--font-size-2xl);
   padding-bottom: var(--spacing-sm);
   border-bottom: 1px solid var(--color-border-light);
 }
 
-h3 {
+.markdown-content h3 {
   font-size: var(--font-size-xl);
 }
 
-h4 {
+.markdown-content h4 {
   font-size: var(--font-size-lg);
 }
 
-h5 {
+.markdown-content h5 {
   font-size: var(--font-size-base);
 }
 
-h6 {
+.markdown-content h6 {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
 
-/* =================================
-   Paragraphs
-   ================================= */
-p {
+/* Paragraphs */
+.markdown-content p {
   margin-bottom: var(--spacing-md);
   line-height: var(--line-height-base);
 }
 
-/* =================================
-   Lists
-   ================================= */
-ul, ol {
+/* Lists */
+.markdown-content ul,
+.markdown-content ol {
   padding-left: var(--spacing-lg);
   margin-bottom: var(--spacing-md);
 }
 
-li {
+.markdown-content li {
   margin-bottom: var(--spacing-xs);
   line-height: var(--line-height-base);
 }
 
-li > ul, li > ol {
+.markdown-content li > ul,
+.markdown-content li > ol {
   margin-top: var(--spacing-xs);
   margin-bottom: 0;
 }
 
-/* =================================
-   Blockquotes
-   ================================= */
-blockquote {
+/* Blockquotes */
+.markdown-content blockquote {
   border-left: 4px solid var(--color-brand-primary);
   padding-left: var(--spacing-md);
   margin: var(--spacing-md) 0;
@@ -133,78 +132,69 @@ blockquote {
   font-style: italic;
 }
 
-blockquote p:last-child {
+.markdown-content blockquote p:last-child {
   margin-bottom: 0;
 }
 
-/* =================================
-   Tables
-   ================================= */
-table {
+/* Tables */
+.markdown-content table {
   width: 100%;
   border-collapse: collapse;
   margin: var(--spacing-md) 0;
   font-size: var(--font-size-sm);
 }
 
-th, td {
+.markdown-content th,
+.markdown-content td {
   border: 1px solid var(--color-border-default);
   padding: var(--spacing-sm) var(--spacing-md);
   text-align: left;
 }
 
-th {
+.markdown-content th {
   background-color: var(--color-bg-secondary);
   font-weight: var(--font-weight-semibold);
 }
 
-tr:nth-child(even) {
+.markdown-content tr:nth-child(even) {
   background-color: var(--color-bg-secondary);
 }
 
-/* =================================
-   Horizontal Rule
-   ================================= */
-hr {
+/* Horizontal Rule */
+.markdown-content hr {
   border: none;
   height: 1px;
   background-color: var(--color-border-default);
   margin: var(--spacing-xl) 0;
 }
 
-/* =================================
-   Images
-   ================================= */
-img {
+/* Images */
+.markdown-content img {
   max-width: 100%;
   height: auto;
   border-radius: var(--border-radius-md);
 }
 
-/* =================================
-   Strong & Emphasis
-   ================================= */
-strong, b {
+/* Strong & Emphasis */
+.markdown-content strong,
+.markdown-content b {
   font-weight: var(--font-weight-semibold);
 }
 
-em, i {
+.markdown-content em,
+.markdown-content i {
   font-style: italic;
 }
 
-/* =================================
-   Mark (Highlight)
-   ================================= */
-mark {
+/* Mark (Highlight) */
+.markdown-content mark {
   background-color: var(--color-warning);
   padding: 0.1em 0.2em;
   border-radius: var(--border-radius-sm);
 }
 
-/* =================================
-   Keyboard Input
-   ================================= */
-kbd {
+/* Keyboard Input */
+.markdown-content kbd {
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
   padding: 0.1em 0.4em;
@@ -214,18 +204,14 @@ kbd {
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
-/* =================================
-   Abbreviation
-   ================================= */
-abbr[title] {
+/* Abbreviation */
+.markdown-content abbr[title] {
   text-decoration: underline dotted;
   cursor: help;
 }
 
-/* =================================
-   Details/Summary
-   ================================= */
-details {
+/* Details/Summary */
+.markdown-content details {
   margin: var(--spacing-md) 0;
   padding: var(--spacing-md);
   background-color: var(--color-bg-secondary);
@@ -233,11 +219,11 @@ details {
   border: 1px solid var(--color-border-light);
 }
 
-summary {
+.markdown-content summary {
   cursor: pointer;
   font-weight: var(--font-weight-medium);
 }
 
-details[open] summary {
+.markdown-content details[open] summary {
   margin-bottom: var(--spacing-sm);
 }
