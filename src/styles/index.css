@@ -26,10 +26,10 @@
 /* 7. Base page layout (body flex, main content, docs/blog containers) */
 @import './layout.css';
 
-/* 8. Navbar (style1 + minimal variants) */
+/* 8. Navbar */
 @import './navbar.css';
 
-/* 9. Footer (default + minimal variants) */
+/* 9. Footer */
 @import './footer.css';
 
 /* 10. Docs (sidebar, content area, outline, pagination) */

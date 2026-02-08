@@ -1,6 +1,6 @@
 /**
  * Layout Styles
- * Base page structure — body flex column, main content area, docs/blog/custom containers
+ * Base page structure — body flex column, main content area
  */
 
 /* Base page structure */
@@ -15,24 +15,11 @@ body {
 }
 
 /* =================================
-   Docs Layout Variants
+   Docs Layout
    ================================= */
 
-/* doc_style1 — Three-column (sidebar + content + outline) */
 .docs-layout {
   display: flex;
   max-width: 1600px;
   margin: 0 auto;
-}
-
-/* doc_style2 — Minimal (content only, centered) */
-.docs-layout--minimal {
-  display: flex;
-  max-width: 1200px;
-  margin: 0 auto;
-  justify-content: center;
-}
-
-.docs-layout--minimal .docs-content {
-  max-width: 800px;
 }

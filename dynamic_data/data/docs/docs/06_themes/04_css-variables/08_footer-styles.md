@@ -5,17 +5,15 @@ description: Footer layout, link columns, social icons, and copyright styling
 
 # Footer Styles
 
-Footer styles are **theme CSS** that controls the visual appearance of the footer — column grid layout, link colors, social icon sizing, and copyright text. The layout `.astro` components only handle HTML structure, data, and JavaScript.
+Footer styles are **theme CSS** that controls the visual appearance of the footer — column grid layout, link colors, social icon sizing, and copyright text. The layout `.astro` component only handles HTML structure, data, and JavaScript.
 
 **Theme file:** `footer.css`
 
-The layout components (`src/layouts/footer/default/index.astro`, `src/layouts/footer/minimal/index.astro`) define *what* the footer contains (columns, links, social icons) and *where data comes from* (footer.yaml). The theme CSS defines *how it looks*.
+This theme defines one footer style. The layout component defines *what* the footer contains (columns, links, social icons) and *where data comes from* (footer.yaml). The theme CSS defines *how it looks*. If you want a different footer appearance, create a different theme — do not add variant selectors within this file.
 
 ---
 
-## Footer Variants
-
-### default — Multi-column
+## Structure
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -28,19 +26,9 @@ The layout components (`src/layouts/footer/default/index.astro`, `src/layouts/fo
 └──────────────────────────────────────────────────────┘
 ```
 
-### minimal — Single Line
-
-```
-┌──────────────────────────────────────────────────────┐
-│  © 2024 Company              Link  Link  Link  Link  │
-└──────────────────────────────────────────────────────┘
-```
-
 ---
 
-## Default Footer
-
-### Container
+## Container
 
 | Selector | Property | Variable |
 |----------|----------|----------|
@@ -51,7 +39,9 @@ The layout components (`src/layouts/footer/default/index.astro`, `src/layouts/fo
 | | `margin` | `0 auto` |
 | | `padding` | `0 var(--spacing-lg)` |
 
-### Link Columns
+---
+
+## Link Columns
 
 | Selector | Property | Variable |
 |----------|----------|----------|
@@ -64,11 +54,15 @@ The layout components (`src/layouts/footer/default/index.astro`, `src/layouts/fo
 | | `color` | `--color-text-primary` |
 | | `margin-bottom` | `--spacing-md` |
 | `.footer__column-links` | `list-style` | `none` |
+| | `padding` | `0` |
+| | `margin` | `0` |
 | | `display` | `flex` |
 | | `flex-direction` | `column` |
 | | `gap` | `--spacing-sm` |
 
-### Links
+---
+
+## Links
 
 | Selector | Property | Variable |
 |----------|----------|----------|
@@ -78,7 +72,9 @@ The layout components (`src/layouts/footer/default/index.astro`, `src/layouts/fo
 | | `transition` | `color var(--transition-fast)` |
 | `.footer__link:hover` | `color` | `--color-text-primary` |
 
-### Bottom Section
+---
+
+## Bottom Section
 
 | Selector | Property | Variable |
 |----------|----------|----------|
@@ -90,81 +86,27 @@ The layout components (`src/layouts/footer/default/index.astro`, `src/layouts/fo
 | `.footer__copyright` | `font-size` | `--font-size-sm` |
 | | `color` | `--color-text-muted` |
 
-### Social Links
+---
+
+## Social Links
 
 | Selector | Property | Variable |
 |----------|----------|----------|
 | `.footer__social` | `display` | `flex` |
 | | `gap` | `--spacing-md` |
-| `.footer__social-link` | `width` / `height` | `2rem` |
+| `.footer__social-link` | `display` | `flex` |
+| | `align-items` | `center` |
+| | `justify-content` | `center` |
+| | `width` / `height` | `2rem` |
 | | `color` | `--color-text-muted` |
 | | `transition` | `color var(--transition-fast)` |
 | `.footer__social-link:hover` | `color` | `--color-text-primary` |
 | `.footer__social-link svg` | `width` / `height` | `1.25rem` |
 
-### Responsive
+---
+
+## Responsive Behavior
 
 | Breakpoint | Behavior |
 |------------|----------|
 | `<640px` | Bottom section stacks vertically (`flex-direction: column`), centered text |
-
----
-
-## Minimal Footer
-
-### Container
-
-| Selector | Property | Variable |
-|----------|----------|----------|
-| `.footer-minimal` | `background-color` | `--color-bg-secondary` |
-| | `border-top` | `1px solid var(--color-border-default)` |
-| `.footer-minimal__container` | `display` | `flex` |
-| | `align-items` | `center` |
-| | `justify-content` | `space-between` |
-| | `max-width` | `--max-width-content` |
-| | `margin` | `0 auto` |
-| | `padding` | `--spacing-lg` |
-
-### Content
-
-| Selector | Property | Variable |
-|----------|----------|----------|
-| `.footer-minimal__copyright` | `font-size` | `--font-size-sm` |
-| | `color` | `--color-text-muted` |
-| `.footer-minimal__links` | `display` | `flex` |
-| | `gap` | `--spacing-lg` |
-| `.footer-minimal__link` | `font-size` | `--font-size-sm` |
-| | `color` | `--color-text-secondary` |
-| | `text-decoration` | `none` |
-| | `transition` | `color var(--transition-fast)` |
-| `.footer-minimal__link:hover` | `color` | `--color-text-primary` |
-
-### Responsive
-
-| Breakpoint | Behavior |
-|------------|----------|
-| `<640px` | Container stacks vertically (`flex-direction: column`), centered text |
-
----
-
-## Supported Social Platforms
-
-The default footer includes SVG icons for:
-
-| Platform | Icon Key |
-|----------|----------|
-| GitHub | `github` |
-| Twitter | `twitter` |
-| LinkedIn | `linkedin` |
-| YouTube | `youtube` |
-| Discord | `discord` |
-
-Configured in `footer.yaml`:
-
-```yaml
-social:
-  - platform: github
-    href: "https://github.com/yourorg"
-  - platform: twitter
-    href: "https://twitter.com/yourorg"
-```

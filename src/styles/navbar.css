@@ -1,24 +1,20 @@
 /**
  * Navbar Styles
- * Navigation bar — both style1 (full-featured) and minimal variants
+ * Defines the visual appearance of the navigation bar.
+ * The layout component handles HTML structure, data, and JS.
  */
 
 /* =================================
-   Shared Base
+   Container
    ================================= */
 
-.navbar,
-.navbar-minimal {
+.navbar {
   position: sticky;
   top: 0;
   z-index: 100;
   background-color: var(--color-bg-primary);
   border-bottom: 1px solid var(--color-border-default);
 }
-
-/* =================================
-   Style1 — Full Featured
-   ================================= */
 
 .navbar__container {
   display: flex;
@@ -31,7 +27,10 @@
   gap: var(--spacing-xl);
 }
 
-/* Logo */
+/* =================================
+   Logo
+   ================================= */
+
 .navbar__logo {
   display: flex;
   align-items: center;
@@ -50,7 +49,10 @@
   color: var(--color-text-primary);
 }
 
-/* Desktop links — hidden on mobile, shown at md (768px) */
+/* =================================
+   Desktop Links
+   ================================= */
+
 .navbar__links {
   display: none;
   align-items: center;
@@ -95,7 +97,10 @@
   opacity: 0.5;
 }
 
-/* Dropdown */
+/* =================================
+   Dropdown
+   ================================= */
+
 .navbar__dropdown {
   position: relative;
 }
@@ -147,14 +152,20 @@
   background-color: var(--color-bg-secondary);
 }
 
-/* Right section */
+/* =================================
+   Right Section
+   ================================= */
+
 .navbar__right {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
 }
 
-/* Theme toggle — style1 */
+/* =================================
+   Theme Toggle
+   ================================= */
+
 .navbar__theme-toggle {
   display: flex;
   align-items: center;
@@ -192,7 +203,10 @@
   display: block;
 }
 
-/* Mobile toggle — visible below md (768px) */
+/* =================================
+   Mobile Menu
+   ================================= */
+
 .navbar__mobile-toggle {
   display: flex;
   align-items: center;
@@ -235,7 +249,6 @@
   display: block;
 }
 
-/* Mobile menu */
 .navbar__mobile-menu {
   display: none;
   flex-direction: column;
@@ -284,98 +297,4 @@
 
 .navbar__mobile-link--nested {
   padding-left: var(--spacing-xl);
-}
-
-/* =================================
-   Minimal — Simple Navbar
-   ================================= */
-
-.navbar-minimal__container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: var(--max-width-content);
-  margin: 0 auto;
-  padding: 0 var(--spacing-lg);
-  height: var(--navbar-height);
-}
-
-.navbar-minimal__logo {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: var(--font-size-lg);
-  color: var(--color-text-primary);
-}
-
-.navbar-minimal__logo img {
-  height: 1.75rem;
-  width: auto;
-}
-
-.navbar-minimal__links {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.navbar-minimal__link {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.navbar-minimal__link:hover {
-  color: var(--color-text-primary);
-}
-
-.navbar-minimal__link--active {
-  color: var(--color-brand-primary);
-}
-
-/* Theme toggle — minimal */
-.navbar-minimal__theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  border-radius: var(--border-radius-md);
-  transition: color var(--transition-fast);
-}
-
-.navbar-minimal__theme-toggle:hover {
-  color: var(--color-text-primary);
-}
-
-.navbar-minimal__theme-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.navbar-minimal__theme-icon--dark {
-  display: none;
-}
-
-[data-theme="dark"] .navbar-minimal__theme-icon--light {
-  display: none;
-}
-
-[data-theme="dark"] .navbar-minimal__theme-icon--dark {
-  display: block;
-}
-
-/* Minimal: hide links on small screens */
-@media (max-width: 640px) {
-  .navbar-minimal__links {
-    display: none;
-  }
 }

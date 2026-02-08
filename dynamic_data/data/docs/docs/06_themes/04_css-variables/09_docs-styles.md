@@ -15,21 +15,13 @@ The layout components define *what* to show (sidebar tree from `settings.json`, 
 
 ## Layout Container
 
-### doc_style1 — Three Column
+The docs layout container is defined in `layout.css`. See [Layout Styles](./layout-styles) for the full docs layout container reference, including the temporary `doc_style2` arrangement.
 
 | Selector | Property | Value |
 |----------|----------|-------|
 | `.docs-layout` | `display` | `flex` |
 | | `max-width` | `1600px` |
 | | `margin` | `0 auto` |
-
-### doc_style2 — Minimal
-
-| Selector | Property | Value |
-|----------|----------|-------|
-| `.docs-layout--minimal` | `max-width` | `1200px` |
-| | `margin` | `0 auto` |
-| `.docs-layout--minimal .docs-content` | `max-width` | `800px` |
 
 ---
 

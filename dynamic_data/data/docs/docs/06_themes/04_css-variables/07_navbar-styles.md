@@ -5,19 +5,15 @@ description: Navigation bar layout, dropdowns, mobile menu, and theme toggle sty
 
 # Navbar Styles
 
-Navbar styles are **theme CSS** that controls the visual appearance of the navigation bar — positioning, colors, sizing, dropdowns, mobile menu, and theme toggle. The layout `.astro` components only handle HTML structure, data, and JavaScript.
+Navbar styles are **theme CSS** that controls the visual appearance of the navigation bar — positioning, colors, sizing, dropdowns, mobile menu, and theme toggle. The layout `.astro` component only handles HTML structure, data, and JavaScript.
 
 **Theme file:** `navbar.css`
 
-The layout components (`src/layouts/navbar/style1/index.astro`, `src/layouts/navbar/minimal/index.astro`) define *what* the navbar contains (logo, links, toggle buttons) and *where data comes from* (navbar.yaml). The theme CSS defines *how it looks*.
+This theme defines one navbar style. The layout component (`src/layouts/navbar/style1/index.astro`) defines *what* the navbar contains (logo, links, toggle buttons) and *where data comes from* (navbar.yaml). The theme CSS defines *how it looks*. If you want a different navbar appearance, create a different theme — do not add variant selectors within this file.
 
 ---
 
-## Navbar Variants
-
-### style1 — Full Featured
-
-Supports dropdowns, mobile hamburger menu, and theme toggle.
+## Structure
 
 ```
 Desktop:
@@ -37,25 +33,13 @@ Mobile (expanded):
 └──────────────────────────────────────────────────────┘
 ```
 
-### minimal — Simple
-
-Flat links only (no dropdowns, no mobile menu — links just hide on small screens).
-
-```
-┌──────────────────────────────────────────────────────┐
-│  [Logo]        [Link]  [Link]  [Link]         [☀]   │
-└──────────────────────────────────────────────────────┘
-```
-
 ---
 
-## Common Structure
-
-Both variants share this base pattern:
+## Container
 
 | Selector | Property | Variable |
 |----------|----------|----------|
-| `.navbar` / `.navbar-minimal` | `position` | `sticky` |
+| `.navbar` | `position` | `sticky` |
 | | `top` | `0` |
 | | `z-index` | `100` |
 | | `background-color` | `--color-bg-primary` |
@@ -63,13 +47,14 @@ Both variants share this base pattern:
 
 | Selector | Property | Variable |
 |----------|----------|----------|
-| `__container` | `display` | `flex` |
+| `.navbar__container` | `display` | `flex` |
 | | `align-items` | `center` |
 | | `justify-content` | `space-between` |
 | | `max-width` | `--max-width-content` |
 | | `margin` | `0 auto` |
 | | `padding` | `0 var(--spacing-lg)` |
 | | `height` | `--navbar-height` |
+| | `gap` | `--spacing-xl` |
 
 ---
 
@@ -77,53 +62,83 @@ Both variants share this base pattern:
 
 | Selector | Property | Variable |
 |----------|----------|----------|
-| `__logo` | `display` | `flex` |
+| `.navbar__logo` | `display` | `flex` |
 | | `align-items` | `center` |
+| | `flex-shrink` | `0` |
 | | `text-decoration` | `none` |
-| `__logo img` | `height` | `2rem` (style1) / `1.75rem` (minimal) |
-| `__logo-text` | `font-size` | `--font-size-lg` |
+| `.navbar__logo img` | `height` | `2rem` |
+| | `width` | `auto` |
+| `.navbar__logo-text` | `font-size` | `--font-size-lg` |
 | | `font-weight` | `600` |
 | | `color` | `--color-text-primary` |
 
 ---
 
-## Navigation Links
+## Desktop Links
 
 | Selector | Property | Variable |
 |----------|----------|----------|
-| `__link` | `font-size` | `--font-size-sm` |
+| `.navbar__links` | `display` | `none` (flex at `>=768px`) |
+| | `align-items` | `center` |
+| | `gap` | `--spacing-xs` |
+| `.navbar__link` | `display` | `inline-flex` |
+| | `align-items` | `center` |
+| | `gap` | `--spacing-xs` |
+| | `padding` | `var(--spacing-sm) var(--spacing-md)` |
+| | `font-size` | `--font-size-sm` |
 | | `font-weight` | `500` |
 | | `color` | `--color-text-secondary` |
 | | `text-decoration` | `none` |
 | | `border-radius` | `--border-radius-md` |
+| | `border` | `none` |
+| | `background` | `none` |
+| | `cursor` | `pointer` |
 | | `transition` | `color var(--transition-fast), background-color var(--transition-fast)` |
-| `__link:hover` | `color` | `--color-text-primary` |
-| | `background-color` | `--color-bg-secondary` (style1 only) |
-| `__link--active` | `color` | `--color-brand-primary` |
+| `.navbar__link:hover` | `color` | `--color-text-primary` |
+| | `background-color` | `--color-bg-secondary` |
+| `.navbar__link--active` | `color` | `--color-brand-primary` |
 
 ---
 
-## Dropdown (style1 only)
+## Dropdown
 
 | Selector | Property | Variable |
 |----------|----------|----------|
-| `__dropdown` | `position` | `relative` |
-| `__dropdown-icon` | `width` / `height` | `1rem` |
+| `.navbar__dropdown` | `position` | `relative` |
+| `.navbar__dropdown-trigger` | `font-family` | `inherit` |
+| `.navbar__dropdown-icon` | `width` / `height` | `1rem` |
 | | `transition` | `transform var(--transition-fast)` |
-| `__dropdown:hover __dropdown-icon` | `transform` | `rotate(180deg)` |
-| `__dropdown-menu` | `display` | `none` → `block` on hover |
+| `.navbar__dropdown:hover .navbar__dropdown-icon` | `transform` | `rotate(180deg)` |
+| `.navbar__dropdown-menu` | `display` | `none` → `block` on hover |
 | | `position` | `absolute` |
 | | `top` | `100%` |
+| | `left` | `0` |
 | | `min-width` | `180px` |
+| | `padding` | `--spacing-sm` |
 | | `background-color` | `--color-bg-primary` |
 | | `border` | `1px solid var(--color-border-default)` |
 | | `border-radius` | `--border-radius-md` |
 | | `box-shadow` | `--shadow-lg` |
-| `__dropdown-item` | `font-size` | `--font-size-sm` |
+| `.navbar__dropdown-item` | `display` | `flex` |
+| | `align-items` | `center` |
+| | `gap` | `--spacing-sm` |
+| | `padding` | `var(--spacing-sm) var(--spacing-md)` |
+| | `font-size` | `--font-size-sm` |
 | | `color` | `--color-text-secondary` |
+| | `text-decoration` | `none` |
 | | `border-radius` | `--border-radius-sm` |
-| `__dropdown-item:hover` | `color` | `--color-text-primary` |
+| `.navbar__dropdown-item:hover` | `color` | `--color-text-primary` |
 | | `background-color` | `--color-bg-secondary` |
+
+---
+
+## Right Section
+
+| Selector | Property | Variable |
+|----------|----------|----------|
+| `.navbar__right` | `display` | `flex` |
+| | `align-items` | `center` |
+| | `gap` | `--spacing-sm` |
 
 ---
 
@@ -131,14 +146,20 @@ Both variants share this base pattern:
 
 | Selector | Property | Variable |
 |----------|----------|----------|
-| `__theme-toggle` | `width` / `height` | `2.5rem` (style1) / `2rem` (minimal) |
+| `.navbar__theme-toggle` | `display` | `flex` |
+| | `align-items` | `center` |
+| | `justify-content` | `center` |
+| | `width` / `height` | `2.5rem` |
+| | `padding` | `0` |
 | | `border` | `none` |
 | | `background` | `transparent` |
 | | `color` | `--color-text-secondary` |
+| | `cursor` | `pointer` |
 | | `border-radius` | `--border-radius-md` |
-| | `transition` | `color var(--transition-fast)` |
-| `__theme-toggle:hover` | `color` | `--color-text-primary` |
-| `__theme-icon` | `width` / `height` | `1.25rem` |
+| | `transition` | `color var(--transition-fast), background-color var(--transition-fast)` |
+| `.navbar__theme-toggle:hover` | `color` | `--color-text-primary` |
+| | `background-color` | `--color-bg-secondary` |
+| `.navbar__theme-icon` | `width` / `height` | `1.25rem` |
 
 Dark mode icon switching:
 
@@ -153,41 +174,59 @@ Dark mode icon switching:
 
 | Selector | Property | Value |
 |----------|----------|-------|
-| `__external-icon` | `width` / `height` | `0.75rem` |
+| `.navbar__external-icon` | `width` / `height` | `0.75rem` |
 | | `opacity` | `0.5` |
 
 ---
 
-## Mobile Menu (style1 only)
+## Mobile Menu
 
 Visibility controlled via `data-mobile-open` attribute on `.navbar`:
 
 | Selector | Property | Variable |
 |----------|----------|----------|
-| `__mobile-toggle` | `display` | `flex` (hidden at `≥768px`) |
+| `.navbar__mobile-toggle` | `display` | `flex` (hidden at `>=768px`) |
+| | `align-items` | `center` |
+| | `justify-content` | `center` |
 | | `width` / `height` | `2.5rem` |
+| | `padding` | `0` |
+| | `border` | `none` |
+| | `background` | `transparent` |
 | | `color` | `--color-text-primary` |
-| `__menu-icon` | `width` / `height` | `1.5rem` |
-| `__close-icon` | `width` / `height` | `1.5rem` |
+| | `cursor` | `pointer` |
+| | `border-radius` | `--border-radius-md` |
+| `.navbar__mobile-toggle:hover` | `background-color` | `--color-bg-secondary` |
+| `.navbar__menu-icon` | `width` / `height` | `1.5rem` |
+| `.navbar__close-icon` | `width` / `height` | `1.5rem` |
 | | `display` | `none` (shown when open) |
-| `__mobile-menu` | `display` | `none` → `flex` when `data-mobile-open="true"` |
+| `.navbar__mobile-menu` | `display` | `none` → `flex` when `data-mobile-open="true"` |
+| | `flex-direction` | `column` |
+| | `padding` | `var(--spacing-sm) var(--spacing-lg) var(--spacing-lg)` |
 | | `border-top` | `1px solid var(--color-border-default)` |
-| `__mobile-label` | `font-size` | `--font-size-xs` |
+| `.navbar__mobile-label` | `padding` | `var(--spacing-md) var(--spacing-sm) var(--spacing-xs)` |
+| | `font-size` | `--font-size-xs` |
 | | `font-weight` | `600` |
 | | `color` | `--color-text-muted` |
 | | `text-transform` | `uppercase` |
-| `__mobile-link` | `font-size` | `--font-size-base` |
+| | `letter-spacing` | `0.05em` |
+| `.navbar__mobile-link` | `display` | `flex` |
+| | `align-items` | `center` |
+| | `gap` | `--spacing-sm` |
+| | `padding` | `--spacing-md` |
+| | `font-size` | `--font-size-base` |
 | | `color` | `--color-text-secondary` |
+| | `text-decoration` | `none` |
 | | `border-radius` | `--border-radius-md` |
-| `__mobile-link--nested` | `padding-left` | `--spacing-xl` |
+| `.navbar__mobile-link:hover` | `color` | `--color-text-primary` |
+| | `background-color` | `--color-bg-secondary` |
+| `.navbar__mobile-link--active` | `color` | `--color-brand-primary` |
+| `.navbar__mobile-link--nested` | `padding-left` | `--spacing-xl` |
 
 ---
 
 ## Responsive Behavior
 
-| Breakpoint | style1 | minimal |
-|------------|--------|---------|
-| `≥768px` | Desktop links visible, mobile toggle hidden | — |
-| `<768px` | Desktop links hidden, mobile toggle visible | — |
-| `≥640px` | — | All links visible |
-| `<640px` | — | Links hidden |
+| Breakpoint | Behavior |
+|------------|----------|
+| `>=768px` | Desktop links visible, mobile toggle hidden, mobile menu forced hidden |
+| `<768px` | Desktop links hidden, mobile toggle visible, mobile menu available via toggle |
