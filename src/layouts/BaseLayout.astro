@@ -22,8 +22,11 @@
 import { loadSiteConfig, loadNavbarConfig, loadFooterConfig, getFavicon, getTheme } from '@loaders/config';
 import { getThemeCSS, resolveThemeName } from '@loaders/theme';
 
-// Note: We no longer import globals.css directly - theme CSS is injected dynamically
-// import '@styles/globals.css';
+// Dev mode: import CSS through Vite's module graph so HMR works.
+// Production: only the injected <style> is used (this import is tree-shaken).
+if (import.meta.env.DEV) {
+  await import('@styles/index.css');
+}
 
 interface Props {
   title?: string;
@@ -130,15 +133,3 @@ const faviconUrl = getFavicon();
     <slot name="footer" />
   </body>
 </html>
-
-<style is:global>
-  body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .main-content {
-    flex: 1;
-  }
-</style>

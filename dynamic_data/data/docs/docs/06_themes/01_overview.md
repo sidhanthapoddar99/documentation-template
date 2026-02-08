@@ -208,7 +208,7 @@ Themes work by defining CSS custom properties (variables). **All layouts, compon
 --shadow-md             /* Box shadows */
 ```
 
-See [CSS Variables Reference](/docs/themes/css-variables) for the complete list.
+See [CSS Variables Reference](/docs/themes/css-variables/overview) for the complete list.
 
 ## Validation
 
@@ -224,5 +224,5 @@ See [Theme Validation](/docs/themes/validation) for details.
 
 - [Theme Structure](/docs/themes/theme-structure) - Detailed file organization
 - [Creating Themes](/docs/themes/creating-themes) - Step-by-step guide
-- [CSS Variables](/docs/themes/css-variables) - Complete variable reference
+- [CSS Variables](/docs/themes/css-variables/overview) - Complete variable reference
 - [Theme Compliance Rules](/docs/themes/rules) - Required rules for layouts and components

@@ -26,7 +26,7 @@ paths:
 
 # Theme Configuration (optional - defaults to @theme/default)
 # Options: "@theme/default", "@theme/minimal", or custom theme path
-theme: "@theme/minimal"
+theme: "@theme/default"
 
 # Logo and Favicon Configuration
 logo:

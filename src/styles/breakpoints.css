@@ -1,0 +1,27 @@
+/**
+ * Breakpoint Scale (Reference Only)
+ *
+ * CSS custom properties CANNOT be used in @media queries.
+ * These breakpoints are a documented convention — use the raw
+ * pixel values directly in your @media rules.
+ *
+ * Token    Width     Typical Use
+ * -----    -----     -----------
+ * xs       480px     Small phones
+ * sm       640px     Large phones / small tablets
+ * md       768px     Tablets
+ * lg       1024px    Small laptops
+ * xl       1280px    Desktops
+ * 2xl      1536px    Large desktops
+ * 3xl      1920px    Full HD monitors
+ * 4k       2560px    Ultra-wide / 4K displays
+ *
+ * Usage:
+ *
+ *   @media (max-width: 640px)  { ... }   — sm and below
+ *   @media (max-width: 1024px) { ... }   — lg and below
+ *   @media (min-width: 768px)  { ... }   — md and above
+ *
+ * All theme CSS files should use values from this scale.
+ * Do not invent custom breakpoints (e.g. 600px, 700px).
+ */

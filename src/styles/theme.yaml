@@ -5,13 +5,21 @@ extends: null  # This is the base theme - no parent
 supports_dark_mode: true
 
 # CSS files to load (in order)
+# The theme loader reads and concatenates these directly.
+# index.css exists as a convenience for bundler imports but is not listed here.
 files:
   - color.css
   - font.css
   - element.css
+  - breakpoints.css
   - reset.css
   - markdown.css
-  - index.css
+  - layout.css
+  - navbar.css
+  - footer.css
+  - docs.css
+  - blogs.css
+  - custom.css
 
 # Required CSS variables that themes extending this must define
 # (or inherit from this theme)

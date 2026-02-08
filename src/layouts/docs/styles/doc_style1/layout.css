@@ -1,7 +1,0 @@
-/* Doc Style 1 - Layout container */
-
-.docs-layout {
-  display: flex;
-  max-width: 1600px;
-  margin: 0 auto;
-}

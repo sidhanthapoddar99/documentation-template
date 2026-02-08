@@ -8,13 +8,6 @@ import Body from '../../components/body/default/Body.astro';
 import Outline from '../../components/outline/default/Outline.astro';
 import Pagination from '../../components/common/Pagination.astro';
 
-// Import all styles for this layout
-import '../../components/sidebar/default/styles.css';
-import '../../components/body/default/styles.css';
-import '../../components/outline/default/styles.css';
-import '../../components/common/styles.css';
-import './layout.css';
-
 import { loadContentWithSettings, type LoadedContent, type ContentSettings } from '@loaders/data';
 import { buildSidebarTree, getPrevNext } from '@/hooks/useSidebar';
 

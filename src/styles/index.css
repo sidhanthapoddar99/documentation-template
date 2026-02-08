@@ -14,8 +14,29 @@
 /* 3. Element variables (spacing, borders, shadows) */
 @import './element.css';
 
-/* 4. CSS Reset (uses variables defined above) */
+/* 4. Breakpoint scale (reference comments only, no actual rules) */
+@import './breakpoints.css';
+
+/* 5. CSS Reset (uses variables defined above) */
 @import './reset.css';
 
-/* 5. Markdown/content styles (uses all variables) */
+/* 6. Markdown/content styles (scoped to .markdown-content) */
 @import './markdown.css';
+
+/* 7. Base page layout (body flex, main content, docs/blog containers) */
+@import './layout.css';
+
+/* 8. Navbar (style1 + minimal variants) */
+@import './navbar.css';
+
+/* 9. Footer (default + minimal variants) */
+@import './footer.css';
+
+/* 10. Docs (sidebar, content area, outline, pagination) */
+@import './docs.css';
+
+/* 11. Blog (index grid, post cards, post body) */
+@import './blogs.css';
+
+/* 12. Custom pages (hero, features, info, countdown) */
+@import './custom.css';

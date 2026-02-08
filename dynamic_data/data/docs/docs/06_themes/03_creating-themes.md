@@ -367,7 +367,7 @@ See [Theme Compliance Rules](/docs/themes/rules) for the complete list.
 
 ## Next Steps
 
-- [CSS Variables Reference](/docs/themes/css-variables) - Complete variable list
+- [CSS Variables Reference](/docs/themes/css-variables/overview) - Complete variable list
 - [Theme Inheritance](/docs/themes/theme-inheritance) - Advanced inheritance patterns
 - [Validation](/docs/themes/validation) - Understanding theme validation
 - [Theme Compliance Rules](/docs/themes/rules) - Required rules for layouts and components
