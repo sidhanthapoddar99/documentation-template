@@ -14,7 +14,6 @@ files:
   - breakpoints.css
   - reset.css
   - markdown.css
-  - layout.css
   - navbar.css
   - footer.css
   - docs.css

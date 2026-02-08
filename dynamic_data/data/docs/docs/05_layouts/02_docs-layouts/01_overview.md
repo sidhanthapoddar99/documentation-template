@@ -73,23 +73,29 @@ Documentation layouts are designed for hierarchical content with navigation. The
 
 ## File Location
 
+Docs layout directories contain only Astro components. All CSS is provided by the theme's `docs.css` file in `src/styles/`.
+
 ```
 src/layouts/docs/
 ├── styles/
 │   ├── doc_style1/
-│   │   ├── Layout.astro      # Main layout component
-│   │   └── layout.css        # Layout-specific styles
+│   │   └── Layout.astro      # Main layout component (no CSS files)
 │   │
 │   └── doc_style2/
-│       ├── Layout.astro
-│       └── layout.css
+│       └── Layout.astro
 │
-└── components/               # Shared across all doc layouts
+└── components/               # Shared across all doc layouts (no CSS files)
     ├── sidebar/default/
+    │   └── Sidebar.astro
     ├── body/default/
+    │   └── Body.astro
     ├── outline/default/
+    │   └── Outline.astro
     └── common/
+        └── Pagination.astro
 ```
+
+The theme (`src/styles/docs.css`) defines all visual styles for these components, including the `.docs-layout` container, sidebar width, outline positioning, and responsive breakpoints. Layouts only render HTML with the correct CSS class names.
 
 ## Routing
 

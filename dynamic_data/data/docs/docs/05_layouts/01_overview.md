@@ -36,44 +36,60 @@ The framework organizes layouts by content type:
 
 ## Directory Structure
 
+Layouts contain only Astro components — no CSS files. All styling is provided by the theme (`src/styles/`).
+
 ```
 src/layouts/
 ├── BaseLayout.astro          # Root HTML wrapper (all pages)
+│                             # Injects theme CSS via <style id="theme-styles">
 │
 ├── docs/
 │   ├── styles/               # Layout variants
 │   │   ├── doc_style1/       # Full layout (sidebar + body + outline)
-│   │   └── doc_style2/       # Minimal layout (body + outline)
-│   └── components/           # Shared components
-│       ├── sidebar/
-│       ├── body/
-│       ├── outline/
+│   │   │   └── Layout.astro
+│   │   └── doc_style2/       # Compact layout (body + outline)
+│   │       └── Layout.astro
+│   └── components/           # Shared components (Astro only, no CSS)
+│       ├── sidebar/default/
+│       │   └── Sidebar.astro
+│       ├── body/default/
+│       │   └── Body.astro
+│       ├── outline/default/
+│       │   └── Outline.astro
 │       └── common/
+│           └── Pagination.astro
 │
 ├── blogs/
 │   ├── styles/
 │   │   └── blog_style1/      # Index + Post layouts
 │   └── components/
-│       ├── body/
-│       └── cards/
+│       ├── body/default/
+│       └── cards/default/
 │
 ├── custom/
 │   ├── styles/
 │   │   ├── home/             # Landing page (hero + features)
-│   │   └── info/             # Simple content page
+│   │   ├── info/             # Simple content page
+│   │   └── countdown/        # Countdown page
 │   └── components/
-│       ├── hero/
-│       ├── features/
-│       └── content/
+│       ├── hero/default/
+│       ├── features/default/
+│       └── content/default/
 │
-├── navbar/                   # Navigation variants
+├── navbar/                   # Navigation variants (different HTML, no CSS)
 │   ├── style1/
+│   │   └── index.astro
 │   └── minimal/
+│       └── index.astro
 │
-└── footer/                   # Footer variants
+└── footer/                   # Footer variants (different HTML, no CSS)
     ├── default/
+    │   └── index.astro
     └── minimal/
+        └── index.astro
 ```
+
+The theme provides all visual styling through CSS files like `docs.css`, `navbar.css`, `footer.css`, `blogs.css`, and `custom.css` in `src/styles/`. These are injected globally by `BaseLayout.astro`.
 
 ## Setting Layouts in Configuration
 
@@ -119,7 +135,7 @@ During development, you can switch layouts without modifying configuration files
 
 ### Using the Dev Toolbar
 
-1. Start the dev server: `npm run start`
+1. Start the dev server: `bun run start`
 2. Navigate to any docs or blog page
 3. Click the **grid icon** in Astro's dev toolbar (bottom of screen)
 4. Select a different layout
@@ -212,8 +228,9 @@ To add a new layout:
 1. **Create the folder**: `src/layouts/docs/styles/my_layout/`
 2. **Add Layout.astro**: Implement the required props interface
 3. **Import components**: Use existing or create new components
-4. **Reference in config**: `layout: "@docs/my_layout"`
+4. **Use theme CSS classes**: Apply the correct CSS class names so the theme can style the layout
+5. **Reference in config**: `layout: "@docs/my_layout"`
 
-The layout is automatically discovered — no registration needed.
+The layout is automatically discovered — no registration needed. Do not add CSS files to layout directories. If you need new visual styling, add it to your theme's CSS files in `src/styles/` (or your custom theme directory).
 
 See the [Docs Layouts](./docs-layouts/overview), [Blog Layouts](./blog-layouts/overview), and [Custom Layouts](./custom-layouts/overview) sections for detailed guides.

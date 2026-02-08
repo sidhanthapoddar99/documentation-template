@@ -94,13 +94,12 @@ src/layouts/blogs/
     │   └── default/
     │       ├── IndexBody.astro   # Grid logic
     │       └── PostBody.astro    # Post rendering
-    ├── cards/
-    │   └── default/
-    │       ├── PostCard.astro    # Individual card
-    │       └── styles.css
-    └── common/
-        └── index-styles.css      # Index page styles
+    └── cards/
+        └── default/
+            └── PostCard.astro    # Individual card
 ```
+
+All styling for blog layouts is provided by the theme (e.g., `blogs.css` in `src/styles/`). Layout and component files contain only HTML structure with CSS classes -- no CSS files, no `<style>` blocks, and no CSS imports.
 
 ## Routing
 

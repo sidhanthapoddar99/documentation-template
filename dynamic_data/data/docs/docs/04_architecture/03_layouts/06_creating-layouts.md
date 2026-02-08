@@ -77,23 +77,9 @@ const { prev, next } = getPrevNext(sidebarNodes, currentPath);
     )}
   </div>
 </div>
-
-<style>
-  .doc-style3 {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  .main-area {
-    display: flex;
-    gap: 2rem;
-  }
-</style>
 ```
+
+Layouts do not contain CSS files or `<style>` blocks. The CSS classes used here (e.g., `.doc-style3`, `.main-area`) must be defined in the theme's `docs.css` file in `src/styles/`. The theme CSS is injected globally via `BaseLayout`.
 
 ### 2. Update Configuration
 
@@ -198,10 +184,11 @@ Add components specific to your layout:
 ```
 src/layouts/docs/styles/doc_style3/
 ├── Layout.astro
-├── CustomHeader.astro    ← Layout-specific component
-├── CustomSidebar.astro
-└── styles.css            ← Optional separate styles
+├── CustomHeader.astro    # Layout-specific component
+└── CustomSidebar.astro
 ```
+
+No CSS files belong in the layout directory. If your custom components introduce new CSS classes, add the corresponding styles to the theme CSS files (e.g., `docs.css` in `src/styles/`).
 
 ## Creating a New Blog Layout
 
@@ -339,17 +326,9 @@ const { variant = 'default' } = Astro.props;
 <div class={`docs-layout ${variant}`}>
   <!-- Content -->
 </div>
-
-<style>
-  .docs-layout.wide {
-    max-width: 1600px;
-  }
-
-  .docs-layout.minimal .sidebar {
-    display: none;
-  }
-</style>
 ```
+
+The variant-specific styles (e.g., `.docs-layout.wide`, `.docs-layout.minimal`) should be defined in the theme's `docs.css` file, not in the layout component itself.
 
 ## Checklist
 
@@ -359,6 +338,6 @@ When creating a new layout:
 - [ ] Create `Layout.astro` (or `IndexLayout.astro`/`PostLayout.astro` for blog)
 - [ ] Implement required props interface
 - [ ] Import and use shared components or create custom ones
-- [ ] Add scoped styles
-- [ ] Test with `npm run build`
+- [ ] Add CSS classes to the appropriate theme CSS file (not in the layout directory)
+- [ ] Test with `bun run build`
 - [ ] Update `site.yaml` to use new layout

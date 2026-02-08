@@ -193,7 +193,7 @@ Defines UI element properties.
   --spacing-2xl: 3rem;     /* 48px */
 
   /* Layout Dimensions */
-  --max-width-content: 1200px;
+  --max-width-content: 1600px;
   --sidebar-width: 280px;
   --outline-width: 220px;
   --navbar-height: 64px;

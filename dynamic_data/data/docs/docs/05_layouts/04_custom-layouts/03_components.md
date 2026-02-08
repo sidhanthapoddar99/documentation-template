@@ -13,19 +13,18 @@ Custom layouts compose from section components located in `src/layouts/custom/co
 src/layouts/custom/components/
 ├── hero/
 │   └── default/
-│       ├── Hero.astro         # Hero section
-│       └── styles.css
+│       └── Hero.astro         # Hero section
 │
 ├── features/
 │   └── default/
-│       ├── Features.astro     # Feature grid
-│       └── styles.css
+│       └── Features.astro     # Feature grid
 │
 └── content/
     └── default/
-        ├── Content.astro      # Simple content wrapper
-        └── styles.css
+        └── Content.astro      # Simple content wrapper
 ```
+
+Components contain only `.astro` files with HTML structure and CSS class references. All styling is provided by the theme's `custom.css` file in `src/styles/`, which is injected globally via `BaseLayout`.
 
 ## Hero
 
@@ -114,54 +113,7 @@ const { hero } = Astro.props;
 
 ### Styling
 
-```css
-.hero {
-  padding: 6rem 2rem;
-  text-align: center;
-  background: linear-gradient(
-    to bottom,
-    var(--color-bg-secondary),
-    var(--color-bg-primary)
-  );
-}
-
-.hero__title {
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.hero__subtitle {
-  font-size: 1.25rem;
-  color: var(--color-text-secondary);
-  max-width: 600px;
-  margin: 0 auto 2rem;
-}
-
-.hero__actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.hero__cta {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.hero__cta--primary {
-  background: var(--color-primary);
-  color: white;
-}
-
-.hero__cta--secondary {
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-primary);
-}
-```
+The Hero component uses CSS classes like `.hero`, `.hero__title`, `.hero__subtitle`, `.hero__actions`, and `.hero__cta`. All styling for these classes is defined in the theme's `custom.css` file in `src/styles/`, not in the component itself. The theme provides styles for layout, typography, colors, and button variants using CSS variables.
 
 ## Features
 
@@ -241,43 +193,7 @@ const { features } = Astro.props;
 
 ### Styling
 
-```css
-.features {
-  padding: 4rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.features__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-}
-
-.feature-card {
-  padding: 2rem;
-  background: var(--color-bg-secondary);
-  border-radius: 12px;
-  text-align: center;
-}
-
-.feature-card__icon {
-  font-size: 2.5rem;
-  display: block;
-  margin-bottom: 1rem;
-}
-
-.feature-card__title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.feature-card__description {
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
-```
+The Features component uses CSS classes like `.features`, `.features__grid`, `.feature-card`, `.feature-card__icon`, `.feature-card__title`, and `.feature-card__description`. All styling for these classes is defined in the theme's `custom.css` file in `src/styles/`, not in the component itself.
 
 ## Content
 
@@ -333,29 +249,7 @@ const { title, description } = Astro.props;
 
 ### Styling
 
-```css
-.content-section {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 4rem 2rem;
-}
-
-.content-section__title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-}
-
-.content-section__body {
-  font-size: 1.125rem;
-  line-height: 1.75;
-  color: var(--color-text-secondary);
-}
-
-.content-section__body p {
-  margin-bottom: 1.5rem;
-}
-```
+The Content component uses CSS classes like `.content-section`, `.content-section__title`, and `.content-section__body`. All styling for these classes is defined in the theme's `custom.css` file in `src/styles/`, not in the component itself.
 
 ## Creating Custom Components
 
@@ -398,28 +292,9 @@ const { testimonials } = Astro.props;
     ))}
   </div>
 </section>
-
-<style>
-  .testimonials {
-    padding: 4rem 2rem;
-    background: var(--color-bg-secondary);
-  }
-
-  .testimonials__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .testimonial {
-    background: var(--color-bg-primary);
-    padding: 2rem;
-    border-radius: 12px;
-  }
-</style>
 ```
+
+If your custom component introduces new CSS classes (like `.testimonials`, `.testimonials__grid`, `.testimonial`), add the corresponding styles to the theme's `custom.css` file in `src/styles/`. Do not add `<style>` blocks or CSS files in the component directory.
 
 ### Using in Layout
 
@@ -460,31 +335,6 @@ import Hero from '../../components/hero/split/Hero.astro';
 ---
 ```
 
-## Style Imports
+## Styling
 
-Import component styles in your layout:
-
-```astro
----
-import Hero from '../../components/hero/default/Hero.astro';
-import Features from '../../components/features/default/Features.astro';
-
-// Import styles
-import '../../components/hero/default/styles.css';
-import '../../components/features/default/styles.css';
----
-```
-
-Or create a central import file:
-
-```css
-/* home/styles.css */
-@import '../../components/hero/default/styles.css';
-@import '../../components/features/default/styles.css';
-```
-
-```astro
----
-import './styles.css';
----
-```
+Custom components do not have their own CSS files or style imports. All styling is provided by the theme's `custom.css` file in `src/styles/`, which is injected globally via `BaseLayout`. When creating new components, use CSS classes that are defined in the theme. If you need new styles, add them to the theme CSS files rather than to the layout or component directories.

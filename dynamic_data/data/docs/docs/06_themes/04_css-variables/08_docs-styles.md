@@ -15,12 +15,12 @@ The layout components define *what* to show (sidebar tree from `settings.json`, 
 
 ## Layout Container
 
-The docs layout container is defined in `layout.css`. See [Layout Styles](./layout-styles) for the full docs layout container reference, including the temporary `doc_style2` arrangement.
+The docs layout container is defined in `docs.css` alongside the rest of the documentation styles.
 
 | Selector | Property | Value |
 |----------|----------|-------|
 | `.docs-layout` | `display` | `flex` |
-| | `max-width` | `1600px` |
+| | `max-width` | `var(--max-width-content)` (1600px) |
 | | `margin` | `0 auto` |
 
 ---

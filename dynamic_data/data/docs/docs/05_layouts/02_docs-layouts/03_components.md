@@ -7,28 +7,26 @@ description: Reusable components for docs layouts
 
 Docs layouts compose from shared components located in `src/layouts/docs/components/`. These components can be mixed and matched to create different layout styles.
 
+Components contain only Astro files — no CSS. All styling is provided by the theme's `docs.css` in `src/styles/`.
+
 ## Component Directory
 
 ```
 src/layouts/docs/components/
 ├── sidebar/
 │   └── default/
-│       ├── Sidebar.astro     # Main sidebar component
-│       └── styles.css
+│       └── Sidebar.astro     # Main sidebar component
 │
 ├── body/
 │   └── default/
-│       ├── Body.astro        # Main content area
-│       └── styles.css
+│       └── Body.astro        # Main content area
 │
 ├── outline/
 │   └── default/
-│       ├── Outline.astro     # Table of contents
-│       └── styles.css
+│       └── Outline.astro     # Table of contents
 │
 └── common/
-    ├── Pagination.astro      # Prev/Next navigation
-    └── styles.css
+    └── Pagination.astro      # Prev/Next navigation
 ```
 
 ## Sidebar
@@ -90,9 +88,11 @@ const currentPath = `${baseUrl}/${currentSlug}`;
 
 ### Customization
 
-Override styles in your layout's CSS:
+Customize sidebar appearance by overriding styles in your theme's `docs.css`:
 
 ```css
+/* In your theme's docs.css */
+
 /* Custom sidebar width */
 .sidebar {
   width: 300px;
@@ -104,6 +104,8 @@ Override styles in your layout's CSS:
   color: white;
 }
 ```
+
+Layouts never contain their own CSS files. All visual customization goes through the theme.
 
 ## Body
 
@@ -279,6 +281,8 @@ mkdir -p src/layouts/docs/components/sidebar/modern/
 
 ### 2. Create Component
 
+The component should only produce HTML with the correct CSS class names. Do not add `<style>` blocks or CSS files — the theme handles all styling.
+
 ```astro
 ---
 // src/layouts/docs/components/sidebar/modern/Sidebar.astro
@@ -291,17 +295,23 @@ const { nodes, currentPath } = Astro.props;
 ---
 
 <nav class="modern-sidebar">
-  <!-- Your custom implementation -->
+  <!-- Your custom implementation using CSS classes -->
+  <!-- The theme's docs.css must define .modern-sidebar styles -->
 </nav>
-
-<style>
-  .modern-sidebar {
-    /* Your styles */
-  }
-</style>
 ```
 
-### 3. Use in Layout
+### 3. Add Styles to the Theme
+
+Define the visual styles for your new component in your theme's CSS:
+
+```css
+/* In your theme's docs.css */
+.modern-sidebar {
+  /* Your styles */
+}
+```
+
+### 4. Use in Layout
 
 ```astro
 ---
@@ -312,7 +322,7 @@ import Sidebar from '../../components/sidebar/modern/Sidebar.astro';
 
 ## Component Composition Example
 
-Here's how `doc_style1` composes components:
+Here's how `doc_style1` composes components. Note there are no CSS imports — layouts only import Astro components and data utilities:
 
 ```astro
 ---
@@ -320,13 +330,6 @@ import Sidebar from '../../components/sidebar/default/Sidebar.astro';
 import Body from '../../components/body/default/Body.astro';
 import Outline from '../../components/outline/default/Outline.astro';
 import Pagination from '../../components/common/Pagination.astro';
-
-// Import styles
-import '../../components/sidebar/default/styles.css';
-import '../../components/body/default/styles.css';
-import '../../components/outline/default/styles.css';
-import '../../components/common/styles.css';
-import './layout.css';
 
 // ... props and data loading ...
 ---
@@ -342,15 +345,15 @@ import './layout.css';
 </div>
 ```
 
-The layout CSS handles the grid arrangement:
+The `.docs-layout` container and all component styles are defined in the theme's `docs.css`, not in any layout-specific CSS file. The theme handles all visual properties:
 
 ```css
-/* layout.css */
+/* src/styles/docs.css (theme) */
 .docs-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr 220px;
-  gap: 2rem;
-  max-width: 1400px;
+  display: flex;
+  max-width: var(--max-width-content);
   margin: 0 auto;
 }
 ```
+
+This separation means layouts are purely structural (HTML + data), while the theme controls all visual presentation. Switching themes changes the look without touching any layout code.

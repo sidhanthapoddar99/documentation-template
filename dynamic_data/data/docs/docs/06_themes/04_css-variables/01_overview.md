@@ -56,12 +56,11 @@ Every theme lives in a single folder and contains these CSS files:
 | `font.css` | Typography system | `--font-family-*`, `--font-size-*`, `--font-weight-*`, `--line-height-*`, `--letter-spacing-*` |
 | `element.css` | Dimensions, spacing, decorations | `--spacing-*`, `--border-radius-*`, `--shadow-*`, `--transition-*`, `--z-index-*`, `--opacity-*`, layout dimensions (`--navbar-height`, `--sidebar-width`, etc.) |
 | `breakpoints.css` | Breakpoint scale reference | Documented convention only (no actual CSS rules) — pixel values for `@media` queries |
-| `reset.css` | Browser normalization | Box-sizing, margin resets, font inheritance |
+| `reset.css` | Browser normalization + page structure | Box-sizing, margin resets, font inheritance, `body` flex column, `.main-content` flex fill |
 | `markdown.css` | Rendered content styling | Scoped rules under `.markdown-content` — headings, code, tables, lists, blockquotes |
-| `layout.css` | Page structure | BaseLayout flow (flex column), content area sizing, docs layout container |
 | `navbar.css` | Navbar styling | Sticky positioning, link styles, dropdown appearance, mobile menu, theme toggle |
 | `footer.css` | Footer styling | Column grid, link styles, social icons, copyright |
-| `docs.css` | Documentation page styling | Sidebar, content area, outline panel, pagination |
+| `docs.css` | Documentation page styling | `.docs-layout` container, sidebar, content area, outline panel, pagination |
 | `blogs.css` | Blog page styling | Index grid, post cards, post body |
 | `custom.css` | Custom page styling | Hero sections, feature grids, info pages, countdown |
 
@@ -77,14 +76,13 @@ The entry point that imports all theme files in the correct order:
 @import './font.css';         /* 2. Variables: typography */
 @import './element.css';      /* 3. Variables: spacing, dimensions, decorations */
 @import './breakpoints.css';  /* 4. Breakpoint scale (reference only) */
-@import './reset.css';        /* 5. Browser normalization */
+@import './reset.css';        /* 5. Browser normalization + page structure */
 @import './markdown.css';     /* 6. Rendered content styles */
-@import './layout.css';       /* 7. Page structure */
-@import './navbar.css';       /* 8. Navbar */
-@import './footer.css';       /* 9. Footer */
-@import './docs.css';         /* 10. Documentation pages */
-@import './blogs.css';        /* 11. Blog pages */
-@import './custom.css';       /* 12. Custom pages */
+@import './navbar.css';       /* 7. Navbar */
+@import './footer.css';       /* 8. Footer */
+@import './docs.css';         /* 9. Documentation pages */
+@import './blogs.css';        /* 10. Blog pages */
+@import './custom.css';       /* 11. Custom pages */
 ```
 
 Order matters: variables must be defined before they are used. Variable files come first, then component styles that consume them.
@@ -260,9 +258,8 @@ The `data-theme` attribute is set on `<html>` by the theme toggle script. Non-co
 **Theme component styles** (consume the variables above):
 
 - [Markdown Styles](./markdown-styles) — Content rendering rules scoped to `.markdown-content`
-- [Layout Styles](./layout-styles) — Page structure, BaseLayout, content area sizing
 - [Navbar Styles](./navbar-styles) — Navigation bar, dropdowns, mobile menu, theme toggle
 - [Footer Styles](./footer-styles) — Footer columns, social links, copyright
-- [Docs Styles](./docs-styles) — Sidebar, content area, outline panel, pagination
+- [Docs Styles](./docs-styles) — Docs layout container, sidebar, content area, outline panel, pagination
 - [Blog Styles](./blog-styles) — Index grid, post cards, post body
 - [Custom Page Styles](./custom-page-styles) — Hero sections, feature grids, info pages

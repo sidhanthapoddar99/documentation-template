@@ -87,17 +87,16 @@ src/layouts/custom/
 └── components/                # Shared custom components
     ├── hero/
     │   └── default/
-    │       ├── Hero.astro
-    │       └── styles.css
+    │       └── Hero.astro
     ├── features/
     │   └── default/
-    │       ├── Features.astro
-    │       └── styles.css
+    │       └── Features.astro
     └── content/
         └── default/
-            ├── Content.astro
-            └── styles.css
+            └── Content.astro
 ```
+
+All styling for custom layouts is provided by the theme (e.g., `custom.css` in `src/styles/`). Layout and component files contain only HTML structure with CSS classes -- no CSS files, no `<style>` blocks, and no CSS imports.
 
 ## Routing
 

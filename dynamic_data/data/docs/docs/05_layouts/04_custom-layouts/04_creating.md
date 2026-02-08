@@ -24,9 +24,6 @@ mkdir -p src/layouts/custom/styles/pricing/
  */
 import { loadFile } from '@loaders/data';
 
-// Import styles
-import './styles.css';
-
 // Define data interface
 interface Plan {
   name: string;
@@ -113,11 +110,12 @@ const { title = 'Pricing', subtitle, plans } = pageData;
 </div>
 ```
 
-## Step 3: Add Styles
+## Step 3: Add Styles to the Theme
 
-**File:** `src/layouts/custom/styles/pricing/styles.css`
+Layouts do not contain CSS files. Instead, add styles for your new layout's CSS classes to the theme. Create or edit `custom.css` in your theme directory (`src/styles/` or your custom theme folder):
 
 ```css
+/* In theme custom.css */
 .pricing-page {
   max-width: 1200px;
   margin: 0 auto;
@@ -127,16 +125,6 @@ const { title = 'Pricing', subtitle, plans } = pageData;
 .pricing-header {
   text-align: center;
   margin-bottom: 3rem;
-}
-
-.pricing-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.pricing-header p {
-  font-size: 1.25rem;
-  color: var(--color-text-secondary);
 }
 
 .pricing-grid {
@@ -154,85 +142,10 @@ const { title = 'Pricing', subtitle, plans } = pageData;
   border: 1px solid var(--color-border);
 }
 
-.pricing-card--popular {
-  border-color: var(--color-primary);
-  transform: scale(1.05);
-}
-
-.popular-badge {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--color-primary);
-  color: white;
-  padding: 0.25rem 1rem;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.pricing-card__name {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.pricing-card__price {
-  margin-bottom: 1rem;
-}
-
-.pricing-card__price .currency {
-  font-size: 1.5rem;
-  vertical-align: top;
-}
-
-.pricing-card__price .amount {
-  font-size: 3rem;
-  font-weight: 700;
-}
-
-.pricing-card__price .period {
-  color: var(--color-text-secondary);
-}
-
-.pricing-card__description {
-  color: var(--color-text-secondary);
-  margin-bottom: 1.5rem;
-}
-
-.pricing-card__features {
-  list-style: none;
-  padding: 0;
-  margin-bottom: 2rem;
-}
-
-.pricing-card__features li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.pricing-card__features .check {
-  color: var(--color-success);
-  font-weight: bold;
-}
-
-.pricing-card__cta {
-  display: block;
-  text-align: center;
-  padding: 0.75rem 1.5rem;
-  background: var(--color-primary);
-  color: white;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.pricing-card__cta:hover {
-  opacity: 0.9;
-}
+/* ... additional pricing styles ... */
 ```
+
+The theme CSS is injected globally via `<style id="theme-styles">` in `BaseLayout`, so these classes will be available to your layout without any imports.
 
 ## Step 4: Create the Data File
 
@@ -391,7 +304,7 @@ Before shipping your custom layout:
 - [ ] Responsive design
 - [ ] Dark mode support
 - [ ] Accessible markup
-- [ ] Styles scoped or prefixed
+- [ ] CSS classes added to theme CSS (not in layout files)
 - [ ] Data file created
 - [ ] site.yaml configured
 - [ ] Build passes

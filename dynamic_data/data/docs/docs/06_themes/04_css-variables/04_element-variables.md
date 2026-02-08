@@ -49,7 +49,7 @@ Fixed dimensions for structural components. Layouts use these to size major page
 
 | Variable | Description | Value |
 |----------|-------------|-------|
-| `--max-width-content` | Maximum width of the content container | `1200px` |
+| `--max-width-content` | Maximum width of the content container | `1600px` |
 | `--max-width-prose` | Maximum width for long-form text (character-based) | `65ch` |
 | `--sidebar-width` | Width of the documentation sidebar | `280px` |
 | `--outline-width` | Width of the table of contents panel | `220px` |
@@ -210,4 +210,4 @@ Layout dimensions can be adjusted at breakpoints:
 }
 ```
 
-> **Note:** CSS custom properties cannot be used inside `@media` query conditions (e.g., `@media (max-width: var(--breakpoint))` does not work). Breakpoint values must be hardcoded in media queries. The canonical breakpoints are documented in [Layout Styles](./layout-styles).
+> **Note:** CSS custom properties cannot be used inside `@media` query conditions (e.g., `@media (max-width: var(--breakpoint))` does not work). Breakpoint values must be hardcoded in media queries. The canonical breakpoints are documented in the [CSS Variables Overview](./overview#breakpoint-scale).

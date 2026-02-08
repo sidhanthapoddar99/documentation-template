@@ -14,17 +14,14 @@ src/layouts/blogs/components/
 ├── body/
 │   └── default/
 │       ├── IndexBody.astro     # Post listing grid
-│       ├── PostBody.astro      # Single post content
-│       └── styles.css
+│       └── PostBody.astro      # Single post content
 │
-├── cards/
-│   └── default/
-│       ├── PostCard.astro      # Individual post card
-│       └── styles.css
-│
-└── common/
-    └── index-styles.css        # Shared index styles
+└── cards/
+    └── default/
+        └── PostCard.astro      # Individual post card
 ```
+
+Components contain only HTML structure and CSS class references. All styling is provided by the theme (`blogs.css` in `src/styles/`), which is injected globally via `BaseLayout`.
 
 ## IndexBody
 
@@ -106,15 +103,7 @@ const props = Astro.props;
 
 ### Customization
 
-The grid layout is CSS-based:
-
-```css
-.blog-index__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-}
-```
+The grid layout uses CSS classes like `.blog-index__grid`. To customize the grid behavior, modify the theme's `blogs.css` file in `src/styles/` -- do not add CSS to the component itself.
 
 ## PostBody
 
@@ -280,31 +269,7 @@ const formattedDate = date
 
 ### Styling
 
-```css
-.post-card {
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--color-bg-secondary);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.post-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.post-card__image img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-.post-card__content {
-  padding: 1.5rem;
-}
-```
+The PostCard component uses CSS classes like `.post-card`, `.post-card__image`, `.post-card__content`, and `.post-card__tags`. All styling for these classes is defined in the theme's `blogs.css` file, not in the component itself. To customize card appearance, edit the theme CSS.
 
 ## Creating Custom Components
 
@@ -332,16 +297,9 @@ const { title, date, href } = Astro.props;
   <span class="compact-card__title">{title}</span>
   {date && <time>{date}</time>}
 </a>
-
-<style>
-  .compact-card {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-border);
-  }
-</style>
 ```
+
+If your custom component introduces new CSS classes (like `.compact-card`), add the corresponding styles to the theme's `blogs.css` file in `src/styles/`. Do not add `<style>` blocks or CSS files in the component directory.
 
 ### Using in Layout
 
@@ -363,9 +321,6 @@ import { loadContent } from '@loaders/data';
 
 // Use compact cards
 import PostCard from '../../components/cards/compact/PostCard.astro';
-
-// Custom styles
-import './index-styles.css';
 
 interface Props {
   dataPath: string;
@@ -397,25 +352,6 @@ const posts = await loadContent(dataPath, {
 </div>
 ```
 
-## Style Imports
+## Styling
 
-When using components, import their styles:
-
-```astro
----
-import IndexBody from '../../components/body/default/IndexBody.astro';
-
-// Import component styles
-import '../../components/common/index-styles.css';
-import '../../components/cards/default/styles.css';
----
-```
-
-Or import all styles in a central location:
-
-```css
-/* blog_style1/styles.css */
-@import '../../components/common/index-styles.css';
-@import '../../components/cards/default/styles.css';
-@import '../../components/body/default/styles.css';
-```
+Blog components do not have their own CSS files or style imports. All styling is provided by the theme's `blogs.css` file in `src/styles/`, which is injected globally via `BaseLayout`. When creating new components, use CSS classes that are defined in the theme. If you need new styles, add them to the theme CSS files rather than to the layout or component directories.

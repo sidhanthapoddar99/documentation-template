@@ -8,7 +8,7 @@
    ================================= */
 
 .blog-index {
-  max-width: 1200px;
+  max-width: var(--max-width-content);
   margin: 0 auto;
   padding: var(--spacing-2xl) var(--spacing-lg);
 }

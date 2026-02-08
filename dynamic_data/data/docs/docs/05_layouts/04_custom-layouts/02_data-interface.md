@@ -154,9 +154,6 @@ import Hero from '../../components/hero/default/Hero.astro';
 import Features from '../../components/features/default/Features.astro';
 import { loadFile } from '@loaders/data';
 
-import '../../components/hero/default/styles.css';
-import '../../components/features/default/styles.css';
-
 interface HeroData {
   title: string;
   subtitle?: string;
@@ -214,8 +211,6 @@ description: |
 ---
 import Content from '../../components/content/default/Content.astro';
 import { loadFile } from '@loaders/data';
-
-import '../../components/content/default/styles.css';
 
 interface Props {
   dataPath: string;

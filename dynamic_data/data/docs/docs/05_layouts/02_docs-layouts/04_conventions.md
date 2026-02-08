@@ -14,27 +14,27 @@ Follow these conventions when creating or customizing docs layouts.
 ```
 src/layouts/docs/styles/{style_name}/
 ├── Layout.astro      # Required - main entry point
-├── layout.css        # Optional - layout-specific styles
 └── index.ts          # Optional - exports
 ```
 
 **Rules:**
 - Style folder name uses `snake_case`: `doc_style1`, `minimal_docs`
 - Main component must be named `Layout.astro` (exact match)
-- CSS file is optional but recommended for layout-specific styles
+- All CSS lives in the theme, not in layout folders
 
 ### Component Files
 
 ```
 src/layouts/docs/components/{component}/{variant}/
-├── {Component}.astro    # PascalCase component name
-└── styles.css           # Associated styles
+└── {Component}.astro    # PascalCase component name (no CSS files)
 ```
 
 **Examples:**
 - `sidebar/default/Sidebar.astro`
 - `sidebar/modern/Sidebar.astro`
 - `body/compact/Body.astro`
+
+Components do not have associated `styles.css` files. All visual styling is defined in the theme's CSS (e.g., `src/styles/docs.css`).
 
 ## Props Interface
 
@@ -61,33 +61,13 @@ interface Props {
 - Ignore props you don't need
 - Set defaults for optional props
 
-## Style Import Order
-
-Import styles in this order for proper cascade:
-
-```astro
----
-// 1. Component styles (reusable)
-import '../../components/sidebar/default/styles.css';
-import '../../components/body/default/styles.css';
-import '../../components/outline/default/styles.css';
-import '../../components/common/styles.css';
-
-// 2. Layout-specific styles (overrides)
-import './layout.css';
----
-```
-
 ## CSS Class Naming
 
-Use BEM-style naming for layout and component classes:
+Layouts use BEM-style CSS class names in their HTML. These classes are **defined by the theme** (in `src/styles/docs.css`), not by the layouts themselves. Layouts only apply the class names; the theme provides the visual rules.
 
 ```css
-/* Block */
+/* Block — defined in theme's docs.css */
 .docs-layout { }
-
-/* Block with modifier */
-.docs-layout--minimal { }
 
 /* Element */
 .docs-layout__sidebar { }
@@ -96,20 +76,23 @@ Use BEM-style naming for layout and component classes:
 .docs-layout__sidebar--collapsed { }
 ```
 
+There are no `--minimal` or other variant modifiers on layout classes. Different visual styles are achieved by switching to a different theme, not by adding CSS modifiers.
+
 ### Component-Specific Prefixes
 
-| Component | Prefix |
-|-----------|--------|
-| Sidebar | `.sidebar-*` |
-| Body | `.docs-*` |
-| Outline | `.outline-*` |
-| Pagination | `.pagination-*` |
+| Component | Prefix | Styled In |
+|-----------|--------|-----------|
+| Sidebar | `.sidebar-*` | `docs.css` |
+| Body | `.docs-*` | `docs.css` |
+| Outline | `.outline-*` | `docs.css` |
+| Pagination | `.pagination-*` | `docs.css` |
 
 ## CSS Variables
 
-Use CSS variables for themeable values:
+CSS variables are defined by the **theme**, not by layouts. Layouts do not define or import any CSS. The theme's `docs.css` uses CSS variables for all configurable values:
 
 ```css
+/* Defined in the theme's docs.css — NOT in any layout file */
 .docs-layout {
   /* Spacing */
   --docs-sidebar-width: 280px;
@@ -117,18 +100,22 @@ Use CSS variables for themeable values:
   --docs-content-max-width: 800px;
   --docs-gap: 2rem;
 
-  /* Colors (inherit from globals) */
+  /* Colors (inherit from theme globals) */
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
 }
 ```
 
+To customize these values, modify them in your theme's CSS files — never add CSS to layout directories.
+
 ## Responsive Design
 
-### Breakpoints
+Responsive breakpoints and media queries are defined in the **theme's CSS**, not in layouts. Layouts produce the same HTML structure regardless of screen size — the theme controls how that structure adapts.
+
+### Theme Breakpoints (defined in `docs.css`)
 
 ```css
-/* Mobile first */
+/* Mobile first — defined in theme's docs.css */
 .docs-layout {
   display: block;  /* Stack on mobile */
 }
@@ -151,8 +138,10 @@ Use CSS variables for themeable values:
 
 ### Mobile Considerations
 
-- Hide sidebar by default, show via hamburger menu
-- Hide outline or move to collapsible section
+When building layouts, keep these in mind (the theme handles the CSS, but the HTML structure must support it):
+
+- Sidebar should be toggleable (hidden by default on mobile)
+- Outline can be hidden or collapsed on small screens
 - Ensure touch targets are at least 44px
 - Test pagination on narrow screens
 
@@ -258,22 +247,21 @@ Before shipping a new layout:
 
 ## Example: Complete Layout
 
+Notice there are no CSS imports. The layout imports only Astro components and data utilities. All styling comes from the theme's `docs.css`.
+
 ```astro
 ---
 /**
  * My Custom Docs Layout
  * Based on doc_style1 with custom modifications
+ *
+ * This layout only handles HTML structure and data processing.
+ * All visual styling is provided by the theme's docs.css.
  */
 import Sidebar from '../../components/sidebar/default/Sidebar.astro';
 import Body from '../../components/body/default/Body.astro';
 import Outline from '../../components/outline/default/Outline.astro';
 import Pagination from '../../components/common/Pagination.astro';
-
-import '../../components/sidebar/default/styles.css';
-import '../../components/body/default/styles.css';
-import '../../components/outline/default/styles.css';
-import '../../components/common/styles.css';
-import './layout.css';
 
 import { loadContentWithSettings, type LoadedContent, type ContentSettings } from '@loaders/data';
 import { buildSidebarTree, getPrevNext } from '@/hooks/useSidebar';
@@ -328,3 +316,5 @@ const paginationEnabled = settings.pagination?.enabled !== false;
   )}
 </div>
 ```
+
+The key principle: **Layouts = HTML structure + data processing + CSS class names. Theme = ALL visual styling.**

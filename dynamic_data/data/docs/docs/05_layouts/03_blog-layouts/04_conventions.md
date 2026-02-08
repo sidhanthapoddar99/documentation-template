@@ -14,23 +14,23 @@ Follow these conventions when creating or customizing blog layouts.
 ```
 src/layouts/blogs/styles/{style_name}/
 ├── IndexLayout.astro    # Required - post listing
-├── PostLayout.astro     # Required - single post
-├── styles.css           # Optional - shared styles
-└── index.ts             # Optional - exports
+└── PostLayout.astro     # Required - single post
 ```
 
 **Rules:**
 - Style folder uses `snake_case`: `blog_style1`, `minimal_blog`
 - Must have both `IndexLayout.astro` and `PostLayout.astro`
 - File names are exact (PascalCase with "Layout" suffix)
+- No CSS files in layout directories -- all styling lives in the theme
 
 ### Component Files
 
 ```
 src/layouts/blogs/components/{component}/{variant}/
-├── {Component}.astro    # PascalCase component name
-└── styles.css           # Associated styles
+└── {Component}.astro    # PascalCase component name
 ```
+
+Components contain only `.astro` files with HTML structure and CSS class references. All styling is defined in the theme's CSS files (e.g., `blogs.css` in `src/styles/`).
 
 ## Props Interfaces
 
@@ -168,7 +168,10 @@ Post cards should include at minimum:
 
 ### Hover States
 
+Hover and focus styles should be defined in the theme's `blogs.css`. Use classes like `.post-card` and the theme's CSS variables for consistent behavior:
+
 ```css
+/* In theme blogs.css */
 .post-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -186,9 +189,12 @@ Post cards should include at minimum:
 
 ## Grid Layout
 
+Grid layout styles belong in the theme's `blogs.css`, not in layout or component files.
+
 ### Responsive Grid
 
 ```css
+/* In theme blogs.css */
 .post-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -206,6 +212,7 @@ Post cards should include at minimum:
 ### Consistent Card Heights
 
 ```css
+/* In theme blogs.css */
 .post-card {
   display: flex;
   flex-direction: column;
@@ -227,9 +234,10 @@ Post cards should include at minimum:
 
 ### Content Width
 
-Limit content width for readability:
+Limit content width for readability in the theme's `blogs.css`:
 
 ```css
+/* In theme blogs.css */
 .blog-post {
   max-width: 720px;
   margin: 0 auto;
@@ -240,6 +248,7 @@ Limit content width for readability:
 ### Typography
 
 ```css
+/* In theme blogs.css */
 .blog-post__content {
   font-size: 1.125rem;
   line-height: 1.75;
@@ -257,6 +266,7 @@ Limit content width for readability:
 ### Images
 
 ```css
+/* In theme blogs.css */
 .blog-post__content img {
   max-width: 100%;
   height: auto;
@@ -286,7 +296,10 @@ Show limited tags on cards:
 
 ### Tag Styling
 
+Tag styles are defined in the theme CSS:
+
 ```css
+/* In theme blogs.css */
 .tag {
   display: inline-block;
   padding: 0.25rem 0.5rem;
@@ -324,7 +337,10 @@ Show limited tags on cards:
 
 ### Separator
 
+Metadata separator styles are defined in the theme CSS:
+
 ```css
+/* In theme blogs.css */
 .blog-post__meta {
   display: flex;
   gap: 1rem;
@@ -357,9 +373,10 @@ Before shipping a blog layout:
 ```
 src/layouts/blogs/styles/blog_style2/
 ├── IndexLayout.astro
-├── PostLayout.astro
-└── styles.css
+└── PostLayout.astro
 ```
+
+No CSS files in the layout directory. All styling comes from the theme.
 
 **IndexLayout.astro:**
 
@@ -367,8 +384,6 @@ src/layouts/blogs/styles/blog_style2/
 ---
 import { loadContent, type LoadedContent } from '@loaders/data';
 import PostCard from '../../components/cards/default/PostCard.astro';
-import '../../components/cards/default/styles.css';
-import './styles.css';
 
 interface Props {
   dataPath: string;
@@ -418,7 +433,6 @@ try {
 ```astro
 ---
 import PostBody from '../../components/body/default/PostBody.astro';
-import './styles.css';
 
 interface Props {
   title: string;

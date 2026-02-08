@@ -23,20 +23,17 @@
 /* 6. Markdown/content styles (scoped to .markdown-content) */
 @import './markdown.css';
 
-/* 7. Base page layout (body flex, main content, docs/blog containers) */
-@import './layout.css';
-
-/* 8. Navbar */
+/* 7. Navbar */
 @import './navbar.css';
 
-/* 9. Footer */
+/* 8. Footer */
 @import './footer.css';
 
-/* 10. Docs (sidebar, content area, outline, pagination) */
+/* 9. Docs (sidebar, content area, outline, pagination) */
 @import './docs.css';
 
-/* 11. Blog (index grid, post cards, post body) */
+/* 10. Blog (index grid, post cards, post body) */
 @import './blogs.css';
 
-/* 12. Custom pages (hero, features, info, countdown) */
+/* 11. Custom pages (hero, features, info, countdown) */
 @import './custom.css';

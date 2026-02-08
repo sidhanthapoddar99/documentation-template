@@ -78,7 +78,6 @@ layouts/
 │   ├── styles/
 │   │   ├── doc_style1/        # Complete layout bundle
 │   │   │   ├── Layout.astro   # Main component
-│   │   │   ├── layout.css     # Styles
 │   │   │   └── index.ts       # Exports
 │   │   └── doc_style2/
 │   │
