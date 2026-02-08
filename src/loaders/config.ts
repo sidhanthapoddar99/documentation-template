@@ -5,7 +5,8 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import { paths, getConfigPath } from './paths';
-import { resolveAssetUrl } from './alias';
+import { resolveAssetUrl, resolveAliasPath } from './alias';
+import { resolveThemeName } from './theme';
 
 // ============================================
 // Type Definitions
@@ -44,7 +45,7 @@ export interface EditorSettings {
 
 export interface SiteConfig {
   site: SiteMetadata;
-  theme?: string;  // Theme alias (e.g., "@theme/default" or "@theme/minimal")
+  theme?: string;  // Absolute path after loading (resolved from alias like "@theme/default")
   logo?: SiteLogo;
   editor: EditorSettings;  // Required — must be in site.yaml
   pages: Record<string, PageConfig>;
@@ -143,6 +144,20 @@ export function loadSiteConfig(): SiteConfig {
       src: resolveAssetUrl(config.logo.src),
       favicon: resolveAssetUrl(config.logo.favicon),
     };
+  }
+
+  // Resolve theme to absolute path
+  if (config.theme) {
+    config.theme = resolveThemeName(config.theme);
+  }
+
+  // Resolve page data paths to absolute paths
+  if (config.pages) {
+    for (const pageConfig of Object.values(config.pages)) {
+      if (pageConfig.data && pageConfig.data.startsWith('@')) {
+        pageConfig.data = resolveAliasPath(pageConfig.data);
+      }
+    }
   }
 
   return config;

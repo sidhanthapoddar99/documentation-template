@@ -9,7 +9,6 @@
 import fs from 'fs';
 import path from 'path';
 import { glob } from 'glob';
-import { getDataPath } from './paths';
 import { getParser } from '../parsers';
 import {
   ParserError,
@@ -119,9 +118,10 @@ export async function loadContent(
   } = options;
 
   // Resolve the data path
-  const absolutePath = path.isAbsolute(dataPath)
-    ? dataPath
-    : getDataPath(dataPath);
+  if (!path.isAbsolute(dataPath)) {
+    throw new Error(`Expected absolute data path, got "${dataPath}". Data paths should be resolved at config load time.`);
+  }
+  const absolutePath = dataPath;
 
   // Generate cache key (include sort for proper caching)
   const cacheKey = `${absolutePath}:${pattern}:${contentType}:${sort}:${order}`;
@@ -262,9 +262,10 @@ export async function loadFile(
   contentType: ContentType = 'docs'
 ): Promise<LoadedContent> {
   // Resolve the file path
-  const absolutePath = path.isAbsolute(filePath)
-    ? filePath
-    : getDataPath(filePath);
+  if (!path.isAbsolute(filePath)) {
+    throw new Error(`Expected absolute file path, got "${filePath}". File paths should be resolved at config load time.`);
+  }
+  const absolutePath = filePath;
 
   // Check if file exists
   if (!fs.existsSync(absolutePath)) {
@@ -317,9 +318,10 @@ export async function loadFile(
  * Load settings.json from a content directory
  */
 export function loadSettings(dataPath: string): ContentSettings {
-  const absolutePath = path.isAbsolute(dataPath)
-    ? dataPath
-    : getDataPath(dataPath);
+  if (!path.isAbsolute(dataPath)) {
+    throw new Error(`Expected absolute data path, got "${dataPath}". Data paths should be resolved at config load time.`);
+  }
+  const absolutePath = dataPath;
 
   const settingsPath = path.join(absolutePath, 'settings.json');
 

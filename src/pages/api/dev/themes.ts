@@ -6,7 +6,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { getAvailableThemes, loadThemeConfig } from '../../../loaders/theme';
+import { getAvailableThemes, loadThemeConfig, resolveThemeName } from '../../../loaders/theme';
 import { getTheme } from '../../../loaders/config';
 
 export const GET: APIRoute = async () => {
@@ -33,7 +33,7 @@ export const GET: APIRoute = async () => {
 
   // Get details for each available theme
   const themeDetails = themes.map((themeName) => {
-    const themeRef = themeName === 'default' ? '@theme/default' : `@theme/${themeName}`;
+    const themeRef = resolveThemeName(themeName);
     try {
       const config = loadThemeConfig(themeRef);
       return {

@@ -8,7 +8,7 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import fs from 'fs';
 import path from 'path';
-import { getAssetsPath, getPathsByCategory } from '@loaders/paths';
+import { getPathsByCategory } from '@loaders/paths';
 
 // MIME type mapping
 const mimeTypes: Record<string, string> = {
@@ -59,12 +59,7 @@ function getAllFiles(dirPath: string, basePath: string = ''): string[] {
  * Get all asset directories (from path system)
  */
 function getAssetDirs(): string[] {
-  const dirs = getPathsByCategory('asset');
-  // Fallback to primary assets path if no asset-category paths registered
-  if (dirs.length === 0) {
-    dirs.push(getAssetsPath());
-  }
-  return dirs;
+  return getPathsByCategory('asset');
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {

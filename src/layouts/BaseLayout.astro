@@ -20,7 +20,7 @@
  */
 
 import { loadSiteConfig, loadNavbarConfig, loadFooterConfig, getFavicon, getTheme } from '@loaders/config';
-import { getThemeCSS } from '@loaders/theme';
+import { getThemeCSS, resolveThemeName } from '@loaders/theme';
 
 // Note: We no longer import globals.css directly - theme CSS is injected dynamically
 // import '@styles/globals.css';
@@ -48,7 +48,7 @@ if (isDev) {
   const themeCookie = Astro.cookies.get('dev-color-theme');
   // If cookie exists and is not empty/__reset__, use it as theme override
   if (themeCookie && themeCookie.value && themeCookie.value !== '__reset__') {
-    themeRef = `@theme/${themeCookie.value}`;
+    themeRef = resolveThemeName(themeCookie.value);
   }
 }
 

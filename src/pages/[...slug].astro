@@ -13,7 +13,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 
 import { loadSiteConfig, loadContent } from '@loaders/index';
 import { getNavbarLayout, getFooterLayout } from '@loaders/config';
-import { resolveAliasPath } from '@loaders/alias';
 
 // Auto-discover all layouts using glob patterns
 const docsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
@@ -39,7 +38,7 @@ export async function getStaticPaths() {
 
   for (const [pageName, pageConfig] of Object.entries(pages)) {
     const baseUrl = pageConfig.base_url.replace(/^\//, '');
-    const dataPath = resolveAliasPath(pageConfig.data);
+    const dataPath = pageConfig.data;
     const layout = pageConfig.layout || '';
 
     if (pageConfig.type === 'custom') {
@@ -115,7 +114,7 @@ if (!pageType) {
     if (slug === baseUrl || slug.startsWith(baseUrl + '/')) {
       pageName = name;
       pageConfig = config;
-      dataPath = resolveAliasPath(config.data);
+      dataPath = config.data;
       configLayout = config.layout || '';
 
       if (config.type === 'custom') {

@@ -92,9 +92,6 @@ const earlyConfigDir = CONFIG_DIR_EARLY
 export const paths: {
   root: string;
   config: string;
-  data: string;
-  assets: string;
-  themes: string;
   src: string;
   layouts: string;
   loaders: string;
@@ -107,10 +104,6 @@ export const paths: {
 } = {
   root: projectRoot,
   config: earlyConfigDir,
-  // Placeholders — overridden by initPaths() with values from site.yaml paths:
-  data: path.resolve(earlyConfigDir, '../data'),
-  assets: path.resolve(earlyConfigDir, '../assets'),
-  themes: path.resolve(earlyConfigDir, '../themes'),
   src: path.resolve(projectRoot, 'src'),
   layouts: path.resolve(projectRoot, 'src/layouts'),
   loaders: path.resolve(projectRoot, 'src/loaders'),
@@ -223,11 +216,6 @@ export function initPaths(siteConfig: { paths?: Record<string, string>; configDi
 
     const category = getPathCategory(key);
     state.userPaths.set(key, { key, absolutePath, category });
-
-    // Update the legacy paths object for the primary keys
-    if (key === 'data') (paths as any).data = absolutePath;
-    if (key === 'assets') (paths as any).assets = absolutePath;
-    if (key === 'themes') (paths as any).themes = absolutePath;
   }
 
   // Ensure required keys are defined
@@ -285,27 +273,6 @@ export function isInitialized(): boolean {
  */
 export function getConfigPath(filename: string): string {
   return path.join(paths.config, filename);
-}
-
-/**
- * Get path to a data file/directory
- */
-export function getDataPath(subpath: string): string {
-  return path.join(paths.data, subpath);
-}
-
-/**
- * Get path to an asset file
- */
-export function getAssetsPath(subpath?: string): string {
-  return subpath ? path.join(paths.assets, subpath) : paths.assets;
-}
-
-/**
- * Get path to a theme file
- */
-export function getThemePath(subpath: string): string {
-  return path.join(paths.themes, subpath);
 }
 
 /**

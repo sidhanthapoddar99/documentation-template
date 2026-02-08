@@ -6,7 +6,7 @@
  * Longest-prefix matching ensures @data2 resolves before @data.
  */
 import path from 'path';
-import { paths, getDataPath, getUserPaths } from './paths';
+import { paths, getUserPaths } from './paths';
 
 // ============================================
 // Type Definitions
@@ -150,28 +150,6 @@ export function resolveLayoutPath(layoutRef: string): string | null {
 }
 
 /**
- * Resolve a data reference
- *
- * Examples:
- * - '@data/docs' -> '/path/to/data/docs'
- * - '@data2/test' -> '/path/to/other/data/test'
- * - '@data/pages/home.yaml' -> '/path/to/data/pages/home.yaml'
- */
-export function resolveDataPath(dataRef: string): string | null {
-  if (!dataRef.startsWith('@')) {
-    // If not an alias reference, treat as relative to primary data dir
-    return getDataPath(dataRef);
-  }
-
-  const resolved = resolveAlias(dataRef);
-  if (!resolved) {
-    return null;
-  }
-
-  return resolved.fullPath;
-}
-
-/**
  * Get the layout type from a layout reference
  *
  * Examples:
@@ -243,7 +221,6 @@ export default {
   resolveAlias,
   resolveAliasPath,
   resolveLayoutPath,
-  resolveDataPath,
   resolveAssetUrl,
   getLayoutType,
   getLayoutName,

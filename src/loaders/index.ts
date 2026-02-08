@@ -5,8 +5,6 @@ export {
   paths,
   resolvePath,
   getConfigPath,
-  getDataPath,
-  getThemePath,
   getLayoutPath,
   initPaths,
   getUserPaths,
@@ -58,13 +56,20 @@ export {
   resolveAlias,
   resolveAliasPath,
   resolveLayoutPath,
-  resolveDataPath,
   getLayoutType,
   getLayoutName,
   getAliasMap,
   type AliasPrefix,
   type ResolvedAlias,
 } from './alias';
+
+// Theme loader
+export {
+  resolveThemeName,
+  getThemeCSS,
+  loadThemeConfig,
+  getAvailableThemes,
+} from './theme';
 
 // Cache manager (unified caching with mtime-based validation)
 export {

@@ -9,7 +9,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { paths, getThemePath, getPathsByCategory } from './paths';
+import { paths, getPathsByCategory } from './paths';
 import { resolveAliasPath, extractPrefix } from './alias';
 import { addError } from './cache';
 import cacheManager from './cache-manager';
@@ -25,13 +25,61 @@ import type {
 export { clearThemeCache } from './cache-manager';
 
 /**
+ * Resolve a theme name (or alias like "@theme/default") to an absolute path.
+ *
+ * - `"default"` or `"@theme/default"` → built-in styles directory (paths.styles)
+ * - `"<name>"` or `"@theme/<name>"` → scan theme-category dirs for matching subdirectory
+ * - Any other `@` alias → resolve via resolveAliasPath()
+ * - Absolute path → returned as-is
+ *
+ * Used at config load time to resolve theme references once.
+ */
+export function resolveThemeName(name: string): string {
+  // Absolute path — already resolved
+  if (path.isAbsolute(name)) {
+    return name;
+  }
+
+  // Strip @theme/ prefix if present
+  const themeName = name.startsWith('@theme/')
+    ? name.slice('@theme/'.length)
+    : name.startsWith('@')
+      ? null  // Other @ alias — resolve generically
+      : name;
+
+  // Other @ alias (e.g. @data/mytheme) — resolve via generic alias system
+  if (themeName === null) {
+    return resolveAliasPath(name);
+  }
+
+  // "default" → built-in styles directory
+  if (themeName === 'default') {
+    return paths.styles;
+  }
+
+  // Scan theme-category directories for a matching subdirectory
+  const themeDirs = getPathsByCategory('theme');
+  for (const dir of themeDirs) {
+    const candidate = path.join(dir, themeName);
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  throw new Error(
+    `Theme "${name}" not found. Searched theme directories: ${themeDirs.join(', ') || '(none)'}. ` +
+    `Check the "theme" value in site.yaml.`
+  );
+}
+
+/**
  * Resolve a theme alias to its actual path.
  *
  * Accepts any alias path (e.g. "@theme/minimal", "@themes/minimal", "@data/mytheme")
  * as long as the resolved directory contains a valid theme.yaml manifest.
  *
  * - `@theme/default` maps to the built-in styles directory (paths.styles)
- * - `@theme/<name>` maps via getThemePath (theme-category directory)
+ * - `@theme/<name>` maps via resolveThemeName (theme-category directory)
  * - Any other `@` alias is resolved via the generic alias resolver
  * - Non-alias paths are resolved as absolute/relative paths
  *
@@ -39,19 +87,11 @@ export { clearThemeCache } from './cache-manager';
  * @returns Resolved theme path information
  */
 export function resolveThemeAlias(themeRef: string): ResolvedTheme {
-  // Special case: built-in default theme
-  if (themeRef === '@theme/default') {
-    return {
-      path: paths.styles,
-      name: 'default',
-    };
-  }
-
-  // @theme/<name> — resolve via theme-category directory
+  // @theme/<name> or @theme/default — resolve via resolveThemeName
   if (themeRef.startsWith('@theme/')) {
     const themeName = themeRef.slice('@theme/'.length);
     return {
-      path: getThemePath(themeName),
+      path: resolveThemeName(themeRef),
       name: themeName,
     };
   }
@@ -243,7 +283,10 @@ export function loadThemeConfig(themeRef: string): ThemeConfig {
     return cached;
   }
 
-  const resolved = resolveThemeAlias(themeRef);
+  // If already an absolute path (resolved at config load time), use directly
+  const resolved = path.isAbsolute(themeRef)
+    ? { path: themeRef, name: path.basename(themeRef) }
+    : resolveThemeAlias(themeRef);
 
   // Check if theme directory exists — throw instead of silent fallback
   if (!fs.existsSync(resolved.path)) {
@@ -375,6 +418,7 @@ export function getAvailableThemes(): string[] {
 }
 
 export default {
+  resolveThemeName,
   resolveThemeAlias,
   loadThemeManifest,
   loadThemeCSS,
