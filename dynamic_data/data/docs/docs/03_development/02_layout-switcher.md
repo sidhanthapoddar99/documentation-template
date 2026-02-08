@@ -17,12 +17,12 @@ The framework includes a custom dev toolbar app for rapid layout iteration. This
 ## Layout Selector
 
 When on `/docs/*` pages:
-- Switch between `doc_style1`, `doc_style2`, etc.
+- Switch between `default`, `compact`, etc.
 - Preview different sidebar configurations
 - Compare layout variants side-by-side (open in multiple tabs)
 
 When on `/blog/*` pages:
-- Switch between `blog_style1`, `blog_style2`, etc.
+- Switch between `default`, `blog_style2`, etc.
 - Preview different post card layouts
 - Test index vs post layouts
 
@@ -79,7 +79,7 @@ The layout switcher uses **cookies** to persist selections across page reloads. 
 |--------|---------|---------|
 | `dev-layout` | Content layout override | Config value |
 | `dev-color-theme` | Color theme override | Config value |
-| `dev-navbar` | Navbar style override | `style1` |
+| `dev-navbar` | Navbar style override | `default` |
 | `dev-footer` | Footer style override | `default` |
 
 Cookies expire after 7 days and are only used in development mode.
@@ -155,8 +155,8 @@ const footerLayouts = import.meta.glob('/src/layouts/footer/*/index.astro');
 
 | Layout | Description |
 |--------|-------------|
-| `doc_style1` | Full layout with sidebar, body, and outline |
-| `doc_style2` | Minimal layout without sidebar |
+| `default` | Full layout with sidebar, body, and outline |
+| `compact` | Minimal layout without sidebar |
 
 Location: `src/layouts/docs/styles/{style}/Layout.astro`
 
@@ -164,7 +164,7 @@ Location: `src/layouts/docs/styles/{style}/Layout.astro`
 
 | Style | Description |
 |-------|-------------|
-| `style1` | Full-featured with dropdowns and mobile menu |
+| `default` | Full-featured with dropdowns and mobile menu |
 | `minimal` | Simple flat navbar |
 
 Location: `src/layouts/navbar/{style}/index.astro`

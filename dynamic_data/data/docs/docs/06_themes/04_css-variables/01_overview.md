@@ -24,7 +24,7 @@ Layout components (`.astro` files) contain only HTML structure, data handling, a
 | | Dropdown menu appears on hover with a shadow | Dropdown items come from `navbar.yaml` |
 | | Footer has a grid of columns | Footer loads columns and social links from `footer.yaml` |
 | | Blog cards have 16:9 images with hover zoom | Blog index fetches posts and passes them to cards |
-| **Changes when** | You switch themes | You switch layout variants (style1 → style2) |
+| **Changes when** | You switch themes | You switch layout variants (default → compact) |
 
 ### The Rule
 
@@ -42,7 +42,7 @@ A theme defines exactly one visual style per component:
 
 If you want a visually different navbar (e.g., flat links only, no dropdowns), create a separate theme that extends the default and overrides `navbar.css`. Do not add variant selectors within the same theme.
 
-The only exception is doc layout classes (`doc_style1` vs `doc_style2`), which are handled via layout-specific CSS classes. This is a temporary arrangement that will be rethought.
+The only exception is doc layout classes (`default` vs `compact`), which are handled via layout-specific CSS classes. This is a temporary arrangement that will be rethought.
 
 ---
 

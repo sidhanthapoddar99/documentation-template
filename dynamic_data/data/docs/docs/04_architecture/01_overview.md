@@ -41,7 +41,7 @@ This documentation framework is built on a modular architecture with five distin
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                          4. LAYOUT LAYER                                │
 │   Layout Resolution    │   Components         │   Navbar/Footer         │
-│   @docs/style1 → path  │   Sidebar, Outline   │   Variants              │
+│   @docs/default → path │   Sidebar, Outline   │   Variants              │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -81,7 +81,7 @@ When a user visits `/docs/getting-started/overview`:
 | **10-11** | Load markdown files, select parser | Loaders → Parser |
 | **12-13** | Run pipeline: preprocessors embed assets | Parser → User Space |
 | **14** | Pipeline completes: renderer + postprocessors + transformers | Parser |
-| **15-16** | Resolve `@docs/style1` to Layout component | Layout |
+| **15-16** | Resolve `@docs/default` to Layout component | Layout |
 | **17-18** | Compose BaseLayout with navbar, content, footer | Render + Layout |
 | **19-20** | Return static HTML to browser | Output → Browser |
 
@@ -151,8 +151,8 @@ Page structure and reusable components:
 
 Layout resolution:
 ```
-@docs/doc_style1  →  src/layouts/docs/styles/doc_style1/Layout.astro
-@blog/blog_style1 →  src/layouts/blogs/styles/blog_style1/{Index,Post}Layout.astro
+@docs/default     →  src/layouts/docs/styles/default/Layout.astro
+@blog/default     →  src/layouts/blogs/styles/default/{Index,Post}Layout.astro
 @custom/home      →  src/layouts/custom/styles/home/Layout.astro
 ```
 
@@ -231,7 +231,7 @@ File structure determines behavior:
   Page: docs
   Config: @docs/doc_style99
   Expected: src/layouts/docs/styles/doc_style99/Layout.astro
-  Available: doc_style1, doc_style2
+  Available: default, compact
 ```
 
 ### 4. Zero Runtime Configuration

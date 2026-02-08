@@ -9,7 +9,7 @@ Navbar styles are **theme CSS** that controls the visual appearance of the navig
 
 **Theme file:** `navbar.css`
 
-This theme defines one navbar style. The layout component (`src/layouts/navbar/style1/index.astro`) defines *what* the navbar contains (logo, links, toggle buttons) and *where data comes from* (navbar.yaml). The theme CSS defines *how it looks*. If you want a different navbar appearance, create a different theme — do not add variant selectors within this file.
+This theme defines one navbar style. The layout component (`src/layouts/navbar/default/index.astro`) defines *what* the navbar contains (logo, links, toggle buttons) and *where data comes from* (navbar.yaml). The theme CSS defines *how it looks*. If you want a different navbar appearance, create a different theme — do not add variant selectors within this file.
 
 ---
 

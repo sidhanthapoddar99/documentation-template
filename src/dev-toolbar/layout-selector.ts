@@ -11,9 +11,9 @@
 // Available layouts (should match src/layouts/*/styles/)
 // TODO: Auto-discover these from the server
 const LAYOUTS = {
-  docs: ['doc_style1', 'doc_style2'],
-  blog: ['blog_style1'],  // Only blog_style1 exists currently
-  navbar: ['style1', 'minimal'],
+  docs: ['default', 'compact'],
+  blog: ['default'],
+  navbar: ['default', 'minimal'],
   footer: ['default', 'minimal'],
 } as const;
 
@@ -384,7 +384,7 @@ export default {
     if (isDocsPage) {
       html += '<div class="option-list">';
       for (const layout of LAYOUTS.docs) {
-        const isActive = activeLayout === layout || (!activeLayout && layout === 'doc_style1');
+        const isActive = activeLayout === layout || (!activeLayout && layout === 'default');
         const displayName = layout.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
         html += `
           <button class="option-btn ${isActive ? 'active' : ''}" data-layout="${layout}" data-type="docs">
@@ -398,7 +398,7 @@ export default {
     } else if (isBlogPage) {
       html += '<div class="option-list">';
       for (const layout of LAYOUTS.blog) {
-        const isActive = activeLayout === layout || (!activeLayout && layout === 'blog_style1');
+        const isActive = activeLayout === layout || (!activeLayout && layout === 'default');
         const displayName = layout.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
         html += `
           <button class="option-btn ${isActive ? 'active' : ''}" data-layout="${layout}" data-type="blog">
@@ -509,7 +509,7 @@ export default {
     </div>`;
     html += '<div class="option-list">';
     for (const style of LAYOUTS.navbar) {
-      const isActive = activeNavbar === style || (!activeNavbar && style === 'style1');
+      const isActive = activeNavbar === style || (!activeNavbar && style === 'default');
       const displayName = style.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
       html += `
         <button class="option-btn ${isActive ? 'active' : ''}" data-navbar="${style}">

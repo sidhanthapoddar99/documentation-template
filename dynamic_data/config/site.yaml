@@ -55,26 +55,26 @@ pages:
   docs:
     base_url: "/docs/final-docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs/docs"
 
   components:
     base_url: "/docs/components"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs/components"
 
   todo:
     base_url: "/todo"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs/todo"
 
   # Blog
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 
   # Custom Pages

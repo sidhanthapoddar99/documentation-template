@@ -18,7 +18,7 @@ src/layouts/docs/styles/{style_name}/
 ```
 
 **Rules:**
-- Style folder name uses `snake_case`: `doc_style1`, `minimal_docs`
+- Style folder name uses `snake_case`: `default`, `compact`, `minimal_docs`
 - Main component must be named `Layout.astro` (exact match)
 - All CSS lives in the theme, not in layout folders
 
@@ -253,7 +253,7 @@ Notice there are no CSS imports. The layout imports only Astro components and da
 ---
 /**
  * My Custom Docs Layout
- * Based on doc_style1 with custom modifications
+ * Based on default with custom modifications
  *
  * This layout only handles HTML structure and data processing.
  * All visual styling is provided by the theme's docs.css.

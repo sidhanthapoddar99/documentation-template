@@ -11,16 +11,16 @@ Layouts define how your content is displayed. The framework provides layouts for
 
 A layout is an Astro component that receives processed content and renders it with a specific structure. For example:
 
-- **doc_style1**: Shows sidebar navigation + content body + table of contents
-- **doc_style2**: Shows content body + table of contents (no sidebar)
-- **blog_style1**: Shows post cards on index, full post content on detail pages
+- **default**: Shows sidebar navigation + content body + table of contents
+- **compact**: Shows content body + table of contents (no sidebar)
+- **default** (blog): Shows post cards on index, full post content on detail pages
 
 ```
 Content (Markdown)  →  Parser Pipeline  →  Layout  →  Final HTML
                                               │
                                     ┌─────────┴─────────┐
                                     │                   │
-                              doc_style1          doc_style2
+                              default             compact
                               (3 columns)         (2 columns)
 ```
 
@@ -45,9 +45,9 @@ src/layouts/
 │
 ├── docs/
 │   ├── styles/               # Layout variants
-│   │   ├── doc_style1/       # Full layout (sidebar + body + outline)
+│   │   ├── default/          # Full layout (sidebar + body + outline)
 │   │   │   └── Layout.astro
-│   │   └── doc_style2/       # Compact layout (body + outline)
+│   │   └── compact/          # Compact layout (body + outline)
 │   │       └── Layout.astro
 │   └── components/           # Shared components (Astro only, no CSS)
 │       ├── sidebar/default/
@@ -61,7 +61,7 @@ src/layouts/
 │
 ├── blogs/
 │   ├── styles/
-│   │   └── blog_style1/      # Index + Post layouts
+│   │   └── default/          # Index + Post layouts
 │   └── components/
 │       ├── body/default/
 │       └── cards/default/
@@ -77,7 +77,7 @@ src/layouts/
 │       └── content/default/
 │
 ├── navbar/                   # Navigation variants (different HTML, no CSS)
-│   ├── style1/
+│   ├── default/
 │   │   └── index.astro
 │   └── minimal/
 │       └── index.astro
@@ -101,13 +101,13 @@ pages:
   docs:
     base_url: "/docs"
     type: docs
-    layout: "@docs/doc_style1"      # ← Layout reference
+    layout: "@docs/default"      # ← Layout reference
     data: "@data/docs"
 
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 
   home:
@@ -125,8 +125,8 @@ pages:
 
 | Reference | Resolves To |
 |-----------|-------------|
-| `@docs/doc_style1` | `src/layouts/docs/styles/doc_style1/Layout.astro` |
-| `@blog/blog_style1` | `src/layouts/blogs/styles/blog_style1/*.astro` |
+| `@docs/default` | `src/layouts/docs/styles/default/Layout.astro` |
+| `@blog/default` | `src/layouts/blogs/styles/default/*.astro` |
 | `@custom/home` | `src/layouts/custom/styles/home/Layout.astro` |
 
 ## Dev Toolbar: Layout Switcher
@@ -147,7 +147,7 @@ The page reloads with the new layout instantly.
 You can also switch layouts via URL query parameter:
 
 ```
-/docs/overview?layout=doc_style2
+/docs/overview?layout=compact
 /blog?layout=blog_style2
 ```
 
@@ -205,14 +205,14 @@ All layouts receive **processed HTML content**, not raw markdown:
 
 | Layout | Description |
 |--------|-------------|
-| `doc_style1` | Full layout: sidebar + body + outline |
-| `doc_style2` | Minimal layout: body + outline (no sidebar) |
+| `default` | Full layout: sidebar + body + outline |
+| `compact` | Minimal layout: body + outline (no sidebar) |
 
 ### Blog Layouts
 
 | Layout | Description |
 |--------|-------------|
-| `blog_style1` | Standard blog with post cards and full post pages |
+| `default` | Standard blog with post cards and full post pages |
 
 ### Custom Layouts
 

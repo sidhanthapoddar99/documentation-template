@@ -29,10 +29,10 @@ The framework uses CSS variables for easy theming:
 Choose from different layout packages:
 
 ### Documentation Layouts
-- `@docs/doc_style1` - Standard three-column layout
+- `@docs/default` - Standard three-column layout
 
 ### Blog Layouts
-- `@blog/blog_style1` - Card-based blog layout
+- `@blog/default` - Card-based blog layout
 
 ### Custom Layouts
 - `@custom/home` - Hero + features homepage

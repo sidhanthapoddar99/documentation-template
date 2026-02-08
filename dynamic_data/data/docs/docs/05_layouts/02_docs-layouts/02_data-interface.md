@@ -30,7 +30,7 @@ Route Handler ([...slug].astro)
    • title, description, etc.
             │
             ▼
-Layout (doc_style1)
+Layout (default)
 ───────────────────
 • Page content: Just render it (already HTML)
 • Outline: Filter headings array, render links

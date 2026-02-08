@@ -33,7 +33,7 @@ src/layouts/
 │       └── content/default/Content.astro
 │
 ├── navbar/
-│   ├── style1/index.astro
+│   ├── default/index.astro
 │   └── minimal/index.astro
 │
 └── footer/
@@ -349,9 +349,9 @@ interface Props {
 
 ## Navbar Components
 
-### NavbarStyle1
+### NavbarDefault
 
-**File:** `src/layouts/navbar/style1/index.astro`
+**File:** `src/layouts/navbar/default/index.astro`
 
 Full-featured navbar with logo, links, and dropdowns.
 
@@ -428,11 +428,11 @@ const config = loadFooterConfig();
 
 ## Composition Example
 
-How `doc_style1` composes components:
+How `default` composes components:
 
 ```astro
 ---
-// doc_style1/Layout.astro
+// default/Layout.astro
 import Sidebar from '../components/sidebar/default/Sidebar.astro';
 import Body from '../components/body/default/Body.astro';
 import Outline from '../components/outline/default/Outline.astro';

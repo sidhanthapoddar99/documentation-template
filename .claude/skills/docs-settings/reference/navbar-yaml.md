@@ -10,7 +10,7 @@ The `navbar.yaml` file configures the navigation menu at the top of the site.
 
 ```yaml
 # Layout style
-layout: "@navbar/style1"
+layout: "@navbar/default"
 
 # Navigation items
 items:
@@ -36,11 +36,11 @@ items:
 ### `layout` - Navbar Style
 
 ```yaml
-layout: "@navbar/style1"
+layout: "@navbar/default"
 ```
 
 **Available Layouts:**
-- `@navbar/style1` - Full-featured navbar with dropdowns
+- `@navbar/default` - Full-featured navbar with dropdowns
 - `@navbar/minimal` - Simple navbar
 
 ### `items` - Navigation Items
@@ -92,7 +92,7 @@ External links (starting with `http://` or `https://`) open in a new tab.
 ## Complete Example
 
 ```yaml
-layout: "@navbar/style1"
+layout: "@navbar/default"
 
 items:
   - label: "Home"

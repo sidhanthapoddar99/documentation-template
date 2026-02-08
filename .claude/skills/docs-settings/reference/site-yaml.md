@@ -203,14 +203,14 @@ pages:
   docs:
     base_url: "/docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs"
 ```
 
 **Data Path:** Points to a folder containing markdown files with `XX_` prefixes.
 
 **Available Layouts:**
-- `@docs/doc_style1` - Standard documentation layout
+- `@docs/default` - Standard documentation layout
 
 ### Type: `blog`
 
@@ -221,14 +221,14 @@ pages:
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 ```
 
 **Data Path:** Points to a folder containing `YYYY-MM-DD-slug.md` files.
 
 **Available Layouts:**
-- `@blog/blog_style1` - Standard blog layout
+- `@blog/default` - Standard blog layout
 
 ### Type: `custom`
 
@@ -298,55 +298,55 @@ pages:
   docs:
     base_url: "/docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs"
 
   # User Guide
   user-guide:
     base_url: "/user-guide"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/user-guide"
 
   # PRD
   prd:
     base_url: "/prd"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/prd"
 
   # Internal Docs
   internal-docs:
     base_url: "/internal-docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/internal-docs"
 
   # Template Documentation
   doc-template-docs:
     base_url: "/doc-template/docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/doc-template/docs"
 
   doc-template-components:
     base_url: "/doc-template/components"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/doc-template/components"
 
   # Roadmap
   roadmap:
     base_url: "/roadmap"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/roadmap"
 
   # Blog
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 
   # Custom Pages

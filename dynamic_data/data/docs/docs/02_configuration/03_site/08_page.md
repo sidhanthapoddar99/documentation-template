@@ -24,13 +24,13 @@ pages:
   docs:
     base_url: "/docs/final-docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs/final_docs"
 
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 
   home:
@@ -59,7 +59,7 @@ Documentation pages with sidebar navigation:
 docs:
   base_url: "/docs/final-docs"
   type: docs
-  layout: "@docs/doc_style1"
+  layout: "@docs/default"
   data: "@data/docs/final_docs"
 ```
 
@@ -75,7 +75,7 @@ Blog posts with date-based ordering:
 blog:
   base_url: "/blog"
   type: blog
-  layout: "@blog/blog_style1"
+  layout: "@blog/default"
   data: "@data/blog"
 ```
 
@@ -122,19 +122,19 @@ pages:
   docs:
     base_url: "/docs/final-docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs/final_docs"
 
   layouts:
     base_url: "/docs/layouts"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs/layouts"
 
   components:
     base_url: "/docs/components"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs/components"
 ```
 

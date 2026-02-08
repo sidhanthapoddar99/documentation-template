@@ -66,11 +66,11 @@ Path aliases provide a clean, consistent way to reference files and directories 
 # Layout aliases
 pages:
   docs:
-    layout: "@docs/doc_style1"    # src/layouts/docs/styles/doc_style1/
+    layout: "@docs/default"    # src/layouts/docs/styles/default/
     data: "@data/docs/final_docs" # paths.data/docs/final_docs/
 
   blog:
-    layout: "@blog/blog_style1"   # src/layouts/blogs/styles/blog_style1/
+    layout: "@blog/default"   # src/layouts/blogs/styles/default/
     data: "@data/blog"            # paths.data/blog/
 
 # Theme alias
@@ -111,8 +111,8 @@ import { resolveAlias, resolveAliasPath } from '@loaders/alias';
 import { paths, getThemePath, getDataPath } from '@loaders/paths';
 
 // Resolve an alias to full path info
-const resolved = resolveAlias('@docs/doc_style1');
-// { type: '@docs', name: 'doc_style1', fullPath: '/path/to/src/layouts/docs/doc_style1' }
+const resolved = resolveAlias('@docs/default');
+// { type: '@docs', name: 'default', fullPath: '/path/to/src/layouts/docs/default' }
 
 // Resolve just the path
 const path = resolveAliasPath('@data/docs');
@@ -128,14 +128,14 @@ const themePath = getThemePath('minimal');
 ### Layout Aliases (@docs, @blog, @custom)
 
 ```typescript
-'@docs/doc_style1'
-  → src/layouts/docs/styles/doc_style1/Layout.astro
+'@docs/default'
+  → src/layouts/docs/styles/default/Layout.astro
 
-'@blog/blog_style1'
-  → src/layouts/blogs/styles/blog_style1/Layout.astro
+'@blog/default'
+  → src/layouts/blogs/styles/default/Layout.astro
 
-'@navbar/style1'
-  → src/layouts/navbar/style1/index.astro
+'@navbar/default'
+  → src/layouts/navbar/default/index.astro
 ```
 
 ### Data Aliases (@data)

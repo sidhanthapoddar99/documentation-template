@@ -21,7 +21,7 @@ The layout system (`src/layouts/`) implements a **shared data, different structu
          ┌───────────────────────┼───────────────────────┐
          ▼                       ▼                       ▼
    ┌───────────┐           ┌───────────┐           ┌───────────┐
-   │doc_style1 │           │doc_style2 │           │doc_style3 │
+   │default    │           │compact    │           │doc_style3 │
    │           │           │           │           │           │
    │ Sidebar   │           │           │           │ Sidebar   │
    │ Body      │           │ Body      │           │ Body      │
@@ -54,8 +54,8 @@ The difference is purely **structural** — which components are rendered and ho
 │                                                                         │
 │   ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐       │
 │   │  BaseLayout     │   │  Layout Styles  │   │  Components     │       │
-│   │  (HTML shell)   │   │  @docs/style1   │   │  Sidebar, Body  │       │
-│   │                 │   │  @blog/style1   │   │  Outline, etc.  │       │
+│   │  (HTML shell)   │   │  @docs/default  │   │  Sidebar, Body  │       │
+│   │                 │   │  @blog/default  │   │  Outline, etc.  │       │
 │   └────────┬────────┘   └────────┬────────┘   └────────┬────────┘       │
 │            │                     │                     │                │
 │            └─────────────────────┴─────────────────────┘                │
@@ -72,8 +72,8 @@ src/layouts/
 │
 ├── docs/                         # Documentation layouts
 │   ├── styles/
-│   │   ├── doc_style1/Layout.astro   # 3-column: sidebar + body + outline
-│   │   └── doc_style2/Layout.astro   # 2-column: body + outline
+│   │   ├── default/Layout.astro      # 3-column: sidebar + body + outline
+│   │   └── compact/Layout.astro      # 2-column: body + outline
 │   └── components/               # Shared doc components
 │       ├── sidebar/default/
 │       ├── body/default/
@@ -82,7 +82,7 @@ src/layouts/
 │
 ├── blogs/                        # Blog layouts
 │   ├── styles/
-│   │   └── blog_style1/
+│   │   └── default/
 │   │       ├── IndexLayout.astro     # Blog listing page
 │   │       └── PostLayout.astro      # Single post page
 │   └── components/
@@ -98,7 +98,7 @@ src/layouts/
 │       └── features/
 │
 ├── navbar/                       # Navbar variants
-│   ├── style1/index.astro
+│   ├── default/index.astro
 │   └── minimal/index.astro
 │
 └── footer/                       # Footer variants
@@ -113,7 +113,7 @@ src/layouts/
 Layouts compose from shared components rather than extending base classes:
 
 ```astro
-<!-- doc_style1/Layout.astro -->
+<!-- default/Layout.astro -->
 <div class="docs-layout three-column">
   <Sidebar nodes={sidebarNodes} currentPath={currentPath} />
   <Body title={title} content={content}>
@@ -144,7 +144,7 @@ Missing or invalid layouts throw descriptive errors at build time:
   Page: docs
   Config: @docs/doc_style99
   Expected: src/layouts/docs/styles/doc_style99/Layout.astro
-  Available: doc_style1, doc_style2
+  Available: default, compact
 ```
 
 ### 4. Standardized Paths
@@ -157,8 +157,8 @@ src/layouts/{type}/styles/{style}/Layout.astro
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| Docs | `docs/styles/{style}/Layout.astro` | `doc_style1` |
-| Blog | `blogs/styles/{style}/*.astro` | `blog_style1` |
+| Docs | `docs/styles/{style}/Layout.astro` | `default` |
+| Blog | `blogs/styles/{style}/*.astro` | `default` |
 | Custom | `custom/styles/{style}/Layout.astro` | `home` |
 
 ## Data Flow Summary

@@ -11,7 +11,7 @@ The layout switcher requires **server mode** to function during development. Thi
 
 Astro's default **static mode** pre-renders all pages at build time. While this is excellent for production (fast, cacheable HTML), it creates a limitation:
 
-**Query parameters (`?layout=doc_style2`) are not available during static rendering.**
+**Query parameters (`?layout=compact`) are not available during static rendering.**
 
 In static mode:
 - `Astro.url.searchParams` is empty (params stripped)
@@ -142,7 +142,7 @@ export default defineConfig({
 If layout switching isn't working, check the terminal for:
 
 ```
-[middleware] URL: http://localhost:4321/docs/page?layout=doc_style2 | layout: doc_style2
+[middleware] URL: http://localhost:4321/docs/page?layout=compact | layout: compact
 ```
 
 If you don't see this log, middleware isn't running (likely static mode).

@@ -67,13 +67,13 @@ pages:
   docs:
     base_url: "/docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs"
 
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 ```
 

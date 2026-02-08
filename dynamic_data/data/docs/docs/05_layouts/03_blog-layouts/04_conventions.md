@@ -18,7 +18,7 @@ src/layouts/blogs/styles/{style_name}/
 ```
 
 **Rules:**
-- Style folder uses `snake_case`: `blog_style1`, `minimal_blog`
+- Style folder uses `snake_case`: `default`, `minimal_blog`
 - Must have both `IndexLayout.astro` and `PostLayout.astro`
 - File names are exact (PascalCase with "Layout" suffix)
 - No CSS files in layout directories -- all styling lives in the theme

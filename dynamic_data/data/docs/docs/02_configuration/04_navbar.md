@@ -18,7 +18,7 @@ config/navbar.yaml
 
 ```yaml
 # Navbar layout style
-layout: "@navbar/style1"
+layout: "@navbar/default"
 
 # Note: Logo configuration has moved to site.yaml
 
@@ -38,20 +38,20 @@ items:
 Specify which navbar style to use:
 
 ```yaml
-layout: "@navbar/style1"
+layout: "@navbar/default"
 ```
 
 ### Available Styles
 
 | Style | Alias | Description |
 |-------|-------|-------------|
-| **Style 1** | `@navbar/style1` | Full-featured navbar with dropdowns, mobile menu, theme toggle |
+| **Default** | `@navbar/default` | Full-featured navbar with dropdowns, mobile menu, theme toggle |
 | **Minimal** | `@navbar/minimal` | Simple flat navbar with basic links and theme toggle |
 
 ### Style Resolution
 
 The layout alias resolves to the component file:
-- `@navbar/style1` → `src/layouts/navbar/style1/index.astro`
+- `@navbar/default` → `src/layouts/navbar/default/index.astro`
 - `@navbar/minimal` → `src/layouts/navbar/minimal/index.astro`
 
 ### Dev Toolbar Switching
@@ -143,7 +143,7 @@ interface NavItem {
 }
 
 interface NavbarConfig {
-  layout?: string;  // Layout alias (e.g., "@navbar/style1")
+  layout?: string;  // Layout alias (e.g., "@navbar/default")
   items: NavItem[];
 }
 ```
@@ -157,7 +157,7 @@ const navbar = loadNavbarConfig();
 const { items } = navbar;
 
 // Get the configured navbar layout
-const navbarLayout = getNavbarLayout(); // Returns "@navbar/style1" by default
+const navbarLayout = getNavbarLayout(); // Returns "@navbar/default" by default
 
 // Logo is now loaded separately from site config
 const logo = getSiteLogo();
@@ -169,7 +169,7 @@ If `navbar.yaml` is missing or `layout` is not specified:
 
 ```typescript
 {
-  layout: '@navbar/style1',  // Default navbar style
+  layout: '@navbar/default',  // Default navbar style
   items: [],
 }
 ```
@@ -179,8 +179,8 @@ If `navbar.yaml` is missing or `layout` is not specified:
 ```yaml
 # navbar.yaml
 
-# Layout style: @navbar/style1 (full-featured) or @navbar/minimal (simple)
-layout: "@navbar/style1"
+# Layout style: @navbar/default (full-featured) or @navbar/minimal (simple)
+layout: "@navbar/default"
 
 items:
   - label: "Home"

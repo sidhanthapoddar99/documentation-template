@@ -2,7 +2,7 @@
 # Note: Logo configuration has moved to site.yaml
 
 # Layout style: @navbar/style1 (full-featured) or @navbar/minimal (simple)
-layout: "@navbar/style1"
+layout: "@navbar/default"
 
 items:
   - label: "Home"

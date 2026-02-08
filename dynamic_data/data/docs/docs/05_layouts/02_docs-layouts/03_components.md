@@ -322,7 +322,7 @@ import Sidebar from '../../components/sidebar/modern/Sidebar.astro';
 
 ## Component Composition Example
 
-Here's how `doc_style1` composes components. Note there are no CSS imports — layouts only import Astro components and data utilities:
+Here's how `default` composes components. Note there are no CSS imports — layouts only import Astro components and data utilities:
 
 ```astro
 ---

@@ -89,10 +89,10 @@ export function extractPrefix(aliasPath: string): AliasPrefix | null {
  * Resolve an alias path to an absolute path
  *
  * Examples:
- * - '@docs/doc_style1' -> '/path/to/src/layouts/docs/doc_style1'
+ * - '@docs/default' -> '/path/to/src/layouts/docs/default'
  * - '@data/docs' -> '/path/to/data/docs'
  * - '@data2/test' -> '/path/to/other/data/test'
- * - '@navbar/style1' -> '/path/to/src/layouts/navbar/style1'
+ * - '@navbar/default' -> '/path/to/src/layouts/navbar/default'
  */
 export function resolveAlias(aliasPath: string): ResolvedAlias | null {
   if (!isAliasPath(aliasPath)) {
@@ -136,8 +136,8 @@ export function resolveAliasPath(aliasPath: string): string {
  * Resolve a layout reference
  *
  * Examples:
- * - '@docs/doc_style1' -> '/path/to/src/layouts/docs/doc_style1/index.astro'
- * - '@navbar/style1' -> '/path/to/src/layouts/navbar/style1/index.astro'
+ * - '@docs/default' -> '/path/to/src/layouts/docs/default/index.astro'
+ * - '@navbar/default' -> '/path/to/src/layouts/navbar/default/index.astro'
  */
 export function resolveLayoutPath(layoutRef: string): string | null {
   const resolved = resolveAlias(layoutRef);
@@ -170,8 +170,8 @@ export function getLayoutType(layoutRef: string): string | null {
  * Get the layout name from a layout reference
  *
  * Examples:
- * - '@docs/doc_style1' -> 'doc_style1'
- * - '@navbar/style1' -> 'style1'
+ * - '@docs/default' -> 'default'
+ * - '@navbar/default' -> 'default'
  */
 export function getLayoutName(layoutRef: string): string | null {
   const resolved = resolveAlias(layoutRef);

@@ -11,12 +11,12 @@ Documentation layouts are designed for hierarchical content with navigation. The
 
 | Layout | Structure | Best For |
 |--------|-----------|----------|
-| `doc_style1` | Sidebar + Body + Outline | Full documentation sites |
-| `doc_style2` | Body + Outline | Simple docs, single-page guides |
+| `default` | Sidebar + Body + Outline | Full documentation sites |
+| `compact` | Body + Outline | Simple docs, single-page guides |
 
 ## Visual Structure
 
-### doc_style1 (Full Layout)
+### default (Full Layout)
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -44,7 +44,7 @@ Documentation layouts are designed for hierarchical content with navigation. The
 - `Outline` — Table of contents (right sidebar)
 - `Pagination` — Prev/Next links
 
-### doc_style2 (Minimal Layout)
+### compact (Minimal Layout)
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -78,10 +78,10 @@ Docs layout directories contain only Astro components. All CSS is provided by th
 ```
 src/layouts/docs/
 ├── styles/
-│   ├── doc_style1/
+│   ├── default/
 │   │   └── Layout.astro      # Main layout component (no CSS files)
 │   │
-│   └── doc_style2/
+│   └── compact/
 │       └── Layout.astro
 │
 └── components/               # Shared across all doc layouts (no CSS files)
@@ -110,7 +110,7 @@ pages:
   docs:
     base_url: "/docs"
     type: docs                    # ← Triggers docs layout
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs"
 ```
 
@@ -194,8 +194,8 @@ draft: true                    # Optional - hides in production
 
 | Use Case | Recommended Layout |
 |----------|-------------------|
-| Full documentation site | `doc_style1` |
-| API reference with TOC | `doc_style1` |
-| Simple guide/tutorial | `doc_style2` |
-| Single-page documentation | `doc_style2` |
-| FAQ or changelog | `doc_style2` |
+| Full documentation site | `default` |
+| API reference with TOC | `default` |
+| Simple guide/tutorial | `compact` |
+| Single-page documentation | `compact` |
+| FAQ or changelog | `compact` |

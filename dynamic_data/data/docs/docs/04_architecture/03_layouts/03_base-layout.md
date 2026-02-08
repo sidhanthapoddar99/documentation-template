@@ -118,7 +118,7 @@ BaseLayout uses Astro's named slots for composition:
 
 | Slot | Purpose | Filled By |
 |------|---------|-----------|
-| `navbar` | Top navigation | `NavbarStyle1`, `NavbarMinimal` |
+| `navbar` | Top navigation | `NavbarDefault`, `NavbarMinimal` |
 | (default) | Main content | Layout components |
 | `footer` | Bottom footer | `FooterDefault`, `FooterMinimal` |
 
@@ -128,13 +128,13 @@ BaseLayout uses Astro's named slots for composition:
 ---
 // In [...slug].astro
 import BaseLayout from '@layouts/BaseLayout.astro';
-import NavbarStyle1 from '@layouts/navbar/style1/index.astro';
+import NavbarDefault from '@layouts/navbar/default/index.astro';
 import FooterDefault from '@layouts/footer/default/index.astro';
-import DocsLayout from '@layouts/docs/styles/doc_style1/Layout.astro';
+import DocsLayout from '@layouts/docs/styles/default/Layout.astro';
 ---
 
 <BaseLayout title={title} description={description}>
-  <NavbarStyle1 slot="navbar" />
+  <NavbarDefault slot="navbar" />
 
   <DocsLayout {...layoutProps} />
 

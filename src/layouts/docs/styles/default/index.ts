@@ -1,5 +1,5 @@
 /**
- * Doc Style 1 - Classic documentation layout
+ * Default - Classic documentation layout
  *
  * Components:
  * - Sidebar: default (collapsible sections)
@@ -26,7 +26,7 @@ export const styles = [
 
 // Layout configuration
 export const config = {
-  name: 'doc_style1',
+  name: 'default',
   description: 'Classic documentation layout with sidebar and outline',
   features: {
     sidebar: true,

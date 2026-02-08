@@ -60,7 +60,7 @@ pages:
   new-section:
     base_url: "/new-section"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/new-section"
 ```
 
@@ -116,7 +116,7 @@ pages:
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 ```
 

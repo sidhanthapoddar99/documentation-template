@@ -91,7 +91,7 @@ pages:
   todo:
     base_url: "/todo"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs/todo"
     hideInProd: true  # Only visible in dev mode
 ```
@@ -105,7 +105,7 @@ pages:
 
 ```yaml
 # navbar.yaml example
-layout: "@navbar/style1"
+layout: "@navbar/default"
 
 items:
   - label: "Home"

@@ -6,15 +6,15 @@ sidebar_position: 5
 
 # Layout Resolution
 
-Layout resolution is the process of converting a layout reference (like `@docs/doc_style1`) into an actual Astro component file path.
+Layout resolution is the process of converting a layout reference (like `@docs/default`) into an actual Astro component file path.
 
 ## Resolution Flow
 
 ```
 site.yaml config                    Resolved component path
 ─────────────────                   ─────────────────────────
-@docs/doc_style1         ────▶      src/layouts/docs/styles/doc_style1/Layout.astro
-@blog/blog_style1        ────▶      src/layouts/blogs/styles/blog_style1/*.astro
+@docs/default            ────▶      src/layouts/docs/styles/default/Layout.astro
+@blog/default            ────▶      src/layouts/blogs/styles/default/*.astro
 @custom/home             ────▶      src/layouts/custom/styles/home/Layout.astro
 ```
 
@@ -29,7 +29,7 @@ src/layouts/{type}/styles/{style}/Layout.astro
 | Component | Description | Examples |
 |-----------|-------------|----------|
 | `{type}` | Layout category | `docs`, `blogs`, `custom` |
-| `{style}` | Style variant | `doc_style1`, `blog_style1`, `home` |
+| `{style}` | Style variant | `default`, `compact`, `home` |
 
 ## Resolution in `[...slug].astro`
 
@@ -58,7 +58,7 @@ const customLayouts = import.meta.glob(
 
 ```typescript
 function resolveLayout(layoutRef: string, pageType: string) {
-  // Parse the reference: "@docs/doc_style1"
+  // Parse the reference: "@docs/default"
   const match = layoutRef.match(/^@(\w+)\/(\w+)$/);
   if (!match) {
     throw new Error(`Invalid layout reference: ${layoutRef}`);
@@ -140,8 +140,8 @@ export function getLayoutType(layoutRef: string): string | null {
 }
 
 // Mapping
-'@docs/doc_style1'  → type: 'docs',  style: 'doc_style1'
-'@blog/blog_style1' → type: 'blog',  style: 'blog_style1'
+'@docs/default'  → type: 'docs',  style: 'default'
+'@blog/default' → type: 'blog',  style: 'default'
 '@custom/home'      → type: 'custom', style: 'home'
 ```
 
@@ -153,8 +153,8 @@ The system provides descriptive errors at build time:
 
 ```
 [LAYOUT ERROR] Invalid layout reference format.
-  Value: "docs/style1"
-  Expected: "@type/style" (e.g., "@docs/doc_style1")
+  Value: "docs/default"
+  Expected: "@type/style" (e.g., "@docs/default")
 ```
 
 ### Unknown Type
@@ -171,7 +171,7 @@ The system provides descriptive errors at build time:
   Page: docs
   Config: @docs/doc_style99
   Expected: src/layouts/docs/styles/doc_style99/Layout.astro
-  Available: doc_style1, doc_style2
+  Available: default, compact
 ```
 
 ## Why Glob Imports?
@@ -201,18 +201,18 @@ pages:
   docs:
     base_url: "/docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs"
 ```
 
 Resolution steps:
 
 ```
-1. Read config:     layout: "@docs/doc_style1"
+1. Read config:     layout: "@docs/default"
                            │
-2. Parse reference: type: "docs", style: "doc_style1"
+2. Parse reference: type: "docs", style: "default"
                            │
-3. Build path:      /src/layouts/docs/styles/doc_style1/Layout.astro
+3. Build path:      /src/layouts/docs/styles/default/Layout.astro
                            │
 4. Glob lookup:     docsLayouts[path] → Component
                            │

@@ -180,55 +180,55 @@ pages:
   docs:
     base_url: "/docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/docs"
 
   # User Guide
   user-guide:
     base_url: "/user-guide"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/user-guide"
 
   # PRD Documentation
   prd:
     base_url: "/prd"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/prd"
 
   # Internal Documentation
   internal-docs:
     base_url: "/internal-docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/internal-docs"
 
   # Template Documentation (reference)
   doc-template-docs:
     base_url: "/doc-template/docs"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/doc-template/docs"
 
   doc-template-components:
     base_url: "/doc-template/components"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/doc-template/components"
 
   # Roadmap
   roadmap:
     base_url: "/roadmap"
     type: docs
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
     data: "@data/roadmap"
 
   # Blog
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 
   # Custom Pages
@@ -251,7 +251,7 @@ Create `data/config/navbar.yaml`:
 
 ```yaml
 # Navbar Configuration
-layout: "@navbar/style1"
+layout: "@navbar/default"
 
 items:
   - label: "Home"

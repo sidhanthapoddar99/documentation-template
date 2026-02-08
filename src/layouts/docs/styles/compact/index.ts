@@ -1,5 +1,5 @@
 /**
- * Doc Style 2 - Minimal documentation layout
+ * Compact - Documentation layout without sidebar
  *
  * Components:
  * - Sidebar: none (no sidebar)
@@ -22,8 +22,8 @@ export const styles = [
 ];
 
 export const config = {
-  name: 'doc_style2',
-  description: 'Minimal documentation layout without sidebar',
+  name: 'compact',
+  description: 'Compact documentation layout without sidebar',
   features: {
     sidebar: false,
     outline: true,

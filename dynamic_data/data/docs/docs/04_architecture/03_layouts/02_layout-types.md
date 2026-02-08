@@ -12,8 +12,8 @@ The framework provides three layout types, each designed for different content p
 
 | Type | Purpose | Layouts | Key Feature |
 |------|---------|---------|-------------|
-| **Docs** | Documentation | `doc_style1`, `doc_style2` | Sidebar navigation, TOC |
-| **Blog** | Blog posts | `blog_style1` | Date sorting, post cards |
+| **Docs** | Documentation | `default`, `compact` | Sidebar navigation, TOC |
+| **Blog** | Blog posts | `default` | Date sorting, post cards |
 | **Custom** | Arbitrary pages | `home`, `info` | Flexible structure |
 
 ## Docs Layouts
@@ -36,9 +36,9 @@ interface DocsLayoutProps {
 }
 ```
 
-### doc_style1 — Three Column
+### default — Three Column
 
-**File:** `src/layouts/docs/styles/doc_style1/Layout.astro`
+**File:** `src/layouts/docs/styles/default/Layout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -65,9 +65,9 @@ interface DocsLayoutProps {
 - Right-side outline (table of contents)
 - Prev/Next pagination
 
-### doc_style2 — Two Column
+### compact — Two Column
 
-**File:** `src/layouts/docs/styles/doc_style2/Layout.astro`
+**File:** `src/layouts/docs/styles/compact/Layout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -110,7 +110,7 @@ Blog layouts handle date-based content with listing and detail views.
 
 ### IndexLayout — Post Listing
 
-**File:** `src/layouts/blogs/styles/blog_style1/IndexLayout.astro`
+**File:** `src/layouts/blogs/styles/default/IndexLayout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -144,7 +144,7 @@ interface BlogIndexProps {
 
 ### PostLayout — Single Post
 
-**File:** `src/layouts/blogs/styles/blog_style1/PostLayout.astro`
+**File:** `src/layouts/blogs/styles/default/PostLayout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -257,13 +257,13 @@ pages:
   docs:
     base_url: "/docs"
     type: docs
-    layout: "@docs/doc_style1"    # ← Layout reference
+    layout: "@docs/default"    # ← Layout reference
     data: "@data/docs"
 
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 
   home:

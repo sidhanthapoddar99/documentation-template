@@ -64,7 +64,7 @@ export interface NavbarLogo {
 }
 
 export interface NavbarConfig {
-  layout?: string;  // Layout alias (e.g., "@navbar/style1" or "@navbar/minimal")
+  layout?: string;  // Layout alias (e.g., "@navbar/default" or "@navbar/minimal")
   logo?: NavbarLogo;
   items: NavItem[];
 }
@@ -198,7 +198,7 @@ export function getTheme(): string {
  */
 export function getNavbarLayout(): string {
   const config = loadNavbarConfig();
-  return config.layout || '@navbar/style1';
+  return config.layout || '@navbar/default';
 }
 
 /**

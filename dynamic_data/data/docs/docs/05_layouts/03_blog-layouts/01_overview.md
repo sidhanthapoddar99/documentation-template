@@ -17,7 +17,7 @@ Unlike docs layouts (single `Layout.astro`), blog layouts require **two componen
 | `PostLayout.astro` | Single post view | `/blog/{slug}` |
 
 ```
-src/layouts/blogs/styles/blog_style1/
+src/layouts/blogs/styles/default/
 ├── IndexLayout.astro    # List of posts (cards/grid)
 └── PostLayout.astro     # Individual post page
 ```
@@ -26,7 +26,7 @@ src/layouts/blogs/styles/blog_style1/
 
 | Layout | Index Style | Post Style |
 |--------|-------------|------------|
-| `blog_style1` | Card grid | Full-width article |
+| `default` | Card grid | Full-width article |
 
 ## Visual Structure
 
@@ -85,7 +85,7 @@ src/layouts/blogs/styles/blog_style1/
 ```
 src/layouts/blogs/
 ├── styles/
-│   └── blog_style1/
+│   └── default/
 │       ├── IndexLayout.astro   # Post listing
 │       └── PostLayout.astro    # Single post
 │
@@ -114,7 +114,7 @@ pages:
   blog:
     base_url: "/blog"
     type: blog                    # ← Triggers blog layouts
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
 ```
 
@@ -200,7 +200,7 @@ pages:
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/blog_style1"
+    layout: "@blog/default"
     data: "@data/blog"
     options:
       postsPerPage: 10     # Optional: posts on index

@@ -31,7 +31,7 @@ contentWrapper.querySelectorAll('.option-btn').forEach(btn => { ... });
 
 ## Issue 2: URL Changes But Layout Doesn't
 
-**Symptom:** Clicking a layout button adds `?layout=doc_style2` to the URL, page reloads, but layout remains unchanged.
+**Symptom:** Clicking a layout button adds `?layout=compact` to the URL, page reloads, but layout remains unchanged.
 
 **Root Cause:** In Astro's static mode, `Astro.url.searchParams` doesn't include query parameters from the actual HTTP request. The URL is constructed from site config and path, not the request.
 
@@ -108,7 +108,7 @@ output: 'server',
 
 Terminal should show:
 ```
-[middleware] URL: http://...?layout=doc_style2 | layout: doc_style2
+[middleware] URL: http://...?layout=compact | layout: compact
 ```
 
 ### 3. Verify Dev Toolbar Registration

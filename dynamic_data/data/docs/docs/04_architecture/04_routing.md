@@ -60,7 +60,7 @@ All routes flow through `src/pages/[...slug].astro`:
 ┌──────────────────────────────────────────────────────────────┐
 │  Step 5: Resolve Layout                                      │
 │  ──────────────────────                                      │
-│  @docs/doc_style1 → layouts/docs/styles/doc_style1/          │
+│  @docs/default → layouts/docs/styles/default/                │
 └──────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -82,14 +82,14 @@ pages:
     type: docs
     base_url: "/docs"
     data: "@data/docs"
-    layout: "@docs/doc_style1"
+    layout: "@docs/default"
 
   # Blog
   blog:
     type: blog
     base_url: "/blog"
     data: "@data/blog"
-    layout: "@blogs/blog_style1"
+    layout: "@blogs/default"
 
   # Home page
   home:
@@ -144,18 +144,18 @@ Layout aliases map to filesystem paths:
 ### Documentation Layouts
 
 ```
-@docs/doc_style1
+@docs/default
   ↓
-src/layouts/docs/styles/doc_style1/Layout.astro
+src/layouts/docs/styles/default/Layout.astro
 ```
 
 ### Blog Layouts
 
 ```
-@blogs/blog_style1
+@blogs/default
   ↓
-src/layouts/blogs/styles/blog_style1/IndexLayout.astro  (for /blog)
-src/layouts/blogs/styles/blog_style1/PostLayout.astro   (for /blog/*)
+src/layouts/blogs/styles/default/IndexLayout.astro  (for /blog)
+src/layouts/blogs/styles/default/PostLayout.astro   (for /blog/*)
 ```
 
 ### Custom Page Layouts
@@ -175,7 +175,7 @@ Missing layouts trigger build errors:
   Page: docs
   Config: @docs/nonexistent
   Expected: src/layouts/docs/styles/nonexistent/Layout.astro
-  Available: doc_style1, doc_style2
+  Available: default, compact
 ```
 
 ## Static Path Generation

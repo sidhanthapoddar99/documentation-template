@@ -2,7 +2,7 @@
 # Copy this to: docs/data/config/navbar.yaml
 # Replace [PLACEHOLDERS] with your values
 
-layout: "@navbar/style1"
+layout: "@navbar/default"
 
 items:
   - label: "Home"

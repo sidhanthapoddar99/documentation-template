@@ -1,5 +1,5 @@
 /**
- * Blog Style 1 - Grid layout with cards
+ * Default - Grid layout with cards
  *
  * Components:
  * - IndexBody: default (grid of cards)
@@ -20,7 +20,7 @@ export const styles = [
 ];
 
 export const config = {
-  name: 'blog_style1',
+  name: 'default',
   description: 'Grid layout with image cards',
   features: {
     featuredImage: true,

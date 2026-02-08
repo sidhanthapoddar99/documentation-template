@@ -184,9 +184,9 @@ Used in configuration files:
 |-------|-------------|---------|
 | `@data/path` | `DATA_DIR/path` | `@data/docs` → `data/data/docs` |
 | `@assets/file` | `ASSETS_DIR/file` → `/assets/file` | `@assets/logo.svg` |
-| `@docs/style` | `src/layouts/docs/style/` | `@docs/doc_style1` |
-| `@blog/style` | `src/layouts/blogs/style/` | `@blog/blog_style1` |
+| `@docs/style` | `src/layouts/docs/style/` | `@docs/default` |
+| `@blog/style` | `src/layouts/blogs/style/` | `@blog/default` |
 | `@custom/style` | `src/layouts/custom/style/` | `@custom/home` |
 | `@footer/style` | `src/layouts/footer/style/` | `@footer/default` |
-| `@navbar/style` | `src/layouts/navbar/style/` | `@navbar/style1` |
+| `@navbar/style` | `src/layouts/navbar/style/` | `@navbar/default` |
 | `@theme/name` | Theme reference | `@theme/minimal` |

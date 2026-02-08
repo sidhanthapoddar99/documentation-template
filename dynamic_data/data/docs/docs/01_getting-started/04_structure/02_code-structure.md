@@ -76,10 +76,10 @@ Each content type has a `styles/` folder with complete layouts:
 layouts/
 ├── docs/
 │   ├── styles/
-│   │   ├── doc_style1/        # Complete layout bundle
+│   │   ├── default/           # Complete layout bundle
 │   │   │   ├── Layout.astro   # Main component
 │   │   │   └── index.ts       # Exports
-│   │   └── doc_style2/
+│   │   └── compact/
 │   │
 │   └── components/            # Shared components
 │       ├── sidebar/default/
@@ -88,7 +88,7 @@ layouts/
 │
 ├── blogs/
 │   └── styles/
-│       └── blog_style1/
+│       └── default/
 │           ├── IndexLayout.astro   # Blog index
 │           └── PostLayout.astro    # Single post
 │
@@ -109,8 +109,8 @@ const blogIndexLayouts = import.meta.glob('/src/layouts/blogs/styles/*/IndexLayo
 const customLayouts = import.meta.glob('/src/layouts/custom/styles/*/Layout.astro');
 
 // Config reference
-layout: "@docs/doc_style1"  // → /src/layouts/docs/styles/doc_style1/Layout.astro
-layout: "@blog/blog_style1" // → /src/layouts/blogs/styles/blog_style1/*.astro
+layout: "@docs/default"  // → /src/layouts/docs/styles/default/Layout.astro
+layout: "@blog/default" // → /src/layouts/blogs/styles/default/*.astro
 layout: "@custom/home"      // → /src/layouts/custom/styles/home/Layout.astro
 ```
 
@@ -159,7 +159,7 @@ import { resolveAliasPath, resolveAssetUrl } from '@loaders/alias';
 
 // Filesystem paths
 resolveAliasPath('@data/docs');      // → /abs/path/to/dynamic_data/data/docs
-resolveAliasPath('@docs/doc_style1'); // → /abs/path/to/src/layouts/docs/doc_style1
+resolveAliasPath('@docs/default'); // → /abs/path/to/src/layouts/docs/default
 
 // Web URLs (for assets)
 resolveAssetUrl('@assets/logo.svg'); // → /assets/logo.svg
