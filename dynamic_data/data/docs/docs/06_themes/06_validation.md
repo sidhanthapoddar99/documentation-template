@@ -51,11 +51,14 @@ Theme not found: @theme/my-theme
 **Causes:**
 - Theme directory doesn't exist
 - Typo in theme name
-- THEMES_DIR not configured correctly
+- Theme directory path not configured in `site.yaml` `paths:` section
 
 **Fix:**
 ```yaml
-# site.yaml - verify theme name
+# site.yaml - verify theme name and paths
+paths:
+  themes: "../themes"   # Ensure themes directory is configured
+
 theme: "@theme/my-theme"  # Check spelling
 
 # Verify directory exists:

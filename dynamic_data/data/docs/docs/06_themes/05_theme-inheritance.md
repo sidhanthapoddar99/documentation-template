@@ -57,10 +57,10 @@ files:
 
 ### Available Parent Themes
 
-| Theme | Alias | Description |
-|-------|-------|-------------|
-| Default | `@theme/default` | Built-in base theme |
-| Any custom | `@theme/<name>` | User themes in THEMES_DIR |
+| Theme | Reference | Description |
+|-------|-----------|-------------|
+| Default | `@theme/default` | Built-in base theme (`src/styles/`) |
+| Any custom | `@theme/<name>` | User themes in `paths.themes` directory |
 
 ## Inheritance Examples
 

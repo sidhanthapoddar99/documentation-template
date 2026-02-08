@@ -20,12 +20,18 @@ The theming system provides a modular, customizable way to style your documentat
 │        │                                                                    │
 │        ▼                                                                    │
 │   ┌──────────────────────────────────────┐                                  │
-│   │   Theme Resolver                     │                                  │
-│   │   1. Resolve @theme alias            │                                  │
-│   │   2. Load theme.yaml manifest        │                                  │
-│   │   3. Check extends (inheritance)     │                                  │
-│   │   4. Load CSS files                  │                                  │
-│   │   5. Validate theme                  │                                  │
+│   │   Config Loader (loadSiteConfig)     │                                  │
+│   │   1. Resolve @theme → absolute path  │                                  │
+│   │      (once, at config load time)     │                                  │
+│   └──────────────────────────────────────┘                                  │
+│        │                                                                    │
+│        ▼                                                                    │
+│   ┌──────────────────────────────────────┐                                  │
+│   │   Theme Loader                       │                                  │
+│   │   1. Load theme.yaml manifest        │                                  │
+│   │   2. Check extends (inheritance)     │                                  │
+│   │   3. Load CSS files                  │                                  │
+│   │   4. Validate theme                  │                                  │
 │   └──────────────────────────────────────┘                                  │
 │        │                                                                    │
 │        ▼                                                                    │
@@ -44,10 +50,10 @@ The theming system provides a modular, customizable way to style your documentat
 
 ## Default vs Custom Themes
 
-| Type | Location | Alias |
-|------|----------|-------|
+| Type | Location | Reference |
+|------|----------|-----------|
 | Default (built-in) | `src/styles/` | `@theme/default` |
-| Custom | `THEMES_DIR/theme-name/` | `@theme/theme-name` |
+| Custom | `themes/<name>/` | `@theme/<name>` |
 
 ### Default Theme
 
@@ -55,20 +61,21 @@ The built-in theme located in `src/styles/`. Always available and serves as the 
 
 ### Custom Themes
 
-User-created themes in the themes directory (configured via `THEMES_DIR` in `.env`). Can extend the default theme or be standalone.
+User-created themes in the themes directory (configured via `paths.themes` in `site.yaml`). Can extend the default theme or be standalone.
 
 ## Quick Start
 
 ### Using the Default Theme
 
-No configuration needed - the default theme is used automatically.
-
 ```yaml
 # site.yaml
 site:
   name: "My Docs"
-  # theme not specified = @theme/default
+
+theme: "@theme/default"  # Required — explicitly specify the theme
 ```
+
+> **Note:** The `theme` field is required in `site.yaml`. An error will be thrown if it is missing.
 
 ### Using a Custom Theme
 
@@ -77,7 +84,7 @@ site:
 site:
   name: "My Docs"
 
-theme: "@theme/minimal"  # Use the "minimal" theme
+theme: "@theme/minimal"  # Use the "minimal" theme from themes directory
 ```
 
 ### Creating a Simple Theme

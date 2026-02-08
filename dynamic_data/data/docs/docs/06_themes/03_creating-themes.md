@@ -84,6 +84,9 @@ Update `dynamic_data/config/site.yaml`:
 site:
   name: "My Docs"
 
+paths:
+  themes: "../themes"  # Directory containing your theme
+
 theme: "@theme/my-brand"
 ```
 

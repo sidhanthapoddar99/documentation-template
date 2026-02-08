@@ -139,12 +139,12 @@ The dev toolbar integration watches all configured directories:
 ```typescript
 // src/dev-toolbar/integration.ts
 
-// Paths read from .env
+// Paths from site.yaml paths: section (resolved at config load time)
 const watchPaths = {
-  data: DATA_DIR,      // Content files
-  config: CONFIG_DIR,  // site.yaml, navbar.yaml, footer.yaml
-  assets: ASSETS_DIR,  // Images, logos
-  themes: THEMES_DIR,  // Theme CSS and manifests
+  data: paths.data,      // Content files
+  config: paths.config,  // site.yaml, navbar.yaml, footer.yaml
+  assets: paths.assets,  // Images, logos
+  themes: paths.themes,  // Theme CSS and manifests
 };
 
 // Events handled
