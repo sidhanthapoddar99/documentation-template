@@ -45,7 +45,8 @@ export interface EditorSettings {
 
 export interface SiteConfig {
   site: SiteMetadata;
-  theme?: string;  // Absolute path after loading (resolved from alias like "@theme/default")
+  theme?: string;  // Absolute path after loading (resolved from theme name like "default")
+  theme_paths?: string[];  // Directories to scan for user themes (resolved to absolute paths)
   logo?: SiteLogo;
   editor: EditorSettings;  // Required — must be in site.yaml
   pages: Record<string, PageConfig>;
@@ -90,6 +91,21 @@ export interface FooterConfig {
   copyright: string;
   columns?: FooterColumn[];
   social?: SocialLink[];
+}
+
+// ============================================
+// Theme Paths State
+// ============================================
+
+/** Resolved absolute paths where user themes are stored */
+let resolvedThemePaths: string[] = [];
+
+/**
+ * Get the resolved theme directory paths.
+ * Returns [] if no theme_paths defined in site.yaml (only built-in default available).
+ */
+export function getThemePaths(): string[] {
+  return resolvedThemePaths;
 }
 
 // ============================================
@@ -146,6 +162,23 @@ export function loadSiteConfig(): SiteConfig {
     };
   }
 
+  // Resolve theme_paths to absolute paths BEFORE resolveThemeName(),
+  // because resolveThemeName() calls getThemePaths() to scan for themes.
+  if (config.theme_paths && config.theme_paths.length > 0) {
+    config.theme_paths = config.theme_paths.map((entry) => {
+      if (entry.startsWith('@')) {
+        return resolveAliasPath(entry);
+      }
+      if (path.isAbsolute(entry)) {
+        return entry;
+      }
+      return path.resolve(paths.config, entry);
+    });
+    resolvedThemePaths = config.theme_paths;
+  } else {
+    resolvedThemePaths = [];
+  }
+
   // Resolve theme to absolute path
   if (config.theme) {
     config.theme = resolveThemeName(config.theme);
@@ -187,7 +220,7 @@ export function getTheme(): string {
   if (!config.theme) {
     throw new Error(
       `No "theme" field set in site.yaml. ` +
-      `Please add a theme reference, e.g.: theme: "@theme/default"`
+      `Please add a theme name, e.g.: theme: "default"`
     );
   }
   return config.theme;

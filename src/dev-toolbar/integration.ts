@@ -17,6 +17,7 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import cacheManager from '../loaders/cache-manager';
 import { paths, getUserPaths, getPathsByCategory } from '../loaders/paths';
+import { getThemePaths } from '../loaders/config';
 import { EditorStore } from './editor/server';
 import { setupEditorMiddleware } from './editor/middleware';
 import { PresenceManager, type PresenceConfig } from './editor/presence';
@@ -91,7 +92,7 @@ export function devToolbarIntegration(): AstroIntegration {
           contentPaths: getPathsByCategory('content'),
           configPaths: getPathsByCategory('config'),
           assetPaths: getPathsByCategory('asset'),
-          themePaths: getPathsByCategory('theme'),
+          themePaths: getThemePaths(),
         });
 
         // Create editor store and presence manager

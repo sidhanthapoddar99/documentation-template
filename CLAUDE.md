@@ -66,9 +66,9 @@ dynamic_data/
 
 ## Key Architecture Concepts
 
-**Path resolution**: `site.yaml` `paths:` section defines `@key` aliases (`@data`, `@assets`, `@theme`). User aliases (`@data`, `@assets`, `@theme`) are resolved to absolute paths at config load time. System aliases (`@docs`, `@blog`, `@navbar`, `@footer`) remain as layout references resolved at render time.
+**Path resolution**: `site.yaml` `paths:` section defines `@key` aliases (`@data`, `@assets`, `@themes`). User aliases are resolved to absolute paths at config load time. System aliases (`@docs`, `@blog`, `@navbar`, `@footer`) remain as layout references resolved at render time.
 
-**Theme resolution**: `site.yaml` `theme: "@theme/name"` is resolved to an absolute path by `resolveThemeName()` during `loadSiteConfig()`. Theme inheritance (`extends` in `theme.yaml`) still uses `@theme/` aliases resolved at theme load time.
+**Theme resolution**: `site.yaml` `theme: "name"` specifies the active theme by name. `theme_paths: ["@themes"]` lists directories to scan for user themes. `resolveThemeName()` scans those directories during `loadSiteConfig()` and resolves to an absolute path. Theme inheritance (`extends` in `theme.yaml`) uses `@theme/` aliases resolved at theme load time.
 
 **Layout resolution**: `[...slug].astro` matches page type to layout via `import.meta.glob()`. Layout aliases like `@docs/default` map to `src/layouts/docs/styles/default/Layout.astro`.
 

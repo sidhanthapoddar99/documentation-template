@@ -163,7 +163,9 @@ server:
   allowedHosts: true
 
 # Theme Configuration
-theme: "@theme/minimal"
+theme: "minimal"
+theme_paths:
+  - "@themes"
 
 # Logo and Favicon Configuration
 logo:

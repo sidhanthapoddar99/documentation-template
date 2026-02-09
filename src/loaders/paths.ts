@@ -40,7 +40,7 @@ const getEnv = (key: string, fallback: string): string => {
 // Types
 // ============================================
 
-export type PathCategory = 'content' | 'asset' | 'theme' | 'config';
+export type PathCategory = 'content' | 'asset' | 'config';
 
 interface UserPathEntry {
   key: string;
@@ -145,7 +145,6 @@ function getPathsState(): PathsState {
  * Infer category from key name.
  *  - keys starting with "data" or "content" → content
  *  - keys starting with "asset" → asset
- *  - keys starting with "theme" → theme
  *  - "config" → config
  *  - anything else → content (safe default)
  */
@@ -153,8 +152,7 @@ export function getPathCategory(key: string): PathCategory {
   const k = key.toLowerCase();
   if (k === 'config') return 'config';
   if (k.startsWith('asset')) return 'asset';
-  if (k.startsWith('theme')) return 'theme';
-  // data*, content*, or anything else defaults to content
+  // data*, content*, themes*, or anything else defaults to content
   return 'content';
 }
 

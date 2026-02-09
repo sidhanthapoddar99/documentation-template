@@ -189,4 +189,4 @@ Used in configuration files:
 | `@custom/style` | `src/layouts/custom/style/` | `@custom/home` |
 | `@footer/style` | `src/layouts/footer/style/` | `@footer/default` |
 | `@navbar/style` | `src/layouts/navbar/style/` | `@navbar/default` |
-| `@theme/name` | Theme reference | `@theme/minimal` |
+| `@theme/name` | Theme reference (used in `extends:`) | `@theme/minimal` |

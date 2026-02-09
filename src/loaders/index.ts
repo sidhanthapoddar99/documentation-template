@@ -21,6 +21,7 @@ export {
   loadFooterConfig,
   getPages,
   getPage,
+  getThemePaths,
   resolvePageUrl,
   processCopyright,
   validateRoutes,

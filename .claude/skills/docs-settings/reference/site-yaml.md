@@ -27,7 +27,9 @@ server:
   allowedHosts: true
 
 # Theme
-theme: "@theme/minimal"
+theme: "minimal"
+theme_paths:
+  - "@themes"
 
 # Logo and Favicon
 logo:
@@ -120,12 +122,25 @@ Each key becomes an `@key` alias. For example, `data` → `@data/`, `assets` →
 ### `theme` - Theme Configuration
 
 ```yaml
-theme: "@theme/minimal"
+theme: "minimal"
 ```
 
+The `theme` value is a **theme name**, not an alias. The system scans `theme_paths` directories for a matching subdirectory.
+
 **Available Themes:**
-- `@theme/default` - Full-featured theme
-- `@theme/minimal` - Clean, minimal theme
+- `"default"` - Full-featured built-in theme
+- `"minimal"` - Clean, minimal theme
+- Any custom theme name found in `theme_paths` directories
+
+### `theme_paths` - Theme Discovery
+
+```yaml
+theme_paths:
+  - "@themes"           # resolves via @themes alias
+  # - "/other/themes"   # absolute path also works
+```
+
+Lists directories to scan for user themes. Each entry can be an `@alias`, relative path, or absolute path. If omitted, only the built-in `"default"` theme is available.
 
 ### `logo` - Logo and Favicon
 
@@ -272,7 +287,9 @@ paths:
 server:
   allowedHosts: true
 
-theme: "@theme/minimal"
+theme: "minimal"
+theme_paths:
+  - "@themes"
 
 logo:
   src: "@assets/logo.svg"

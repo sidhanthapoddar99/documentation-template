@@ -16,13 +16,15 @@ The theming system provides a modular, customizable way to style your documentat
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   site.yaml                                                                 │
-│   theme: "@theme/minimal"                                                   │
+│   theme: "minimal"                                                          │
+│   theme_paths: ["@themes"]                                                  │
 │        │                                                                    │
 │        ▼                                                                    │
 │   ┌──────────────────────────────────────┐                                  │
 │   │   Config Loader (loadSiteConfig)     │                                  │
-│   │   1. Resolve @theme → absolute path  │                                  │
-│   │      (once, at config load time)     │                                  │
+│   │   1. Resolve theme_paths to dirs     │                                  │
+│   │   2. Scan dirs for theme name        │                                  │
+│   │   3. Resolve to absolute path        │                                  │
 │   └──────────────────────────────────────┘                                  │
 │        │                                                                    │
 │        ▼                                                                    │
@@ -50,10 +52,10 @@ The theming system provides a modular, customizable way to style your documentat
 
 ## Default vs Custom Themes
 
-| Type | Location | Reference |
-|------|----------|-----------|
-| Default (built-in) | `src/styles/` | `@theme/default` |
-| Custom | `themes/<name>/` | `@theme/<name>` |
+| Type | Location | `theme:` value |
+|------|----------|----------------|
+| Default (built-in) | `src/styles/` | `"default"` |
+| Custom | `themes/<name>/` | `"<name>"` |
 
 ### Default Theme
 
@@ -72,7 +74,7 @@ User-created themes in the themes directory (configured via `paths.themes` in `s
 site:
   name: "My Docs"
 
-theme: "@theme/default"  # Required — explicitly specify the theme
+theme: "default"  # Required — explicitly specify the theme
 ```
 
 > **Note:** The `theme` field is required in `site.yaml`. An error will be thrown if it is missing.
@@ -84,7 +86,7 @@ theme: "@theme/default"  # Required — explicitly specify the theme
 site:
   name: "My Docs"
 
-theme: "@theme/minimal"  # Use the "minimal" theme from themes directory
+theme: "minimal"  # Use the "minimal" theme from theme_paths directories
 ```
 
 ### Creating a Simple Theme
@@ -128,7 +130,9 @@ files:
 
 5. Use in site.yaml:
 ```yaml
-theme: "@theme/my-theme"
+theme: "my-theme"
+theme_paths:
+  - "@themes"
 ```
 
 ## Theme Structure

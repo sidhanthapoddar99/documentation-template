@@ -196,7 +196,7 @@ When creating a custom theme, use the same breakpoint values to maintain consist
 ## How Theme CSS Reaches the Page
 
 ```
-site.yaml → theme: "@theme/minimal"
+site.yaml → theme: "minimal"
                 │
                 ▼
     loadSiteConfig() resolves to absolute path

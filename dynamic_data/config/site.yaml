@@ -24,9 +24,12 @@ paths:
   # Additional directories example:
   # data2: "/other/project/data"     # @data2/...
 
-# Theme Configuration (optional - defaults to @theme/default)
-# Options: "@theme/default", "@theme/minimal", or custom theme path
-theme: "@theme/default"
+# Theme Configuration
+# "theme" is the active theme name (e.g. "default", "minimal", or a custom name)
+# "theme_paths" lists directories to scan for user themes (use @aliases or paths)
+theme: "default"
+theme_paths:
+  - "@themes"
 
 # Logo and Favicon Configuration
 logo:

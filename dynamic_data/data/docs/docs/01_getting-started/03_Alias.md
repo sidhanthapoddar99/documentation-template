@@ -39,7 +39,7 @@ Path aliases provide a clean, consistent way to reference files and directories 
 | `@data/` | Data directory | `site.yaml` paths section |
 | `@assets/` | Assets directory | `site.yaml` paths section |
 | `@config/` | Config directory | `CONFIG_DIR` (.env) |
-| `@theme/` | Theme directory | `site.yaml` paths section |
+| `@theme/` | Theme resolution | Used in `extends:` (theme.yaml) |
 
 ### Layout Aliases
 
@@ -53,10 +53,12 @@ Path aliases provide a clean, consistent way to reference files and directories 
 
 ### Theme Aliases
 
+Used in `extends:` fields in `theme.yaml` manifests (not in site.yaml `theme:` field).
+
 | Alias | Resolves To | Description |
 |-------|-------------|-------------|
 | `@theme/default` | `src/styles/` | Built-in default theme |
-| `@theme/theme_name` | `paths.themes/theme_name/` | Custom theme |
+| `@theme/theme_name` | `theme_paths/theme_name/` | Custom theme |
 
 ## Usage by Context
 
@@ -73,8 +75,10 @@ pages:
     layout: "@blog/default"   # src/layouts/blogs/styles/default/
     data: "@data/blog"            # paths.data/blog/
 
-# Theme alias
-theme: "@theme/minimal"           # paths.themes/minimal/
+# Theme (just the name — not an alias)
+theme: "minimal"                  # scanned from theme_paths directories
+theme_paths:
+  - "@themes"                     # resolves via @themes alias
 
 # Asset aliases
 logo:
@@ -162,12 +166,14 @@ Asset aliases resolve to **web URLs**, not file paths:
 
 ### Theme Aliases (@theme)
 
+Used internally for theme inheritance (`extends:` in theme.yaml), not in site.yaml `theme:` field.
+
 ```typescript
 '@theme/default'
   → src/styles/  (built-in)
 
 '@theme/minimal'
-  → paths.themes/minimal/  (custom theme)
+  → theme_paths/minimal/  (custom theme)
 ```
 
 ## Path Configuration

@@ -9,7 +9,8 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { paths, getPathsByCategory } from './paths';
+import { paths } from './paths';
+import { getThemePaths } from './config';
 import { resolveAliasPath, extractPrefix } from './alias';
 import { addError } from './cache';
 import cacheManager from './cache-manager';
@@ -58,7 +59,7 @@ export function resolveThemeName(name: string): string {
   }
 
   // Scan theme-category directories for a matching subdirectory
-  const themeDirs = getPathsByCategory('theme');
+  const themeDirs = getThemePaths();
   for (const dir of themeDirs) {
     const candidate = path.join(dir, themeName);
     if (fs.existsSync(candidate)) {
@@ -399,7 +400,7 @@ export function getAvailableThemes(): string[] {
   }
 
   // Scan all theme-category directories
-  const themeDirs = getPathsByCategory('theme');
+  const themeDirs = getThemePaths();
   for (const themeDir of themeDirs) {
     if (!fs.existsSync(themeDir)) continue;
     const entries = fs.readdirSync(themeDir, { withFileTypes: true });

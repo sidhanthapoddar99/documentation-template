@@ -33,7 +33,9 @@ server:
   allowedHosts: true  # or array of specific hosts
 
 # Theme configuration
-theme: "@theme/default"  # or "@theme/minimal" for custom theme
+theme: "default"          # theme name ("default", "minimal", or custom)
+theme_paths:              # directories to scan for user themes
+  - "@themes"
 
 # Logo and favicon configuration
 logo:

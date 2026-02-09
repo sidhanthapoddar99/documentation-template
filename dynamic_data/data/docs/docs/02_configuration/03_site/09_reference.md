@@ -48,11 +48,12 @@ interface EditorSettings {
 
 interface SiteConfig {
   site: SiteMetadata;
-  paths?: Record<string, string>; // Named directory paths → @key aliases
-  server?: ServerConfig;    // Vite server configuration
-  theme?: string;           // Theme alias (e.g., "@theme/default")
+  paths?: Record<string, string>;   // Named directory paths → @key aliases
+  server?: ServerConfig;      // Vite server configuration
+  theme?: string;             // Theme name (e.g., "default", "minimal")
+  theme_paths?: string[];     // Directories to scan for user themes
   logo?: SiteLogo;
-  editor: EditorSettings;   // Required — must be in site.yaml
+  editor: EditorSettings;     // Required — must be in site.yaml
   pages: Record<string, PageConfig>;
 }
 ```
@@ -93,8 +94,10 @@ paths:
 server:
   allowedHosts: true  # or use array: [".localhost", "127.0.0.1"]
 
-# Theme (optional - defaults to @theme/default)
-theme: "@theme/default"
+# Theme (optional - defaults to built-in "default")
+theme: "default"
+theme_paths:
+  - "@themes"
 
 logo:
   src: "@assets/astro.svg"

@@ -5,20 +5,33 @@ description: Configure site theme and theme inheritance in site.yaml
 
 # Theme Configuration
 
-The `theme` field specifies which theme to use for the site's styling.
+The `theme` field specifies which theme to use for the site's styling. The value is a **theme name** (not an alias).
 
 ```yaml
 # Use default built-in theme
-theme: "@theme/default"
+theme: "default"
 
 # Use a custom theme
-theme: "@theme/minimal"
+theme: "minimal"
 ```
 
 | Value | Description |
 |-------|-------------|
-| `@theme/default` | Built-in theme from `src/styles/` |
-| `@theme/theme_name` | Custom theme from `paths.themes/theme_name/` |
+| `"default"` | Built-in theme from `src/styles/` |
+| `"<name>"` | Custom theme found in `theme_paths` directories |
+
+## Theme Discovery (`theme_paths`)
+
+The `theme_paths` field lists directories to scan for user themes. Each entry can be an `@alias`, a relative path (from config dir), or an absolute path.
+
+```yaml
+# Explicit list of directories containing themes
+theme_paths:
+  - "@themes"           # resolves via @themes alias to dynamic_data/themes/
+  # - "/other/themes"   # absolute path also works
+```
+
+If `theme_paths` is omitted, only the built-in `"default"` theme is available.
 
 ## Theme Inheritance
 

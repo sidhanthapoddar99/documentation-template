@@ -87,7 +87,9 @@ site:
 paths:
   themes: "../themes"  # Directory containing your theme
 
-theme: "@theme/my-brand"
+theme: "my-brand"
+theme_paths:
+  - "@themes"           # Scan this directory for user themes
 ```
 
 ### Step 6: Verify

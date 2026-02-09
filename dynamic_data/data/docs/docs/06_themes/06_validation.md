@@ -51,15 +51,17 @@ Theme not found: @theme/my-theme
 **Causes:**
 - Theme directory doesn't exist
 - Typo in theme name
-- Theme directory path not configured in `site.yaml` `paths:` section
+- Theme directory not listed in `theme_paths`
 
 **Fix:**
 ```yaml
-# site.yaml - verify theme name and paths
+# site.yaml - verify theme name and theme_paths
 paths:
-  themes: "../themes"   # Ensure themes directory is configured
+  themes: "../themes"   # Creates the @themes alias
 
-theme: "@theme/my-theme"  # Check spelling
+theme: "my-theme"       # Check spelling
+theme_paths:
+  - "@themes"           # Must list directories to scan for themes
 
 # Verify directory exists:
 # dynamic_data/themes/my-theme/
@@ -248,7 +250,7 @@ When creating a standalone theme (extends: null), these must be defined:
 **Debug:**
 ```yaml
 # site.yaml
-theme: "@theme/default"  # Try reverting to default
+theme: "default"  # Try reverting to default
 ```
 
 ### Issue: Some Variables Not Applied

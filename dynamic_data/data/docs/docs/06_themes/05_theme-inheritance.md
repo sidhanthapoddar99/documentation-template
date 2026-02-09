@@ -57,10 +57,10 @@ files:
 
 ### Available Parent Themes
 
-| Theme | Reference | Description |
-|-------|-----------|-------------|
+| Theme | `extends` value | Description |
+|-------|-----------------|-------------|
 | Default | `@theme/default` | Built-in base theme (`src/styles/`) |
-| Any custom | `@theme/<name>` | User themes in `paths.themes` directory |
+| Any custom | `@theme/<name>` | User themes in `theme_paths` directories |
 
 ## Inheritance Examples
 
@@ -263,7 +263,7 @@ The theme system will detect and report circular inheritance errors.
 **Fix:**
 ```yaml
 # Check extends value
-extends: "@theme/default"  # Not "default" or "@themes/default"
+extends: "@theme/default"  # Must use @theme/ prefix in extends
 ```
 
 ### Parent Styles Overwritten
