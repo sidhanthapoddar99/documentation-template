@@ -22,11 +22,28 @@
 import { loadSiteConfig, loadNavbarConfig, loadFooterConfig, getFavicon, getTheme } from '@loaders/config';
 import { getThemeCSS, resolveThemeName } from '@loaders/theme';
 
-// Dev mode: import CSS through Vite's module graph so HMR works.
-// Production: only the injected <style> is used (this import is tree-shaken).
-if (import.meta.env.DEV) {
-  await import('@styles/index.css');
+const isDev = import.meta.env.DEV;
+
+// In dev mode, check for cookie-based theme override first
+let themeOverride: string | null = null;
+if (isDev) {
+  const themeCookie = Astro.cookies.get('dev-color-theme');
+  if (themeCookie && themeCookie.value && themeCookie.value !== '__reset__') {
+    themeOverride = themeCookie.value;
+  }
 }
+
+// Compute effective theme ref early so we can decide on the Vite import
+let themeRef = getTheme();
+if (themeOverride) {
+  themeRef = resolveThemeName(themeOverride);
+}
+
+// Note: We intentionally do NOT import @styles/index.css via Vite.
+// The <style id="theme-styles"> tag below injects all CSS (parent + child) in the
+// correct cascade order. A Vite import would add the default theme CSS to the module
+// graph permanently, injecting it AFTER the theme-styles tag on every response —
+// overriding any child theme overrides. CSS edits require a full page reload in dev.
 
 interface Props {
   title?: string;
@@ -41,21 +58,7 @@ const siteConfig = loadSiteConfig();
 const navbarConfig = loadNavbarConfig();
 const footerConfig = loadFooterConfig();
 
-// Get theme from config (default)
-let themeRef = getTheme();
-const isDev = import.meta.env.DEV;
-
-// In dev mode, check for cookie-based theme override (set by dev toolbar)
-// Cookies work because they're sent with every request, unlike localStorage
-if (isDev) {
-  const themeCookie = Astro.cookies.get('dev-color-theme');
-  // If cookie exists and is not empty/__reset__, use it as theme override
-  if (themeCookie && themeCookie.value && themeCookie.value !== '__reset__') {
-    themeRef = resolveThemeName(themeCookie.value);
-  }
-}
-
-// Load theme CSS
+// Load theme CSS (themeRef already computed above)
 const themeCSS = getThemeCSS(themeRef);
 
 const {

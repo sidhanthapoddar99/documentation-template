@@ -80,28 +80,25 @@ export default {
     // Get current display mode (light/dark/system)
     const currentDisplayMode = localStorage.getItem('theme') || 'system';
 
-    // Fetch available themes and layouts from API
+    // Fetch available themes and layouts from API (independent — one failure doesn't block the other)
     let themesData: ThemesResponse | null = null;
     let layoutsData: LayoutsResponse | null = null;
-    try {
-      const [themesRes, layoutsRes] = await Promise.all([
-        fetch('/api/dev/themes'),
-        fetch('/api/dev/layouts'),
-      ]);
-      if (themesRes.ok) {
-        themesData = await themesRes.json();
-        console.log('[dev-toolbar] Loaded themes:', themesData);
-      } else {
-        console.error('[dev-toolbar] Failed to fetch themes, status:', themesRes.status);
-      }
-      if (layoutsRes.ok) {
-        layoutsData = await layoutsRes.json();
-        console.log('[dev-toolbar] Loaded layouts:', layoutsData);
-      } else {
-        console.error('[dev-toolbar] Failed to fetch layouts, status:', layoutsRes.status);
-      }
-    } catch (error) {
-      console.error('[dev-toolbar] Failed to fetch themes/layouts:', error);
+
+    const [themesResult, layoutsResult] = await Promise.allSettled([
+      fetch('/api/dev/themes').then(r => r.ok ? r.json() : null),
+      fetch('/api/dev/layouts').then(r => r.ok ? r.json() : null),
+    ]);
+
+    if (themesResult.status === 'fulfilled' && themesResult.value) {
+      themesData = themesResult.value;
+    } else {
+      console.error('[dev-toolbar] Failed to fetch themes:', themesResult.status === 'rejected' ? themesResult.reason : 'bad response');
+    }
+
+    if (layoutsResult.status === 'fulfilled' && layoutsResult.value) {
+      layoutsData = layoutsResult.value;
+    } else {
+      console.error('[dev-toolbar] Failed to fetch layouts:', layoutsResult.status === 'rejected' ? layoutsResult.reason : 'bad response');
     }
 
     // Fallback if API unavailable
@@ -460,13 +457,10 @@ export default {
       </div>`;
       html += '<div class="option-list">';
 
-      // Determine active theme (localStorage > URL > configured theme)
-      const activeThemeRef = activeColorTheme
-        ? `@theme/${activeColorTheme}`
-        : themesData.current.ref;
-
       for (const theme of themesData.themes) {
-        const isActive = theme.ref === activeThemeRef;
+        const isActive = activeColorTheme
+          ? theme.name === activeColorTheme
+          : theme.ref === themesData.current.ref;
         const extendsInfo = theme.extends ? ` (extends ${theme.extends.replace('@theme/', '')})` : '';
         html += `
           <button class="option-btn ${isActive ? 'active' : ''}" data-color-theme="${theme.name}" data-theme-ref="${theme.ref}">

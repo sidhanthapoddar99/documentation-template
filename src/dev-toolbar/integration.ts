@@ -86,13 +86,17 @@ export function devToolbarIntegration(): AstroIntegration {
         if (!watchPaths.includes(paths.config)) {
           watchPaths.push(paths.config);
         }
+        // Include built-in styles dir so CSS edits trigger cache invalidation + reload
+        if (!watchPaths.includes(paths.styles)) {
+          watchPaths.push(paths.styles);
+        }
 
         // Configure cache manager with categorized watch paths
         cacheManager.setWatchPaths({
           contentPaths: getPathsByCategory('content'),
           configPaths: getPathsByCategory('config'),
           assetPaths: getPathsByCategory('asset'),
-          themePaths: getThemePaths(),
+          themePaths: [...getThemePaths(), paths.styles],
         });
 
         // Create editor store and presence manager
