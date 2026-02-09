@@ -144,6 +144,17 @@ export function loadThemeManifest(themePath: string): ThemeManifest | null {
       return null;
     }
 
+    // Validate override_mode if present
+    if (manifest.override_mode !== undefined) {
+      const validModes = ['merge', 'override', 'replace'];
+      if (!validModes.includes(manifest.override_mode)) {
+        throw new Error(
+          `Invalid override_mode "${manifest.override_mode}" in ${manifestPath}. ` +
+          `Must be one of: ${validModes.join(', ')}`
+        );
+      }
+    }
+
     return manifest;
   } catch (error) {
     console.error(`Error loading theme manifest: ${manifestPath}`, error);
@@ -162,10 +173,11 @@ export function loadThemeManifest(themePath: string): ThemeManifest | null {
 export function loadThemeCSS(
   themePath: string,
   manifest: ThemeManifest
-): { css: string; deps: string[] } {
+): { css: string; deps: string[]; perFile: Map<string, string> } {
   const cssFiles = manifest.files.filter((f) => f.endsWith('.css'));
   let combinedCSS = `/* Theme: ${manifest.name} v${manifest.version} */\n\n`;
   const deps: string[] = [];
+  const perFile = new Map<string, string>();
 
   // Add theme.yaml as dependency
   const manifestPath = path.join(themePath, 'theme.yaml');
@@ -177,14 +189,16 @@ export function loadThemeCSS(
     const filePath = path.join(themePath, file);
     if (fs.existsSync(filePath)) {
       const content = fs.readFileSync(filePath, 'utf-8');
-      combinedCSS += `/* --- ${file} --- */\n${content}\n\n`;
+      const fileCSS = `/* --- ${file} --- */\n${content}\n\n`;
+      combinedCSS += fileCSS;
+      perFile.set(file, fileCSS);
       deps.push(filePath);
     } else {
       console.warn(`Theme CSS file not found: ${filePath}`);
     }
   }
 
-  return { css: combinedCSS, deps };
+  return { css: combinedCSS, deps, perFile };
 }
 
 /**
@@ -223,20 +237,27 @@ export function validateTheme(
       ...(manifest.required_variables.elements || []),
     ];
 
+    const overrideMode = manifest.override_mode || 'merge';
+
     for (const variable of allRequired) {
       // Check if variable is defined (look for "variable-name:" pattern)
       const varPattern = new RegExp(`${variable.replace('--', '--')}\\s*:`);
       if (!varPattern.test(css)) {
-        // Only warn if theme extends another (parent provides vars)
-        if (manifest.extends) {
-          warnings.push(`Variable ${variable} not defined, will inherit from parent theme`);
-        } else {
+        if (!manifest.extends || overrideMode === 'replace') {
+          // No parent or replace mode — parent won't be loaded, so this is an error
           errors.push({
             type: 'missing-variable',
             message: `Required CSS variable not defined: ${variable}`,
             variable,
             suggestion: `Add "${variable}: <value>;" to your theme CSS`,
           });
+        } else if (overrideMode === 'override') {
+          warnings.push(
+            `Variable ${variable} not defined — if it was provided by an overridden parent file, you must redefine it`
+          );
+        } else {
+          // merge mode — parent provides vars via cascade
+          warnings.push(`Variable ${variable} not defined, will inherit from parent theme`);
         }
       }
     }
@@ -326,13 +347,14 @@ export function loadThemeConfig(themeRef: string): ThemeConfig {
   }
 
   // Load CSS with dependency tracking
-  const { css, deps } = loadThemeCSS(resolved.path, manifest);
+  const { css, deps, perFile } = loadThemeCSS(resolved.path, manifest);
 
   const config: ThemeConfig = {
     name: resolved.name,
     path: resolved.path,
     manifest,
     css,
+    cssPerFile: perFile,
   };
 
   // Cache with file dependencies (theme.yaml + CSS files)
@@ -366,20 +388,80 @@ export function getThemeCSS(themeRef: string): string {
   }
 
   const theme = loadThemeConfig(themeRef);
+  const overrideMode = theme.manifest.override_mode || 'merge';
 
   let css = '';
 
-  // If extends, load parent theme first (cascading)
   if (theme.manifest.extends) {
-    css += getThemeCSS(theme.manifest.extends);
-    css += '\n/* --- Child Theme Overrides --- */\n\n';
+    switch (overrideMode) {
+      case 'replace':
+        // Skip parent entirely — child is standalone
+        break;
+
+      case 'override': {
+        // Load parent chain but skip files that the child provides
+        const childFileNames = new Set(theme.cssPerFile.keys());
+        css += getThemeCSSWithSkip(theme.manifest.extends, childFileNames);
+        css += '\n/* --- Child Theme Overrides --- */\n\n';
+        break;
+      }
+
+      case 'merge':
+      default:
+        // Current behavior: parent CSS loaded first, child appended
+        css += getThemeCSS(theme.manifest.extends);
+        css += '\n/* --- Child Theme Overrides --- */\n\n';
+        break;
+    }
   }
 
-  // Then add this theme's CSS (overrides parent)
+  // Then add this theme's CSS
   css += theme.css;
 
   // Cache the combined result
   cssCache.set(themeRef, css);
+
+  return css;
+}
+
+/**
+ * Load parent theme chain CSS while skipping specified filenames.
+ * Used by override mode to exclude parent files that the child replaces.
+ *
+ * @param themeRef - Parent theme reference
+ * @param skipFiles - Set of filenames to skip (e.g. "element.css")
+ * @returns CSS string with skipped files excluded
+ */
+function getThemeCSSWithSkip(themeRef: string, skipFiles: Set<string>): string {
+  const theme = loadThemeConfig(themeRef);
+
+  let css = '';
+
+  // Recurse into grandparent if present (propagate skip set)
+  if (theme.manifest.extends) {
+    const parentMode = theme.manifest.override_mode || 'merge';
+
+    if (parentMode === 'replace') {
+      // Parent itself is standalone — don't load its parent
+    } else if (parentMode === 'override') {
+      // Parent also overrides its own parent — merge skip sets
+      const combinedSkip = new Set([...skipFiles, ...theme.cssPerFile.keys()]);
+      css += getThemeCSSWithSkip(theme.manifest.extends, combinedSkip);
+      css += '\n/* --- Child Theme Overrides --- */\n\n';
+    } else {
+      // Parent uses merge — still apply our skip set up the chain
+      css += getThemeCSSWithSkip(theme.manifest.extends, skipFiles);
+      css += '\n/* --- Child Theme Overrides --- */\n\n';
+    }
+  }
+
+  // Add this theme's CSS, skipping files in the skip set
+  css += `/* Theme: ${theme.manifest.name} v${theme.manifest.version} */\n\n`;
+  for (const [filename, fileCSS] of theme.cssPerFile) {
+    if (!skipFiles.has(filename)) {
+      css += fileCSS;
+    }
+  }
 
   return css;
 }

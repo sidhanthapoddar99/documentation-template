@@ -17,7 +17,7 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import cacheManager from '../loaders/cache-manager';
 import { paths, getUserPaths, getPathsByCategory } from '../loaders/paths';
-import { getThemePaths } from '../loaders/config';
+import { getThemePaths, loadSiteConfig } from '../loaders/config';
 import { EditorStore } from './editor/server';
 import { setupEditorMiddleware } from './editor/middleware';
 import { PresenceManager, type PresenceConfig } from './editor/presence';
@@ -91,12 +91,20 @@ export function devToolbarIntegration(): AstroIntegration {
           watchPaths.push(paths.styles);
         }
 
+        // Ensure site config is loaded so getThemePaths() is populated.
+        // initPaths() has already run (from astro.config.mjs), but loadSiteConfig()
+        // is what resolves theme_paths from site.yaml → absolute paths.
+        loadSiteConfig();
+
+        // Theme paths (used by cache manager and watcher handler)
+        const themePaths = [...getThemePaths(), paths.styles];
+
         // Configure cache manager with categorized watch paths
         cacheManager.setWatchPaths({
           contentPaths: getPathsByCategory('content'),
           configPaths: getPathsByCategory('config'),
           assetPaths: getPathsByCategory('asset'),
-          themePaths: [...getThemePaths(), paths.styles],
+          themePaths,
         });
 
         // Create editor store and presence manager

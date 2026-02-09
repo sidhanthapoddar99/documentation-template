@@ -18,6 +18,9 @@ export interface ThemeManifest {
   /** Parent theme to extend (e.g., "@theme/default") or null for base theme */
   extends?: string | null;
 
+  /** How child theme CSS interacts with parent CSS */
+  override_mode?: 'merge' | 'override' | 'replace';
+
   /** Whether the theme supports dark mode */
   supports_dark_mode: boolean;
 
@@ -47,6 +50,9 @@ export interface ThemeConfig {
 
   /** Combined CSS content from all theme files */
   css: string;
+
+  /** Per-file CSS content map (filename → CSS), used for override mode filtering */
+  cssPerFile: Map<string, string>;
 }
 
 /**

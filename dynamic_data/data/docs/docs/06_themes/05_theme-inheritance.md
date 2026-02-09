@@ -151,6 +151,73 @@ files:
   - index.css
 ```
 
+## Override Modes
+
+The `override_mode` field in `theme.yaml` controls how a child theme's CSS interacts with its parent. If not specified, it defaults to `merge`.
+
+```yaml
+name: "My Theme"
+version: "1.0.0"
+extends: "@theme/default"
+override_mode: "merge"  # "merge" | "override" | "replace"
+files:
+  - element.css
+```
+
+### merge (default)
+
+Parent CSS is loaded first, then child CSS is appended after it. The CSS cascade handles the rest — child rules with equal or higher specificity win. Variables not redefined in the child inherit from the parent.
+
+```
+Parent CSS (all files)  →  Child CSS (all files)
+         loaded first            loaded second, wins cascade
+```
+
+This is the safest mode. Use it when you want to tweak a few variables (colors, fonts, spacing) while keeping everything else from the parent.
+
+### override
+
+Parent CSS is loaded, but any parent file whose name matches a child file is **skipped**. The child's version completely replaces that specific file — no cascade, no merge.
+
+```yaml
+# Parent has: reset.css, color.css, font.css, element.css, ...
+# Child has:  element.css
+
+override_mode: "override"
+files:
+  - element.css  # Parent's element.css is skipped entirely
+```
+
+```
+Parent: reset.css ✓  color.css ✓  font.css ✓  element.css ✗ (skipped)
+Child:                                         element.css ✓ (replaces it)
+```
+
+Use this when you need to completely redefine a CSS layer (e.g. all spacing values in `element.css`) without any parent values bleeding through. Variables that were only defined in the skipped parent file will be **absent** — you must redefine them in your child file.
+
+### replace
+
+Parent CSS is **not loaded at all**. The child theme is fully standalone.
+
+```yaml
+override_mode: "replace"
+files:
+  - color.css
+  - font.css
+  - element.css
+  - markdown.css
+```
+
+Use this when building a completely custom design system that shares nothing with the parent. The `extends` field is still useful for chained inheritance validation, but no parent CSS is injected.
+
+### Choosing a Mode
+
+| Mode | Parent CSS loaded? | When to use |
+|------|-------------------|-------------|
+| `merge` | All files | Tweaking colors, fonts, or spacing |
+| `override` | All except matching filenames | Completely replacing specific CSS layers |
+| `replace` | None | Fully custom theme, no defaults |
+
 ## CSS Cascade Behavior
 
 Understanding how CSS variables cascade is key to inheritance:

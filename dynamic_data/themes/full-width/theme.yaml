@@ -4,5 +4,7 @@ description: "Full-width layout — content stretches to fill the viewport with 
 extends: "@theme/default"
 supports_dark_mode: true
 
+# override_mode: "override"  # Append to default theme files instead of replacing them
+
 files:
   - element.css
