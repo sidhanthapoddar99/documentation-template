@@ -11,7 +11,8 @@
       "@hooks/*": ["src/hooks/*"],
       "@modules/*": ["src/modules/*"],
       "@styles/*": ["src/styles/*"],
-      "@assets/*": ["src/assets/*"]
+      "@assets/*": ["src/assets/*"],
+      "@ext-layouts/*": ["src/layouts/_ext-stub/*"]
     },
     "types": ["node"]
   },

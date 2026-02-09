@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Load environment variables from .env
 const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
-const { PORT, HOST, CONFIG_DIR } = env;
+const { PORT, HOST, CONFIG_DIR, LAYOUT_EXT_DIR } = env;
 
 // Load site config for server.allowedHosts and paths initialization
 
@@ -27,6 +27,19 @@ if (!CONFIG_DIR) {
 }
 
 const resolvedConfigDir = path.resolve(process.cwd(), CONFIG_DIR);
+
+// External layouts directory — optional, mirrors src/layouts/ structure
+const extLayoutsDir = LAYOUT_EXT_DIR
+  ? path.resolve(process.cwd(), LAYOUT_EXT_DIR)
+  : path.resolve(__dirname, './src/layouts/_ext-stub');
+
+if (LAYOUT_EXT_DIR && !fs.existsSync(extLayoutsDir)) {
+  throw new Error(
+    `[config] External layouts directory not found: ${extLayoutsDir}\n` +
+    `  LAYOUT_EXT_DIR="${LAYOUT_EXT_DIR}" (from .env) resolved to this path.\n` +
+    `  Create the directory or remove LAYOUT_EXT_DIR from .env.`
+  );
+}
 
 if (!fs.existsSync(resolvedConfigDir)) {
   throw new Error(
@@ -86,6 +99,12 @@ export default defineConfig({
     server: {
       // allowedHosts can be: array of hostnames, true (allow all), or undefined
       allowedHosts: siteConfig?.server?.allowedHosts ?? true,
+      fs: {
+        allow: [
+          path.resolve(__dirname),
+          ...(LAYOUT_EXT_DIR ? [extLayoutsDir] : []),
+        ],
+      },
     },
     resolve: {
       alias: {
@@ -98,6 +117,7 @@ export default defineConfig({
         '@modules': path.resolve(__dirname, './src/modules'),
         '@styles': path.resolve(__dirname, './src/styles'),
         '@assets': path.resolve(__dirname, './src/assets'),
+        '@ext-layouts': extLayoutsDir,
       },
     },
   },

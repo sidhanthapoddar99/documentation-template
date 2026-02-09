@@ -14,22 +14,60 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import { loadSiteConfig, loadContent } from '@loaders/index';
 import { getNavbarLayout, getFooterLayout } from '@loaders/config';
 
-// Auto-discover all layouts using glob patterns
-const docsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
-const blogIndexLayouts = import.meta.glob('/src/layouts/blogs/styles/*/IndexLayout.astro');
-const blogPostLayouts = import.meta.glob('/src/layouts/blogs/styles/*/PostLayout.astro');
-const customLayouts = import.meta.glob('/src/layouts/custom/styles/*/Layout.astro');
+// Auto-discover all layouts using glob patterns (built-in + external)
+const builtinDocsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
+const extDocsLayouts = import.meta.glob('@ext-layouts/docs/styles/*/Layout.astro');
 
-// Auto-discover navbar and footer layouts
-const navbarLayouts = import.meta.glob('/src/layouts/navbar/*/index.astro');
-const footerLayouts = import.meta.glob('/src/layouts/footer/*/index.astro');
+const builtinBlogIndexLayouts = import.meta.glob('/src/layouts/blogs/styles/*/IndexLayout.astro');
+const extBlogIndexLayouts = import.meta.glob('@ext-layouts/blogs/styles/*/IndexLayout.astro');
 
-// Available styles for error messages
-const availableDocsStyles = Object.keys(docsLayouts).map(p => p.match(/\/styles\/([^/]+)\//)?.[1]).filter(Boolean);
-const availableBlogStyles = Object.keys(blogIndexLayouts).map(p => p.match(/\/styles\/([^/]+)\//)?.[1]).filter(Boolean);
-const availableCustomStyles = Object.keys(customLayouts).map(p => p.match(/\/styles\/([^/]+)\//)?.[1]).filter(Boolean);
-const availableNavbarStyles = Object.keys(navbarLayouts).map(p => p.match(/\/navbar\/([^/]+)\//)?.[1]).filter(Boolean);
-const availableFooterStyles = Object.keys(footerLayouts).map(p => p.match(/\/footer\/([^/]+)\//)?.[1]).filter(Boolean);
+const builtinBlogPostLayouts = import.meta.glob('/src/layouts/blogs/styles/*/PostLayout.astro');
+const extBlogPostLayouts = import.meta.glob('@ext-layouts/blogs/styles/*/PostLayout.astro');
+
+const builtinCustomLayouts = import.meta.glob('/src/layouts/custom/styles/*/Layout.astro');
+const extCustomLayouts = import.meta.glob('@ext-layouts/custom/styles/*/Layout.astro');
+
+const builtinNavbarLayouts = import.meta.glob('/src/layouts/navbar/*/index.astro');
+const extNavbarLayouts = import.meta.glob('@ext-layouts/navbar/*/index.astro');
+
+const builtinFooterLayouts = import.meta.glob('/src/layouts/footer/*/index.astro');
+const extFooterLayouts = import.meta.glob('@ext-layouts/footer/*/index.astro');
+
+/**
+ * Merge built-in and external layout globs.
+ * External entries override built-in with the same style name.
+ */
+function mergeLayouts(
+  builtin: Record<string, () => Promise<any>>,
+  ext: Record<string, () => Promise<any>>,
+  stylePattern: RegExp,
+) {
+  const byStyle = new Map<string, { loader: () => Promise<any>; source: 'builtin' | 'external' }>();
+  for (const [p, loader] of Object.entries(builtin)) {
+    const m = p.match(stylePattern);
+    if (m) byStyle.set(m[1], { loader, source: 'builtin' });
+  }
+  for (const [p, loader] of Object.entries(ext)) {
+    const m = p.match(stylePattern);
+    if (m) byStyle.set(m[1], { loader, source: 'external' });
+  }
+  return { byStyle, styles: [...byStyle.keys()] };
+}
+
+// Merged layout maps
+const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, /\/styles\/([^/]+)\//);
+const blogIndexLayouts = mergeLayouts(builtinBlogIndexLayouts, extBlogIndexLayouts, /\/styles\/([^/]+)\//);
+const blogPostLayouts = mergeLayouts(builtinBlogPostLayouts, extBlogPostLayouts, /\/styles\/([^/]+)\//);
+const customLayouts = mergeLayouts(builtinCustomLayouts, extCustomLayouts, /\/styles\/([^/]+)\//);
+const navbarLayouts = mergeLayouts(builtinNavbarLayouts, extNavbarLayouts, /\/navbar\/([^/]+)\//);
+const footerLayouts = mergeLayouts(builtinFooterLayouts, extFooterLayouts, /\/footer\/([^/]+)\//);
+
+// Available styles for error messages and dev toolbar validation
+const availableDocsStyles = docsLayouts.styles;
+const availableBlogStyles = blogIndexLayouts.styles;
+const availableCustomStyles = customLayouts.styles;
+const availableNavbarStyles = navbarLayouts.styles;
+const availableFooterStyles = footerLayouts.styles;
 
 export async function getStaticPaths() {
   const siteConfig = loadSiteConfig();
@@ -221,16 +259,14 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
   }
 
   const [, type, style] = match;
-  let loader: (() => Promise<any>) | undefined;
-  let expectedPath: string;
+  let entry: { loader: () => Promise<any>; source: string } | undefined;
   let available: string[];
 
   if (type === 'docs') {
-    expectedPath = `/src/layouts/docs/styles/${style}/Layout.astro`;
-    loader = docsLayouts[expectedPath];
-    available = availableDocsStyles as string[];
+    entry = docsLayouts.byStyle.get(style);
+    available = availableDocsStyles;
 
-    if (!loader) {
+    if (!entry) {
       throw new Error(
         `\n[CONFIG ERROR] Docs layout "${style}" does not exist.\n` +
         `  Page: ${pageName}\n` +
@@ -240,17 +276,15 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
       );
     }
   } else if (type === 'blog') {
-    available = availableBlogStyles as string[];
+    available = availableBlogStyles;
 
     if (variant === 'index') {
-      expectedPath = `/src/layouts/blogs/styles/${style}/IndexLayout.astro`;
-      loader = blogIndexLayouts[expectedPath];
+      entry = blogIndexLayouts.byStyle.get(style);
     } else {
-      expectedPath = `/src/layouts/blogs/styles/${style}/PostLayout.astro`;
-      loader = blogPostLayouts[expectedPath];
+      entry = blogPostLayouts.byStyle.get(style);
     }
 
-    if (!loader) {
+    if (!entry) {
       throw new Error(
         `\n[CONFIG ERROR] Blog layout "${style}" does not exist.\n` +
         `  Page: ${pageName}\n` +
@@ -260,11 +294,10 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
       );
     }
   } else if (type === 'custom') {
-    expectedPath = `/src/layouts/custom/styles/${style}/Layout.astro`;
-    loader = customLayouts[expectedPath];
-    available = availableCustomStyles as string[];
+    entry = customLayouts.byStyle.get(style);
+    available = availableCustomStyles;
 
-    if (!loader) {
+    if (!entry) {
       throw new Error(
         `\n[CONFIG ERROR] Custom layout "${style}" does not exist.\n` +
         `  Page: ${pageName}\n` +
@@ -282,7 +315,7 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
     );
   }
 
-  return loader;
+  return entry.loader;
 }
 
 /**
@@ -299,21 +332,20 @@ function resolveNavbarFooter(layoutAlias: string, type: 'navbar' | 'footer') {
   }
 
   const [, , style] = match;
-  const layouts = type === 'navbar' ? navbarLayouts : footerLayouts;
+  const merged = type === 'navbar' ? navbarLayouts : footerLayouts;
   const available = type === 'navbar' ? availableNavbarStyles : availableFooterStyles;
-  const expectedPath = `/src/layouts/${type}/${style}/index.astro`;
-  const loader = layouts[expectedPath];
+  const entry = merged.byStyle.get(style);
 
-  if (!loader) {
+  if (!entry) {
     throw new Error(
       `\n[CONFIG ERROR] ${type.charAt(0).toUpperCase() + type.slice(1)} layout "${style}" does not exist.\n` +
       `  Config: ${layoutAlias}\n` +
       `  Expected: src/layouts/${type}/${style}/index.astro\n` +
-      `  Available: ${(available as string[]).join(', ') || '(none)'}\n`
+      `  Available: ${available.join(', ') || '(none)'}\n`
     );
   }
 
-  return loader;
+  return entry.loader;
 }
 
 // Resolve layout component

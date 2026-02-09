@@ -8,17 +8,18 @@
  * - Toggling display mode (light/dark/system) globally
  */
 
-// Available layouts (should match src/layouts/*/styles/)
-// TODO: Auto-discover these from the server
-const LAYOUTS = {
-  docs: ['default', 'compact'],
-  blog: ['default'],
-  navbar: ['default', 'minimal'],
-  footer: ['default', 'minimal'],
-} as const;
+interface LayoutInfo {
+  name: string;
+  source: 'builtin' | 'external';
+}
 
-// Display modes for light/dark toggle (used in UI rendering)
-// const DISPLAY_MODES = ['light', 'dark', 'system'] as const;
+interface LayoutsResponse {
+  docs: LayoutInfo[];
+  blog: LayoutInfo[];
+  custom: LayoutInfo[];
+  navbar: LayoutInfo[];
+  footer: LayoutInfo[];
+}
 
 interface ThemeInfo {
   name: string;
@@ -79,19 +80,38 @@ export default {
     // Get current display mode (light/dark/system)
     const currentDisplayMode = localStorage.getItem('theme') || 'system';
 
-    // Fetch available themes from API
+    // Fetch available themes and layouts from API
     let themesData: ThemesResponse | null = null;
+    let layoutsData: LayoutsResponse | null = null;
     try {
-      const response = await fetch('/api/dev/themes');
-      if (response.ok) {
-        themesData = await response.json();
+      const [themesRes, layoutsRes] = await Promise.all([
+        fetch('/api/dev/themes'),
+        fetch('/api/dev/layouts'),
+      ]);
+      if (themesRes.ok) {
+        themesData = await themesRes.json();
         console.log('[dev-toolbar] Loaded themes:', themesData);
       } else {
-        console.error('[dev-toolbar] Failed to fetch themes, status:', response.status);
+        console.error('[dev-toolbar] Failed to fetch themes, status:', themesRes.status);
+      }
+      if (layoutsRes.ok) {
+        layoutsData = await layoutsRes.json();
+        console.log('[dev-toolbar] Loaded layouts:', layoutsData);
+      } else {
+        console.error('[dev-toolbar] Failed to fetch layouts, status:', layoutsRes.status);
       }
     } catch (error) {
-      console.error('[dev-toolbar] Failed to fetch themes:', error);
+      console.error('[dev-toolbar] Failed to fetch themes/layouts:', error);
     }
+
+    // Fallback if API unavailable
+    const LAYOUTS: LayoutsResponse = layoutsData || {
+      docs: [{ name: 'default', source: 'builtin' }],
+      blog: [{ name: 'default', source: 'builtin' }],
+      custom: [],
+      navbar: [{ name: 'default', source: 'builtin' }],
+      footer: [{ name: 'default', source: 'builtin' }],
+    };
 
     // Create the window using Astro's built-in component
     const windowEl = document.createElement('astro-dev-toolbar-window');
@@ -347,6 +367,16 @@ export default {
         height: 14px;
       }
 
+      .ext-badge {
+        font-size: 9px;
+        padding: 1px 4px;
+        background: rgba(234, 179, 8, 0.2);
+        border-radius: 3px;
+        color: #fbbf24;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
       .current-config {
         font-size: 10px;
         color: rgba(255, 255, 255, 0.4);
@@ -383,13 +413,14 @@ export default {
 
     if (isDocsPage) {
       html += '<div class="option-list">';
-      for (const layout of LAYOUTS.docs) {
-        const isActive = activeLayout === layout || (!activeLayout && layout === 'default');
-        const displayName = layout.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+      for (const entry of LAYOUTS.docs) {
+        const isActive = activeLayout === entry.name || (!activeLayout && entry.name === 'default');
+        const displayName = entry.name.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
         html += `
-          <button class="option-btn ${isActive ? 'active' : ''}" data-layout="${layout}" data-type="docs">
+          <button class="option-btn ${isActive ? 'active' : ''}" data-layout="${entry.name}" data-type="docs">
             <span class="radio-circle"><span class="radio-dot"></span></span>
             <span class="option-text">${displayName}</span>
+            ${entry.source === 'external' ? '<span class="ext-badge">ext</span>' : ''}
             ${isActive ? '<span class="active-tag">Active</span>' : ''}
           </button>
         `;
@@ -397,13 +428,14 @@ export default {
       html += '</div>';
     } else if (isBlogPage) {
       html += '<div class="option-list">';
-      for (const layout of LAYOUTS.blog) {
-        const isActive = activeLayout === layout || (!activeLayout && layout === 'default');
-        const displayName = layout.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+      for (const entry of LAYOUTS.blog) {
+        const isActive = activeLayout === entry.name || (!activeLayout && entry.name === 'default');
+        const displayName = entry.name.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
         html += `
-          <button class="option-btn ${isActive ? 'active' : ''}" data-layout="${layout}" data-type="blog">
+          <button class="option-btn ${isActive ? 'active' : ''}" data-layout="${entry.name}" data-type="blog">
             <span class="radio-circle"><span class="radio-dot"></span></span>
             <span class="option-text">${displayName}</span>
+            ${entry.source === 'external' ? '<span class="ext-badge">ext</span>' : ''}
             ${isActive ? '<span class="active-tag">Active</span>' : ''}
           </button>
         `;
@@ -508,13 +540,14 @@ export default {
       Navbar Style
     </div>`;
     html += '<div class="option-list">';
-    for (const style of LAYOUTS.navbar) {
-      const isActive = activeNavbar === style || (!activeNavbar && style === 'default');
-      const displayName = style.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+    for (const entry of LAYOUTS.navbar) {
+      const isActive = activeNavbar === entry.name || (!activeNavbar && entry.name === 'default');
+      const displayName = entry.name.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
       html += `
-        <button class="option-btn ${isActive ? 'active' : ''}" data-navbar="${style}">
+        <button class="option-btn ${isActive ? 'active' : ''}" data-navbar="${entry.name}">
           <span class="radio-circle"><span class="radio-dot"></span></span>
           <span class="option-text">${displayName}</span>
+          ${entry.source === 'external' ? '<span class="ext-badge">ext</span>' : ''}
           ${isActive ? '<span class="active-tag">Active</span>' : ''}
         </button>
       `;
@@ -535,13 +568,14 @@ export default {
       Footer Style
     </div>`;
     html += '<div class="option-list">';
-    for (const style of LAYOUTS.footer) {
-      const isActive = activeFooter === style || (!activeFooter && style === 'default');
-      const displayName = style.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+    for (const entry of LAYOUTS.footer) {
+      const isActive = activeFooter === entry.name || (!activeFooter && entry.name === 'default');
+      const displayName = entry.name.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
       html += `
-        <button class="option-btn ${isActive ? 'active' : ''}" data-footer="${style}">
+        <button class="option-btn ${isActive ? 'active' : ''}" data-footer="${entry.name}">
           <span class="radio-circle"><span class="radio-dot"></span></span>
           <span class="option-text">${displayName}</span>
+          ${entry.source === 'external' ? '<span class="ext-badge">ext</span>' : ''}
           ${isActive ? '<span class="active-tag">Active</span>' : ''}
         </button>
       `;
