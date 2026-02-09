@@ -9,6 +9,7 @@
 
 .docs-layout {
   display: flex;
+  justify-content: center;
   max-width: var(--max-width-content);
   margin: 0 auto;
 }
@@ -141,7 +142,7 @@
   flex: 1;
   min-width: 0;
   padding: var(--spacing-xl) var(--spacing-2xl);
-  max-width: 900px;
+  max-width: var(--max-width-docs-content);
 }
 
 .docs-article {

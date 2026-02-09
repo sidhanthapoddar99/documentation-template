@@ -23,6 +23,7 @@
      Layout Dimensions
      ================================= */
   --max-width-content: 1600px;
+  --max-width-docs-content: 900px;
   --max-width-prose: 65ch;
   --sidebar-width: 280px;
   --outline-width: 220px;
