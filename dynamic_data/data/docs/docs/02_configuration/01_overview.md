@@ -25,7 +25,9 @@ dynamic_data/
 │   ├── docs/
 │   ├── blog/
 │   └── pages/
-└── themes/           # Custom themes (paths.themes in site.yaml)
+├── themes/           # Custom themes (paths.themes in site.yaml)
+└── layouts/          # External layouts (LAYOUT_EXT_DIR from .env, optional)
+    └── docs/styles/  # Custom doc layouts, etc.
 ```
 
 ## Configuration Files

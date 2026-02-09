@@ -143,13 +143,18 @@ const FooterComponent = (await resolveNavbarFooter(footerLayoutRef, 'footer')())
 
 ## Available Layouts
 
-Layouts are auto-discovered via glob patterns:
+Layouts are auto-discovered via dual glob patterns (built-in + external):
 
 ```typescript
-const docsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
-const navbarLayouts = import.meta.glob('/src/layouts/navbar/*/index.astro');
-const footerLayouts = import.meta.glob('/src/layouts/footer/*/index.astro');
+// Built-in layouts
+const builtinDocsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
+// External layouts (from LAYOUT_EXT_DIR)
+const extDocsLayouts = import.meta.glob('@ext-layouts/docs/styles/*/Layout.astro');
+// Merged: external overrides built-in with the same style name
+const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, ...);
 ```
+
+The dev toolbar fetches available layouts from the `/api/dev/layouts` endpoint, which returns all discovered layouts with their source (`builtin` or `external`).
 
 ### Doc Layouts
 
@@ -158,7 +163,7 @@ const footerLayouts = import.meta.glob('/src/layouts/footer/*/index.astro');
 | `default` | Full layout with sidebar, body, and outline |
 | `compact` | Minimal layout without sidebar |
 
-Location: `src/layouts/docs/styles/{style}/Layout.astro`
+Location: `src/layouts/docs/styles/{style}/Layout.astro` or `<LAYOUT_EXT_DIR>/docs/styles/{style}/Layout.astro`
 
 ### Navbar Styles
 
@@ -167,7 +172,7 @@ Location: `src/layouts/docs/styles/{style}/Layout.astro`
 | `default` | Full-featured with dropdowns and mobile menu |
 | `minimal` | Simple flat navbar |
 
-Location: `src/layouts/navbar/{style}/index.astro`
+Location: `src/layouts/navbar/{style}/index.astro` or `<LAYOUT_EXT_DIR>/navbar/{style}/index.astro`
 
 ### Footer Styles
 
@@ -176,21 +181,33 @@ Location: `src/layouts/navbar/{style}/index.astro`
 | `default` | Multi-column with social links |
 | `minimal` | Single-line footer |
 
-Location: `src/layouts/footer/{style}/index.astro`
+Location: `src/layouts/footer/{style}/index.astro` or `<LAYOUT_EXT_DIR>/footer/{style}/index.astro`
+
+### External Layouts in the Toolbar
+
+External layouts appear with an **ext** badge in the toolbar UI, making them easy to distinguish from built-in layouts. The toolbar dynamically discovers all available layouts via the `/api/dev/layouts` API endpoint.
 
 ### Adding New Styles
 
-**Doc Layout:**
+You can add layouts either as built-in (in `src/`) or external (via `LAYOUT_EXT_DIR`).
+
+**Built-in Doc Layout:**
 1. Create folder: `src/layouts/docs/styles/doc_style3/`
 2. Add `Layout.astro` with your design
 3. The layout appears automatically in the dev toolbar
 
+**External Doc Layout:**
+1. Set `LAYOUT_EXT_DIR` in `.env` (e.g., `LAYOUT_EXT_DIR=./dynamic_data/layouts`)
+2. Create folder: `<LAYOUT_EXT_DIR>/docs/styles/my-layout/`
+3. Add `Layout.astro` (use `@layouts/` aliases for imports, not relative paths)
+4. Restart dev server — the layout appears in the toolbar with an "ext" badge
+
 **Navbar:**
-1. Create folder: `src/layouts/navbar/my-style/`
+1. Create folder: `src/layouts/navbar/my-style/` (or `<LAYOUT_EXT_DIR>/navbar/my-style/`)
 2. Add `index.astro` with your design
 3. Update `navbar.yaml`: `layout: "@navbar/my-style"`
 
 **Footer:**
-1. Create folder: `src/layouts/footer/my-style/`
+1. Create folder: `src/layouts/footer/my-style/` (or `<LAYOUT_EXT_DIR>/footer/my-style/`)
 2. Add `index.astro` with your design
 3. Update `footer.yaml`: `layout: "@footer/my-style"`

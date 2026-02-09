@@ -221,16 +221,92 @@ All layouts receive **processed HTML content**, not raw markdown:
 | `home` | Landing page with hero section and features grid |
 | `info` | Simple content page for about/contact pages |
 
+## External Layouts
+
+You can add custom layouts **without modifying the framework's `src/` directory** by setting the `LAYOUT_EXT_DIR` environment variable.
+
+### Setup
+
+1. Create a layouts directory (e.g., `dynamic_data/layouts/`)
+2. Set `LAYOUT_EXT_DIR` in `.env`:
+
+```env
+LAYOUT_EXT_DIR=./dynamic_data/layouts
+```
+
+3. Mirror the `src/layouts/` structure for the layouts you want to add:
+
+```
+dynamic_data/layouts/
+├── docs/styles/my-layout/
+│   └── Layout.astro
+├── blogs/styles/my-blog-style/
+│   ├── IndexLayout.astro
+│   └── PostLayout.astro
+├── custom/styles/my-page/
+│   └── Layout.astro
+├── navbar/my-navbar/
+│   └── index.astro
+└── footer/my-footer/
+    └── index.astro
+```
+
+### Import Rules
+
+External `.astro` files live outside `src/`, so **relative imports won't work**. Use Vite aliases instead:
+
+```astro
+---
+// Use @layouts/ to import built-in shared components
+import Body from '@layouts/docs/components/body/default/Body.astro';
+import Outline from '@layouts/docs/components/outline/default/Outline.astro';
+import Pagination from '@layouts/docs/components/common/Pagination.astro';
+
+// Use @loaders/ for data loading
+import { loadContentWithSettings } from '@loaders/data';
+---
+```
+
+Available aliases: `@layouts/`, `@loaders/`, `@parsers/`, `@styles/`, `@modules/`, `@hooks/`, `@custom-tags/`.
+
+### Merge Behavior
+
+| Scenario | Result |
+|----------|--------|
+| New style name | Added alongside built-in layouts |
+| Same style name as built-in | External layout **overrides** built-in |
+| `LAYOUT_EXT_DIR` not set | Only built-in layouts (zero overhead) |
+| Directory doesn't exist | Startup error with clear message |
+
+### Dev Toolbar
+
+External layouts appear in the dev toolbar layout switcher with an **ext** badge, making it easy to distinguish them from built-in layouts.
+
+### Limitations
+
+- `BaseLayout.astro` cannot be overridden (it's the root HTML wrapper)
+- Adding or removing layout directories requires a dev server restart (Vite glob limitation)
+- Modifying existing external `.astro` files triggers normal HMR/full-reload
+
 ## Creating New Layouts
 
-To add a new layout:
+### Built-in Layout (in `src/`)
 
 1. **Create the folder**: `src/layouts/docs/styles/my_layout/`
 2. **Add Layout.astro**: Implement the required props interface
-3. **Import components**: Use existing or create new components
+3. **Import components**: Use relative imports or Vite aliases
 4. **Use theme CSS classes**: Apply the correct CSS class names so the theme can style the layout
 5. **Reference in config**: `layout: "@docs/my_layout"`
 
-The layout is automatically discovered — no registration needed. Do not add CSS files to layout directories. If you need new visual styling, add it to your theme's CSS files in `src/styles/` (or your custom theme directory).
+### External Layout (outside `src/`)
+
+1. **Set `LAYOUT_EXT_DIR`** in `.env` (if not already set)
+2. **Create the folder**: `<LAYOUT_EXT_DIR>/docs/styles/my_layout/`
+3. **Add Layout.astro**: Implement the required props interface
+4. **Use Vite aliases for imports**: `@layouts/`, `@loaders/`, etc. (no relative imports)
+5. **Restart dev server** to pick up the new directory
+6. **Reference in config**: `layout: "@docs/my_layout"`
+
+Both are automatically discovered — no registration needed. Do not add CSS files to layout directories. If you need new visual styling, add it to your theme's CSS files.
 
 See the [Docs Layouts](./docs-layouts/overview), [Blog Layouts](./blog-layouts/overview), and [Custom Layouts](./custom-layouts/overview) sections for detailed guides.

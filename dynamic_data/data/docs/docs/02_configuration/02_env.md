@@ -10,9 +10,11 @@ Environment variables configure the bootstrap path, server settings, and feature
 
 > **Note:** Directory paths for data, assets, and themes are now configured in `site.yaml`'s `paths:` section, not in `.env`. Only `CONFIG_DIR` remains as the bootstrap to locate `site.yaml`. See [Site Configuration](./site) for details.
 
-## Config Bootstrap
+## Directory Paths
 
-The only directory path in `.env` is `CONFIG_DIR`, which tells the system where to find `site.yaml`:
+### Config Bootstrap
+
+The primary directory path in `.env` is `CONFIG_DIR`, which tells the system where to find `site.yaml`:
 
 ```env
 # Points to the directory containing site.yaml, navbar.yaml, footer.yaml
@@ -23,9 +25,39 @@ CONFIG_DIR=./dynamic_data/config
 |----------|---------|-------------|
 | `CONFIG_DIR` | `./dynamic_data/config` | Path to configuration directory (relative to project root, or absolute) |
 
-All other directory paths (`data`, `assets`, `themes`) are defined in `site.yaml`'s `paths:` section.
+All other content directory paths (`data`, `assets`, `themes`) are defined in `site.yaml`'s `paths:` section.
 
 > **Path relativity rule:** `CONFIG_DIR` in `.env` is relative to the **project root** (where `.env` lives). Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). Absolute paths work in both places.
+
+### External Layouts
+
+Optionally, `LAYOUT_EXT_DIR` points to a directory of custom layout components that extend or override the built-in layouts:
+
+```env
+# Optional: External layout directory (mirrors src/layouts/ structure)
+LAYOUT_EXT_DIR=./dynamic_data/layouts
+```
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LAYOUT_EXT_DIR` | *(not set)* | Path to external layouts directory (relative to project root, or absolute) |
+
+When set, external layouts are merged with built-in layouts. If an external layout has the same style name as a built-in one, the external version takes priority. When not set, only built-in layouts are available (no overhead).
+
+The external directory mirrors the `src/layouts/` structure:
+
+```
+<LAYOUT_EXT_DIR>/
+├── docs/styles/<style>/Layout.astro
+├── blogs/styles/<style>/IndexLayout.astro + PostLayout.astro
+├── custom/styles/<style>/Layout.astro
+├── navbar/<style>/index.astro
+└── footer/<style>/index.astro
+```
+
+> **Important:** External `.astro` files must use Vite aliases for imports (e.g., `@layouts/`, `@loaders/`) instead of relative paths, since they live outside `src/`.
+
+See [Layouts Overview](/docs/final-docs/layouts/overview) for details on creating external layouts.
 
 ## Server Settings
 
@@ -145,6 +177,10 @@ ENABLE_DARK_MODE=true
 # Bootstrap: points to the config directory containing site.yaml
 # All other paths (data, assets, themes) are defined in site.yaml
 CONFIG_DIR=./dynamic_data/config
+
+# Optional: External layout directory (mirrors src/layouts/ structure)
+# External layouts merge with built-in; same-name styles override built-in.
+# LAYOUT_EXT_DIR=./dynamic_data/layouts
 
 # ============================================
 # SERVER SETTINGS

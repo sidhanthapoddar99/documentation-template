@@ -125,15 +125,18 @@ Layouts compose from shared components rather than extending base classes:
 
 ### 2. Automatic Discovery
 
-Layouts are discovered via glob patterns — no manual registry:
+Layouts are discovered via dual glob patterns — built-in and external — with no manual registry:
 
 ```typescript
-// In [...slug].astro
-const docsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
-const blogLayouts = import.meta.glob('/src/layouts/blogs/styles/*/*.astro');
+// In [...slug].astro — built-in + external globs
+const builtinDocsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
+const extDocsLayouts = import.meta.glob('@ext-layouts/docs/styles/*/Layout.astro');
+
+// Merged: external overrides built-in with the same style name
+const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, /\/styles\/([^/]+)\//);
 ```
 
-Adding a new layout is just creating a folder with the right file.
+Adding a new layout is just creating a folder with the right file — either in `src/layouts/` or in the external `LAYOUT_EXT_DIR` directory.
 
 ### 3. Strict Validation
 

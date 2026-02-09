@@ -273,6 +273,8 @@ pages:
     data: "@data/pages/home.yaml"
 ```
 
+Layout references work the same whether the layout is built-in or external. When `LAYOUT_EXT_DIR` is set, the system scans both `src/layouts/` and the external directory, merging them by style name (external overrides built-in).
+
 ## Comparison Table
 
 | Feature | Docs | Blog | Custom |
