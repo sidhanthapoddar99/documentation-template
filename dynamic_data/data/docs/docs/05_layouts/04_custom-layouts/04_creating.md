@@ -110,42 +110,44 @@ const { title = 'Pricing', subtitle, plans } = pageData;
 </div>
 ```
 
-## Step 3: Add Styles to the Theme
+## Step 3: Add Styles to the Layout
 
-Layouts do not contain CSS files. Instead, add styles for your new layout's CSS classes to the theme. Create or edit `custom.css` in your theme directory (`src/styles/` or your custom theme folder):
+Add a scoped `<style>` block to your layout component. Use theme CSS variables for consistency:
 
-```css
-/* In theme custom.css */
+```astro
+<!-- At the end of Layout.astro -->
+<style>
 .pricing-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 2rem;
+  padding: var(--spacing-3xl) var(--spacing-lg);
 }
 
 .pricing-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: var(--spacing-3xl);
 }
 
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
+  gap: var(--spacing-xl);
   align-items: start;
 }
 
 .pricing-card {
   position: relative;
   background: var(--color-bg-secondary);
-  border-radius: 12px;
-  padding: 2rem;
-  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  border: 1px solid var(--color-border-default);
 }
 
 /* ... additional pricing styles ... */
+</style>
 ```
 
-The theme CSS is injected globally via `<style id="theme-styles">` in `BaseLayout`, so these classes will be available to your layout without any imports.
+The `<style>` block is scoped to the component, keeping styles modular and avoiding global CSS pollution.
 
 ## Step 4: Create the Data File
 
@@ -301,10 +303,10 @@ Before shipping your custom layout:
 - [ ] TypeScript interfaces defined
 - [ ] Error handling for missing data
 - [ ] Empty states for missing sections
-- [ ] Responsive design
-- [ ] Dark mode support
+- [ ] Responsive design (use `@media` queries in `<style>` block)
+- [ ] Dark mode support (use theme color variables)
 - [ ] Accessible markup
-- [ ] CSS classes added to theme CSS (not in layout files)
+- [ ] Styles added to component `<style>` block using theme variables
 - [ ] Data file created
 - [ ] site.yaml configured
 - [ ] Build passes

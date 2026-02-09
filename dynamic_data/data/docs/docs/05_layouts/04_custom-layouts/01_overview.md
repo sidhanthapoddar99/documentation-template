@@ -96,7 +96,7 @@ src/layouts/custom/
             └── Content.astro
 ```
 
-All styling for custom layouts is provided by the theme (e.g., `custom.css` in `src/styles/`). Layout and component files contain only HTML structure with CSS classes -- no CSS files, no `<style>` blocks, and no CSS imports.
+Custom layouts define their styles using scoped `<style>` blocks within each component. Styles use theme CSS variables (e.g., `var(--color-bg-primary)`, `var(--spacing-md)`) for consistency, but each component contains its own `<style>` block rather than relying on external CSS files.
 
 ## Routing
 

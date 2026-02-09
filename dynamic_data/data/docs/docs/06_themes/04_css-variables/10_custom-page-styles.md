@@ -5,11 +5,11 @@ description: Hero sections, feature grids, info pages, and countdown styling
 
 # Custom Page Styles
 
-Custom page styles are **theme CSS** for specialized pages like landing pages, info pages, and interactive elements. Unlike navbar, footer, docs, and blog styles (which only use theme variables), custom pages also introduce their own unique CSS for components that don't exist elsewhere — hero banners, feature grids, countdown timers.
+Custom page styles are **scoped CSS** for specialized pages like landing pages, info pages, and interactive elements. Unlike navbar, footer, docs, and blog styles (which are defined in the theme), custom pages define their own styles using `<style>` blocks within each layout component.
 
-**Theme file:** `custom.css`
+**Pattern:** Each custom layout component includes a `<style>` block with its own CSS
 
-Custom pages use existing theme variables (`--color-*`, `--spacing-*`, `--font-size-*`) for consistency, but define additional selectors specific to their unique components. The layout `.astro` components define *what* to render (hero content from YAML, feature list, countdown target) and the theme CSS defines *how it looks*.
+Custom pages use existing theme variables (`--color-*`, `--spacing-*`, `--font-size-*`) for consistency, but define additional selectors specific to their unique components via scoped `<style>` blocks. The layout `.astro` components define both *what* to render (hero content from YAML, feature list, countdown target) and *how it looks* (via component-scoped styles).
 
 ---
 

@@ -18,7 +18,6 @@ files:
   - footer.css
   - docs.css
   - blogs.css
-  - custom.css
 
 # Required CSS variables that themes extending this must define
 # (or inherit from this theme)

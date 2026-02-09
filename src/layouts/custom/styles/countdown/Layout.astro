@@ -95,3 +95,106 @@ const note = pageData.note || '';
 
   startCountdown();
 </script>
+
+<style>
+  .countdown-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: var(--spacing-xl);
+  }
+
+  .countdown-container {
+    text-align: center;
+    max-width: 700px;
+  }
+
+  .countdown-title {
+    font-size: var(--font-size-4xl);
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text-primary);
+  }
+
+  .countdown-subtitle {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .countdown-amount {
+    font-size: var(--font-size-4xl);
+    font-weight: 800;
+    color: var(--color-error);
+    margin-bottom: var(--spacing-xl);
+    letter-spacing: -1px;
+  }
+
+  .countdown-timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .countdown-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    min-width: 90px;
+  }
+
+  .countdown-value {
+    font-size: var(--font-size-4xl);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-primary);
+    line-height: 1;
+  }
+
+  .countdown-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-text-muted);
+    margin-top: var(--spacing-xs);
+  }
+
+  .countdown-separator {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-muted);
+    padding-bottom: var(--spacing-md);
+  }
+
+  .countdown-note {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  @media (max-width: 640px) {
+    .countdown-timer {
+      gap: var(--spacing-xs);
+    }
+
+    .countdown-unit {
+      min-width: 65px;
+      padding: var(--spacing-md) var(--spacing-sm);
+    }
+
+    .countdown-value {
+      font-size: var(--font-size-2xl);
+    }
+
+    .countdown-amount {
+      font-size: var(--font-size-3xl);
+    }
+  }
+</style>

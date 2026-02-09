@@ -34,6 +34,3 @@
 
 /* 10. Blog (index grid, post cards, post body) */
 @import './blogs.css';
-
-/* 11. Custom pages (hero, features, info, countdown) */
-@import './custom.css';

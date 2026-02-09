@@ -89,7 +89,7 @@ src/layouts/
         └── index.astro
 ```
 
-The theme provides all visual styling through CSS files like `docs.css`, `navbar.css`, `footer.css`, `blogs.css`, and `custom.css` in `src/styles/`. These are injected globally by `BaseLayout.astro`.
+The theme provides visual styling for navbar, footer, docs, and blog layouts through CSS files like `docs.css`, `navbar.css`, `footer.css`, and `blogs.css` in `src/styles/`. These are injected globally by `BaseLayout.astro`. Custom page layouts define their own styles using scoped `<style>` blocks within each component.
 
 ## Setting Layouts in Configuration
 

@@ -62,7 +62,6 @@ Every theme lives in a single folder and contains these CSS files:
 | `footer.css` | Footer styling | Column grid, link styles, social icons, copyright |
 | `docs.css` | Documentation page styling | `.docs-layout` container, sidebar, content area, outline panel, pagination |
 | `blogs.css` | Blog page styling | Index grid, post cards, post body |
-| `custom.css` | Custom page styling | Hero sections, feature grids, info pages, countdown |
 
 Each file defines one style for its component. `navbar.css` does not contain multiple navbar variants — it contains the navbar style for this theme.
 
@@ -82,7 +81,6 @@ The entry point that imports all theme files in the correct order:
 @import './footer.css';       /* 8. Footer */
 @import './docs.css';         /* 9. Documentation pages */
 @import './blogs.css';        /* 10. Blog pages */
-@import './custom.css';       /* 11. Custom pages */
 ```
 
 Order matters: variables must be defined before they are used. Variable files come first, then component styles that consume them.
