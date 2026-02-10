@@ -351,7 +351,7 @@ The `.docs-layout` container and all component styles are defined in the theme's
 /* src/styles/docs.css (theme) */
 .docs-layout {
   display: flex;
-  max-width: var(--max-width-content);
+  max-width: var(--max-width-primary);
   margin: 0 auto;
 }
 ```

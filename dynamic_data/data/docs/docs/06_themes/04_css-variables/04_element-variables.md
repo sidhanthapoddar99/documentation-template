@@ -49,7 +49,8 @@ Fixed dimensions for structural components. Layouts use these to size major page
 
 | Variable | Description | Value |
 |----------|-------------|-------|
-| `--max-width-content` | Maximum width of the content container | `1600px` |
+| `--max-width-primary` | Maximum width of the outer layout container | `1600px` |
+| `--max-width-secondary` | Maximum width of content areas (docs, blog, footer) | `900px` |
 | `--max-width-prose` | Maximum width for long-form text (character-based) | `65ch` |
 | `--sidebar-width` | Width of the documentation sidebar | `280px` |
 | `--outline-width` | Width of the table of contents panel | `220px` |
@@ -60,7 +61,8 @@ Fixed dimensions for structural components. Layouts use these to size major page
 
 | Variable | Components |
 |----------|-----------|
-| `--max-width-content` | Navbar container, footer container, blog index, features container |
+| `--max-width-primary` | Navbar container, docs layout, features container |
+| `--max-width-secondary` | Docs content area, blog index, blog post, footer container |
 | `--sidebar-width` | Sidebar width, used in layout flex calculations |
 | `--outline-width` | Outline panel width |
 | `--navbar-height` | Navbar height, sidebar/outline `height: calc(100vh - var(--navbar-height))`, sidebar/outline `top` offset for sticky positioning |
@@ -189,7 +191,7 @@ Defines stacking order for layered elements.
 
 /* Page section */
 .section {
-  max-width: var(--max-width-content);
+  max-width: var(--max-width-primary);
   margin: 0 auto;
   padding: var(--spacing-2xl) var(--spacing-lg);
 }

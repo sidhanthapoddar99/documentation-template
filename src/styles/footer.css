@@ -15,9 +15,9 @@
 }
 
 .footer__container {
-  max-width: var(--max-width-content);
+  max-width: var(--max-width-secondary);
   margin: 0 auto;
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--spacing-2xl);
 }
 
 /* =================================

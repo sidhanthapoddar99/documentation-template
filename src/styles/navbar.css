@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: var(--max-width-content);
+  max-width: var(--max-width-primary);
   margin: 0 auto;
   padding: 0 var(--spacing-lg);
   height: var(--navbar-height);
@@ -48,6 +48,11 @@
   font-weight: 600;
   color: var(--color-text-primary);
 }
+
+/* Theme-aware logo: show light logo by default, swap on dark mode */
+.navbar__logo-dark { display: none; }
+[data-theme="dark"] .navbar__logo-light { display: none; }
+[data-theme="dark"] .navbar__logo-dark { display: block; }
 
 /* =================================
    Desktop Links

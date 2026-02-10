@@ -14,7 +14,7 @@ const { dataPath, postsPerPage = 10 } = Astro.props;
 let posts: LoadedContent[] = [];
 
 try {
-  posts = await loadContent(dataPath, {
+  posts = await loadContent(dataPath, 'blog', {
     pattern: '*.{md,mdx}',
     sort: 'date',
     order: 'desc',

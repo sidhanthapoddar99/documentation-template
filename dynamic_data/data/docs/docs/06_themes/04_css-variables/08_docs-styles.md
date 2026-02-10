@@ -20,7 +20,7 @@ The docs layout container is defined in `docs.css` alongside the rest of the doc
 | Selector | Property | Value |
 |----------|----------|-------|
 | `.docs-layout` | `display` | `flex` |
-| | `max-width` | `var(--max-width-content)` (1600px) |
+| | `max-width` | `var(--max-width-primary)` (1600px) |
 | | `margin` | `0 auto` |
 
 ---

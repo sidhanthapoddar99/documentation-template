@@ -266,7 +266,7 @@ code { font-family: var(--font-family-mono); }
 /* ✅ CORRECT */
 .sidebar { width: var(--sidebar-width); }
 .navbar { height: var(--navbar-height); }
-.content { max-width: var(--max-width-content); }
+.content { max-width: var(--max-width-primary); }
 .toc { width: var(--outline-width); }
 ```
 

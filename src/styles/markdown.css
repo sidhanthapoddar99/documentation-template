@@ -47,6 +47,10 @@ body {
   border: 1px solid var(--color-border-light);
 }
 
+[data-theme="light"] .markdown-content pre {
+  background-color: var(--color-bg-secondary) !important;
+}
+
 .markdown-content pre code {
   background: none;
   padding: 0;
@@ -54,13 +58,8 @@ body {
   line-height: var(--line-height-relaxed);
 }
 
-/* Shiki dual-theme: light by default, dark when data-theme="dark" */
-.markdown-content .shiki,
-.markdown-content .shiki span {
-  color: var(--shiki-light) !important;
-  background-color: var(--shiki-light-bg) !important;
-}
-
+/* Shiki dual-theme: light colors are inline styles (no override needed),
+   dark mode switches to --shiki-dark custom properties */
 [data-theme="dark"] .markdown-content .shiki,
 [data-theme="dark"] .markdown-content .shiki span {
   color: var(--shiki-dark) !important;

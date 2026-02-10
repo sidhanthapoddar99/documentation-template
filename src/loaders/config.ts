@@ -159,6 +159,10 @@ export function loadSiteConfig(): SiteConfig {
       ...config.logo,
       src: resolveAssetUrl(config.logo.src),
       favicon: resolveAssetUrl(config.logo.favicon),
+      theme: config.logo.theme ? {
+        dark: resolveAssetUrl(config.logo.theme.dark),
+        light: resolveAssetUrl(config.logo.theme.light),
+      } : undefined,
     };
   }
 

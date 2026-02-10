@@ -35,7 +35,7 @@ This theme defines one footer style. The layout component defines *what* the foo
 | `.footer` | `background-color` | `--color-bg-secondary` |
 | | `border-top` | `1px solid var(--color-border-default)` |
 | | `padding` | `var(--spacing-2xl) 0` |
-| `.footer__container` | `max-width` | `--max-width-content` |
+| `.footer__container` | `max-width` | `--max-width-primary` |
 | | `margin` | `0 auto` |
 | | `padding` | `0 var(--spacing-lg)` |
 

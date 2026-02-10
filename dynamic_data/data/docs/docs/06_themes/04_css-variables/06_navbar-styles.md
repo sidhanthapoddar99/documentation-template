@@ -50,7 +50,7 @@ Mobile (expanded):
 | `.navbar__container` | `display` | `flex` |
 | | `align-items` | `center` |
 | | `justify-content` | `space-between` |
-| | `max-width` | `--max-width-content` |
+| | `max-width` | `--max-width-primary` |
 | | `margin` | `0 auto` |
 | | `padding` | `0 var(--spacing-lg)` |
 | | `height` | `--navbar-height` |

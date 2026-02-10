@@ -57,7 +57,12 @@ function isActive(href: string | undefined): boolean {
   <div class="navbar__container">
     <!-- Logo -->
     <a href="/" class="navbar__logo">
-      {logo.src ? (
+      {logo.theme?.light && logo.theme?.dark ? (
+        <>
+          <img src={logo.theme.light} alt={logo.alt} class="navbar__logo-light" />
+          <img src={logo.theme.dark} alt={logo.alt} class="navbar__logo-dark" />
+        </>
+      ) : logo.src ? (
         <img src={logo.src} alt={logo.alt} />
       ) : (
         <span class="navbar__logo-text">{logo.alt}</span>

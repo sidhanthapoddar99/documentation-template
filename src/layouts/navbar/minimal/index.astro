@@ -9,7 +9,7 @@
  * - Clean, minimal design
  */
 
-import { loadNavbarConfig } from '@loaders/config';
+import { loadNavbarConfig, getSiteLogo } from '@loaders/config';
 import type { NavItem } from '@loaders/config';
 
 interface Props {
@@ -19,7 +19,7 @@ interface Props {
 const navbarConfig = loadNavbarConfig();
 const { currentPath = Astro.url.pathname } = Astro.props;
 
-const logo = navbarConfig.logo || { alt: 'Docs' };
+const logo = getSiteLogo();
 
 // Helper to check if a link is external
 function isExternal(href: string | undefined): boolean {
@@ -45,7 +45,12 @@ function isActive(href: string): boolean {
   <div class="navbar-minimal__container">
     <!-- Logo -->
     <a href="/" class="navbar-minimal__logo">
-      {logo.src ? (
+      {logo.theme?.light && logo.theme?.dark ? (
+        <>
+          <img src={logo.theme.light} alt={logo.alt} class="navbar__logo-light" />
+          <img src={logo.theme.dark} alt={logo.alt} class="navbar__logo-dark" />
+        </>
+      ) : logo.src ? (
         <img src={logo.src} alt={logo.alt} />
       ) : (
         <span>{logo.alt}</span>

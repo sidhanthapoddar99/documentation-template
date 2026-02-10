@@ -247,7 +247,7 @@ Create `element.css`:
   --spacing-2xl: 3rem;
 
   /* Layout */
-  --max-width-content: 1200px;
+  --max-width-primary: 1200px;
   --sidebar-width: 260px;
   --outline-width: 200px;
   --navbar-height: 56px;

@@ -22,9 +22,9 @@
   /* =================================
      Layout Dimensions
      ================================= */
-  --max-width-content: none;
-  /* --max-width-docs-content: 1900px; */
-  --max-width-docs-content: none;
+  --max-width-primary: none;
+  --max-width-secondary: 1200px;
+  /* --max-width-secondary: none; */
   --max-width-prose: 65ch;
   --sidebar-width: 280px;
   --outline-width: 220px;

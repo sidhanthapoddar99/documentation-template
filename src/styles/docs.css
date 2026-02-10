@@ -9,9 +9,9 @@
 
 .docs-layout {
   display: flex;
-  justify-content: center;
-  max-width: var(--max-width-content);
+  max-width: var(--max-width-primary);
   margin: 0 auto;
+  padding: 0 var(--spacing-2xl);
 }
 
 /* =================================
@@ -139,10 +139,11 @@
    ================================= */
 
 .docs-content {
-  flex: 1;
+  flex: 1 1 0%;
   min-width: 0;
+  max-width: var(--max-width-secondary);
+  margin: 0 auto;
   padding: var(--spacing-xl) var(--spacing-2xl);
-  max-width: var(--max-width-docs-content);
 }
 
 .docs-article {

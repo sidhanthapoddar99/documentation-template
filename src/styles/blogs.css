@@ -8,9 +8,9 @@
    ================================= */
 
 .blog-index {
-  max-width: var(--max-width-content);
+  max-width: var(--max-width-secondary);
   margin: 0 auto;
-  padding: var(--spacing-2xl) var(--spacing-lg);
+  padding: var(--spacing-2xl);
 }
 
 /* Header */
@@ -184,9 +184,9 @@
    ================================= */
 
 .blog-post {
-  max-width: 800px;
+  max-width: var(--max-width-secondary);
   margin: 0 auto;
-  padding: var(--spacing-xl) var(--spacing-lg);
+  padding: var(--spacing-xl) var(--spacing-2xl);
 }
 
 .blog-post__container {

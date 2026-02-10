@@ -101,7 +101,7 @@ UI element variables:
   --spacing-2xl: 3rem;
 
   /* Layout */
-  --max-width-content: 1200px;
+  --max-width-primary: 1200px;
   --sidebar-width: 280px;
   --outline-width: 220px;
   --navbar-height: 64px;
