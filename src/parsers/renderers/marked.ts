@@ -1,9 +1,11 @@
 /**
  * Marked Renderer Configuration
  * Configures the marked markdown parser with extensions and options
+ * Includes syntax highlighting via shiki
  */
 
-import { marked, type MarkedOptions, type TokenizerAndRendererExtension } from 'marked';
+import { Marked, type MarkedOptions, type TokenizerAndRendererExtension } from 'marked';
+import { createHighlighter, type Highlighter } from 'shiki';
 
 export interface MarkdownRendererOptions {
   /** Enable GitHub Flavored Markdown */
@@ -22,27 +24,86 @@ const defaultOptions: MarkdownRendererOptions = {
   sanitize: false,
 };
 
+const DIAGRAM_LANGS = new Set(['mermaid', 'dot', 'graphviz']);
+
+// Shared highlighter instance (lazy-initialized)
+let highlighterPromise: Promise<Highlighter> | null = null;
+
+function getHighlighter(): Promise<Highlighter> {
+  if (!highlighterPromise) {
+    highlighterPromise = createHighlighter({
+      themes: ['github-light', 'github-dark'],
+      langs: [
+        'javascript', 'typescript', 'jsx', 'tsx',
+        'html', 'css', 'scss', 'json', 'yaml',
+        'python', 'bash', 'shell', 'sh',
+        'rust', 'go', 'java', 'c', 'cpp',
+        'sql', 'graphql', 'markdown',
+        'ruby', 'php', 'swift', 'kotlin',
+        'dockerfile', 'toml', 'xml',
+      ],
+    });
+  }
+  return highlighterPromise;
+}
+
 /**
- * Create a markdown renderer function
+ * Create an async markdown renderer with syntax highlighting
+ */
+export async function createMarkdownRendererAsync(
+  options: MarkdownRendererOptions = {}
+): Promise<(content: string) => string> {
+  const mergedOptions = { ...defaultOptions, ...options };
+  const highlighter = await getHighlighter();
+
+  const instance = new Marked({
+    gfm: mergedOptions.gfm,
+    breaks: mergedOptions.breaks,
+    renderer: {
+      code({ text, lang }) {
+        // Diagram code blocks — output raw containers for client-side rendering
+        if (lang && DIAGRAM_LANGS.has(lang.toLowerCase())) {
+          const type = lang.toLowerCase() === 'mermaid' ? 'mermaid' : 'graphviz';
+          return `<div class="diagram diagram-${type}">${text}</div>`;
+        }
+        const language = lang && highlighter.getLoadedLanguages().includes(lang) ? lang : 'text';
+        const html = highlighter.codeToHtml(text, {
+          lang: language,
+          themes: { light: 'github-light', dark: 'github-dark' },
+        });
+        // Add data-language for the code block label/copy button
+        const displayLang = lang || 'text';
+        return html.replace('<pre class="shiki', `<pre data-language="${displayLang}" class="shiki`);
+      },
+    },
+  });
+
+  if (mergedOptions.extensions && mergedOptions.extensions.length > 0) {
+    instance.use({ extensions: mergedOptions.extensions });
+  }
+
+  return (content: string): string => {
+    return instance.parse(content) as string;
+  };
+}
+
+/**
+ * Create a markdown renderer function (sync, no highlighting)
  */
 export function createMarkdownRenderer(options: MarkdownRendererOptions = {}): (content: string) => string {
   const mergedOptions = { ...defaultOptions, ...options };
 
-  // Configure marked options
-  const markedOptions: MarkedOptions = {
+  const instance = new Marked({
     gfm: mergedOptions.gfm,
     breaks: mergedOptions.breaks,
-    async: false,
-  };
+  });
 
-  // Add extensions if provided
   if (mergedOptions.extensions && mergedOptions.extensions.length > 0) {
-    marked.use({ extensions: mergedOptions.extensions });
+    instance.use({ extensions: mergedOptions.extensions });
   }
 
-  // Return the render function
   return (content: string): string => {
-    return marked.parse(content, markedOptions) as string;
+    return instance.parse(content) as string;
   };
 }
 
@@ -50,25 +111,23 @@ export function createMarkdownRenderer(options: MarkdownRendererOptions = {}): (
  * Create a configured marked instance
  * Useful when you need more control over the parsing process
  */
-export function createMarkedInstance(options: MarkdownRendererOptions = {}): typeof marked {
+export function createMarkedInstance(options: MarkdownRendererOptions = {}): Marked {
   const mergedOptions = { ...defaultOptions, ...options };
 
-  // Create a new marked instance with options
-  const instance = new marked.Marked({
+  const instance = new Marked({
     gfm: mergedOptions.gfm,
     breaks: mergedOptions.breaks,
   });
 
-  // Add extensions if provided
   if (mergedOptions.extensions && mergedOptions.extensions.length > 0) {
     instance.use({ extensions: mergedOptions.extensions });
   }
 
-  return instance as unknown as typeof marked;
+  return instance;
 }
 
 /**
- * Render markdown to HTML synchronously
+ * Render markdown to HTML synchronously (no highlighting)
  */
 export function renderMarkdown(content: string, options?: MarkdownRendererOptions): string {
   const render = createMarkdownRenderer(options);
@@ -76,6 +135,6 @@ export function renderMarkdown(content: string, options?: MarkdownRendererOption
 }
 
 /**
- * Default renderer instance
+ * Default renderer instance (sync, no highlighting)
  */
 export const defaultRenderer = createMarkdownRenderer();

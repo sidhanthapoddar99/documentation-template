@@ -55,6 +55,7 @@ export {
 // Renderers
 export {
   createMarkdownRenderer,
+  createMarkdownRendererAsync,
   createMarkedInstance,
   renderMarkdown,
   defaultRenderer,

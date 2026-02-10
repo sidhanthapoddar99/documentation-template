@@ -4,6 +4,7 @@
 
 export {
   createMarkdownRenderer,
+  createMarkdownRendererAsync,
   createMarkedInstance,
   renderMarkdown,
   defaultRenderer,

@@ -41,7 +41,6 @@ body {
 
 /* Code Blocks */
 .markdown-content pre {
-  background-color: var(--color-bg-secondary);
   padding: var(--spacing-md);
   border-radius: var(--border-radius-md);
   overflow-x: auto;
@@ -53,6 +52,54 @@ body {
   padding: 0;
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
+}
+
+/* Shiki dual-theme: light by default, dark when data-theme="dark" */
+.markdown-content .shiki,
+.markdown-content .shiki span {
+  color: var(--shiki-light) !important;
+  background-color: var(--shiki-light-bg) !important;
+}
+
+[data-theme="dark"] .markdown-content .shiki,
+[data-theme="dark"] .markdown-content .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+
+/* Code block language label + copy button */
+.code-label {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-family-base);
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+  cursor: default;
+  user-select: none;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.code-label svg {
+  flex-shrink: 0;
+}
+
+.markdown-content pre:hover .code-label {
+  opacity: 1;
+  cursor: pointer;
+  background-color: var(--color-bg-tertiary, rgba(0, 0, 0, 0.08));
+  color: var(--color-text-primary);
+}
+
+.code-label--copied {
+  color: var(--color-success, #22c55e) !important;
 }
 
 /* Headings */

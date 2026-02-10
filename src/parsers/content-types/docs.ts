@@ -15,7 +15,6 @@ import { BaseContentParser } from '../core/base-parser';
 import { assetEmbedPreprocessor } from '../preprocessors/asset-embed';
 import { headingIdsPostprocessor } from '../postprocessors/heading-ids';
 import { externalLinksPostprocessor } from '../postprocessors/external-links';
-import { diagramsPostprocessor } from '../postprocessors/diagrams';
 
 export class DocsParser extends BaseContentParser {
   constructor() {
@@ -24,7 +23,6 @@ export class DocsParser extends BaseContentParser {
     // Configure pipeline for docs
     this.pipeline
       .addPreprocessor(assetEmbedPreprocessor)
-      .addPostprocessor(diagramsPostprocessor)
       .addPostprocessor(headingIdsPostprocessor)
       .addPostprocessor(externalLinksPostprocessor);
   }

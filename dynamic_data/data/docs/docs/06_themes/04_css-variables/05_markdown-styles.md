@@ -65,8 +65,7 @@ The only non-scoped rule — applies to the `body` element:
 
 | Selector | Property | Variable |
 |----------|----------|----------|
-| `.markdown-content pre` | `background-color` | `--color-bg-secondary` |
-| | `padding` | `--spacing-md` |
+| `.markdown-content pre` | `padding` | `--spacing-md` |
 | | `border-radius` | `--border-radius-md` |
 | | `border` | `1px solid var(--color-border-light)` |
 | | `overflow-x` | `auto` |
@@ -74,6 +73,40 @@ The only non-scoped rule — applies to the `body` element:
 | | `padding` | `0` |
 | | `font-size` | `--font-size-sm` |
 | | `line-height` | `--line-height-relaxed` |
+
+### Syntax Highlighting (Shiki)
+
+Code blocks are syntax-highlighted at build time using Shiki with dual themes (`github-light` / `github-dark`). The generated HTML uses CSS custom properties for theme switching:
+
+| Selector | Property | Description |
+|----------|----------|-------------|
+| `.markdown-content .shiki` | `color` | `var(--shiki-light)` in light mode |
+| | `background-color` | `var(--shiki-light-bg)` in light mode |
+| `[data-theme="dark"] .markdown-content .shiki` | `color` | `var(--shiki-dark)` in dark mode |
+| | `background-color` | `var(--shiki-dark-bg)` in dark mode |
+
+The same selectors apply to `.shiki span` elements (individual tokens). Theme switching is instant via CSS — no JavaScript re-rendering needed.
+
+### Language Label & Copy Button
+
+Each code block displays a language label (e.g. `python`, `typescript`) in the top-right corner. On hover over the code block, the label switches to a copy icon with "Copy" text. Clicking copies the code to the clipboard.
+
+| Selector | Property | Variable |
+|----------|----------|----------|
+| `.code-label` | `position` | `absolute` (top-right of `pre`) |
+| | `font-family` | `--font-family-base` |
+| | `font-size` | `0.7rem` |
+| | `padding` | `0.25rem 0.5rem` |
+| | `border-radius` | `--border-radius-sm` |
+| | `color` | `--color-text-secondary` |
+| | `opacity` | `0.5` (muted when idle) |
+| `.markdown-content pre:hover .code-label` | `opacity` | `1` |
+| | `background-color` | `--color-bg-tertiary` |
+| | `color` | `--color-text-primary` |
+| | `cursor` | `pointer` |
+| `.code-label--copied` | `color` | `--color-success` (fallback `#22c55e`) |
+
+**Behavior:** The label uses `display: inline-flex` with `gap: 0.3rem` to align the inline SVG icon with the text.
 
 ---
 
@@ -182,3 +215,49 @@ Individual heading sizes:
 | `abbr[title]` | `text-decoration: underline dotted`, `cursor: help` |
 | `details` | `background-color: var(--color-bg-secondary)`, `border: 1px solid var(--color-border-light)`, `border-radius: var(--border-radius-md)` |
 | `summary` | `font-weight: var(--font-weight-medium)`, `cursor: pointer` |
+
+---
+
+## Diagram Containers
+
+Styles for Mermaid and Graphviz diagram blocks rendered from fenced code blocks.
+
+| Selector | Property | Variable |
+|----------|----------|----------|
+| `.markdown-content .diagram` | `text-align` | `center` |
+| | `margin` | `var(--spacing-lg) 0` |
+| | `padding` | `--spacing-md` |
+| | `background-color` | `--color-bg-secondary` |
+| | `border-radius` | `--border-radius-md` |
+| | `border` | `1px solid var(--color-border-light)` |
+| | `overflow-x` | `auto` |
+| `.markdown-content .diagram-rendered` | `background` | `none` (cleared after SVG render) |
+| | `border` | `none` |
+| `.markdown-content .diagram-error` | `color` | `--color-error` (fallback `#e53e3e`) |
+| | `font-style` | `italic` |
+| `.markdown-content .diagram svg` | `max-width` | `100%` |
+| | `height` | `auto` |
+
+---
+
+## Lightbox
+
+Full-screen overlay for click-to-expand on images and rendered diagrams.
+
+| Selector | Property | Value |
+|----------|----------|-------|
+| `.lightbox-overlay` | `position` | `fixed`, `inset: 0` |
+| | `z-index` | `9999` |
+| | `background` | `rgba(0, 0, 0, 0.85)` |
+| | `cursor` | `zoom-out` |
+| | `transition` | `opacity 0.2s ease` |
+| `.lightbox-overlay.lightbox-open` | `opacity` | `1`, `visibility: visible` |
+| `.lightbox-content` | `max-width` | `90vw` |
+| | `max-height` | `90vh` |
+| | `transition` | `transform 0.2s ease` (scale 0.95 → 1) |
+| `.lightbox-img` | `object-fit` | `contain` |
+| | `border-radius` | `--border-radius-md` |
+| `.lightbox-svg` | `background` | `white` |
+| | `padding` | `1rem` |
+
+The lightbox is not scoped to `.markdown-content` — it is appended to `<body>` as a global overlay.

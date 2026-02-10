@@ -15,15 +15,15 @@ Postprocessors run **after** HTML rendering to enhance the output.
 ```
           ┌───────────────────────┼───────────────────────┐
           ▼                       ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  PREPROCESSORS  │     │    RENDERERS    │     │ POSTPROCESSORS  │
-│                 │ ──▶ │                 │ ──▶ │ ◀── YOU ARE HERE│
-│                 │     │                 │     │ • heading-ids   │
-│                 │     │                 │     │ • external-links│
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-                                                        │
-                                                        ▼
-                                                  Transformers
+ ┌─────────────────┐      ┌─────────────────┐     ┌──────────────────┐
+ │  PREPROCESSORS  │      │    RENDERERS    │     │ POSTPROCESSORS   │
+ │                 │ ──>  │                 │ ──> │ <── YOU ARE HERE │
+ │                 │      │                 │     │ • heading-ids    │
+ │                 │      │                 │     │ • external-links │
+ └─────────────────┘      └─────────────────┘     └──────────────────┘
+                                                           │
+                                                           ▼
+                                                     Transformers
 ```
 
 ## Postprocessor Files

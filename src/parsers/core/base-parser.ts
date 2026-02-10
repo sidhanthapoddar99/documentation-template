@@ -21,17 +21,20 @@ import type {
 } from '../types';
 import { ParserError } from '../types';
 import { ProcessingPipeline } from './pipeline';
-import { createMarkdownRenderer } from '../renderers/marked';
+import { createMarkdownRendererAsync } from '../renderers/marked';
 
 export abstract class BaseContentParser {
   protected pipeline: ProcessingPipeline;
-  protected render: (content: string) => string;
+  protected renderFn: ((content: string) => string) | null = null;
+  protected renderReady: Promise<void>;
   protected contentType: ContentType;
 
   constructor(contentType: ContentType) {
     this.contentType = contentType;
     this.pipeline = new ProcessingPipeline();
-    this.render = createMarkdownRenderer();
+    this.renderReady = createMarkdownRendererAsync().then((fn) => {
+      this.renderFn = fn;
+    });
   }
 
   /**
@@ -130,8 +133,11 @@ export abstract class BaseContentParser {
       frontmatterLineCount,
     };
 
+    // Ensure highlighter is ready
+    await this.renderReady;
+
     // Process through pipeline
-    const content = await this.pipeline.process(rawContent, context, this.render);
+    const content = await this.pipeline.process(rawContent, context, this.renderFn!);
 
     // Extract headings from rendered HTML for outline/TOC
     const headings = this.extractHeadings(content);

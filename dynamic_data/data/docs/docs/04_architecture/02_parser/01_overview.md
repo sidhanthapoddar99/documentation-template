@@ -30,7 +30,9 @@ The parser system (`src/parsers/`) is a modular architecture for processing mark
 │  PREPROCESSORS  │     │    RENDERERS    │     │ POSTPROCESSORS  │
 │                 │ ──▶ │                 │ ──▶ │                 │
 │ • code-protect  │     │ • marked.ts     │     │ • heading-ids   │
-│ • asset-embed   │     │   (MD → HTML)   │     │ • external-links│
+│ • asset-embed   │     │  (MD → HTML)    │     │ • external-links│
+│                 │     │  + Shiki HL     │     │                 │
+│                 │     │  + Diagrams     │     │                 │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
                                                         │
                                                         ▼
@@ -68,7 +70,7 @@ src/parsers/
 │
 ├── renderers/                  # Markdown → HTML
 │   ├── index.ts
-│   └── marked.ts               # Marked library wrapper
+│   └── marked.ts               # Marked + Shiki syntax highlighting + diagram handling
 │
 ├── postprocessors/             # After rendering
 │   ├── index.ts
@@ -87,7 +89,7 @@ src/parsers/
 | 1 | `core/` | Pipeline orchestration + BaseContentParser | Controls flow |
 | 2 | `preprocessors/` | Transform raw markdown | Before rendering |
 | 3 | `transformers/` | Custom tag → HTML (`<callout>`, `<tabs>`) | After rendering (as postprocessor) |
-| 4 | `renderers/` | Markdown → HTML (Marked) | Middle stage |
+| 4 | `renderers/` | Markdown → HTML (Marked + Shiki highlighting + diagram containers) | Middle stage |
 | 5 | `postprocessors/` | Enhance HTML (IDs, links) | After rendering |
 | 6 | `content-types/` | DocsParser/BlogParser (filename parsing, asset paths) | Entry point |
 
@@ -100,7 +102,8 @@ src/parsers/
 The flow in `base-parser.ts`:
 
 ```typescript
-const content = await this.pipeline.process(rawContent, context, this.render);
+await this.renderReady; // Ensure Shiki highlighter is initialized
+const content = await this.pipeline.process(rawContent, context, this.renderFn!);
 ```
 
 Which executes in `pipeline.ts`:

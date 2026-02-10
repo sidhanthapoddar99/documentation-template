@@ -17,7 +17,7 @@ import matter from 'gray-matter';
 import { DocsParser } from '../../parsers/content-types/docs';
 import { BlogParser } from '../../parsers/content-types/blog';
 import type { ProcessContext, ContentType } from '../../parsers/types';
-import { createMarkdownRenderer } from '../../parsers/renderers/marked';
+import { createMarkdownRendererAsync } from '../../parsers/renderers/marked';
 
 export interface EditorDocument {
   /** Absolute path to the file on disk */
@@ -49,7 +49,8 @@ export class EditorStore {
   private documents = new Map<string, EditorDocument>();
   private docsParser: DocsParser;
   private blogParser: BlogParser;
-  private render: (content: string) => string;
+  private render: ((content: string) => string) | null = null;
+  private renderReady: Promise<void>;
   private autosaveTimer: ReturnType<typeof setInterval> | null = null;
   private config: EditorConfig;
   /** Paths currently being saved by the editor — used to distinguish editor saves from external edits */
@@ -59,7 +60,9 @@ export class EditorStore {
     this.config = config;
     this.docsParser = new DocsParser();
     this.blogParser = new BlogParser();
-    this.render = createMarkdownRenderer();
+    this.renderReady = createMarkdownRendererAsync().then((fn) => {
+      this.render = fn;
+    });
 
     // Safety: close all orphaned documents on process signals (dev server restart)
     const closeAll = () => this.closeAll();
@@ -133,7 +136,8 @@ export class EditorStore {
       frontmatterLineCount: 0,
     };
 
-    return pipeline.process(body, context, this.render);
+    await this.renderReady;
+    return pipeline.process(body, context, this.render!);
   }
 
   /**
