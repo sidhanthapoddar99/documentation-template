@@ -41,7 +41,15 @@ export async function createEditorOverlay(filePath: string): Promise<OverlayResu
     </style>
 
     <!-- Site content styles (markdown.css + docs body styles) scoped to preview -->
-    <style>.editor-preview { ${contentCSS} }</style>
+    <style>#doc-editor-overlay .editor-preview { ${contentCSS} }</style>
+    <!-- Shiki dark mode override for editor preview (CSS nesting can't express ancestor data-theme) -->
+    <style>
+      #doc-editor-overlay[data-theme="dark"] .shiki,
+      #doc-editor-overlay[data-theme="dark"] .shiki span {
+        color: var(--shiki-dark) !important;
+        background-color: var(--shiki-dark-bg) !important;
+      }
+    </style>
 
     <div class="editor-header">
       <span class="editor-filename">${filePath.split('/').slice(-3).join('/')}</span>

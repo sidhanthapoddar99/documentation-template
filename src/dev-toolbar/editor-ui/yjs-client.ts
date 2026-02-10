@@ -83,8 +83,10 @@ export function initYjsClient(ctx: EditorContext, deps: {
     if (html === lastPreviewHtml) return;
     lastPreviewHtml = html;
     const scrollTop = preview.scrollTop;
-    preview.innerHTML = `<div class="docs-content"><article class="docs-article"><div class="docs-body">${html}</div></article></div>`;
+    preview.innerHTML = `<div class="docs-content"><article class="docs-article"><div class="docs-body markdown-content">${html}</div></article></div>`;
     preview.scrollTop = scrollTop;
+    // Trigger diagram rendering for any new diagram blocks in the preview
+    document.dispatchEvent(new CustomEvent('diagrams:render'));
   }
 
   // ---- WS JSON helpers ----

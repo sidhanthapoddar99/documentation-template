@@ -76,7 +76,7 @@ The only non-scoped rule — applies to the `body` element:
 
 ### Syntax Highlighting (Shiki)
 
-Code blocks are syntax-highlighted at build time using Shiki with dual themes (`github-light` / `github-dark`). The generated HTML uses CSS custom properties for theme switching:
+Code blocks are syntax-highlighted at build time using **Shiki** with dual themes (`github-light` / `github-dark`). The custom `code` renderer in `src/parsers/renderers/marked.ts` calls `highlighter.codeToHtml()` for each fenced code block. The generated HTML uses CSS custom properties for instant theme switching:
 
 | Selector | Property | Description |
 |----------|----------|-------------|
@@ -86,6 +86,8 @@ Code blocks are syntax-highlighted at build time using Shiki with dual themes (`
 | | `background-color` | `var(--shiki-dark-bg)` in dark mode |
 
 The same selectors apply to `.shiki span` elements (individual tokens). Theme switching is instant via CSS — no JavaScript re-rendering needed.
+
+**Supported languages:** javascript, typescript, jsx, tsx, html, css, scss, json, yaml, python, bash, shell, sh, rust, go, java, c, cpp, sql, graphql, markdown, ruby, php, swift, kotlin, dockerfile, toml, xml. Unsupported languages fall back to plain `text`.
 
 ### Language Label & Copy Button
 
@@ -202,6 +204,8 @@ Individual heading sizes:
 | `.markdown-content img` | `max-width` | `100%` |
 | | `border-radius` | `--border-radius-md` |
 
+Images inside `.markdown-content` are click-to-expand enabled — see [Lightbox](#lightbox) below.
+
 ---
 
 ## Other Elements
@@ -211,7 +215,7 @@ Individual heading sizes:
 | `strong`, `b` | `font-weight: var(--font-weight-semibold)` |
 | `em`, `i` | `font-style: italic` |
 | `mark` | `background-color: var(--color-warning)`, `border-radius: var(--border-radius-sm)` |
-| `kbd` | `font-family: var(--font-family-mono)`, `background-color: var(--color-bg-tertiary)`, `border: 1px solid var(--color-border-default)` |
+| `kbd` | `font-family: var(--font-family-mono)`, `background-color: var(--color-bg-tertiary)`, `border: 1px solid var(--color-border-default)`, `box-shadow: 0 1px 1px rgba(0,0,0,0.1)` |
 | `abbr[title]` | `text-decoration: underline dotted`, `cursor: help` |
 | `details` | `background-color: var(--color-bg-secondary)`, `border: 1px solid var(--color-border-light)`, `border-radius: var(--border-radius-md)` |
 | `summary` | `font-weight: var(--font-weight-medium)`, `cursor: pointer` |
@@ -220,7 +224,7 @@ Individual heading sizes:
 
 ## Diagram Containers
 
-Styles for Mermaid and Graphviz diagram blocks rendered from fenced code blocks.
+Styles for Mermaid and Graphviz diagram blocks rendered from fenced code blocks (`` ```mermaid ``, `` ```dot ``, `` ```graphviz ``). Diagram code blocks are intercepted by the custom `code` renderer in `src/parsers/renderers/marked.ts` and output as `<div class="diagram diagram-{type}">` containers. The client-side script `src/scripts/diagrams.ts` lazily loads the rendering libraries and replaces the raw text with SVG.
 
 | Selector | Property | Variable |
 |----------|----------|----------|
@@ -238,11 +242,17 @@ Styles for Mermaid and Graphviz diagram blocks rendered from fenced code blocks.
 | `.markdown-content .diagram svg` | `max-width` | `100%` |
 | | `height` | `auto` |
 
+Rendered diagrams (`.diagram-rendered`) are click-to-expand enabled — see [Lightbox](#lightbox) below.
+
 ---
 
 ## Lightbox
 
-Full-screen overlay for click-to-expand on images and rendered diagrams.
+Full-screen overlay for click-to-expand on images and rendered diagrams. Implemented in `src/scripts/lightbox.ts` and appended to `<body>` as a global overlay (not scoped to `.markdown-content`).
+
+**Behavior:** Click any image or rendered diagram in `.markdown-content` to open. Close by clicking the overlay background, pressing Escape, or clicking the close button.
+
+### Overlay
 
 | Selector | Property | Value |
 |----------|----------|-------|
@@ -250,14 +260,42 @@ Full-screen overlay for click-to-expand on images and rendered diagrams.
 | | `z-index` | `9999` |
 | | `background` | `rgba(0, 0, 0, 0.85)` |
 | | `cursor` | `zoom-out` |
-| | `transition` | `opacity 0.2s ease` |
-| `.lightbox-overlay.lightbox-open` | `opacity` | `1`, `visibility: visible` |
+| | `transition` | `opacity 0.2s ease, visibility 0.2s ease` |
+| `.lightbox-overlay.lightbox-open` | `opacity` | `1` |
+| | `visibility` | `visible` |
+
+### Close Button
+
+| Selector | Property | Value |
+|----------|----------|-------|
+| `.lightbox-close` | `position` | `absolute` (top-right) |
+| | `color` | `#fff` |
+| | `font-size` | `2.5rem` |
+| | `opacity` | `0.7` |
+| | `z-index` | `1` |
+| `.lightbox-close:hover` | `opacity` | `1` |
+
+### Content Container
+
+| Selector | Property | Value |
+|----------|----------|-------|
 | `.lightbox-content` | `max-width` | `90vw` |
 | | `max-height` | `90vh` |
 | | `transition` | `transform 0.2s ease` (scale 0.95 → 1) |
-| `.lightbox-img` | `object-fit` | `contain` |
+
+### Image & SVG
+
+| Selector | Property | Value |
+|----------|----------|-------|
+| `.lightbox-img` | `max-width` | `90vw` |
+| | `max-height` | `90vh` |
+| | `object-fit` | `contain` |
 | | `border-radius` | `--border-radius-md` |
-| `.lightbox-svg` | `background` | `white` |
+| | `box-shadow` | `0 4px 24px rgba(0, 0, 0, 0.4)` |
+| `.lightbox-svg` | `max-width` | `90vw` |
+| | `max-height` | `90vh` |
+| | `background` | `var(--color-bg-primary, #fff)` |
+| | `border-radius` | `--border-radius-md` |
 | | `padding` | `1rem` |
 
-The lightbox is not scoped to `.markdown-content` — it is appended to `<body>` as a global overlay.
+SVG diagrams are cloned into the lightbox with `width: 90vw` and `height: 90vh` inline styles for full viewport scaling while preserving aspect ratio via `viewBox`.

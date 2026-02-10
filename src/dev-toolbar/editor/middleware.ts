@@ -192,10 +192,8 @@ export function setupEditorMiddleware(
           }
 
           store.closeDocument(filePath);
-          // Destroy Yjs room if no more WebSocket connections
-          if (!yjsSync.hasConnections(filePath)) {
-            yjsSync.destroyRoom(filePath);
-          }
+          // Always destroy Yjs room on close to prevent stale content on reopen
+          yjsSync.destroyRoom(filePath);
 
           return sendJson(res, 200, { success: true });
         }

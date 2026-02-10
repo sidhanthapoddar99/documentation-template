@@ -7,8 +7,8 @@
 let mermaidIdCounter = 0;
 
 async function initDiagrams() {
-  const mermaidDivs = document.querySelectorAll<HTMLDivElement>('.diagram-mermaid');
-  const graphvizDivs = document.querySelectorAll<HTMLDivElement>('.diagram-graphviz');
+  const mermaidDivs = document.querySelectorAll<HTMLDivElement>('.diagram-mermaid:not(.diagram-rendered):not(.diagram-error)');
+  const graphvizDivs = document.querySelectorAll<HTMLDivElement>('.diagram-graphviz:not(.diagram-rendered):not(.diagram-error)');
 
   if (mermaidDivs.length === 0 && graphvizDivs.length === 0) return;
 
@@ -69,3 +69,6 @@ async function renderGraphviz(divs: NodeListOf<HTMLDivElement>) {
 
 // Module scripts are deferred — DOM is already parsed when this runs
 initDiagrams();
+
+// Allow editor preview to trigger re-rendering when content updates
+document.addEventListener('diagrams:render', () => initDiagrams());
