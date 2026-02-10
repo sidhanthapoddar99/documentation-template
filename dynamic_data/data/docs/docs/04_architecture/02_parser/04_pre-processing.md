@@ -34,13 +34,13 @@ Preprocessors run **before** markdown rendering, transforming the raw content.
 
 Embeds file contents using `[[path]]` syntax:
 
-```markdown
+~~~markdown
 # Code Example
 
 ```python
 \[[./assets/example.py]]
 ```
-```
+~~~
 
 The `\[[./assets/example.py]]` is replaced with the actual file content.
 

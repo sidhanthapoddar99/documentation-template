@@ -12,6 +12,14 @@ function ensureOverlay() {
 
   overlay = document.createElement('div');
   overlay.className = 'lightbox-overlay';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'lightbox-close';
+  closeBtn.setAttribute('aria-label', 'Close');
+  closeBtn.innerHTML = '&times;';
+  closeBtn.addEventListener('click', close);
+  overlay.appendChild(closeBtn);
+
   contentEl = document.createElement('div');
   contentEl.className = 'lightbox-content';
   overlay.appendChild(contentEl);
@@ -45,6 +53,11 @@ function open(el: HTMLImageElement | HTMLDivElement) {
     if (!svg) return;
     const clone = svg.cloneNode(true) as SVGElement;
     clone.classList.add('lightbox-svg');
+    // Ensure the SVG fills the lightbox
+    clone.removeAttribute('width');
+    clone.removeAttribute('height');
+    clone.style.width = '90vw';
+    clone.style.height = '90vh';
     contentEl!.appendChild(clone);
   }
 

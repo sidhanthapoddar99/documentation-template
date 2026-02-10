@@ -4,7 +4,7 @@
  * Includes syntax highlighting via shiki
  */
 
-import { Marked, type MarkedOptions, type TokenizerAndRendererExtension } from 'marked';
+import { Marked, type TokenizerAndRendererExtension } from 'marked';
 import { createHighlighter, type Highlighter } from 'shiki';
 
 export interface MarkdownRendererOptions {
@@ -25,6 +25,14 @@ const defaultOptions: MarkdownRendererOptions = {
 };
 
 const DIAGRAM_LANGS = new Set(['mermaid', 'dot', 'graphviz']);
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 // Shared highlighter instance (lazy-initialized)
 let highlighterPromise: Promise<Highlighter> | null = null;
@@ -64,7 +72,7 @@ export async function createMarkdownRendererAsync(
         // Diagram code blocks — output raw containers for client-side rendering
         if (lang && DIAGRAM_LANGS.has(lang.toLowerCase())) {
           const type = lang.toLowerCase() === 'mermaid' ? 'mermaid' : 'graphviz';
-          return `<div class="diagram diagram-${type}">${text}</div>`;
+          return `<div class="diagram diagram-${type}">${escapeHtml(text)}</div>`;
         }
         const language = lang && highlighter.getLoadedLanguages().includes(lang) ? lang : 'text';
         const html = highlighter.codeToHtml(text, {
