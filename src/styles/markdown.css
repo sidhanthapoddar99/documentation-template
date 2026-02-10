@@ -274,16 +274,33 @@ body {
   visibility: visible;
 }
 
+.lightbox-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 90vw;
+  max-height: 90vh;
+  transform: scale(0.95);
+  transition: transform 0.2s ease;
+}
+
+.lightbox-open .lightbox-content {
+  transform: scale(1);
+}
+
 .lightbox-img {
   max-width: 90vw;
   max-height: 90vh;
   object-fit: contain;
   border-radius: var(--border-radius-md);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  transform: scale(0.95);
-  transition: transform 0.2s ease;
 }
 
-.lightbox-open .lightbox-img {
-  transform: scale(1);
+.lightbox-svg {
+  max-width: 90vw;
+  max-height: 90vh;
+  background: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  padding: 1rem;
 }

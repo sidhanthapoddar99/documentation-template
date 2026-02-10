@@ -23,6 +23,9 @@ async function initDiagrams() {
   }
 
   await Promise.all(promises);
+
+  // Notify lightbox that diagrams are ready
+  document.dispatchEvent(new CustomEvent('diagrams:rendered'));
 }
 
 async function renderMermaid(divs: NodeListOf<HTMLDivElement>) {
