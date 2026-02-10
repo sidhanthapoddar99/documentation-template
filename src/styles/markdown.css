@@ -227,3 +227,29 @@ body {
 .markdown-content details[open] summary {
   margin-bottom: var(--spacing-sm);
 }
+
+/* Diagram containers */
+.markdown-content .diagram {
+  text-align: center;
+  margin: var(--spacing-lg) 0;
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-light);
+  overflow-x: auto;
+}
+
+.markdown-content .diagram-rendered {
+  background: none;
+  border: none;
+}
+
+.markdown-content .diagram-error {
+  color: var(--color-error, #e53e3e);
+  font-style: italic;
+}
+
+.markdown-content .diagram svg {
+  max-width: 100%;
+  height: auto;
+}

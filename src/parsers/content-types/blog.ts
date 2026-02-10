@@ -16,6 +16,7 @@ import { BaseContentParser } from '../core/base-parser';
 import { createAssetEmbedPreprocessor, createBlogAssetResolver } from '../preprocessors/asset-embed';
 import { headingIdsPostprocessor } from '../postprocessors/heading-ids';
 import { externalLinksPostprocessor } from '../postprocessors/external-links';
+import { diagramsPostprocessor } from '../postprocessors/diagrams';
 
 export class BlogParser extends BaseContentParser {
   constructor() {
@@ -28,6 +29,7 @@ export class BlogParser extends BaseContentParser {
 
     this.pipeline
       .addPreprocessor(blogAssetPreprocessor)
+      .addPostprocessor(diagramsPostprocessor)
       .addPostprocessor(headingIdsPostprocessor)
       .addPostprocessor(externalLinksPostprocessor);
   }
