@@ -40,4 +40,5 @@ function initLightbox() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', initLightbox);
+// Module scripts are deferred — DOM is already parsed when this runs
+initLightbox();

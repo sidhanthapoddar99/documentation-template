@@ -64,4 +64,5 @@ async function renderGraphviz(divs: NodeListOf<HTMLDivElement>) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', initDiagrams);
+// Module scripts are deferred — DOM is already parsed when this runs
+initDiagrams();
