@@ -30,8 +30,8 @@ The parser system (`src/parsers/`) is a modular architecture for processing mark
 │  PREPROCESSORS  │     │    RENDERERS    │     │ POSTPROCESSORS  │
 │                 │ ──▶ │                 │ ──▶ │                 │
 │ • code-protect  │     │ • marked.ts     │     │ • heading-ids   │
-│ • asset-embed   │     │  (MD → HTML)    │     │ • external-links│
-│                 │     │  + Shiki HL     │     │                 │
+│ • asset-embed   │     │  (MD → HTML)    │     │ • internal-links│
+│                 │     │  + Shiki HL     │     │ • external-links│
 │                 │     │  + Diagrams     │     │                 │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
                                                         │
@@ -75,6 +75,7 @@ src/parsers/
 ├── postprocessors/             # After rendering
 │   ├── index.ts
 │   ├── heading-ids.ts          # Add IDs to headings
+│   ├── internal-links.ts       # Rewrite relative links (strip XX_ prefixes, .md extensions)
 │   └── external-links.ts       # Security attrs for external links
 │
 └── transformers/               # Custom tag transformation
@@ -90,7 +91,7 @@ src/parsers/
 | 2 | `preprocessors/` | Transform raw markdown | Before rendering |
 | 3 | `transformers/` | Custom tag → HTML (`<callout>`, `<tabs>`) | After rendering (as postprocessor) |
 | 4 | `renderers/` | Markdown → HTML (Marked + Shiki highlighting + diagram containers) | Middle stage |
-| 5 | `postprocessors/` | Enhance HTML (IDs, links) | After rendering |
+| 5 | `postprocessors/` | Enhance HTML (IDs, internal link rewriting, external link attrs) | After rendering |
 | 6 | `content-types/` | DocsParser/BlogParser (filename parsing, asset paths) | Entry point |
 
 ## Key Insight

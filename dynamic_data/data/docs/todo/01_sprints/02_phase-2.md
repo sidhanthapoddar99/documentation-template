@@ -12,10 +12,13 @@ sidebar_label: Phase 2
 
 ## 1. Mermaid & GraphViz Support
 
-- [ ] Add Mermaid diagram rendering (flowcharts, sequence diagrams)
-- [ ] Add GraphViz/DOT diagram support
+- [x] ~~Add Mermaid diagram rendering (flowcharts, sequence diagrams)~~ (Completed)
+- [x] ~~Add GraphViz/DOT diagram support~~ (Completed)
+- [x] ~~Lazy loading from npm (mermaid, @hpcc-js/wasm-graphviz)~~ (Completed)
+- [x] ~~Test diagram theming (light/dark mode)~~ (Completed)
+- [x] ~~Click-to-expand lightbox for diagrams and images~~ (Completed)
+- [x] ~~Lightbox close button (Escape key + click overlay)~~ (Completed)
 - [ ] Create diagram documentation with examples
-- [ ] Test diagram theming (light/dark mode)
 - [ ] Add diagram copy/export functionality
 
 ## 2. Components Library
@@ -52,6 +55,8 @@ sidebar_label: Phase 2
 
 - [x] ~~Navbar style switcher~~ (Completed)
 - [x] ~~Footer style switcher~~ (Completed)
+- [x] ~~Logo theme switching (light/dark mode logos)~~ (Completed)
+- [x] ~~Fix logo path resolution (@assets/ aliases)~~ (Completed: `resolveAssetUrl` for `theme.dark`/`theme.light`)
 - [ ] Create `navbar/style2` - Centered logo variant
 - [ ] Create `footer/columns` - 4-column footer
 - [ ] Add mega menu navbar option
@@ -130,22 +135,20 @@ items:
 
 Support multiple named data paths instead of single DATA_DIR.
 
-- [ ] Update `.env` to support multiple paths:
-  ```env
-  DATA_PATHS=docs:./dynamic_data/data/docs,blog:./dynamic_data/data/blog,external:/abs/path/to/data
-  ```
-- [ ] Or use YAML config for paths:
+- [x] ~~Use YAML config for paths in `site.yaml`~~ (Completed)
   ```yaml
-  # In site.yaml or separate paths.yaml
-  dataPaths:
-    docs: "./dynamic_data/data/docs"
-    blog: "./dynamic_data/data/blog"
-    external: "/absolute/path/to/data"
+  # In site.yaml
+  paths:
+    data: "../data"
+    assets: "../assets"
+    themes: "../themes"
+    # Additional directories:
+    # data2: "/other/project/data"  # @data2/...
   ```
-- [ ] Create path resolution utilities in `@loaders/paths.ts`
-- [ ] Support `@data/<path_name>/subpath` alias format
-- [ ] Standardize all path inputs to use this pattern
-- [ ] Handle both relative and absolute paths
+- [x] ~~Create path resolution utilities~~ (Completed: `@loaders/alias.ts` with `resolveAliasPath()`)
+- [x] ~~Support `@key/subpath` alias format~~ (Completed: `@data`, `@assets`, `@themes` aliases)
+- [x] ~~Standardize all path inputs to use this pattern~~ (Completed: All configs use `@` aliases)
+- [x] ~~Handle both relative and absolute paths~~ (Completed: Resolved at config load time)
 - [ ] Validate paths exist on startup
 - [ ] Update documentation for new path system
 
@@ -169,16 +172,16 @@ Clean up and improve code quality.
 
 | Item | Status |
 |------|--------|
-| Mermaid diagram support | Pending |
-| GraphViz diagram support | Pending |
-| Component library (5+ components) | Pending |
-| 2 new doc layouts | Pending |
-| 3 custom page templates | Pending |
-| Additional navbar/footer styles | Partial |
-| 7 Claude skills | Partial (2/7) |
-| Dev-only content feature | Pending |
-| Multiple data paths support | Pending |
-| Codebase refactoring | Pending |
+| Mermaid diagram support | ✅ Completed |
+| GraphViz diagram support | ✅ Completed |
+| Component library (5+ components) | ⬜ Pending |
+| 2 new doc layouts | ⬜ Pending |
+| 3 custom page templates | ⬜ Pending |
+| Additional navbar/footer styles | 🔄 In Progress (4/7 done) |
+| 7 Claude skills | 🔄 Partial (2/7 done) |
+| Dev-only content feature | ⬜ Pending |
+| Multiple data paths support | ✅ Completed |
+| Codebase refactoring | ⬜ Pending |
 
 ---
 

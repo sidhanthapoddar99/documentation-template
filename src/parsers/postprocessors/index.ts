@@ -12,3 +12,7 @@ export {
   externalLinksPostprocessor,
   type ExternalLinksOptions,
 } from './external-links';
+
+export {
+  internalLinksPostprocessor,
+} from './internal-links';

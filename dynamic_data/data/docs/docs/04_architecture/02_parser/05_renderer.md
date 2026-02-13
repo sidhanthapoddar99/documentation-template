@@ -84,17 +84,13 @@ Shiki generates HTML with CSS custom properties for both themes:
 </pre>
 ```
 
-CSS in `markdown.css` toggles between themes based on the `data-theme` attribute:
+CSS in `markdown.css` handles theme switching. Light mode uses the inline styles set by Shiki directly. Dark mode overrides via CSS custom properties:
 
 ```css
-/* Light mode (default) */
-.markdown-content .shiki,
-.markdown-content .shiki span {
-  color: var(--shiki-light) !important;
-  background-color: var(--shiki-light-bg) !important;
-}
+/* Light mode: uses Shiki's inline color and background-color directly */
+/* (no override needed — inline styles are the light theme values) */
 
-/* Dark mode */
+/* Dark mode: switch to --shiki-dark custom properties */
 [data-theme="dark"] .markdown-content .shiki,
 [data-theme="dark"] .markdown-content .shiki span {
   color: var(--shiki-dark) !important;

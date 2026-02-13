@@ -15,6 +15,7 @@ import type { FileType, FrontmatterSchema, ParsedBlogFilename } from '../types';
 import { BaseContentParser } from '../core/base-parser';
 import { createAssetEmbedPreprocessor, createBlogAssetResolver } from '../preprocessors/asset-embed';
 import { headingIdsPostprocessor } from '../postprocessors/heading-ids';
+import { internalLinksPostprocessor } from '../postprocessors/internal-links';
 import { externalLinksPostprocessor } from '../postprocessors/external-links';
 
 export class BlogParser extends BaseContentParser {
@@ -29,6 +30,7 @@ export class BlogParser extends BaseContentParser {
     this.pipeline
       .addPreprocessor(blogAssetPreprocessor)
       .addPostprocessor(headingIdsPostprocessor)
+      .addPostprocessor(internalLinksPostprocessor)
       .addPostprocessor(externalLinksPostprocessor);
   }
 

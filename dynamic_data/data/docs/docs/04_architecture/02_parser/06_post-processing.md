@@ -19,6 +19,7 @@ Postprocessors run **after** HTML rendering to enhance the output.
  │  PREPROCESSORS  │      │    RENDERERS    │     │ POSTPROCESSORS   │
  │                 │ ──>  │                 │ ──> │ <── YOU ARE HERE │
  │                 │      │                 │     │ • heading-ids    │
+ │                 │      │                 │     │ • internal-links │
  │                 │      │                 │     │ • external-links │
  └─────────────────┘      └─────────────────┘     └──────────────────┘
                                                            │
@@ -31,6 +32,7 @@ Postprocessors run **after** HTML rendering to enhance the output.
 | File | Purpose |
 |------|---------|
 | `heading-ids.ts` | Adds IDs to headings for anchor links |
+| `internal-links.ts` | Rewrites relative links to match generated slugs |
 | `external-links.ts` | Adds security attributes to external links |
 | `index.ts` | Module exports |
 
@@ -65,6 +67,43 @@ pipeline.addPostprocessor(headingIdsPostprocessor);
 const customHeadingIds = createHeadingIdsPostprocessor({
   prefix: 'section-',  // Add prefix to all IDs
 });
+```
+
+### Internal Links
+
+Rewrites relative markdown links to match the generated URL slugs by stripping `XX_` position prefixes and `.md`/`.mdx` file extensions:
+
+```html
+<!-- Input -->
+<a href="./02_consensus-mechanism.md">Consensus</a>
+<a href="../03_advanced/01_setup.md#config">Setup</a>
+
+<!-- Output -->
+<a href="./consensus-mechanism">Consensus</a>
+<a href="../advanced/setup#config">Setup</a>
+```
+
+**What it does:**
+
+| Transform | Before | After |
+|-----------|--------|-------|
+| Strip `.md`/`.mdx` extension | `./guide.md` | `./guide` |
+| Strip `XX_` prefix | `./02_getting-started` | `./getting-started` |
+| Strip `/index` suffix | `./section/index` | `./section` |
+| Preserve fragments | `./02_guide.md#setup` | `./guide#setup` |
+| Skip absolute URLs | `https://example.com` | *(unchanged)* |
+| Skip root-relative | `/docs/guide` | *(unchanged)* |
+
+**Content-type behavior:**
+- **Docs:** Strips both `XX_` prefixes and extensions
+- **Blog:** Only strips `.md`/`.mdx` extensions (no `XX_` prefixes)
+
+**Usage:**
+
+```typescript
+import { internalLinksPostprocessor } from '@parsers/postprocessors';
+
+pipeline.addPostprocessor(internalLinksPostprocessor);
 ```
 
 ### External Links
@@ -154,9 +193,9 @@ Postprocessors run in the order they are added:
 
 ```typescript
 pipeline
-  .addPostprocessor(headingIdsPostprocessor)    // 1st
-  .addPostprocessor(externalLinksPostprocessor) // 2nd
-  .addPostprocessor(transformerProcessor);      // 3rd - transformers
+  .addPostprocessor(headingIdsPostprocessor)    // 1st — add IDs to headings
+  .addPostprocessor(internalLinksPostprocessor) // 2nd — rewrite relative links
+  .addPostprocessor(externalLinksPostprocessor) // 3rd — add security attrs
 ```
 
 Order matters when processors depend on each other's output.

@@ -14,6 +14,7 @@ import type { FileType, FrontmatterSchema, ParsedDocsFilename } from '../types';
 import { BaseContentParser } from '../core/base-parser';
 import { assetEmbedPreprocessor } from '../preprocessors/asset-embed';
 import { headingIdsPostprocessor } from '../postprocessors/heading-ids';
+import { internalLinksPostprocessor } from '../postprocessors/internal-links';
 import { externalLinksPostprocessor } from '../postprocessors/external-links';
 
 export class DocsParser extends BaseContentParser {
@@ -24,6 +25,7 @@ export class DocsParser extends BaseContentParser {
     this.pipeline
       .addPreprocessor(assetEmbedPreprocessor)
       .addPostprocessor(headingIdsPostprocessor)
+      .addPostprocessor(internalLinksPostprocessor)
       .addPostprocessor(externalLinksPostprocessor);
   }
 
