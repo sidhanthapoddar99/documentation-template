@@ -2,9 +2,12 @@
  * Client-side diagram renderer
  * Lazily loads Mermaid and Graphviz via dynamic imports (Vite code-splits
  * them into separate chunks) only when diagram elements exist on the page.
+ *
+ * Re-renders mermaid diagrams on theme change so dark mode colors are correct.
  */
 
 let mermaidIdCounter = 0;
+let mermaidModule: typeof import('mermaid')['default'] | null = null;
 
 async function initDiagrams() {
   const mermaidDivs = document.querySelectorAll<HTMLDivElement>('.diagram-mermaid:not(.diagram-rendered):not(.diagram-error)');
@@ -29,10 +32,12 @@ async function initDiagrams() {
 }
 
 async function renderMermaid(divs: NodeListOf<HTMLDivElement>) {
-  const mermaid = (await import('mermaid')).default;
+  if (!mermaidModule) {
+    mermaidModule = (await import('mermaid')).default;
+  }
 
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  mermaid.initialize({
+  mermaidModule.initialize({
     startOnLoad: false,
     theme: isDark ? 'dark' : 'default',
     securityLevel: 'loose',
@@ -40,8 +45,12 @@ async function renderMermaid(divs: NodeListOf<HTMLDivElement>) {
 
   for (const div of divs) {
     try {
+      // Store original source for re-rendering on theme change
+      if (!div.dataset.source) {
+        div.dataset.source = div.textContent || '';
+      }
       const id = `mermaid-${mermaidIdCounter++}`;
-      const { svg } = await mermaid.render(id, div.textContent || '');
+      const { svg } = await mermaidModule.render(id, div.dataset.source);
       div.innerHTML = svg;
       div.classList.add('diagram-rendered');
     } catch (err) {
@@ -49,6 +58,32 @@ async function renderMermaid(divs: NodeListOf<HTMLDivElement>) {
       div.classList.add('diagram-error');
     }
   }
+}
+
+async function reRenderMermaid() {
+  const rendered = document.querySelectorAll<HTMLDivElement>('.diagram-mermaid.diagram-rendered');
+  if (rendered.length === 0 || !mermaidModule) return;
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  mermaidModule.initialize({
+    startOnLoad: false,
+    theme: isDark ? 'dark' : 'default',
+    securityLevel: 'loose',
+  });
+
+  for (const div of rendered) {
+    const source = div.dataset.source;
+    if (!source) continue;
+    try {
+      const id = `mermaid-${mermaidIdCounter++}`;
+      const { svg } = await mermaidModule.render(id, source);
+      div.innerHTML = svg;
+    } catch (err) {
+      console.error('Mermaid re-render error:', err);
+    }
+  }
+
+  document.dispatchEvent(new CustomEvent('diagrams:rendered'));
 }
 
 async function renderGraphviz(divs: NodeListOf<HTMLDivElement>) {
@@ -72,3 +107,14 @@ initDiagrams();
 
 // Allow editor preview to trigger re-rendering when content updates
 document.addEventListener('diagrams:render', () => initDiagrams());
+
+// Re-render mermaid diagrams when theme changes
+const observer = new MutationObserver((mutations) => {
+  for (const m of mutations) {
+    if (m.attributeName === 'data-theme') {
+      reRenderMermaid();
+      break;
+    }
+  }
+});
+observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
