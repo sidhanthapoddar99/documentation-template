@@ -300,10 +300,15 @@ body {
   height: auto;
 }
 
-/* Dark mode: invert diagram colors uniformly so user-defined
-   style fills/strokes are also flipped, not just theme defaults */
+/* Dark mode: invert diagram colors so user-defined style
+   fills/strokes are also flipped, not just theme defaults */
 [data-theme="dark"] .markdown-content .diagram-rendered {
-  filter: invert(1) hue-rotate(180deg);
+  filter: invert(1) hue-rotate(180deg) brightness(0.95);
+}
+
+[data-theme="dark"] .lightbox-svg {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95);
+  background: #fff;
 }
 
 /* Lightbox overlay */
@@ -314,7 +319,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s ease;
@@ -364,7 +371,6 @@ body {
   max-height: 90vh;
   object-fit: contain;
   border-radius: var(--border-radius-md);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .lightbox-svg {
@@ -372,6 +378,5 @@ body {
   max-height: 90vh;
   background: var(--color-bg-primary, #fff);
   border-radius: var(--border-radius-md);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
   padding: 1rem;
 }
