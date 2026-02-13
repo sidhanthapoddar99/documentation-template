@@ -210,7 +210,8 @@ export function loadThemeCSS(
  */
 export function validateTheme(
   themePath: string,
-  manifest: ThemeManifest
+  manifest: ThemeManifest,
+  preloadedCSS?: string
 ): ThemeValidationResult {
   const errors: ThemeValidationError[] = [];
   const warnings: string[] = [];
@@ -230,7 +231,7 @@ export function validateTheme(
 
   // Check for required CSS variables
   if (manifest.required_variables) {
-    const { css } = loadThemeCSS(themePath, manifest);
+    const css = preloadedCSS ?? loadThemeCSS(themePath, manifest).css;
     const allRequired = [
       ...(manifest.required_variables.colors || []),
       ...(manifest.required_variables.fonts || []),
@@ -328,9 +329,12 @@ export function loadThemeConfig(themeRef: string): ThemeConfig {
     );
   }
 
-  // Validate theme in development mode
+  // Load CSS with dependency tracking (before validation so we can reuse it)
+  const { css, deps, perFile } = loadThemeCSS(resolved.path, manifest);
+
+  // Validate theme in development mode (pass preloaded CSS to avoid redundant disk reads)
   if (import.meta.env?.DEV) {
-    const validation = validateTheme(resolved.path, manifest);
+    const validation = validateTheme(resolved.path, manifest, css);
     if (!validation.valid) {
       for (const error of validation.errors) {
         addError({
@@ -345,9 +349,6 @@ export function loadThemeConfig(themeRef: string): ThemeConfig {
       console.warn(`[theme] ${themeRef}: ${warning}`);
     }
   }
-
-  // Load CSS with dependency tracking
-  const { css, deps, perFile } = loadThemeCSS(resolved.path, manifest);
 
   const config: ThemeConfig = {
     name: resolved.name,

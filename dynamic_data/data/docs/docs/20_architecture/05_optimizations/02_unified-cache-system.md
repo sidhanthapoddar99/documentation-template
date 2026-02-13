@@ -19,7 +19,8 @@ The framework uses a unified cache manager that provides:
 
 | Metric | First Request | Cached | Improvement |
 |--------|---------------|--------|-------------|
-| **Page load** | ~150-200ms | **~5ms** | 97% faster |
+| **Page load** | ~150-200ms | **~4-8ms** | 97% faster |
+| **Config loading** | ~5-8ms | **<0.1ms** | 99% faster |
 | **Sidebar build** | ~10-15ms | **~1ms** | 90% faster |
 | **Theme CSS** | ~5-10ms | **~0.5ms** | 95% faster |
 | **Settings load** | ~2-3ms | **~0.1ms** | 97% faster |
@@ -34,12 +35,12 @@ The framework uses a unified cache manager that provides:
 │                    src/loaders/cache-manager.ts                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
-│   │   Content   │  │   Sidebar   │  │    Theme    │  │  Settings   │        │
-│   │    Cache    │  │    Cache    │  │    Cache    │  │    Cache    │        │
-│   └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘        │
-│          │                │                │                │               │
-│          └────────────────┴────────────────┴────────────────┘               │
+│   ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐         │
+│   │  Config  │ │ Content  │ │ Sidebar  │ │  Theme   │ │ Settings │         │
+│   │  Cache   │ │  Cache   │ │  Cache   │ │  Cache   │ │  Cache   │         │
+│   └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘         │
+│        │             │            │             │            │              │
+│        └─────────────┴────────────┴─────────────┴────────────┘              │
 │                                    │                                        │
 │                                    ▼                                        │
 │                         ┌─────────────────┐                                 │
@@ -65,6 +66,23 @@ The framework uses a unified cache manager that provides:
 ---
 
 ## Cache Types
+
+### 0. Config Cache
+
+Caches parsed YAML configuration to avoid repeated disk reads and YAML parsing.
+
+```typescript
+// Keys: 'site', 'navbar', 'footer'
+// Value: SiteConfig | NavbarConfig | FooterConfig
+
+// site.yaml is called ~5 times per request (slug resolver,
+// BaseLayout, getTheme, getFavicon, etc.)
+// navbar.yaml and footer.yaml ~2 times each
+// Without caching: 9 YAML disk reads + parses per request
+// With caching: 1 Map lookup per call
+```
+
+The site config cache also stores `resolvedThemePaths` alongside the config object, since `loadSiteConfig()` has a side effect of setting this module-level variable (used by `getThemePaths()` for theme directory scanning).
 
 ### 1. Content Cache
 
@@ -178,6 +196,7 @@ src/
 ├── loaders/
 │   ├── cache-manager.ts   ← Unified cache with selective invalidation
 │   ├── cache.ts           ← Error/warning collection only
+│   ├── config.ts          ← Config loading (uses cache-manager)
 │   ├── data.ts            ← Content loading (uses cache-manager)
 │   └── theme.ts           ← Theme loading (uses cache-manager)
 │

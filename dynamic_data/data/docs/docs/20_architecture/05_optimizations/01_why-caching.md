@@ -120,6 +120,11 @@ With 50 docs and 5 themes:
 │                     CACHEABLE COMPONENTS                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
+│   0. CONFIG                                                                 │
+│      ├── Parsed YAML (site.yaml, navbar.yaml, footer.yaml)                  │
+│      ├── Resolved paths and aliases                                         │
+│      └── Theme path resolution state                                        │
+│                                                                             │
 │   1. CONTENT                                                                │
 │      ├── Parsed markdown (HTML)                                             │
 │      ├── Extracted headings (for TOC/outline)                               │
@@ -172,7 +177,7 @@ The challenge is knowing WHEN to invalidate:
 │   └── Full load: ~150-200ms (unavoidable)                                   │
 │                                                                             │
 │   SUBSEQUENT REQUESTS (warm)                                                │
-│   └── Cache hit: ~5ms (97% faster)                                          │
+│   └── Cache hit: ~4-8ms (97% faster)                                        │
 │                                                                             │
 │   10 page navigations:                                                      │
 │   └── 150ms + (9 × 5ms) = 195ms total                                       │

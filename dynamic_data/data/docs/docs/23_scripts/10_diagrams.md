@@ -50,12 +50,25 @@ digraph G {
 
 ```mermaid
 flowchart TD
-    A[Markdown Source] -->|Build Time| B[Marked Renderer]
-    B -->|Diagram Language| C["&lt;div class='diagram'&gt;"]
-    B -->|Other Language| D["&lt;pre&gt;&lt;code&gt; (Shiki)"]
-    C -->|Browser| E[diagrams.ts]
-    E -->|Mermaid| F[SVG Diagram]
-    E -->|Graphviz| F
+    Client([External Client]) -->|REST API| API[API Layer]
+    API -->|submit transaction| TP[Transaction Processor]
+    TP -->|validate & queue| MP[Mempool]
+    MP -->|select transactions| BP[Block Producer]
+    BP -->|check leadership| CC[Consensus Coordinator]
+    CC -->|confirm leader| BP
+    BP -->|execute batch| BProc[Block Processor]
+    BProc -->|execute each tx| TP
+    TP -->|create context| EC[Execution Context]
+    EC -->|invoke function| FR[Function Registry]
+    FR -->|read/write| DB[(Contract Databases)]
+    BProc -->|commit state| SM[State Manager]
+    SM -->|persist state root| SDB[(State Database)]
+    BProc -->|store block| BDB[(Block Database)]
+
+    style Client fill:#f0f0f0,stroke:#333
+    style DB fill:#e6f3ff,stroke:#336
+    style SDB fill:#e6f3ff,stroke:#336
+    style BDB fill:#e6f3ff,stroke:#336
 ```
 
 ```dot
@@ -75,18 +88,33 @@ digraph DiagramFlow {
 
 ## Dark Mode
 
-Mermaid diagrams automatically re-render when the theme changes. The script watches the `data-theme` attribute on `<html>` via a `MutationObserver`:
+Diagrams are always rendered with Mermaid's `default` (light) theme. Dark mode is handled entirely via CSS using `filter: invert(1) hue-rotate(180deg)` on the rendered SVG container.
 
-- **Light mode:** `theme: 'default'`
-- **Dark mode:** `theme: 'dark'`
+**Why CSS instead of Mermaid's dark theme?**
 
-The original diagram source is stored in a `data-source` attribute on each container so it can be re-rendered without losing the source text.
+Mermaid diagrams support inline `style` directives (e.g., `style Client fill:#f0f0f0,stroke:#333`). These user-defined colors override Mermaid's theme — so switching to `theme: 'dark'` changes the text color to white but leaves the fill as-is, resulting in white text on a light background (invisible).
+
+The CSS filter approach inverts **all** colors uniformly — fills, strokes, and text — so contrast is always preserved regardless of inline styles.
+
+```css
+[data-theme="dark"] .markdown-content .diagram-rendered {
+  filter: invert(1) hue-rotate(180deg);
+}
+```
+
+| Filter | Effect |
+|--------|--------|
+| `invert(1)` | Flips all colors (light → dark, dark → light) |
+| `hue-rotate(180deg)` | Rotates hues back so colors stay recognizable (blue stays blue, not orange) |
+
+This also works for Graphviz diagrams — no special handling needed.
 
 ## CSS
 
 Diagram styles are in `src/styles/markdown.css`:
 
 ```css
+/* Container before rendering */
 .markdown-content .diagram {
   text-align: center;
   margin: var(--spacing-lg) 0;
@@ -97,6 +125,7 @@ Diagram styles are in `src/styles/markdown.css`:
   overflow-x: auto;
 }
 
+/* After rendering — remove container styling */
 .markdown-content .diagram-rendered {
   background: none;
   border: none;
@@ -105,6 +134,11 @@ Diagram styles are in `src/styles/markdown.css`:
 .markdown-content .diagram svg {
   max-width: 100%;
   height: auto;
+}
+
+/* Dark mode — invert all diagram colors uniformly */
+[data-theme="dark"] .markdown-content .diagram-rendered {
+  filter: invert(1) hue-rotate(180deg);
 }
 ```
 

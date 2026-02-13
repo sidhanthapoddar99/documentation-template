@@ -300,6 +300,12 @@ body {
   height: auto;
 }
 
+/* Dark mode: invert diagram colors uniformly so user-defined
+   style fills/strokes are also flipped, not just theme defaults */
+[data-theme="dark"] .markdown-content .diagram-rendered {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 /* Lightbox overlay */
 .lightbox-overlay {
   position: fixed;

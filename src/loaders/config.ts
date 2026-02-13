@@ -7,6 +7,7 @@ import yaml from 'js-yaml';
 import { paths, getConfigPath } from './paths';
 import { resolveAssetUrl, resolveAliasPath } from './alias';
 import { resolveThemeName } from './theme';
+import cacheManager from './cache-manager';
 
 // ============================================
 // Type Definitions
@@ -133,11 +134,19 @@ function loadYaml<T>(filePath: string): T | null {
  * Load site configuration
  */
 export function loadSiteConfig(): SiteConfig {
+  // Check cache first — HMR invalidates on config file changes
+  const cached = cacheManager.getCached<{ config: SiteConfig; themePaths: string[] }>('config', 'site');
+  if (cached) {
+    // Restore side effect: resolvedThemePaths must be set for getThemePaths()
+    resolvedThemePaths = cached.themePaths;
+    return cached.config;
+  }
+
   const config = loadYaml<SiteConfig>(getConfigPath('site.yaml'));
 
   if (!config) {
     // Return default config if file not found
-    return {
+    const defaults: SiteConfig = {
       site: {
         name: 'Documentation',
         title: 'Documentation Site',
@@ -151,6 +160,8 @@ export function loadSiteConfig(): SiteConfig {
       },
       pages: {},
     };
+    cacheManager.setCache('config', 'site', { config: defaults, themePaths: [] }, []);
+    return defaults;
   }
 
   // Resolve asset URLs in logo config
@@ -196,6 +207,9 @@ export function loadSiteConfig(): SiteConfig {
       }
     }
   }
+
+  // Cache with dependency on site.yaml (include resolvedThemePaths for side-effect replay)
+  cacheManager.setCache('config', 'site', { config, themePaths: resolvedThemePaths }, [getConfigPath('site.yaml')]);
 
   return config;
 }
@@ -251,15 +265,18 @@ export function getFooterLayout(): string {
  * Note: Logo configuration has moved to site.yaml - use getSiteLogo() instead
  */
 export function loadNavbarConfig(): NavbarConfig {
+  const cached = cacheManager.getCached<NavbarConfig>('config', 'navbar');
+  if (cached) return cached;
+
   const config = loadYaml<NavbarConfig>(getConfigPath('navbar.yaml'));
 
   if (!config) {
-    // Return default config
-    return {
-      items: [],
-    };
+    const defaults: NavbarConfig = { items: [] };
+    cacheManager.setCache('config', 'navbar', defaults, []);
+    return defaults;
   }
 
+  cacheManager.setCache('config', 'navbar', config, [getConfigPath('navbar.yaml')]);
   return config;
 }
 
@@ -267,18 +284,23 @@ export function loadNavbarConfig(): NavbarConfig {
  * Load footer configuration
  */
 export function loadFooterConfig(): FooterConfig {
+  const cached = cacheManager.getCached<FooterConfig>('config', 'footer');
+  if (cached) return cached;
+
   const config = loadYaml<FooterConfig>(getConfigPath('footer.yaml'));
 
   if (!config) {
-    // Return default config
-    return {
+    const defaults: FooterConfig = {
       layout: '@footer/default',
       copyright: '© {year} All rights reserved.',
       columns: [],
       social: [],
     };
+    cacheManager.setCache('config', 'footer', defaults, []);
+    return defaults;
   }
 
+  cacheManager.setCache('config', 'footer', config, [getConfigPath('footer.yaml')]);
   return config;
 }
 
