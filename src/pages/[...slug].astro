@@ -138,7 +138,7 @@ if (!pageType) {
   const slug = Astro.params.slug || '';
 
   // Skip internal routes (API endpoints)
-  if (slug.startsWith('api') || slug.startsWith('_')) {
+  if (slug.startsWith('api/') || slug === 'api' || slug.startsWith('_')) {
     return new Response(null, { status: 404 });
   }
 
