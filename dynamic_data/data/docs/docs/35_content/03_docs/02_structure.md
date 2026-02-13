@@ -12,24 +12,26 @@ All documentation files and folders must follow a specific naming convention to 
 
 **Every file and folder MUST start with a two-digit prefix** from `01` to `99`.
 
+> **Tip:** Leave gaps in numbering to make inserting new pages easier later. Choose your increment based on how many folders you expect — multiples of **5** (05, 10, 15...) for smaller sets, or **3** (03, 06, 09...) or even **2** (02, 04, 06...) for larger ones. This lets you slot new pages between existing ones without renaming everything.
+
 ```
 docs/
-├── 01_getting-started/
+├── 05_getting-started/
 │   ├── settings.json
-│   ├── 01_overview.mdx
-│   ├── 02_installation.mdx
-│   └── 03_configuration.mdx
+│   ├── 03_overview.mdx
+│   ├── 06_installation.mdx
+│   └── 09_configuration.mdx
 │
-├── 02_guides/
+├── 10_guides/
 │   ├── settings.json
-│   ├── 01_basics.mdx
-│   ├── 02_advanced.mdx
-│   └── 10_troubleshooting.mdx
+│   ├── 03_basics.mdx
+│   ├── 06_advanced.mdx
+│   └── 09_troubleshooting.mdx
 │
-└── 03_api/
+└── 15_api/
     ├── settings.json
-    ├── 01_overview.mdx
-    └── 02_endpoints.mdx
+    ├── 03_overview.mdx
+    └── 06_endpoints.mdx
 ```
 
 ## Naming Rules
@@ -63,8 +65,6 @@ Files and folders are sorted by their numeric prefix:
 10_advanced.mdx      → Position 10
 99_appendix.mdx      → Position 99 (last)
 ```
-
-> **Tip:** Leave gaps in numbering (01, 05, 10, 15...) to make inserting new pages easier later.
 
 ## Build Errors
 
