@@ -27,7 +27,7 @@ items:
     href: "/"
 
   - label: "Docs"
-    href: "/docs/final-docs"
+    href: "/docs"
 
   - label: "Blog"
     href: "/blog"
@@ -83,7 +83,7 @@ items:
     href: "/"
 
   - label: "Docs"
-    href: "/docs/final-docs"
+    href: "/docs"
 
   - label: "Blog"
     href: "/blog"
@@ -187,7 +187,7 @@ items:
     href: "/"
 
   - label: "Docs"
-    href: "/docs/final-docs"
+    href: "/docs"
 
   - label: "Resources"
     items:

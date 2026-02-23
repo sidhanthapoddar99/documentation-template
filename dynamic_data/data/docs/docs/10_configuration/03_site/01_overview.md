@@ -42,8 +42,8 @@ logo:
   src: "@assets/logo.svg"
   alt: "Docs"
   theme:
-    dark: "logo-dark.svg"
-    light: "logo-light.svg"
+    dark: "@assets/logo-dark.svg"
+    light: "@assets/logo-light.svg"
   favicon: "@assets/favicon.png"
 
 # Editor configuration (required for dev toolbar live editor)
@@ -60,10 +60,10 @@ editor:
 
 pages:
   docs:
-    base_url: "/docs/final-docs"
+    base_url: "/docs"
     type: docs
     layout: "@docs/default"
-    data: "@data/docs/final_docs"
+    data: "@data/docs"
 
   blog:
     base_url: "/blog"

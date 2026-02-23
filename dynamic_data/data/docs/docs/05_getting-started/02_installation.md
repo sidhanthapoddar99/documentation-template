@@ -92,7 +92,7 @@ CONFIG_DIR=./dynamic_data/config
 SITE_URL=http://localhost:4321
 ```
 
-Directory paths for content, assets, and themes are configured in `site.yaml`'s `paths:` section (see [Site Configuration](/docs/getting-started/configuration/site)).
+Directory paths for content, assets, and themes are configured in `site.yaml`'s `paths:` section (see [Site Configuration](/docs/configuration/site/overview)).
 
 ## Step 4: Start Development
 
@@ -142,4 +142,4 @@ Check the error message for the specific file and line number.
 
 ## Next Steps
 
-Continue to [Configuration](/docs/getting-started/configuration) to customize your site.
+Continue to [Configuration](/docs/configuration/overview) to customize your site.

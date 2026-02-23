@@ -36,7 +36,10 @@ src/
 │   └── content-types/      # Docs vs Blog parsing
 │
 ├── hooks/                  # Reusable logic
-│   └── useSidebar.ts       # Sidebar tree building
+│   ├── useSidebar.ts       # Sidebar tree building & pagination
+│   ├── useNavigation.ts    # Navigation helpers
+│   ├── useTheme.ts         # Theme utilities
+│   └── index.ts            # Barrel exports
 │
 ├── pages/                  # Astro routes
 │   ├── [...slug].astro     # Universal dynamic route
@@ -203,6 +206,15 @@ class BlogParser extends BaseContentParser {
 ```
 
 ## Hooks
+
+### Hooks Overview
+
+| File | Purpose |
+|------|---------|
+| `useSidebar.ts` | Builds sidebar tree, calculates prev/next pagination |
+| `useNavigation.ts` | Navigation state and active-link helpers |
+| `useTheme.ts` | Theme utilities (resolved CSS variables, dark mode) |
+| `index.ts` | Barrel exports |
 
 ### `useSidebar.ts`
 

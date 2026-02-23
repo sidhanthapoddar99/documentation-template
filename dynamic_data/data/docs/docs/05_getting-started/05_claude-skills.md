@@ -50,7 +50,7 @@ Helps you **configure documentation sites**.
 
 ## Installation
 
-Install via one-liner (see [Installation](/docs/final-docs/getting-started/installation#claude-code-skills-optional)):
+Install via one-liner (see [Installation](/docs/getting-started/installation#claude-code-skills-optional)):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/sidhanthapoddar99/documentation-template/main/download-skills.sh | bash -s -- --dest ./.claude

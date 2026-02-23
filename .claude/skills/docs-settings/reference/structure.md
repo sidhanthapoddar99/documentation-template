@@ -30,14 +30,14 @@ This folder is a git clone of the template repository. All your customizations g
 
 ### `docs/.env`
 
-Environment configuration that tells the template where to find your content.
+Environment configuration that tells the template where to find the config directory.
 
 ```env
+# Points to the directory containing site.yaml, navbar.yaml, footer.yaml
 CONFIG_DIR=../data/config
-DATA_DIR=../data/data
-ASSETS_DIR=../data/assets
-THEMES_DIR=../data/themes
 ```
+
+Only `CONFIG_DIR` is needed. All other directory paths (`data`, `assets`, `themes`) are configured in `site.yaml`'s `paths:` section.
 
 Paths are relative to `documentation-template/` folder.
 

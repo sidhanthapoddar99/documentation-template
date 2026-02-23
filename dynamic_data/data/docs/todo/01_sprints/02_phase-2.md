@@ -75,7 +75,7 @@ sidebar_label: Phase 2
 - `docs-guide` - Writing documentation content (markdown, frontmatter, folder settings)
 - `docs-settings` - Configuring documentation sites (YAML files, .env, project structure)
 
-See [Claude Skills documentation](/docs/final-docs/getting-started/claude-skills) for usage.
+See [Claude Skills documentation](/docs/getting-started/claude-skills) for usage.
 
 ## 7. Dev-Only Content (Hide in Production)
 
@@ -116,7 +116,7 @@ items:
   - label: "Home"
     href: "/"
   - label: "Docs"
-    href: "/docs/final-docs"
+    href: "/docs"
   - label: "Todo"
     href: "/todo"
     hideInProd: true  # Only visible in dev navbar

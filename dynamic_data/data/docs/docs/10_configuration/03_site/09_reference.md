@@ -121,7 +121,7 @@ editor:
 
 pages:
   docs:
-    base_url: "/docs/final-docs"
+    base_url: "/docs"
     type: docs
     layout: "@docs/default"
     data: "@data/docs/final_docs"

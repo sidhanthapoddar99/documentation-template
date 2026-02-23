@@ -79,22 +79,22 @@ Your actual content lives here.
 
 ```
 data/docs/
-├── getting-started/
-│   ├── _category_.json     # Folder settings
+├── 01_getting-started/
+│   ├── settings.json       # Folder settings
 │   ├── 01_overview.md
 │   ├── 02_installation.md
 │   └── assets/             # Doc-specific assets
 │       └── diagram.mermaid
 │
-└── guides/
-    ├── _category_.json
+└── 02_guides/
+    ├── settings.json
     ├── 01_basics.md
     └── 02_advanced.md
 ```
 
 **Key points:**
 - Use `XX_` prefix for ordering (e.g., `01_`, `02_`)
-- `_category_.json` configures folder display
+- `settings.json` configures folder display in the sidebar
 - Place assets in `assets/` subfolder
 
 ### Blog (`data/blog/`)
@@ -139,28 +139,23 @@ data/pages/
 | `2024-01-15-hello.md` | `/blog/hello` | Date prefix removed |
 | `2024-02-01-update.md` | `/blog/update` | Sorted by date |
 
-## Folder Settings (`_category_.json`)
+## Folder Settings (`settings.json`)
 
 Configure how folders appear in the sidebar:
 
 ```json
 {
   "label": "Getting Started",
-  "position": 1,
-  "collapsed": false,
-  "link": {
-    "type": "doc",
-    "id": "getting-started/overview"
-  }
+  "isCollapsible": true,
+  "collapsed": false
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `label` | `string` | Display name in sidebar |
-| `position` | `number` | Sort order |
-| `collapsed` | `boolean` | Start collapsed? |
-| `link` | `object` | Category link target |
+| `isCollapsible` | `boolean` | Whether users can collapse this section |
+| `collapsed` | `boolean` | Start collapsed? (only applies if `isCollapsible` is `true`) |
 
 ## Path Configuration
 

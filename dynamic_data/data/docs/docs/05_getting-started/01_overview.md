@@ -17,8 +17,9 @@ Your content lives completely separate from the framework code:
 project/
 ├── dynamic_data/        # YOUR STUFF - edit freely
 │   ├── config/          # Site configuration
+│   ├── assets/          # Static assets (logos, images)
 │   ├── data/            # Content (docs, blog, pages)
-│   └── theme/           # Visual customization
+│   └── themes/          # Custom themes (optional)
 │
 └── src/                 # FRAMEWORK - don't touch
     ├── layouts/         # Pre-built layouts
@@ -40,8 +41,8 @@ project/
 ### How It Works
 
 1. **Define pages** in `config/site.yaml`
-2. **Write content** in `data/` as MDX files
-3. **Customize theme** in `theme/colors.yaml`
+2. **Write content** in `data/` as Markdown files
+3. **Customize theme** in `themes/` (optional)
 4. **Build** and deploy anywhere
 
 ## Quick Example
@@ -64,5 +65,5 @@ It automatically appears at `/docs/getting-started/hello` in the sidebar.
 ## What's Next?
 
 1. **[Installation](/docs/getting-started/installation)** - Set up your project
-2. **[Configuration](/docs/getting-started/configuration)** - Configure your site
-3. **[Project Structure](/docs/getting-started/structure)** - Understand the codebase
+2. **[Configuration](/docs/configuration/overview)** - Configure your site
+3. **[Project Structure](/docs/getting-started/structure/overview)** - Understand the codebase

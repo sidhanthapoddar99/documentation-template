@@ -22,7 +22,7 @@ site:
 
 pages:
   docs:
-    base_url: "/docs/final-docs"
+    base_url: "/docs"
     type: docs
     layout: "@docs/default"
     data: "@data/docs/final_docs"
@@ -57,7 +57,7 @@ Documentation pages with sidebar navigation:
 
 ```yaml
 docs:
-  base_url: "/docs/final-docs"
+  base_url: "/docs"
   type: docs
   layout: "@docs/default"
   data: "@data/docs/final_docs"
@@ -120,7 +120,7 @@ You can define multiple independent doc sections:
 ```yaml
 pages:
   docs:
-    base_url: "/docs/final-docs"
+    base_url: "/docs"
     type: docs
     layout: "@docs/default"
     data: "@data/docs/final_docs"

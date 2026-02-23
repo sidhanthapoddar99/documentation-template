@@ -57,7 +57,7 @@ editor:
 pages:
   # Documentation Sections (each is independent in navbar)
   docs:
-    base_url: "/docs/final-docs"
+    base_url: "/docs"
     type: docs
     layout: "@docs/default"
     data: "@data/docs/docs"
