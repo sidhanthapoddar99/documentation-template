@@ -31,11 +31,14 @@ src/
 │
 ├── layouts/              # Astro layout components
 │   ├── BaseLayout.astro  # Root layout: theme CSS injection, dark mode, head meta
-│   ├── docs/             # default, compact
-│   ├── blogs/            # default
-│   ├── custom/           # home, info, countdown
-│   ├── navbar/           # Navbar layout variants
-│   └── footer/           # Footer layout variants
+│   ├── docs/default/     # Layout.astro + Sidebar, Body, Outline, Pagination
+│   ├── docs/compact/     # Layout.astro (imports components from ../default/)
+│   ├── blogs/default/    # IndexLayout, PostLayout + IndexBody, PostBody, PostCard
+│   ├── custom/home/      # Layout.astro + Hero, Features
+│   ├── custom/info/      # Layout.astro + Content
+│   ├── custom/countdown/ # Layout.astro (self-contained)
+│   ├── navbar/           # Navbar layout variants (default, minimal)
+│   └── footer/           # Footer layout variants (default, minimal)
 │
 ├── pages/
 │   ├── [...slug].astro   # Dynamic route: resolves page type → layout component

@@ -17,7 +17,7 @@ Unlike docs layouts (single `Layout.astro`), blog layouts require **two componen
 | `PostLayout.astro` | Single post view | `/blog/{slug}` |
 
 ```
-src/layouts/blogs/styles/default/
+src/layouts/blogs/default/
 ├── IndexLayout.astro    # List of posts (cards/grid)
 └── PostLayout.astro     # Individual post page
 ```
@@ -84,19 +84,12 @@ src/layouts/blogs/styles/default/
 
 ```
 src/layouts/blogs/
-├── styles/
-│   └── default/
-│       ├── IndexLayout.astro   # Post listing
-│       └── PostLayout.astro    # Single post
-│
-└── components/                  # Shared across blog layouts
-    ├── body/
-    │   └── default/
-    │       ├── IndexBody.astro   # Grid logic
-    │       └── PostBody.astro    # Post rendering
-    └── cards/
-        └── default/
-            └── PostCard.astro    # Individual card
+└── default/                     # All blog components in one folder
+    ├── IndexLayout.astro        # Post listing
+    ├── PostLayout.astro         # Single post
+    ├── IndexBody.astro          # Grid logic
+    ├── PostBody.astro           # Post rendering
+    └── PostCard.astro           # Individual card
 ```
 
 All styling for blog layouts is provided by the theme (e.g., `blogs.css` in `src/styles/`). Layout and component files contain only HTML structure with CSS classes -- no CSS files, no `<style>` blocks, and no CSS imports.

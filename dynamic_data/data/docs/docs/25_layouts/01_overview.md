@@ -30,13 +30,13 @@ The framework organizes layouts by content type:
 
 | Type | Location | Used For |
 |------|----------|----------|
-| **Docs** | `src/layouts/docs/styles/` | Documentation pages |
-| **Blogs** | `src/layouts/blogs/styles/` | Blog posts and listings |
-| **Custom** | `src/layouts/custom/styles/` | Landing pages, info pages |
+| **Docs** | `src/layouts/docs/` | Documentation pages |
+| **Blogs** | `src/layouts/blogs/` | Blog posts and listings |
+| **Custom** | `src/layouts/custom/` | Landing pages, info pages |
 
 ## Directory Structure
 
-Layouts contain only Astro components — no CSS files. All styling is provided by the theme (`src/styles/`).
+Each layout variant is a folder that owns its own components. Layouts contain only Astro components — no CSS files. All styling is provided by the theme (`src/styles/`).
 
 ```
 src/layouts/
@@ -44,52 +44,44 @@ src/layouts/
 │                             # Injects theme CSS via <style id="theme-styles">
 │
 ├── docs/
-│   ├── styles/               # Layout variants
-│   │   ├── default/          # Full layout (sidebar + body + outline)
-│   │   │   └── Layout.astro
-│   │   └── compact/          # Compact layout (body + outline)
-│   │       └── Layout.astro
-│   └── components/           # Shared components (Astro only, no CSS)
-│       ├── sidebar/default/
-│       │   └── Sidebar.astro
-│       ├── body/default/
-│       │   └── Body.astro
-│       ├── outline/default/
-│       │   └── Outline.astro
-│       └── common/
-│           └── Pagination.astro
+│   ├── default/              # Full layout (sidebar + body + outline)
+│   │   ├── Layout.astro
+│   │   ├── Sidebar.astro
+│   │   ├── Body.astro
+│   │   ├── Outline.astro
+│   │   └── Pagination.astro
+│   └── compact/              # Compact layout (body + outline, no sidebar)
+│       └── Layout.astro      # imports Body/Outline/Pagination from ../default/
 │
 ├── blogs/
-│   ├── styles/
-│   │   └── default/          # Index + Post layouts
-│   └── components/
-│       ├── body/default/
-│       └── cards/default/
+│   └── default/              # Index + Post layouts + all blog components
+│       ├── IndexLayout.astro
+│       ├── PostLayout.astro
+│       ├── IndexBody.astro
+│       ├── PostBody.astro
+│       └── PostCard.astro
 │
 ├── custom/
-│   ├── styles/
-│   │   ├── home/             # Landing page (hero + features)
-│   │   ├── info/             # Simple content page
-│   │   └── countdown/        # Countdown page
-│   └── components/
-│       ├── hero/default/
-│       ├── features/default/
-│       └── content/default/
+│   ├── home/                 # Landing page (hero + features)
+│   │   ├── Layout.astro
+│   │   ├── Hero.astro
+│   │   └── Features.astro
+│   ├── info/                 # Simple content page
+│   │   ├── Layout.astro
+│   │   └── Content.astro
+│   └── countdown/            # Countdown timer page
+│       └── Layout.astro
 │
-├── navbar/                   # Navigation variants (different HTML, no CSS)
-│   ├── default/
-│   │   └── index.astro
-│   └── minimal/
-│       └── index.astro
+├── navbar/                   # Navigation variants
+│   ├── default/index.astro
+│   └── minimal/index.astro
 │
-└── footer/                   # Footer variants (different HTML, no CSS)
-    ├── default/
-    │   └── index.astro
-    └── minimal/
-        └── index.astro
+└── footer/                   # Footer variants
+    ├── default/index.astro
+    └── minimal/index.astro
 ```
 
-The theme provides visual styling for navbar, footer, docs, and blog layouts through CSS files like `docs.css`, `navbar.css`, `footer.css`, and `blogs.css` in `src/styles/`. These are injected globally by `BaseLayout.astro`. Custom page layouts define their own styles using scoped `<style>` blocks within each component.
+The theme provides visual styling for navbar, footer, docs, and blog layouts through CSS files like `docs.css`, `navbar.css`, `footer.css`, and `blogs.css` in `src/styles/`. Custom page layouts (`home`, `info`, `countdown`) define their own styles using scoped `<style>` blocks within each component.
 
 ## Setting Layouts in Configuration
 
@@ -125,9 +117,9 @@ pages:
 
 | Reference | Resolves To |
 |-----------|-------------|
-| `@docs/default` | `src/layouts/docs/styles/default/Layout.astro` |
-| `@blog/default` | `src/layouts/blogs/styles/default/*.astro` |
-| `@custom/home` | `src/layouts/custom/styles/home/Layout.astro` |
+| `@docs/default` | `src/layouts/docs/default/Layout.astro` |
+| `@blog/default` | `src/layouts/blogs/default/*.astro` |
+| `@custom/home` | `src/layouts/custom/home/Layout.astro` |
 
 ## Dev Toolbar: Layout Switcher
 
@@ -141,40 +133,6 @@ During development, you can switch layouts without modifying configuration files
 4. Select a different layout
 
 The page reloads with the new layout instantly.
-
-### URL-Based Override
-
-You can also switch layouts via URL query parameter:
-
-```
-/docs/overview?layout=compact
-/blog?layout=blog_style2
-```
-
-This is useful for:
-- Sharing layout previews with team members
-- Bookmarking specific layout configurations
-- Testing without opening the toolbar
-
-### How It Works
-
-```
-┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│  Dev Toolbar     │────▶│  ?layout=...     │────▶│  Middleware      │
-│  (click button)  │     │  (URL param)     │     │  (captures)      │
-└──────────────────┘     └──────────────────┘     └────────┬─────────┘
-                                                           │
-                                                           ▼
-┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│  Page renders    │◀────│  Layout resolved │◀────│  [...slug].astro │
-│  with new layout │     │  from override   │     │  (reads locals)  │
-└──────────────────┘     └──────────────────┘     └──────────────────┘
-```
-
-The layout switcher:
-1. Adds `?layout=style_name` to the URL
-2. Middleware captures the parameter and stores it in `Astro.locals`
-3. The page handler reads the override and uses it instead of config
 
 ## Data Flow
 
@@ -220,6 +178,7 @@ All layouts receive **processed HTML content**, not raw markdown:
 |--------|-------------|
 | `home` | Landing page with hero section and features grid |
 | `info` | Simple content page for about/contact pages |
+| `countdown` | Countdown timer to a target date |
 
 ## External Layouts
 
@@ -238,12 +197,12 @@ LAYOUT_EXT_DIR=./dynamic_data/layouts
 
 ```
 dynamic_data/layouts/
-├── docs/styles/my-layout/
+├── docs/my-layout/
 │   └── Layout.astro
-├── blogs/styles/my-blog-style/
+├── blogs/my-blog-style/
 │   ├── IndexLayout.astro
 │   └── PostLayout.astro
-├── custom/styles/my-page/
+├── custom/my-page/
 │   └── Layout.astro
 ├── navbar/my-navbar/
 │   └── index.astro
@@ -257,10 +216,10 @@ External `.astro` files live outside `src/`, so **relative imports won't work**.
 
 ```astro
 ---
-// Use @layouts/ to import built-in shared components
-import Body from '@layouts/docs/components/body/default/Body.astro';
-import Outline from '@layouts/docs/components/outline/default/Outline.astro';
-import Pagination from '@layouts/docs/components/common/Pagination.astro';
+// Use @layouts/ to import built-in components from another variant
+import Body from '@layouts/docs/default/Body.astro';
+import Outline from '@layouts/docs/default/Outline.astro';
+import Pagination from '@layouts/docs/default/Pagination.astro';
 
 // Use @loaders/ for data loading
 import { loadContentWithSettings } from '@loaders/data';
@@ -278,10 +237,6 @@ Available aliases: `@layouts/`, `@loaders/`, `@parsers/`, `@styles/`, `@modules/
 | `LAYOUT_EXT_DIR` not set | Only built-in layouts (zero overhead) |
 | Directory doesn't exist | Startup error with clear message |
 
-### Dev Toolbar
-
-External layouts appear in the dev toolbar layout switcher with an **ext** badge, making it easy to distinguish them from built-in layouts.
-
 ### Limitations
 
 - `BaseLayout.astro` cannot be overridden (it's the root HTML wrapper)
@@ -292,21 +247,21 @@ External layouts appear in the dev toolbar layout switcher with an **ext** badge
 
 ### Built-in Layout (in `src/`)
 
-1. **Create the folder**: `src/layouts/docs/styles/my_layout/`
+1. **Create the folder**: `src/layouts/docs/my_layout/`
 2. **Add Layout.astro**: Implement the required props interface
-3. **Import components**: Use relative imports or Vite aliases
+3. **Import components**: Use `./` for same-folder, `../default/` for shared components
 4. **Use theme CSS classes**: Apply the correct CSS class names so the theme can style the layout
 5. **Reference in config**: `layout: "@docs/my_layout"`
 
 ### External Layout (outside `src/`)
 
 1. **Set `LAYOUT_EXT_DIR`** in `.env` (if not already set)
-2. **Create the folder**: `<LAYOUT_EXT_DIR>/docs/styles/my_layout/`
+2. **Create the folder**: `<LAYOUT_EXT_DIR>/docs/my_layout/`
 3. **Add Layout.astro**: Implement the required props interface
 4. **Use Vite aliases for imports**: `@layouts/`, `@loaders/`, etc. (no relative imports)
 5. **Restart dev server** to pick up the new directory
 6. **Reference in config**: `layout: "@docs/my_layout"`
 
-Both are automatically discovered — no registration needed. Do not add CSS files to layout directories. If you need new visual styling, add it to your theme's CSS files.
+Both are automatically discovered — no registration needed.
 
 See the [Docs Layouts](./docs-layouts/overview), [Blog Layouts](./blog-layouts/overview), and [Custom Layouts](./custom-layouts/overview) sections for detailed guides.

@@ -14,10 +14,10 @@ To add a new docs layout `doc_style3`:
 
 ```bash
 # 1. Create the folder
-mkdir -p src/layouts/docs/styles/doc_style3
+mkdir -p src/layouts/docs/doc_style3
 
 # 2. Create Layout.astro
-touch src/layouts/docs/styles/doc_style3/Layout.astro
+touch src/layouts/docs/doc_style3/Layout.astro
 
 # 3. Reference in site.yaml
 # layout: "@docs/doc_style3"
@@ -29,15 +29,15 @@ That's it — the glob discovery system finds it automatically.
 
 ### 1. Create the Layout File
 
-**File:** `src/layouts/docs/styles/doc_style3/Layout.astro`
+**File:** `src/layouts/docs/doc_style3/Layout.astro`
 
 ```astro
 ---
-// Import shared components
-import Sidebar from '../../components/sidebar/default/Sidebar.astro';
-import Body from '../../components/body/default/Body.astro';
-import Outline from '../../components/outline/default/Outline.astro';
-import Pagination from '../../components/common/Pagination.astro';
+// Import components from the default variant (or add your own to this folder)
+import Sidebar from '../default/Sidebar.astro';
+import Body from '../default/Body.astro';
+import Outline from '../default/Outline.astro';
+import Pagination from '../default/Pagination.astro';
 
 // Import hooks
 import { buildSidebarTree, getPrevNext } from '@/hooks/useSidebar';
@@ -97,7 +97,7 @@ pages:
 ### 3. Build and Test
 
 ```bash
-npm run build
+bun run build
 ```
 
 If the layout file is missing or malformed, you'll see a descriptive error.
@@ -121,12 +121,6 @@ interface DocsLayoutProps {
   content: string;         // HTML from parser pipeline
   headings?: Heading[];    // Extracted headings for TOC
 }
-
-interface Heading {
-  depth: number;   // 1-6
-  slug: string;    // URL-safe ID
-  text: string;    // Heading text
-}
 ```
 
 ### Blog Layout Props
@@ -134,9 +128,8 @@ interface Heading {
 ```typescript
 // IndexLayout
 interface BlogIndexProps {
-  title: string;
   dataPath: string;
-  baseUrl: string;
+  postsPerPage?: number;
 }
 
 // PostLayout
@@ -152,72 +145,59 @@ interface BlogPostProps {
 
 ### Custom Layout Props
 
-Custom layouts receive whatever data structure is in the YAML/Markdown file:
+Custom layouts receive only `dataPath` and load their own data:
 
 ```typescript
 interface CustomLayoutProps {
-  dataPath: string;
-  baseUrl: string;
-  // Plus any data from the source file
+  dataPath: string;   // Layout loads the YAML file itself
 }
 ```
 
-## Using Shared Components
+## Adding Custom Components
 
-Import from the components folder:
-
-```typescript
-// Docs components
-import Sidebar from '../../components/sidebar/default/Sidebar.astro';
-import Body from '../../components/body/default/Body.astro';
-import Outline from '../../components/outline/default/Outline.astro';
-import Pagination from '../../components/common/Pagination.astro';
-
-// Or create your own in the same layout folder
-import CustomHeader from './CustomHeader.astro';
-```
-
-## Creating Custom Components
-
-Add components specific to your layout:
+Put components specific to your layout directly in the same folder:
 
 ```
-src/layouts/docs/styles/doc_style3/
+src/layouts/docs/doc_style3/
 ├── Layout.astro
 ├── CustomHeader.astro    # Layout-specific component
 └── CustomSidebar.astro
+```
+
+Import them with `./` relative paths:
+
+```astro
+import CustomHeader from './CustomHeader.astro';
+import CustomSidebar from './CustomSidebar.astro';
 ```
 
 No CSS files belong in the layout directory. If your custom components introduce new CSS classes, add the corresponding styles to the theme CSS files (e.g., `docs.css` in `src/styles/`).
 
 ## Creating a New Blog Layout
 
+**Folder:** `src/layouts/blogs/blog_style2/`
+
 ### IndexLayout
 
-**File:** `src/layouts/blogs/styles/blog_style2/IndexLayout.astro`
+**File:** `src/layouts/blogs/blog_style2/IndexLayout.astro`
 
 ```astro
 ---
 import { loadContent } from '@loaders/data';
 
 interface Props {
-  title: string;
   dataPath: string;
-  baseUrl: string;
 }
 
-const { title, dataPath, baseUrl } = Astro.props;
+const { dataPath } = Astro.props;
 const posts = await loadContent(dataPath, 'blog', { sort: 'date', order: 'desc' });
 ---
 
 <div class="blog-index style2">
-  <h1>{title}</h1>
-
-  <!-- Custom list layout instead of cards -->
   <ul class="post-list">
     {posts.map(post => (
       <li>
-        <a href={`${baseUrl}/${post.slug}`}>
+        <a href={`/blog/${post.slug}`}>
           <time>{post.data.date}</time>
           <span>{post.data.title}</span>
         </a>
@@ -229,7 +209,7 @@ const posts = await loadContent(dataPath, 'blog', { sort: 'date', order: 'desc' 
 
 ### PostLayout
 
-**File:** `src/layouts/blogs/styles/blog_style2/PostLayout.astro`
+**File:** `src/layouts/blogs/blog_style2/PostLayout.astro`
 
 ```astro
 ---
@@ -263,7 +243,7 @@ const { title, date, author, content, tags } = Astro.props;
 
 ## Creating a Custom Page Layout
 
-**File:** `src/layouts/custom/styles/landing/Layout.astro`
+**File:** `src/layouts/custom/landing/Layout.astro`
 
 ```astro
 ---
@@ -271,7 +251,6 @@ import { loadFile } from '@loaders/data';
 
 interface Props {
   dataPath: string;
-  baseUrl: string;
 }
 
 const { dataPath } = Astro.props;
@@ -328,16 +307,16 @@ const { variant = 'default' } = Astro.props;
 </div>
 ```
 
-The variant-specific styles (e.g., `.docs-layout.wide`, `.docs-layout.minimal`) should be defined in the theme's `docs.css` file, not in the layout component itself.
+The variant-specific styles should be defined in the theme's `docs.css` file, not in the layout component itself.
 
 ## Checklist
 
 When creating a new layout:
 
-- [ ] Create folder in correct location (`styles/{name}/`)
+- [ ] Create folder in correct location (`src/layouts/{type}/{name}/`)
 - [ ] Create `Layout.astro` (or `IndexLayout.astro`/`PostLayout.astro` for blog)
 - [ ] Implement required props interface
-- [ ] Import and use shared components or create custom ones
+- [ ] Import components from same folder (`./`) or another variant (`../default/`)
 - [ ] Add CSS classes to the appropriate theme CSS file (not in the layout directory)
 - [ ] Test with `bun run build`
 - [ ] Update `site.yaml` to use new layout

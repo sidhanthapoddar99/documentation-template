@@ -1,36 +1,43 @@
 ---
 title: Layout Components
-description: Shared components used across layouts
+description: How components are organized within layout variant folders
 sidebar_position: 4
 ---
 
 # Layout Components
 
-Each layout type has a `components/` folder containing reusable building blocks. Layouts compose from these shared components.
+Each layout variant folder owns its components directly — there is no shared `components/` directory. If two variants need the same component, one imports from the other using a relative path.
 
 ## Component Organization
 
 ```
 src/layouts/
 ├── docs/
-│   └── components/
-│       ├── sidebar/default/Sidebar.astro
-│       ├── body/default/Body.astro
-│       ├── outline/default/Outline.astro
-│       └── common/Pagination.astro
+│   ├── default/               # Owns all doc components
+│   │   ├── Layout.astro
+│   │   ├── Sidebar.astro
+│   │   ├── Body.astro
+│   │   ├── Outline.astro
+│   │   └── Pagination.astro
+│   └── compact/               # Shares components from default
+│       └── Layout.astro       # imports ../default/Body.astro etc.
 │
 ├── blogs/
-│   └── components/
-│       ├── body/
-│       │   ├── IndexBody.astro
-│       │   └── PostBody.astro
-│       └── cards/default/PostCard.astro
+│   └── default/               # Owns all blog components
+│       ├── IndexLayout.astro
+│       ├── PostLayout.astro
+│       ├── IndexBody.astro
+│       ├── PostBody.astro
+│       └── PostCard.astro
 │
 ├── custom/
-│   └── components/
-│       ├── hero/default/Hero.astro
-│       ├── features/default/Features.astro
-│       └── content/default/Content.astro
+│   ├── home/                  # Owns hero + features components
+│   │   ├── Layout.astro
+│   │   ├── Hero.astro
+│   │   └── Features.astro
+│   └── info/                  # Owns content component
+│       ├── Layout.astro
+│       └── Content.astro
 │
 ├── navbar/
 │   ├── default/index.astro
@@ -45,7 +52,7 @@ src/layouts/
 
 ### Sidebar
 
-**File:** `src/layouts/docs/components/sidebar/default/Sidebar.astro`
+**File:** `src/layouts/docs/default/Sidebar.astro`
 
 Renders hierarchical navigation tree with collapsible sections.
 
@@ -97,7 +104,7 @@ interface SidebarSection {
 
 ### Body
 
-**File:** `src/layouts/docs/components/body/default/Body.astro`
+**File:** `src/layouts/docs/default/Body.astro`
 
 Main content wrapper with title and description.
 
@@ -122,14 +129,9 @@ interface Props {
 </article>
 ```
 
-**Features:**
-- Renders title and description from frontmatter
-- Injects parsed HTML content
-- Slot for additional content (pagination)
-
 ### Outline
 
-**File:** `src/layouts/docs/components/outline/default/Outline.astro`
+**File:** `src/layouts/docs/default/Outline.astro`
 
 Table of contents with scroll spy.
 
@@ -159,15 +161,9 @@ interface Heading {
 </nav>
 ```
 
-**Features:**
-- Filters to show only h1-h3 by default
-- Indentation based on heading depth
-- Scroll spy highlights current section
-- Smooth scroll on click
-
 ### Pagination
 
-**File:** `src/layouts/docs/components/common/Pagination.astro`
+**File:** `src/layouts/docs/default/Pagination.astro`
 
 Prev/Next navigation links.
 
@@ -197,32 +193,26 @@ interface Props {
 
 ## Blog Components
 
+All blog components live in `src/layouts/blogs/default/`.
+
 ### IndexBody
 
-**File:** `src/layouts/blogs/components/body/IndexBody.astro`
+**File:** `src/layouts/blogs/default/IndexBody.astro`
 
-Grid of post cards.
+Grid of post cards. **Loads posts itself** from `dataPath`:
 
 ```astro
 ---
 interface Props {
-  posts: BlogPost[];
-  baseUrl: string;
+  dataPath: string;
+  postsPerPage?: number;
 }
 ---
-
-<div class="blog-index">
-  <div class="post-grid">
-    {posts.map(post => (
-      <PostCard post={post} baseUrl={baseUrl} />
-    ))}
-  </div>
-</div>
 ```
 
 ### PostBody
 
-**File:** `src/layouts/blogs/components/body/PostBody.astro`
+**File:** `src/layouts/blogs/default/PostBody.astro`
 
 Single post with metadata.
 
@@ -236,61 +226,32 @@ interface Props {
   content: string;
 }
 ---
-
-<article class="blog-post">
-  <header>
-    <h1>{title}</h1>
-    <div class="meta">
-      {author && <span class="author">{author}</span>}
-      <time>{formatDate(date)}</time>
-    </div>
-  </header>
-
-  <div class="content" set:html={content} />
-
-  {tags && (
-    <footer class="tags">
-      {tags.map(tag => <span class="tag">{tag}</span>)}
-    </footer>
-  )}
-</article>
 ```
 
 ### PostCard
 
-**File:** `src/layouts/blogs/components/cards/default/PostCard.astro`
+**File:** `src/layouts/blogs/default/PostCard.astro`
 
 Card for blog listing.
 
 ```astro
 ---
 interface Props {
-  post: {
-    title: string;
-    description?: string;
-    date: string;
-    slug: string;
-    image?: string;
-  };
-  baseUrl: string;
+  title: string;
+  description?: string;
+  date: string;
+  slug: string;
+  href: string;
+  image?: string;
 }
 ---
-
-<a href={`${baseUrl}/${post.slug}`} class="post-card">
-  {post.image && <img src={post.image} alt="" />}
-  <div class="content">
-    <h3>{post.title}</h3>
-    <time>{formatDate(post.date)}</time>
-    {post.description && <p>{post.description}</p>}
-  </div>
-</a>
 ```
 
 ## Custom Components
 
 ### Hero
 
-**File:** `src/layouts/custom/components/hero/default/Hero.astro`
+**File:** `src/layouts/custom/home/Hero.astro`
 
 Landing page hero section.
 
@@ -299,27 +260,15 @@ Landing page hero section.
 interface Props {
   title: string;
   subtitle?: string;
-  cta?: {
-    label: string;
-    href: string;
-  };
-  image?: string;
+  cta?: { label: string; href: string };
+  secondaryCta?: { label: string; href: string };
 }
 ---
-
-<section class="hero">
-  <div class="content">
-    <h1>{title}</h1>
-    {subtitle && <p>{subtitle}</p>}
-    {cta && <a href={cta.href} class="cta-button">{cta.label}</a>}
-  </div>
-  {image && <img src={image} alt="" />}
-</section>
 ```
 
 ### Features
 
-**File:** `src/layouts/custom/components/features/default/Features.astro`
+**File:** `src/layouts/custom/home/Features.astro`
 
 Feature grid section.
 
@@ -333,21 +282,17 @@ interface Props {
   }[];
 }
 ---
-
-<section class="features">
-  <div class="grid">
-    {features.map(feature => (
-      <div class="feature-card">
-        {feature.icon && <span class="icon">{feature.icon}</span>}
-        <h3>{feature.title}</h3>
-        <p>{feature.description}</p>
-      </div>
-    ))}
-  </div>
-</section>
 ```
 
-## Navbar Components
+### Content
+
+**File:** `src/layouts/custom/info/Content.astro`
+
+Simple title + description renderer for info pages.
+
+## Navbar & Footer Components
+
+Navbar and footer layouts load their own config internally — they receive no content props from the page.
 
 ### NavbarDefault
 
@@ -362,35 +307,7 @@ import { loadNavbarConfig, getSiteLogo } from '@loaders/config';
 const config = loadNavbarConfig();
 const logo = getSiteLogo();
 ---
-
-<nav class="navbar">
-  <a href="/" class="logo">
-    <img src={logo.src} alt={logo.alt} />
-  </a>
-
-  <ul class="nav-items">
-    {config.items.map(item => (
-      <li>
-        {item.children ? (
-          <Dropdown item={item} />
-        ) : (
-          <a href={item.href}>{item.label}</a>
-        )}
-      </li>
-    ))}
-  </ul>
-
-  <ThemeToggle />
-</nav>
 ```
-
-### NavbarMinimal
-
-**File:** `src/layouts/navbar/minimal/index.astro`
-
-Simple navbar with logo only.
-
-## Footer Components
 
 ### FooterDefault
 
@@ -404,39 +321,41 @@ import { loadFooterConfig } from '@loaders/config';
 
 const config = loadFooterConfig();
 ---
+```
 
-<footer class="footer">
-  <div class="columns">
-    {config.columns.map(column => (
-      <div class="column">
-        <h4>{column.title}</h4>
-        <ul>
-          {column.links.map(link => (
-            <li><a href={link.href}>{link.label}</a></li>
-          ))}
-        </ul>
-      </div>
-    ))}
-  </div>
+## Cross-Variant Imports
 
-  <div class="bottom">
-    <p>{config.copyright}</p>
-    {config.social && <SocialLinks links={config.social} />}
-  </div>
-</footer>
+When a layout variant needs a component from another variant, use a relative import:
+
+```astro
+---
+// compact/Layout.astro — reuses components from default
+import Body from '../default/Body.astro';
+import Outline from '../default/Outline.astro';
+import Pagination from '../default/Pagination.astro';
+---
+```
+
+For **external layouts** (outside `src/`), use the Vite alias instead of relative paths:
+
+```astro
+---
+import Body from '@layouts/docs/default/Body.astro';
+import Outline from '@layouts/docs/default/Outline.astro';
+---
 ```
 
 ## Composition Example
 
-How `default` composes components:
+How `default` composes its components:
 
 ```astro
 ---
-// default/Layout.astro
-import Sidebar from '../components/sidebar/default/Sidebar.astro';
-import Body from '../components/body/default/Body.astro';
-import Outline from '../components/outline/default/Outline.astro';
-import Pagination from '../components/common/Pagination.astro';
+// docs/default/Layout.astro
+import Sidebar from './Sidebar.astro';
+import Body from './Body.astro';
+import Outline from './Outline.astro';
+import Pagination from './Pagination.astro';
 
 const { content: allContent, settings } = await loadContentWithSettings(dataPath);
 const sidebarNodes = buildSidebarTree(allContent, baseUrl, dataPath);

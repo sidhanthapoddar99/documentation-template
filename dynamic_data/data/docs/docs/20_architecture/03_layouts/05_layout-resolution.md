@@ -13,9 +13,9 @@ Layout resolution is the process of converting a layout reference (like `@docs/d
 ```
 site.yaml config                    Resolved component path
 ─────────────────                   ─────────────────────────
-@docs/default            ────▶      src/layouts/docs/styles/default/Layout.astro
-@blog/default            ────▶      src/layouts/blogs/styles/default/*.astro
-@custom/home             ────▶      src/layouts/custom/styles/home/Layout.astro
+@docs/default            ────▶      src/layouts/docs/default/Layout.astro
+@blog/default            ────▶      src/layouts/blogs/default/*.astro
+@custom/home             ────▶      src/layouts/custom/home/Layout.astro
 ```
 
 ## Path Pattern
@@ -23,7 +23,7 @@ site.yaml config                    Resolved component path
 All layout types follow a standardized path pattern:
 
 ```
-src/layouts/{type}/styles/{style}/Layout.astro
+src/layouts/{type}/{style}/Layout.astro
 ```
 
 | Component | Description | Examples |
@@ -37,63 +37,54 @@ The dynamic route handler resolves layouts using glob imports:
 
 ```typescript
 // Auto-discover all available layouts
-const docsLayouts = import.meta.glob(
-  '/src/layouts/docs/styles/*/Layout.astro'
+const builtinDocsLayouts = import.meta.glob(
+  '/src/layouts/docs/*/Layout.astro'
 );
 
-const blogIndexLayouts = import.meta.glob(
-  '/src/layouts/blogs/styles/*/IndexLayout.astro'
+const builtinBlogIndexLayouts = import.meta.glob(
+  '/src/layouts/blogs/*/IndexLayout.astro'
 );
 
-const blogPostLayouts = import.meta.glob(
-  '/src/layouts/blogs/styles/*/PostLayout.astro'
+const builtinBlogPostLayouts = import.meta.glob(
+  '/src/layouts/blogs/*/PostLayout.astro'
 );
 
-const customLayouts = import.meta.glob(
-  '/src/layouts/custom/styles/*/Layout.astro'
+const builtinCustomLayouts = import.meta.glob(
+  '/src/layouts/custom/*/Layout.astro'
 );
+
+// Single regex captures the variant folder name for all types
+const layoutNamePattern = /\/([^/]+)\/[^/]+\.astro$/;
+const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, layoutNamePattern);
 ```
 
 ### Resolution Function
 
 ```typescript
-function resolveLayout(layoutRef: string, pageType: string) {
+function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
   // Parse the reference: "@docs/default"
-  const match = layoutRef.match(/^@(\w+)\/(\w+)$/);
+  const match = layoutAlias.match(/^@(\w+)\/(.+)$/);
   if (!match) {
-    throw new Error(`Invalid layout reference: ${layoutRef}`);
+    throw new Error(`Invalid layout reference: ${layoutAlias}`);
   }
 
   const [, type, style] = match;
 
-  // Map type to layout collection
-  const layoutMap = {
-    docs: docsLayouts,
-    blog: blogIndexLayouts,  // or blogPostLayouts based on context
-    custom: customLayouts,
-  };
+  // Look up in the merged layout map
+  if (type === 'docs') {
+    const entry = docsLayouts.byStyle.get(style);
 
-  const layouts = layoutMap[type];
-  if (!layouts) {
-    throw new Error(`Unknown layout type: ${type}`);
+    if (!entry) {
+      throw new Error(
+        `Docs layout "${style}" does not exist.\n` +
+        `Expected: src/layouts/docs/${style}/Layout.astro\n` +
+        `Available: ${availableDocsStyles.join(', ')}`
+      );
+    }
+
+    return entry.loader;
   }
-
-  // Build expected path
-  const expectedPath = `/src/layouts/${type}/styles/${style}/Layout.astro`;
-
-  // Check if layout exists
-  if (!layouts[expectedPath]) {
-    const available = Object.keys(layouts)
-      .map(p => p.match(/styles\/(\w+)\//)?.[1])
-      .filter(Boolean);
-
-    throw new Error(
-      `Layout "${style}" not found for type "${type}". ` +
-      `Available: ${available.join(', ')}`
-    );
-  }
-
-  return layouts[expectedPath];
+  // ... blog, custom, navbar, footer cases
 }
 ```
 
@@ -102,29 +93,13 @@ function resolveLayout(layoutRef: string, pageType: string) {
 Blog pages have two layouts (index and post), resolved based on context:
 
 ```typescript
-// In [...slug].astro getStaticPaths()
-if (pageConfig.type === 'blog') {
-  const posts = await loadContent(dataPath, 'blog');
-
-  // Index page uses IndexLayout
-  paths.push({
-    params: { slug: baseUrl },
-    props: {
-      layout: resolveLayout(pageConfig.layout, 'blog-index'),
-      // ...
-    }
-  });
-
-  // Each post uses PostLayout
-  for (const post of posts) {
-    paths.push({
-      params: { slug: `${baseUrl}/${post.slug}` },
-      props: {
-        layout: resolveLayout(pageConfig.layout, 'blog-post'),
-        // ...
-      }
-    });
-  }
+// In [...slug].astro
+if (pageType === 'blog-index') {
+  const loader = validateAndResolve(layout, 'index');
+  LayoutComponent = (await loader()).default;
+} else if (pageType === 'blog-post') {
+  const loader = validateAndResolve(layout, 'post');
+  LayoutComponent = (await loader()).default;
 }
 ```
 
@@ -133,16 +108,9 @@ if (pageConfig.type === 'blog') {
 The `@` prefix is resolved by the alias system:
 
 ```typescript
-// src/loaders/alias.ts
-export function getLayoutType(layoutRef: string): string | null {
-  const match = layoutRef.match(/^@(\w+)\//);
-  return match ? match[1] : null;
-}
-
-// Mapping
 '@docs/default'  → type: 'docs',  style: 'default'
-'@blog/default' → type: 'blog',  style: 'default'
-'@custom/home'      → type: 'custom', style: 'home'
+'@blog/default'  → type: 'blog',  style: 'default'
+'@custom/home'   → type: 'custom', style: 'home'
 ```
 
 ## Error Handling
@@ -152,25 +120,25 @@ The system provides descriptive errors at build time:
 ### Invalid Format
 
 ```
-[LAYOUT ERROR] Invalid layout reference format.
-  Value: "docs/default"
-  Expected: "@type/style" (e.g., "@docs/default")
+[CONFIG ERROR] Invalid layout format: "docs/default"
+  Expected format: @{type}/{style}
+  Examples: @docs/default, @blog/default, @custom/home
 ```
 
 ### Unknown Type
 
 ```
-[LAYOUT ERROR] Unknown layout type "pages".
+[CONFIG ERROR] Unknown layout type "pages".
   Valid types: docs, blog, custom
 ```
 
 ### Missing Layout
 
 ```
-[LAYOUT ERROR] Docs layout "doc_style99" does not exist.
+[CONFIG ERROR] Docs layout "doc_style99" does not exist.
   Page: docs
   Config: @docs/doc_style99
-  Expected: src/layouts/docs/styles/doc_style99/Layout.astro
+  Expected: src/layouts/docs/doc_style99/Layout.astro
   Available: default, compact
 ```
 
@@ -187,7 +155,7 @@ Using `import.meta.glob()` provides:
 
 To add a layout that's automatically discovered:
 
-1. Create folder: `src/layouts/docs/styles/doc_style3/`
+1. Create folder: `src/layouts/docs/doc_style3/`
 2. Create file: `Layout.astro`
 3. Reference in config: `layout: "@docs/doc_style3"`
 
@@ -212,13 +180,11 @@ Resolution steps:
                            │
 2. Parse reference: type: "docs", style: "default"
                            │
-3. Build path:      /src/layouts/docs/styles/default/Layout.astro
+3. Glob lookup:     docsLayouts.byStyle.get("default") → loader
                            │
-4. Glob lookup:     docsLayouts[path] → Component
+4. Validate:        entry exists? ✓
                            │
-5. Validate:        Component exists? ✓
+5. Import:          const Layout = await loader()
                            │
-6. Import:          const Layout = await docsLayouts[path]()
-                           │
-7. Render:          <Layout {...props} />
+6. Render:          <Layout {...props} />
 ```

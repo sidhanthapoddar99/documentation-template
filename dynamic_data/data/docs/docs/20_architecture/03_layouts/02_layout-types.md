@@ -38,7 +38,7 @@ interface DocsLayoutProps {
 
 ### default — Three Column
 
-**File:** `src/layouts/docs/styles/default/Layout.astro`
+**File:** `src/layouts/docs/default/Layout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -67,7 +67,7 @@ interface DocsLayoutProps {
 
 ### compact — Two Column
 
-**File:** `src/layouts/docs/styles/compact/Layout.astro`
+**File:** `src/layouts/docs/compact/Layout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -110,7 +110,7 @@ Blog layouts handle date-based content with listing and detail views.
 
 ### IndexLayout — Post Listing
 
-**File:** `src/layouts/blogs/styles/default/IndexLayout.astro`
+**File:** `src/layouts/blogs/default/IndexLayout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -144,7 +144,7 @@ interface BlogIndexProps {
 
 ### PostLayout — Single Post
 
-**File:** `src/layouts/blogs/styles/default/PostLayout.astro`
+**File:** `src/layouts/blogs/default/PostLayout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -186,7 +186,7 @@ Custom layouts handle arbitrary page structures.
 
 ### home — Landing Page
 
-**File:** `src/layouts/custom/styles/home/Layout.astro`
+**File:** `src/layouts/custom/home/Layout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -232,7 +232,7 @@ features:
 
 ### info — Simple Content Page
 
-**File:** `src/layouts/custom/styles/info/Layout.astro`
+**File:** `src/layouts/custom/info/Layout.astro`
 
 ```
 ┌──────────────────────────────────────────────────────────────┐

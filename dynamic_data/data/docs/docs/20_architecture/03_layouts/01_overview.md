@@ -53,7 +53,7 @@ The difference is purely **structural** — which components are rendered and ho
 │                          4. LAYOUT LAYER                                │
 │                                                                         │
 │   ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐       │
-│   │  BaseLayout     │   │  Layout Styles  │   │  Components     │       │
+│   │  BaseLayout     │   │  Layout Variants │   │  Components     │       │
 │   │  (HTML shell)   │   │  @docs/default  │   │  Sidebar, Body  │       │
 │   │                 │   │  @blog/default  │   │  Outline, etc.  │       │
 │   └────────┬────────┘   └────────┬────────┘   └────────┬────────┘       │
@@ -71,31 +71,33 @@ src/layouts/
 ├── BaseLayout.astro              # Root HTML structure (all pages)
 │
 ├── docs/                         # Documentation layouts
-│   ├── styles/
-│   │   ├── default/Layout.astro      # 3-column: sidebar + body + outline
-│   │   └── compact/Layout.astro      # 2-column: body + outline
-│   └── components/               # Shared doc components
-│       ├── sidebar/default/
-│       ├── body/default/
-│       ├── outline/default/
-│       └── common/Pagination.astro
+│   ├── default/                  # 3-column: sidebar + body + outline
+│   │   ├── Layout.astro
+│   │   ├── Sidebar.astro
+│   │   ├── Body.astro
+│   │   ├── Outline.astro
+│   │   └── Pagination.astro
+│   └── compact/                  # 2-column: body + outline (no sidebar)
+│       └── Layout.astro          # imports components from ../default/
 │
 ├── blogs/                        # Blog layouts
-│   ├── styles/
-│   │   └── default/
-│   │       ├── IndexLayout.astro     # Blog listing page
-│   │       └── PostLayout.astro      # Single post page
-│   └── components/
-│       ├── body/
-│       └── cards/
+│   └── default/
+│       ├── IndexLayout.astro     # Post listing page
+│       ├── PostLayout.astro      # Single post page
+│       ├── IndexBody.astro
+│       ├── PostBody.astro
+│       └── PostCard.astro
 │
 ├── custom/                       # Custom page layouts
-│   ├── styles/
-│   │   ├── home/Layout.astro
-│   │   └── info/Layout.astro
-│   └── components/
-│       ├── hero/
-│       └── features/
+│   ├── home/
+│   │   ├── Layout.astro
+│   │   ├── Hero.astro
+│   │   └── Features.astro
+│   ├── info/
+│   │   ├── Layout.astro
+│   │   └── Content.astro
+│   └── countdown/
+│       └── Layout.astro
 │
 ├── navbar/                       # Navbar variants
 │   ├── default/index.astro
@@ -106,11 +108,13 @@ src/layouts/
     └── minimal/index.astro
 ```
 
+Each layout variant folder owns its own components. If two variants share a component (e.g. `compact` using `Body` from `default`), `compact` imports it relatively: `../default/Body.astro`.
+
 ## Key Principles
 
 ### 1. Composition Over Inheritance
 
-Layouts compose from shared components rather than extending base classes:
+Layouts compose from components in the same folder rather than extending base classes:
 
 ```astro
 <!-- default/Layout.astro -->
@@ -129,11 +133,12 @@ Layouts are discovered via dual glob patterns — built-in and external — with
 
 ```typescript
 // In [...slug].astro — built-in + external globs
-const builtinDocsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
-const extDocsLayouts = import.meta.glob('@ext-layouts/docs/styles/*/Layout.astro');
+const builtinDocsLayouts = import.meta.glob('/src/layouts/docs/*/Layout.astro');
+const extDocsLayouts = import.meta.glob('@ext-layouts/docs/*/Layout.astro');
 
 // Merged: external overrides built-in with the same style name
-const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, /\/styles\/([^/]+)\//);
+const layoutNamePattern = /\/([^/]+)\/[^/]+\.astro$/;
+const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, layoutNamePattern);
 ```
 
 Adding a new layout is just creating a folder with the right file — either in `src/layouts/` or in the external `LAYOUT_EXT_DIR` directory.
@@ -146,7 +151,7 @@ Missing or invalid layouts throw descriptive errors at build time:
 [LAYOUT ERROR] Docs layout "doc_style99" does not exist.
   Page: docs
   Config: @docs/doc_style99
-  Expected: src/layouts/docs/styles/doc_style99/Layout.astro
+  Expected: src/layouts/docs/doc_style99/Layout.astro
   Available: default, compact
 ```
 
@@ -155,14 +160,14 @@ Missing or invalid layouts throw descriptive errors at build time:
 All layout types follow a consistent path pattern:
 
 ```
-src/layouts/{type}/styles/{style}/Layout.astro
+src/layouts/{type}/{style}/Layout.astro
 ```
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| Docs | `docs/styles/{style}/Layout.astro` | `default` |
-| Blog | `blogs/styles/{style}/*.astro` | `default` |
-| Custom | `custom/styles/{style}/Layout.astro` | `home` |
+| Docs | `docs/{style}/Layout.astro` | `default` |
+| Blog | `blogs/{style}/*.astro` | `default` |
+| Custom | `custom/{style}/Layout.astro` | `home` |
 
 ## Data Flow Summary
 

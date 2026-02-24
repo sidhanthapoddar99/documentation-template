@@ -78,25 +78,18 @@ Unlike docs and blog layouts:
 
 ```
 src/layouts/custom/
-├── styles/
-│   ├── home/
-│   │   └── Layout.astro      # Landing page layout
-│   └── info/
-│       └── Layout.astro      # Simple content layout
-│
-└── components/                # Shared custom components
-    ├── hero/
-    │   └── default/
-    │       └── Hero.astro
-    ├── features/
-    │   └── default/
-    │       └── Features.astro
-    └── content/
-        └── default/
-            └── Content.astro
+├── home/                      # Landing page — owns its own components
+│   ├── Layout.astro
+│   ├── Hero.astro
+│   └── Features.astro
+├── info/                      # Simple content page
+│   ├── Layout.astro
+│   └── Content.astro
+└── countdown/                 # Countdown timer (self-contained)
+    └── Layout.astro
 ```
 
-Custom layouts define their styles using scoped `<style>` blocks within each component. Styles use theme CSS variables (e.g., `var(--color-bg-primary)`, `var(--spacing-md)`) for consistency, but each component contains its own `<style>` block rather than relying on external CSS files.
+Custom layouts define their styles using scoped `<style>` blocks within each component. Styles use theme CSS variables (e.g., `var(--color-bg-primary)`, `var(--spacing-md)`) for consistency. Each component is self-contained — no external CSS files are needed.
 
 ## Routing
 
@@ -232,8 +225,8 @@ Unlike docs (folder of files) or blog (multiple posts), each custom page is:
 ## Creating New Custom Layouts
 
 Custom layouts are the most flexible — you define:
-1. What data shape you expect
-2. What components you use
-3. How everything is arranged
+1. What YAML data shape you expect
+2. What components you include in the folder
+3. How everything is arranged and styled
 
 See [Creating Custom Layouts](./creating) for a step-by-step guide.

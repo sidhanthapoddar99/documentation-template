@@ -221,10 +221,10 @@ const { prev, next } = getPrevNext(sidebarNodes, currentPath);
 import { loadContentWithSettings } from '@loaders/data';
 import { buildSidebarTree, getPrevNext } from '@/hooks/useSidebar';
 
-import Sidebar from '../../components/sidebar/default/Sidebar.astro';
-import Body from '../../components/body/default/Body.astro';
-import Outline from '../../components/outline/default/Outline.astro';
-import Pagination from '../../components/common/Pagination.astro';
+import Sidebar from './Sidebar.astro';
+import Body from './Body.astro';
+import Outline from './Outline.astro';
+import Pagination from './Pagination.astro';
 
 interface Props {
   title: string;

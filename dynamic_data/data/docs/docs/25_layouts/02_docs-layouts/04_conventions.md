@@ -12,7 +12,7 @@ Follow these conventions when creating or customizing docs layouts.
 ### Layout Files
 
 ```
-src/layouts/docs/styles/{style_name}/
+src/layouts/docs/{style_name}/
 ├── Layout.astro      # Required - main entry point
 └── index.ts          # Optional - exports
 ```
@@ -24,17 +24,23 @@ src/layouts/docs/styles/{style_name}/
 
 ### Component Files
 
+Components live in the same folder as the layout that owns them:
+
 ```
-src/layouts/docs/components/{component}/{variant}/
-└── {Component}.astro    # PascalCase component name (no CSS files)
+src/layouts/docs/{style_name}/
+├── Layout.astro
+├── Sidebar.astro
+├── Body.astro
+└── Pagination.astro
 ```
 
-**Examples:**
-- `sidebar/default/Sidebar.astro`
-- `sidebar/modern/Sidebar.astro`
-- `body/compact/Body.astro`
+If your new layout reuses components from `default`, import them relatively:
 
-Components do not have associated `styles.css` files. All visual styling is defined in the theme's CSS (e.g., `src/styles/docs.css`).
+```astro
+import Body from '../default/Body.astro';
+```
+
+Components do not have associated CSS files. All visual styling is defined in the theme's CSS (e.g., `src/styles/docs.css`).
 
 ## Props Interface
 
@@ -258,10 +264,10 @@ Notice there are no CSS imports. The layout imports only Astro components and da
  * This layout only handles HTML structure and data processing.
  * All visual styling is provided by the theme's docs.css.
  */
-import Sidebar from '../../components/sidebar/default/Sidebar.astro';
-import Body from '../../components/body/default/Body.astro';
-import Outline from '../../components/outline/default/Outline.astro';
-import Pagination from '../../components/common/Pagination.astro';
+import Sidebar from './Sidebar.astro';
+import Body from './Body.astro';
+import Outline from './Outline.astro';
+import Pagination from './Pagination.astro';
 
 import { loadContentWithSettings, type LoadedContent, type ContentSettings } from '@loaders/data';
 import { buildSidebarTree, getPrevNext } from '@/hooks/useSidebar';

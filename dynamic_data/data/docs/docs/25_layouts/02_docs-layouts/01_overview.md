@@ -77,22 +77,14 @@ Docs layout directories contain only Astro components. All CSS is provided by th
 
 ```
 src/layouts/docs/
-├── styles/
-│   ├── default/
-│   │   └── Layout.astro      # Main layout component (no CSS files)
-│   │
-│   └── compact/
-│       └── Layout.astro
-│
-└── components/               # Shared across all doc layouts (no CSS files)
-    ├── sidebar/default/
-    │   └── Sidebar.astro
-    ├── body/default/
-    │   └── Body.astro
-    ├── outline/default/
-    │   └── Outline.astro
-    └── common/
-        └── Pagination.astro
+├── default/                  # Owns all doc components
+│   ├── Layout.astro
+│   ├── Sidebar.astro
+│   ├── Body.astro
+│   ├── Outline.astro
+│   └── Pagination.astro
+└── compact/                  # Imports shared components from ../default/
+    └── Layout.astro
 ```
 
 The theme (`src/styles/docs.css`) defines all visual styles for these components, including the `.docs-layout` container, sidebar width, outline positioning, and responsive breakpoints. Layouts only render HTML with the correct CSS class names.
