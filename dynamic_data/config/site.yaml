@@ -63,7 +63,7 @@ pages:
     data: "@data/docs/docs"
 
   components:
-    base_url: "/docs/components"
+    base_url: "/components"
     type: docs
     layout: "@docs/default"
     data: "@data/docs/components"

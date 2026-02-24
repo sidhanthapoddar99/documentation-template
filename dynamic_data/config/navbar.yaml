@@ -9,10 +9,10 @@ items:
     href: "/"
 
   - label: "Docs"
-    href: "/docs/final-docs/getting-started/overview"
+    href: "/docs"
 
   - label: "Components"
-    href: "/docs/components"
+    href: "/components"
 
   - label: "Todo"
     href: "/todo"
