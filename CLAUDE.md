@@ -62,7 +62,17 @@ dynamic_data/
 ├── assets/               # Static assets (logos, images) → served at /assets/
 ├── themes/               # Custom themes (each has theme.yaml + CSS files)
 └── data/                 # Content
-    ├── docs/             # Documentation (XX_ prefix required)
+    ├── user-guide/       # User-facing docs: setup, config, content, themes (→ /user-guide)
+    │   ├── 05_getting-started/
+    │   ├── 10_configuration/
+    │   ├── 15_content/
+    │   ├── 20_themes/
+    │   └── 25_layouts/
+    ├── dev-docs/         # Developer docs: architecture, layouts, scripts, tooling (→ /dev-docs)
+    │   ├── 05_architecture/
+    │   ├── 10_layouts/
+    │   ├── 15_scripts/
+    │   └── 20_development/
     ├── blog/             # Blog posts (YYYY-MM-DD-slug.md)
     └── pages/            # Custom page data (YAML)
 ```

@@ -55,12 +55,18 @@ editor:
 
 # Page Definitions
 pages:
-  # Documentation Sections (each is independent in navbar)
-  docs:
-    base_url: "/docs"
+  # Documentation Sections
+  user-guide:
+    base_url: "/user-guide"
     type: docs
     layout: "@docs/default"
-    data: "@data/docs/docs"
+    data: "@data/user-guide"
+
+  dev-docs:
+    base_url: "/dev-docs"
+    type: docs
+    layout: "@docs/default"
+    data: "@data/dev-docs"
 
   components:
     base_url: "/components"
