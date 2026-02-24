@@ -60,7 +60,7 @@ All routes flow through `src/pages/[...slug].astro`:
 ┌──────────────────────────────────────────────────────────────┐
 │  Step 5: Resolve Layout                                      │
 │  ──────────────────────                                      │
-│  @docs/default → layouts/docs/styles/default/                │
+│  @docs/default → layouts/docs/default/                       │
 └──────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -146,7 +146,7 @@ Layout aliases map to filesystem paths:
 ```
 @docs/default
   ↓
-src/layouts/docs/styles/default/Layout.astro
+src/layouts/docs/default/Layout.astro
 ```
 
 ### Blog Layouts
@@ -154,8 +154,8 @@ src/layouts/docs/styles/default/Layout.astro
 ```
 @blogs/default
   ↓
-src/layouts/blogs/styles/default/IndexLayout.astro  (for /blog)
-src/layouts/blogs/styles/default/PostLayout.astro   (for /blog/*)
+src/layouts/blogs/default/IndexLayout.astro  (for /blog)
+src/layouts/blogs/default/PostLayout.astro   (for /blog/*)
 ```
 
 ### Custom Page Layouts
@@ -163,7 +163,7 @@ src/layouts/blogs/styles/default/PostLayout.astro   (for /blog/*)
 ```
 @custom/home
   ↓
-src/layouts/custom/styles/home/Layout.astro
+src/layouts/custom/home/Layout.astro
 ```
 
 ### Layout Validation
@@ -174,7 +174,7 @@ Missing layouts trigger build errors:
 [CONFIG ERROR] Docs layout "nonexistent" does not exist.
   Page: docs
   Config: @docs/nonexistent
-  Expected: src/layouts/docs/styles/nonexistent/Layout.astro
+  Expected: src/layouts/docs/nonexistent/Layout.astro
   Available: default, compact
 ```
 
@@ -270,9 +270,9 @@ Path aliases are resolved at build time:
 | `@data/` | `dynamic_data/data/` |
 | `@assets/` | `dynamic_data/assets/` |
 | `@config/` | `dynamic_data/config/` |
-| `@docs/` | `src/layouts/docs/styles/` |
-| `@blogs/` | `src/layouts/blogs/styles/` |
-| `@custom/` | `src/layouts/custom/styles/` |
+| `@docs/` | `src/layouts/docs/` |
+| `@blogs/` | `src/layouts/blogs/` |
+| `@custom/` | `src/layouts/custom/` |
 
 ## Props Passed to Layouts
 

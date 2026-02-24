@@ -142,18 +142,17 @@ Page structure and reusable components:
 
 | Directory | Contents |
 |-----------|----------|
-| `docs/styles/*/` | Documentation page layouts |
-| `blogs/styles/*/` | Blog index and post layouts |
-| `custom/styles/*/` | Custom page layouts |
+| `docs/*/` | Documentation page layouts (each variant owns its components) |
+| `blogs/*/` | Blog index and post layouts |
+| `custom/*/` | Custom page layouts |
 | `navbar/*/` | Navbar component variants |
 | `footer/*/` | Footer component variants |
-| `*/components/` | Shared sub-components |
 
 Layout resolution:
 ```
-@docs/default     →  src/layouts/docs/styles/default/Layout.astro
-@blog/default     →  src/layouts/blogs/styles/default/{Index,Post}Layout.astro
-@custom/home      →  src/layouts/custom/styles/home/Layout.astro
+@docs/default     →  src/layouts/docs/default/Layout.astro
+@blog/default     →  src/layouts/blogs/default/{Index,Post}Layout.astro
+@custom/home      →  src/layouts/custom/home/Layout.astro
 ```
 
 ### 5. Render Layer (`src/pages/`)
@@ -230,7 +229,7 @@ File structure determines behavior:
 [CONFIG ERROR] Docs layout "doc_style99" does not exist.
   Page: docs
   Config: @docs/doc_style99
-  Expected: src/layouts/docs/styles/doc_style99/Layout.astro
+  Expected: src/layouts/docs/doc_style99/Layout.astro
   Available: default, compact
 ```
 
