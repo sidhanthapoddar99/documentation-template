@@ -8,8 +8,11 @@ items:
   - label: "Home"
     href: "/"
 
-  - label: "Docs"
-    href: "/docs"
+  - label: "User Guide"
+    href: "/user-guide"
+
+  - label: "Dev Docs"
+    href: "/dev-docs"
 
   - label: "Components"
     href: "/components"
