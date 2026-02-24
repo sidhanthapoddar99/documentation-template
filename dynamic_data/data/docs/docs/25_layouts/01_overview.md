@@ -134,28 +134,77 @@ During development, you can switch layouts without modifying configuration files
 
 The page reloads with the new layout instantly.
 
-## Data Flow
+## Data Interface Layer
 
-All layouts receive **processed HTML content**, not raw markdown:
+The route handler (`[...slug].astro`) assembles a **different set of props** for each layout type. The pattern is:
 
+- **Content that's already known** (the current page being viewed) is passed pre-processed as props — the layout just renders it.
+- **Content that needs to be discovered** (sidebar tree, post grid, YAML data) is passed as a path — the layout loads it itself.
+
+### Docs layout props
+
+```typescript
+// Route handler passes current page pre-rendered + path for sidebar
+{
+  title: string;          // from frontmatter
+  description?: string;
+  content: string;        // rendered HTML — layout uses set:html
+  headings: Heading[];    // extracted during parsing — layout builds outline
+  dataPath: string;       // folder path — layout calls loadContentWithSettings()
+  baseUrl: string;        // "/docs"
+  currentSlug: string;    // "getting-started/overview"
+}
 ```
-1. User requests /docs/overview
-           │
-2. Route handler loads markdown file
-           │
-3. Parser pipeline processes content:
-   • Preprocessors (asset embedding)
-   • Renderer (markdown → HTML)
-   • Postprocessors (heading IDs, links)
-           │
-4. Layout receives:
-   • title, description (from frontmatter)
-   • content (rendered HTML string)
-   • headings (extracted for TOC)
-   • dataPath, baseUrl, currentSlug
-           │
-5. Layout renders structure around content
+
+The layout receives the current page fully rendered but must load the entire docs folder itself to build the sidebar and pagination.
+
+### Blog index layout props
+
+```typescript
+// Route handler passes only the path — IndexLayout fetches all posts itself
+{
+  dataPath: string;       // folder path — layout calls loadContent() for post cards
+  baseUrl: string;        // "/blog"
+}
 ```
+
+### Blog post layout props
+
+```typescript
+// Route handler passes all post data directly — no path needed
+{
+  title: string;
+  description?: string;
+  content: string;        // rendered HTML
+  date: string;
+  author?: string;
+  tags?: string[];
+  // no dataPath — blog posts have no sidebar
+}
+```
+
+### Custom layout props
+
+```typescript
+// Route handler passes only the file path — layout calls loadFile() itself
+{
+  dataPath: string;       // file path e.g. "/abs/path/pages/home.yaml"
+  baseUrl: string;        // "/"
+}
+```
+
+The layout calls `loadFile(dataPath)` and reads whatever keys are in the YAML. No fixed schema.
+
+### Comparison
+
+| | Docs | Blog index | Blog post | Custom |
+|--|------|------------|-----------|--------|
+| Pre-rendered content | Yes | No | Yes | No |
+| Path passed | Folder | Folder | — | File |
+| Layout loads sidebar | Yes (from path) | — | — | — |
+| Layout loads posts | — | Yes (from path) | — | — |
+| Layout loads YAML | — | — | — | Yes (from path) |
+| `settings.json` used | Yes | No | No | No |
 
 ## Available Layouts
 

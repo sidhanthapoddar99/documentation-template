@@ -189,9 +189,96 @@ Used to:
 - Highlight current page in sidebar
 - Build current URL: `${baseUrl}/${currentSlug}`
 
+## Folder Structure → Sidebar Mapping
+
+The sidebar tree is built from the docs folder structure. The `XX_` position prefix controls ordering; it is stripped from URLs and sidebar labels.
+
+```
+data/docs/
+├── 01_getting-started/        → section "Getting Started"  (position 1)
+│   ├── settings.json          → section settings (label, collapse)
+│   ├── 01_overview.md         →   • Overview      (position 1)
+│   └── 02_installation.md     →   • Installation  (position 2)
+└── 02_guides/                 → section "Guides"           (position 2)
+    ├── settings.json
+    └── 01_basics.md           →   • Basics        (position 1)
+```
+
+**Slug generation (XX_ prefix stripped):**
+
+```
+01_getting-started/01_overview.md  →  getting-started/overview
+01_getting-started/02_install.md   →  getting-started/install
+02_guides/01_basics.md             →  guides/basics
+```
+
+**Section label** resolves in this order:
+1. `"label"` field in the folder's `settings.json`
+2. Folder name with `XX_` stripped and kebab-case converted to title case
+
+## Folder settings.json
+
+Each docs folder can have a `settings.json` to control sidebar and outline behaviour:
+
+```json
+{
+  "sidebar": {
+    "collapsed": false,
+    "collapsible": true,
+    "sort": "position",
+    "depth": 3
+  },
+  "outline": {
+    "enabled": true,
+    "levels": [2, 3],
+    "title": "On this page"
+  },
+  "pagination": {
+    "enabled": true,
+    "showPrevNext": true
+  }
+}
+```
+
+All fields are optional. Missing fields fall back to these defaults:
+
+| Field | Default | Effect |
+|-------|---------|--------|
+| `sidebar.collapsed` | `false` | Sections start open |
+| `sidebar.collapsible` | `true` | Users can toggle sections |
+| `sidebar.sort` | `'position'` | Order by `XX_` prefix number |
+| `sidebar.depth` | `3` | Show up to 3 nesting levels |
+| `outline.enabled` | `true` | Show outline panel |
+| `outline.levels` | `[2, 3]` | Include h2 and h3 headings |
+| `outline.title` | `'On this page'` | Outline panel header |
+| `pagination.enabled` | `true` | Show prev/next links |
+| `pagination.showPrevNext` | `true` | Display navigation buttons |
+
+`settings.json` resolves to a `ContentSettings` object:
+
+```typescript
+interface ContentSettings {
+  sidebar?: {
+    collapsed?: boolean;
+    collapsible?: boolean;
+    sort?: 'position' | 'alphabetical';
+    depth?: number;
+  };
+  outline?: {
+    enabled?: boolean;
+    levels?: number[];
+    title?: string;
+  };
+  pagination?: {
+    enabled?: boolean;
+    showPrevNext?: boolean;
+  };
+}
+```
+
 ## Loading Additional Data
 
-Layouts can load additional data using loaders:
+Layouts call `loadContentWithSettings` to get both the full content array and the settings in a single call:
 
 ### Loading Sidebar Content
 
@@ -201,8 +288,8 @@ import { loadContentWithSettings } from '@loaders/data';
 const { dataPath } = Astro.props;
 const { content, settings } = await loadContentWithSettings(dataPath);
 
-// content: Array of all docs in the folder
-// settings: Object from settings.json
+// content: LoadedContent[] — all docs in the folder, sorted by position
+// settings: ContentSettings — merged from settings.json + defaults
 ```
 
 ### Building Sidebar Tree
