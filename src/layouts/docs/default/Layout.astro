@@ -3,10 +3,10 @@
  * Doc Style 1 - Complete docs layout
  * Imports sidebar, body, outline with default styles
  */
-import Sidebar from '../../components/sidebar/default/Sidebar.astro';
-import Body from '../../components/body/default/Body.astro';
-import Outline from '../../components/outline/default/Outline.astro';
-import Pagination from '../../components/common/Pagination.astro';
+import Sidebar from './Sidebar.astro';
+import Body from './Body.astro';
+import Outline from './Outline.astro';
+import Pagination from './Pagination.astro';
 
 import { loadContentWithSettings, type LoadedContent, type ContentSettings } from '@loaders/data';
 import { buildSidebarTree, getPrevNext } from '@/hooks/useSidebar';
