@@ -4,7 +4,7 @@
  *
  * Layout Resolution:
  * - Config specifies: @docs/default, @blog/default, @custom/home
- * - Resolves to: layouts/{type}/styles/{style}/Layout.astro
+ * - Resolves to: layouts/{type}/{style}/Layout.astro
  *
  * Standardized structure - no manual registry needed
  * Errors thrown if layout doesn't exist (no silent fallbacks)
@@ -15,17 +15,17 @@ import { loadSiteConfig, loadContent } from '@loaders/index';
 import { getNavbarLayout, getFooterLayout } from '@loaders/config';
 
 // Auto-discover all layouts using glob patterns (built-in + external)
-const builtinDocsLayouts = import.meta.glob('/src/layouts/docs/styles/*/Layout.astro');
-const extDocsLayouts = import.meta.glob('@ext-layouts/docs/styles/*/Layout.astro');
+const builtinDocsLayouts = import.meta.glob('/src/layouts/docs/*/Layout.astro');
+const extDocsLayouts = import.meta.glob('@ext-layouts/docs/*/Layout.astro');
 
-const builtinBlogIndexLayouts = import.meta.glob('/src/layouts/blogs/styles/*/IndexLayout.astro');
-const extBlogIndexLayouts = import.meta.glob('@ext-layouts/blogs/styles/*/IndexLayout.astro');
+const builtinBlogIndexLayouts = import.meta.glob('/src/layouts/blogs/*/IndexLayout.astro');
+const extBlogIndexLayouts = import.meta.glob('@ext-layouts/blogs/*/IndexLayout.astro');
 
-const builtinBlogPostLayouts = import.meta.glob('/src/layouts/blogs/styles/*/PostLayout.astro');
-const extBlogPostLayouts = import.meta.glob('@ext-layouts/blogs/styles/*/PostLayout.astro');
+const builtinBlogPostLayouts = import.meta.glob('/src/layouts/blogs/*/PostLayout.astro');
+const extBlogPostLayouts = import.meta.glob('@ext-layouts/blogs/*/PostLayout.astro');
 
-const builtinCustomLayouts = import.meta.glob('/src/layouts/custom/styles/*/Layout.astro');
-const extCustomLayouts = import.meta.glob('@ext-layouts/custom/styles/*/Layout.astro');
+const builtinCustomLayouts = import.meta.glob('/src/layouts/custom/*/Layout.astro');
+const extCustomLayouts = import.meta.glob('@ext-layouts/custom/*/Layout.astro');
 
 const builtinNavbarLayouts = import.meta.glob('/src/layouts/navbar/*/index.astro');
 const extNavbarLayouts = import.meta.glob('@ext-layouts/navbar/*/index.astro');
@@ -54,13 +54,14 @@ function mergeLayouts(
   return { byStyle, styles: [...byStyle.keys()] };
 }
 
-// Merged layout maps
-const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, /\/styles\/([^/]+)\//);
-const blogIndexLayouts = mergeLayouts(builtinBlogIndexLayouts, extBlogIndexLayouts, /\/styles\/([^/]+)\//);
-const blogPostLayouts = mergeLayouts(builtinBlogPostLayouts, extBlogPostLayouts, /\/styles\/([^/]+)\//);
-const customLayouts = mergeLayouts(builtinCustomLayouts, extCustomLayouts, /\/styles\/([^/]+)\//);
-const navbarLayouts = mergeLayouts(builtinNavbarLayouts, extNavbarLayouts, /\/navbar\/([^/]+)\//);
-const footerLayouts = mergeLayouts(builtinFooterLayouts, extFooterLayouts, /\/footer\/([^/]+)\//);
+// Merged layout maps — regex captures the variant folder (last dir before filename)
+const layoutNamePattern = /\/([^/]+)\/[^/]+\.astro$/;
+const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, layoutNamePattern);
+const blogIndexLayouts = mergeLayouts(builtinBlogIndexLayouts, extBlogIndexLayouts, layoutNamePattern);
+const blogPostLayouts = mergeLayouts(builtinBlogPostLayouts, extBlogPostLayouts, layoutNamePattern);
+const customLayouts = mergeLayouts(builtinCustomLayouts, extCustomLayouts, layoutNamePattern);
+const navbarLayouts = mergeLayouts(builtinNavbarLayouts, extNavbarLayouts, layoutNamePattern);
+const footerLayouts = mergeLayouts(builtinFooterLayouts, extFooterLayouts, layoutNamePattern);
 
 // Available styles for error messages and dev toolbar validation
 const availableDocsStyles = docsLayouts.styles;
@@ -194,7 +195,7 @@ if (!pageType) {
 }
 
 // Dev mode: Allow layout override via cookie (set by dev toolbar)
-// Any style in the respective styles/ folder is valid for that page type
+// Any variant folder under the layout type directory is valid for that page type
 const isDev = import.meta.env.DEV;
 let layoutOverride: string | null = null;
 
@@ -271,7 +272,7 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
         `\n[CONFIG ERROR] Docs layout "${style}" does not exist.\n` +
         `  Page: ${pageName}\n` +
         `  Config: ${layoutAlias}\n` +
-        `  Expected: src/layouts/docs/styles/${style}/Layout.astro\n` +
+        `  Expected: src/layouts/docs/${style}/Layout.astro\n` +
         `  Available: ${available.join(', ') || '(none)'}\n`
       );
     }
@@ -289,7 +290,7 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
         `\n[CONFIG ERROR] Blog layout "${style}" does not exist.\n` +
         `  Page: ${pageName}\n` +
         `  Config: ${layoutAlias}\n` +
-        `  Expected: src/layouts/blogs/styles/${style}/${variant === 'index' ? 'Index' : 'Post'}Layout.astro\n` +
+        `  Expected: src/layouts/blogs/${style}/${variant === 'index' ? 'Index' : 'Post'}Layout.astro\n` +
         `  Available: ${available.join(', ') || '(none)'}\n`
       );
     }
@@ -302,7 +303,7 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
         `\n[CONFIG ERROR] Custom layout "${style}" does not exist.\n` +
         `  Page: ${pageName}\n` +
         `  Config: ${layoutAlias}\n` +
-        `  Expected: src/layouts/custom/styles/${style}/Layout.astro\n` +
+        `  Expected: src/layouts/custom/${style}/Layout.astro\n` +
         `  Available: ${available.join(', ') || '(none)'}\n`
       );
     }

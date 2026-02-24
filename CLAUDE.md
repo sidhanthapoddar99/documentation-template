@@ -31,9 +31,9 @@ src/
 │
 ├── layouts/              # Astro layout components
 │   ├── BaseLayout.astro  # Root layout: theme CSS injection, dark mode, head meta
-│   ├── docs/styles/      # default, compact
-│   ├── blogs/styles/     # default
-│   ├── custom/styles/    # home, info, countdown
+│   ├── docs/             # default, compact
+│   ├── blogs/            # default
+│   ├── custom/           # home, info, countdown
 │   ├── navbar/           # Navbar layout variants
 │   └── footer/           # Footer layout variants
 │
@@ -70,7 +70,7 @@ dynamic_data/
 
 **Theme resolution**: `site.yaml` `theme: "name"` specifies the active theme by name. `theme_paths: ["@themes"]` lists directories to scan for user themes. `resolveThemeName()` scans those directories during `loadSiteConfig()` and resolves to an absolute path. Theme inheritance (`extends` in `theme.yaml`) uses `@theme/` aliases resolved at theme load time.
 
-**Layout resolution**: `[...slug].astro` matches page type to layout via `import.meta.glob()`. Layout aliases like `@docs/default` map to `src/layouts/docs/styles/default/Layout.astro`.
+**Layout resolution**: `[...slug].astro` matches page type to layout via `import.meta.glob()`. Layout aliases like `@docs/default` map to `src/layouts/docs/default/Layout.astro`.
 
 **Content loading**: `data.ts` requires absolute paths (resolved at config load time). Uses mtime-based caching with dependency tracking.
 
