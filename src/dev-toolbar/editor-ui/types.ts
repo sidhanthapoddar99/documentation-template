@@ -62,7 +62,7 @@ export function getOrCreateIdentity(): Identity {
     try { return JSON.parse(stored); } catch { /* regenerate */ }
   }
 
-  const userId = crypto.randomUUID();
+  const userId = crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
   const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
   const animal = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
   const name = `${adj} ${animal}`;
