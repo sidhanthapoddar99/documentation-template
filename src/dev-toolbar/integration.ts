@@ -154,10 +154,12 @@ export function devToolbarIntegration(): AstroIntegration {
                   );
                   editorStore.startBackgroundSave();
                   presenceManager.startCleanup();
+                  yjsSync.startEviction();
 
-                  // Stop presence cleanup when server closes
+                  // Stop presence cleanup and room eviction when server closes
                   server.httpServer?.on('close', () => {
                     presenceManager.stopCleanup();
+                    yjsSync.stopEviction();
                   });
 
                   // Explicitly add watch paths to Vite's watcher
@@ -177,7 +179,7 @@ export function devToolbarIntegration(): AstroIntegration {
 
                       // Suppress reload if file is being edited
                       if (editorStore.isEditing(file)) {
-                        if (!editorStore.isEditorSave(file)) {
+                        if (!editorStore.consumeEditorSave(file)) {
                           console.log(`[editor] External file add detected: ${shortPath}`);
                           editorStore.reloadFromDisk(file).then(doc => {
                             yjsSync.resetContent(file, doc.raw);
@@ -217,7 +219,7 @@ export function devToolbarIntegration(): AstroIntegration {
                   // Suppress full-reload if file is being edited
                   // Caches are still cleared above, but we don't reload the page
                   if (editorStore.isEditing(file)) {
-                    if (editorStore.isEditorSave(file)) {
+                    if (editorStore.consumeEditorSave(file)) {
                       // Our own save — just suppress HMR, no need to notify
                       console.log(`[editor] HMR suppressed (editor save): ${shortPath}`);
                     } else {

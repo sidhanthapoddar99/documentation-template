@@ -53,8 +53,8 @@ export class EditorStore {
   private renderReady: Promise<void>;
   private autosaveTimer: ReturnType<typeof setInterval> | null = null;
   private config: EditorConfig;
-  /** Paths currently being saved by the editor — used to distinguish editor saves from external edits */
-  private ignoreSaveSet = new Set<string>();
+  /** Counter-based save tracking — each writeFileSync increments, each watcher consume decrements */
+  private ignoreSaveMap = new Map<string, number>();
 
   constructor(config: EditorConfig) {
     this.config = config;
@@ -258,10 +258,17 @@ export class EditorStore {
   }
 
   /**
-   * Check if a file write was initiated by the editor (not an external edit).
+   * Consume one editor-save counter for a file. Returns true if this watcher
+   * event was caused by the editor's own write. Each writeFileSync increments
+   * the counter; each watcher event decrements it. No timing assumptions.
    */
-  isEditorSave(filePath: string): boolean {
-    return this.ignoreSaveSet.has(filePath);
+  consumeEditorSave(filePath: string): boolean {
+    const count = this.ignoreSaveMap.get(filePath) ?? 0;
+    if (count > 0) {
+      this.ignoreSaveMap.set(filePath, count - 1);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -274,11 +281,10 @@ export class EditorStore {
     }
 
     if (doc.dirty) {
-      this.ignoreSaveSet.add(filePath);
+      this.ignoreSaveMap.set(filePath, (this.ignoreSaveMap.get(filePath) ?? 0) + 1);
       fs.writeFileSync(filePath, doc.raw, 'utf-8');
       doc.dirty = false;
       console.log(`[editor] Saved: ${path.basename(filePath)}`);
-      setTimeout(() => this.ignoreSaveSet.delete(filePath), 1000);
     }
 
     return { success: true, savedAt: new Date().toISOString() };
@@ -292,10 +298,9 @@ export class EditorStore {
     if (!doc) return;
 
     if (doc.dirty) {
-      this.ignoreSaveSet.add(filePath);
+      this.ignoreSaveMap.set(filePath, (this.ignoreSaveMap.get(filePath) ?? 0) + 1);
       fs.writeFileSync(filePath, doc.raw, 'utf-8');
       console.log(`[editor] Auto-saved on close: ${path.basename(filePath)}`);
-      setTimeout(() => this.ignoreSaveSet.delete(filePath), 1000);
     }
 
     this.documents.delete(filePath);
@@ -310,6 +315,16 @@ export class EditorStore {
   }
 
   /**
+   * Return stats for all open documents (for /__editor/stats endpoint).
+   */
+  getDocumentStats(): { filePath: string; dirty: boolean }[] {
+    return [...this.documents.entries()].map(([filePath, doc]) => ({
+      filePath,
+      dirty: doc.dirty,
+    }));
+  }
+
+  /**
    * Start periodic background save for all dirty documents
    */
   startBackgroundSave(): void {
@@ -319,11 +334,10 @@ export class EditorStore {
       for (const [filePath, doc] of this.documents) {
         if (doc.dirty) {
           try {
-            this.ignoreSaveSet.add(filePath);
+            this.ignoreSaveMap.set(filePath, (this.ignoreSaveMap.get(filePath) ?? 0) + 1);
             fs.writeFileSync(filePath, doc.raw, 'utf-8');
             doc.dirty = false;
             console.log(`[editor] Auto-saved: ${path.basename(filePath)}`);
-            setTimeout(() => this.ignoreSaveSet.delete(filePath), 1000);
           } catch (err) {
             console.error(`[editor] Auto-save failed for ${path.basename(filePath)}:`, err);
           }

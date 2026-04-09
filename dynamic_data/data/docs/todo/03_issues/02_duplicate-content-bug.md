@@ -9,51 +9,63 @@ sidebar_label: Duplicate Content Bug
 **Type:** Bug  
 **Priority:** Critical  
 **Component:** `src/dev-toolbar/editor-ui/yjs-client.ts`  
-**Status:** Open
+**Status:** Fixed
 
 ---
 
 ## Description
 
-When editing a long document in the dev toolbar editor, content sometimes gets duplicated. The entire document appears twice in the editor textarea.
+When editing a long document in the dev toolbar editor, content sometimes gets duplicated. The entire document appears twice in the editor textarea. Particularly reproducible when quickly closing and reopening the editor.
 
-## Steps to Reproduce
+## Root Cause
 
-1. Open a long document (100+ lines) in the dev toolbar editor
-2. Start editing immediately without scrolling to the bottom
-3. Content gets duplicated in the textarea
+**Zombie WebSocket reconnection after editor close.**
 
-## Workaround
+When the user closes the editor, `masterCleanup()` calls `yjsWs.close()`. But the WebSocket `close` event fires **asynchronously** — after `masterCleanup` has already returned. The `close` event handler schedules a reconnect timer (`setTimeout(connectYjsWs, 2000)`), which was never cleared because `masterCleanup` had already cleared the *previous* timer before the new one was scheduled.
 
-Scroll to the bottom of the textarea first, then scroll back up and begin editing. This prevents the duplication.
+2 seconds later, `connectYjsWs()` runs on a **destroyed Y.Doc**, connecting to whatever room exists for that file. If the user has reopened the editor, a new room exists and the zombie connection joins it as a second client, sending stale/empty sync state that corrupts the room content — causing duplication.
 
-## Root Cause Analysis
+**Evidence from server logs:**
+```
+[yjs] Client connected: e27f5597... (1 total)   ← new editor session
+[yjs] Client connected: e27f5597... (2 total)   ← zombie reconnect from old session
+[yjs] Client disconnected (1 remaining)
+```
 
-The bug is a race condition between two content sources for the textarea:
+## Fix Applied
 
-### Race Window (`yjs-client.ts:287-303`)
+### Primary fix: `disposed` flag in `yjs-client.ts`
 
-1. HTTP `POST /open` response populates `textarea.value = data.raw` (line 289)
-2. `connectYjsWs()` starts the WebSocket + Yjs sync (line 295)
-3. Yjs sync completes, observe fires, sets `textarea.value = ytext.toString()`, marks `yjsSynced = true` (lines 245-247)
-4. User types, `onInput` runs (line 302)
+Added a `disposed` boolean that is set to `true` at the top of `masterCleanup()`. The `connectYjsWs()` function checks this flag and returns immediately if disposed. This prevents the zombie reconnect regardless of when the async `close` event fires.
 
-### Auto-save Timing Race
+```typescript
+let disposed = false;
 
-The `ignoreSaveSet` in `server.ts:281` has a 1-second timeout. If the file watcher fires after that window expires, it treats the editor's own save as an external edit, triggering `resetContent()`. This can corrupt the CRDT merge during active editing.
+function connectYjsWs(): void {
+    if (disposed) return;  // Kill zombie reconnects
+    // ...
+}
 
-### Diff Algorithm Vulnerability
+function masterCleanup() {
+    disposed = true;  // Set FIRST, before any async close events
+    // ...
+}
+```
 
-The prefix/suffix diff algorithm (`yjs-client.ts:312-330`) computes `insertStr = entire content` when `ytext.toString()` returns empty. This inserts the full document on top of existing content, causing duplication.
+### Secondary hardening (also applied)
 
-## Proposed Fix
-
-1. **Make textarea readonly until Yjs sync completes** - prevents user input during the race window
-2. **Add sanity check in `onInput`** - reject diffs where `insertStr` length approaches full document length with zero `deleteCount`
-3. **Increase `ignoreSaveSet` timeout** or use a flag-based approach instead of timing-based
+| Fix | File | Purpose |
+|-----|------|---------|
+| `textarea.readOnly = true` until Yjs sync | `yjs-client.ts` | Prevents user input during initial sync race window |
+| `ignoreSaveSet` → counter-based `ignoreSaveMap` | `server.ts` | Eliminates 1-second timeout race between editor saves and file watcher |
+| onInput sanity guard | `yjs-client.ts` | Rejects pathological full-content inserts (deleteCount=0, insertLen > 80% of doc) |
+| Room idle eviction | `yjs-sync.ts` | Cleans up abandoned rooms (0 connections, idle > 30min) |
+| `GET /__editor/stats` | `middleware.ts` | Observability endpoint for debugging room/document state |
 
 ## Affected Files
 
-- `src/dev-toolbar/editor-ui/yjs-client.ts` (lines 287-333)
-- `src/dev-toolbar/editor/server.ts` (line 281, `ignoreSaveSet` timeout)
-- `src/dev-toolbar/integration.ts` (lines 220-232, file watcher handler)
+- `src/dev-toolbar/editor-ui/yjs-client.ts` — disposed flag, readOnly guard, onInput sanity check
+- `src/dev-toolbar/editor/server.ts` — ignoreSaveMap counter, getDocumentStats()
+- `src/dev-toolbar/editor/yjs-sync.ts` — room eviction, lastActivity tracking, getRoomStats()
+- `src/dev-toolbar/editor/middleware.ts` — stats endpoint
+- `src/dev-toolbar/integration.ts` — consumeEditorSave() call sites, eviction wiring

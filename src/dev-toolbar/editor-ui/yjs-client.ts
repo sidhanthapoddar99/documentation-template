@@ -34,6 +34,7 @@ export function initYjsClient(ctx: EditorContext, deps: {
   let renderTimer: ReturnType<typeof setInterval> | null = null;
   let yjsWs: WebSocket | null = null;
   let yjsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  let disposed = false;
 
   // Config state — updated by MSG_CONFIG from server, defaults until then
   let configPingInterval = 5000;
@@ -140,6 +141,7 @@ export function initYjsClient(ctx: EditorContext, deps: {
 
   // -- Yjs WebSocket connection --
   function connectYjsWs(): void {
+    if (disposed) return;
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${wsProtocol}//${window.location.host}/__editor/yjs?file=${encodeURIComponent(ctx.filePath)}&userId=${encodeURIComponent(ctx.identity.userId)}`;
     yjsWs = new WebSocket(wsUrl);
@@ -240,11 +242,33 @@ export function initYjsClient(ctx: EditorContext, deps: {
 
     ctx.setIsApplyingRemote(true);
 
+    // Debug: uncomment to trace remote Yjs observe events.
+    // Root cause of the content duplication bug was a zombie WebSocket reconnect
+    // after editor close — the async WS 'close' event scheduled a reconnect timer
+    // that fired on a destroyed Y.Doc, sending stale state to a new room.
+    // Fixed by adding a `disposed` flag checked in connectYjsWs().
+    // See: issue #02 (duplicate-content-bug.md)
+    //
+    // console.log('[editor:observe]', {
+    //   origin: transaction.origin,
+    //   yjsSynced: ctx.getYjsSynced(),
+    //   ytextLen: ytext.toString().length,
+    //   textareaLen: textarea.value.length,
+    //   delta: event.delta.map(op => {
+    //     if (op.retain != null) return { retain: op.retain };
+    //     if (op.delete != null) return { delete: op.delete };
+    //     if (op.insert != null) return { insert: typeof op.insert === 'string' ? op.insert.length : '?' };
+    //     return op;
+    //   }),
+    // });
+
     if (!ctx.getYjsSynced()) {
       // First sync from server — populate textarea from Yjs (authoritative)
       textarea.value = ytext.toString();
       deps.updateHighlight();
       ctx.setYjsSynced(true);
+      textarea.readOnly = false;
+      textarea.focus();
       ctx.setIsApplyingRemote(false);
       deps.remeasureAllCursors();
       return;
@@ -285,12 +309,12 @@ export function initYjsClient(ctx: EditorContext, deps: {
 
   // Open document on server (creates Yjs room), then connect Yjs WebSocket
   editorFetch('open', { filePath: ctx.filePath }).then((data) => {
-    // Show initial content from HTTP while Yjs syncs
+    // Show initial content from HTTP while Yjs syncs (readonly until sync completes)
     textarea.value = data.raw;
+    textarea.readOnly = true;
     deps.updateHighlight();
     setPreviewContent(data.rendered);
     updateStatus('saved');
-    textarea.focus();
 
     connectYjsWs();
     renderTimer = setInterval(requestRender, configRenderInterval);
@@ -323,6 +347,26 @@ export function initYjsClient(ctx: EditorContext, deps: {
 
     const deleteCount = oldSuffix - prefixLen;
     const insertStr = newContent.slice(prefixLen, newSuffix);
+
+    // Debug: uncomment to trace large diffs (insert/delete > 50 chars).
+    // Useful for diagnosing content duplication — a full-content insert with
+    // zero deletes indicates stale ytext (empty Y.Doc syncing against populated textarea).
+    //
+    // if (insertStr.length > 50 || deleteCount > 50) {
+    //   console.warn('[editor:diff]', {
+    //     ytextLen: ytextContent.length, newContentLen: newContent.length,
+    //     prefixLen, oldSuffix, newSuffix, deleteCount,
+    //     insertLen: insertStr.length,
+    //     insertPreview: insertStr.slice(0, 80) + (insertStr.length > 80 ? '...' : ''),
+    //   });
+    // }
+
+    // Guard: reject pathological insert-only diff that would duplicate content
+    // (happens if ytext is empty/stale but textarea has full content)
+    if (deleteCount === 0 && insertStr.length > 0.8 * newContent.length && newContent.length > 100) {
+      console.warn('[editor] Blocked suspicious full-content insert (deleteCount=0, insertLen=' + insertStr.length + ')');
+      return;
+    }
 
     ydoc.transact(() => {
       if (deleteCount > 0) ytext.delete(prefixLen, deleteCount);
@@ -396,6 +440,7 @@ export function initYjsClient(ctx: EditorContext, deps: {
 
   // Master cleanup tears down everything owned by this module
   function masterCleanup() {
+    disposed = true;
     textarea.removeEventListener('input', onInput);
     textarea.removeEventListener('keydown', onKeydown);
 

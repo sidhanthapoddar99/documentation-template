@@ -41,12 +41,14 @@ interface YjsRoom {
   doc: Y.Doc;
   text: Y.Text;
   conns: Map<WebSocket, string>; // ws → userId
+  lastActivity: number;
 }
 
 export class YjsSync {
   private rooms = new Map<string, YjsRoom>();
   private wss: WebSocketServer;
   private onContentChange: ((filePath: string, raw: string) => void) | null = null;
+  private evictionTimer: ReturnType<typeof setInterval> | null = null;
 
   // Late-bound dependencies (set via setDependencies after construction)
   private presence: PresenceManager | null = null;
@@ -140,7 +142,7 @@ export class YjsSync {
       }
     });
 
-    const room: YjsRoom = { doc, text, conns: new Map() };
+    const room: YjsRoom = { doc, text, conns: new Map(), lastActivity: Date.now() };
     this.rooms.set(filePath, room);
 
     console.log(`[yjs] Room created: ${filePath.split('/').slice(-3).join('/')}`);
@@ -188,12 +190,49 @@ export class YjsSync {
   }
 
   /**
+   * Start periodic eviction of idle rooms (no connections for maxIdleMs).
+   */
+  startEviction(intervalMs = 60_000, maxIdleMs = 30 * 60_000): void {
+    if (this.evictionTimer) return;
+    this.evictionTimer = setInterval(() => {
+      const now = Date.now();
+      for (const [filePath, room] of this.rooms) {
+        if (room.conns.size === 0 && now - room.lastActivity > maxIdleMs) {
+          console.log(`[yjs] Evicting idle room: ${filePath.split('/').slice(-3).join('/')}`);
+          this.destroyRoom(filePath);
+        }
+      }
+    }, intervalMs);
+  }
+
+  /**
+   * Stop the eviction timer.
+   */
+  stopEviction(): void {
+    if (this.evictionTimer) {
+      clearInterval(this.evictionTimer);
+      this.evictionTimer = null;
+    }
+  }
+
+  /**
    * Broadcast a rendered HTML update to all WS clients in a room.
    */
   broadcastRenderUpdate(filePath: string, rendered: string): void {
     const room = this.rooms.get(filePath);
     if (!room) return;
     this.broadcastToRoom(room, MSG_RENDER, { file: filePath, rendered });
+  }
+
+  /**
+   * Return stats for all active rooms (for /__editor/stats endpoint).
+   */
+  getRoomStats(): { filePath: string; connections: number; lastActivity: number }[] {
+    return [...this.rooms.entries()].map(([filePath, room]) => ({
+      filePath,
+      connections: room.conns.size,
+      lastActivity: room.lastActivity,
+    }));
   }
 
   // ---- Private helpers ----
@@ -237,6 +276,7 @@ export class YjsSync {
     }
 
     room.conns.set(ws, userId);
+    room.lastActivity = Date.now();
 
     // Send config on connect
     if (this.config) {
@@ -255,6 +295,7 @@ export class YjsSync {
 
     // Handle incoming messages from client
     ws.on('message', (data: ArrayBuffer | Buffer) => {
+      room.lastActivity = Date.now();
       try {
         const message = new Uint8Array(
           data instanceof ArrayBuffer

@@ -141,6 +141,14 @@ export function setupEditorMiddleware(
       return;
     }
 
+    // GET /__editor/stats — room and document stats for debugging
+    if (url === '/__editor/stats' && req.method === 'GET') {
+      return sendJson(res, 200, {
+        rooms: yjsSync.getRoomStats(),
+        documents: store.getDocumentStats(),
+      });
+    }
+
     // Only accept POST for remaining endpoints
     if (req.method !== 'POST') {
       return sendJson(res, 405, { error: 'Method not allowed' });
