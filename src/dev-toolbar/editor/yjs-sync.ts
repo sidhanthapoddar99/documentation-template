@@ -36,6 +36,7 @@ const MSG_PING       = 2; // C→S: {clientTime, latencyMs}, S→C: {clientTime}
 const MSG_CONFIG     = 3; // S→C: timing config on connect
 const MSG_RENDER     = 4; // S→C: rendered HTML update
 const MSG_RENDER_REQ = 5; // C→S: request server render
+const MSG_AWARENESS  = 6; // Bidirectional: awareness protocol (v2 remote cursors)
 
 interface YjsRoom {
   doc: Y.Doc;
@@ -340,6 +341,19 @@ export class YjsSync {
             }
             // Echo clientTime for round-trip measurement
             this.sendWsJson(ws, MSG_PING, { clientTime: payload.clientTime });
+            break;
+          }
+
+          case MSG_AWARENESS: {
+            // v2: Forward awareness messages to all peers (cursor sharing)
+            // Raw binary — no parsing, just rebroadcast to room peers
+            const awarenessData = message; // Forward the entire raw message
+            for (const [conn] of room.conns) {
+              if (conn === ws) continue;
+              if (conn.readyState === WebSocket.OPEN) {
+                try { conn.send(awarenessData); } catch { /* broken */ }
+              }
+            }
             break;
           }
 

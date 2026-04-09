@@ -28,7 +28,7 @@ import { YjsSync } from './editor/yjs-sync';
  * Throws a clear error if editor.autosave_interval is missing.
  * Presence settings are optional with sensible defaults.
  */
-function getEditorConfig(): { autosaveInterval: number; presence: PresenceConfig } {
+function getEditorConfig(): { autosaveInterval: number; presence: PresenceConfig; editorVersion: number } {
   const siteYamlPath = path.join(paths.config, 'site.yaml');
 
   if (!fs.existsSync(siteYamlPath)) {
@@ -69,7 +69,9 @@ function getEditorConfig(): { autosaveInterval: number; presence: PresenceConfig
     sseReconnect: Math.max(Number(p.sse_reconnect) || 2000, 500),
   };
 
-  return { autosaveInterval, presence };
+  const editorVersion = Number(config.editor?.version) || 1;
+
+  return { autosaveInterval, presence, editorVersion };
 }
 
 export function devToolbarIntegration(): AstroIntegration {
@@ -264,12 +266,16 @@ export function devToolbarIntegration(): AstroIntegration {
           entrypoint: './src/dev-toolbar/error-logger.ts',
         });
 
-        // Live Documentation Editor
+        // Live Documentation Editor (v1 = textarea, v2 = CodeMirror 6)
+        const editorEntrypoint = editorConfig.editorVersion >= 2
+          ? './src/dev-toolbar/editor-v2/index.ts'
+          : './src/dev-toolbar/editor-app.ts';
+        const editorId = editorConfig.editorVersion >= 2 ? 'doc-editor-v2' : 'doc-editor';
         addDevToolbarApp({
-          id: 'doc-editor',
+          id: editorId,
           name: 'Edit Page',
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
-          entrypoint: './src/dev-toolbar/editor-app.ts',
+          entrypoint: editorEntrypoint,
         });
       },
     },

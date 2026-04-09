@@ -43,6 +43,7 @@ logo:
 
 # Editor Configuration (required for dev toolbar live editor)
 editor:
+  version: 2                # 1 = textarea (v1), 2 = CodeMirror 6 (v2)
   autosave_interval: 10000  # Auto-save interval in milliseconds
   presence:
     ping_interval: 5000       # How often clients ping the server (ms)
