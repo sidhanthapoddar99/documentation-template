@@ -69,6 +69,25 @@ export function highlightTreeItem(container: HTMLElement, filePath: string): voi
   }
 }
 
+/**
+ * Convert a file path to its URL slug.
+ * e.g. "/data/dev-docs/05_architecture/01_overview.md" → "/dev-docs/architecture/overview"
+ */
+export function filePathToUrl(filePath: string, contentRoot: string, baseUrl: string): string {
+  // Extract the portion after the content root directory
+  const rootIdx = filePath.indexOf(contentRoot);
+  if (rootIdx === -1) return baseUrl;
+  const relative = filePath.slice(rootIdx + contentRoot.length).replace(/^\//, '');
+  // Strip XX_ prefixes and extension from each segment
+  const segments = relative.split('/').filter(Boolean).map(seg => {
+    return seg
+      .replace(/^\d+_/, '')        // remove XX_ prefix
+      .replace(/\.(md|mdx)$/, ''); // remove extension
+  });
+  if (!segments.length) return baseUrl;
+  return `${baseUrl}/${segments.join('/')}`;
+}
+
 export function findFileByUrlPath(tree: any, urlPath: string, baseUrl: string): any | null {
   const urlSlug = urlPath.replace(baseUrl + '/', '').replace(baseUrl, '');
   if (!urlSlug) return null;

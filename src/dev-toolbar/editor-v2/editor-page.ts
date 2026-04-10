@@ -10,7 +10,7 @@ import type { SaveStatus, Identity } from './types.js';
 import { initResizeHandle } from './layout/resize-handles.js';
 import { initMenuBar, type ViewMode, type SplitDirection } from './layout/menubar.js';
 import { initYjsClientV2, type YjsV2Handle } from './sync/yjs-client-v2.js';
-import { renderFileTree, highlightTreeItem, findFileByUrlPath } from './file-tree/file-tree.js';
+import { renderFileTree, highlightTreeItem, findFileByUrlPath, filePathToUrl } from './file-tree/file-tree.js';
 import { icon } from './layout/icons.js';
 
 // CSS — Vite injects these as <style> tags
@@ -214,10 +214,14 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   const menubar = initMenuBar(menubarContainer, {
     onSave: () => activeYjs?.save(),
     onClose: () => {
+      const returnTo = activeFilePath
+        ? filePathToUrl(activeFilePath, opts.contentRoot, opts.returnUrl)
+        : opts.returnUrl;
+      sessionStorage.removeItem('ev2-open-file');
       closeCurrentFile();
       for (const fn of cleanupFns) fn();
       cleanupFns = [];
-      window.location.href = opts.returnUrl;
+      window.location.href = returnTo;
     },
     onNewFile: () => { /* TODO: new file dialog */ },
     onViewModeChange: applyViewMode,
@@ -297,28 +301,51 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     treeContainer.innerHTML = `<div style="padding:12px;color:var(--ev-danger);font-size:12px">Failed to load tree</div>`;
   }
 
-  // ---- Auto-open from referrer ----
+  // ---- Auto-open: session (HMR) > last doc page > referrer ----
   if (treeData) {
-    const referrer = document.referrer;
-    if (referrer) {
+    let autoOpenPath: string | null = null;
+
+    // 1. Session — same file was open before HMR / reload
+    const sessionFile = sessionStorage.getItem('ev2-open-file');
+    if (sessionFile) {
+      autoOpenPath = sessionFile;
+    }
+
+    // 2. Last doc page — stored by the toolbar when navigating to editor
+    if (!autoOpenPath) {
+      const lastDocPath = sessionStorage.getItem('ev2-last-doc-path');
+      if (lastDocPath) {
+        const file = findFileByUrlPath(treeData, lastDocPath, opts.returnUrl);
+        if (file) autoOpenPath = file.path;
+      }
+    }
+
+    // 3. Referrer — came from a doc page
+    if (!autoOpenPath && document.referrer) {
       try {
-        const refPath = new URL(referrer).pathname.replace(/\/$/, '');
+        const refPath = new URL(document.referrer).pathname.replace(/\/$/, '');
         const file = findFileByUrlPath(treeData, refPath, opts.returnUrl);
-        if (file) {
-          highlightTreeItem(treeContainer, file.path);
-          openFile(file.path, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
-        }
+        if (file) autoOpenPath = file.path;
       } catch {}
+    }
+
+    if (autoOpenPath) {
+      highlightTreeItem(treeContainer, autoOpenPath);
+      openFile(autoOpenPath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
     }
   }
 
   // ---- Save / Close buttons ----
   saveBtn.addEventListener('click', () => activeYjs?.save());
   closeBtn.addEventListener('click', () => {
+    const returnTo = activeFilePath
+      ? filePathToUrl(activeFilePath, opts.contentRoot, opts.returnUrl)
+      : opts.returnUrl;
+    sessionStorage.removeItem('ev2-open-file');
     closeCurrentFile();
     for (const fn of cleanupFns) fn();
     cleanupFns = [];
-    window.location.href = opts.returnUrl;
+    window.location.href = returnTo;
   });
 
   // ---- Keyboard shortcuts ----
@@ -350,6 +377,8 @@ async function openFile(
   await closeCurrentFile();
 
   activeFilePath = filePath;
+  // Persist to session so HMR and navigation preserve state
+  sessionStorage.setItem('ev2-open-file', filePath);
   const shortName = filePath.split('/').slice(-2).join('/');
   activeFileEl.textContent = shortName;
   container.innerHTML = '<div class="ev2-editor-empty">Loading...</div>';
