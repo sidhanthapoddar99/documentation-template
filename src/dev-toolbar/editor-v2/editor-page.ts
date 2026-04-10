@@ -2,13 +2,13 @@
  * Editor V2 — Page-based entry point
  *
  * Mounts into #editor-root at /editor?root=...
- * Orchestrates: menubar, file tree, CM6 editor, Yjs sync, preview.
+ * Orchestrates: menubar, views, file tree, CM6 editor, Yjs sync.
  */
 
 import type { EditorView } from '@codemirror/view';
 import type { SaveStatus, Identity } from './types.js';
 import { initResizeHandle } from './layout/resize-handles.js';
-import { initMenuBar, type ViewMode, type SplitDirection } from './layout/menubar.js';
+import { initMenuBar } from './layout/menubar.js';
 import { initYjsClientV2, type YjsV2Handle } from './sync/yjs-client-v2.js';
 import { renderFileTree, highlightTreeItem, findFileByUrlPath, filePathToUrl } from './file-tree/file-tree.js';
 import { icon } from './layout/icons.js';
@@ -16,9 +16,8 @@ import { initFormattingToolbar } from './layout/formatting-toolbar.js';
 import { initContextMenu } from './file-tree/context-menu.js';
 import { createFile, createFolder, renameItem, deleteItem } from './file-tree/file-crud.js';
 import { showNewFileDialog, showNewFolderDialog, showRenameDialog, showDeleteDialog } from './file-tree/file-dialogs.js';
-import { createClientRenderer, type ClientRenderer } from './renderer/index.js';
+import { initPreviewPanel, initViewManager, type PreviewPanel, type ViewManagerHandle } from './views/index.js';
 
-// CSS — Vite injects these as <style> tags
 import './styles/editor.css';
 import './styles/preview.css';
 import './styles/toolbar.css';
@@ -40,14 +39,14 @@ function getOrCreateIdentity(): Identity {
   return identity;
 }
 
-// ---- State ----
+// ---- Module state ----
 let activeView: EditorView | null = null;
 let activeYjs: YjsV2Handle | null = null;
 let activeFilePath: string | null = null;
 let cleanupFns: (() => void)[] = [];
 let activeToolbar: { setEditorView(v: EditorView | null): void } | null = null;
-let activeViewMode: string = 'source';
-let activeRenderer: ClientRenderer | null = null;
+let _activePreview: PreviewPanel | null = null;
+let activeViewManager: ViewManagerHandle | null = null;
 
 export interface MountOptions {
   contentRoot: string;
@@ -59,25 +58,24 @@ export interface MountOptions {
 export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   const identity = getOrCreateIdentity();
 
-  // Theme: respect saved preference or system
+  // Theme
   const savedTheme = localStorage.getItem('ev2-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   let currentTheme: 'dark' | 'light' = (savedTheme as any) || (prefersDark ? 'dark' : 'light');
   root.setAttribute('data-editor-theme', currentTheme);
 
-  // Load content CSS for the preview panel (markdown styles from the site theme)
+  // Load content CSS for preview
   try {
     const cssRes = await fetch('/__editor/styles');
     if (cssRes.ok) {
-      const contentCSS = await cssRes.text();
       const contentStyleEl = document.createElement('style');
-      contentStyleEl.textContent = contentCSS;
+      contentStyleEl.textContent = await cssRes.text();
       document.head.appendChild(contentStyleEl);
       cleanupFns.push(() => contentStyleEl.remove());
     }
   } catch {}
 
-  // Build shell
+  // ---- Shell HTML ----
   root.innerHTML = `
     <div class="ev2-menubar-container" id="ev2-menubar-container"></div>
 
@@ -98,11 +96,10 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
       </div>
 
       <div class="ev2-resize-handle" id="ev2-sidebar-resize"></div>
-
       <button class="ev2-sidebar-float-toggle" id="ev2-sidebar-toggle" title="Toggle Sidebar">${icon('chevron-left', 14)}</button>
 
       <div class="ev2-split-area" id="ev2-split-area">
-        <div class="ev2-editor-pane">
+        <div class="ev2-editor-pane" id="ev2-editor-pane">
           <div class="ev2-toolbar-container" id="ev2-toolbar-container"></div>
           <div class="ev2-editor-container" id="ev2-editor-container">
             <div class="ev2-editor-empty">Select a file from the explorer</div>
@@ -117,7 +114,6 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
             <div style="color:var(--ev-text-faint);padding:24px;font-style:italic">Open a file to preview</div>
           </div>
         </div>
-
       </div>
     </div>
   `;
@@ -125,94 +121,41 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   // ---- DOM refs ----
   const sidebar = root.querySelector('#ev2-sidebar') as HTMLDivElement;
   const editorContainer = root.querySelector('#ev2-editor-container') as HTMLDivElement;
+  const editorPane = root.querySelector('#ev2-editor-pane') as HTMLDivElement;
   const previewPane = root.querySelector('#ev2-preview-pane') as HTMLDivElement;
   const previewContent = root.querySelector('#ev2-preview-content') as HTMLElement;
+  const previewResizeHandle = root.querySelector('#ev2-preview-resize') as HTMLDivElement;
   const menubarContainer = root.querySelector('#ev2-menubar-container') as HTMLDivElement;
   const toolbarContainer = root.querySelector('#ev2-toolbar-container') as HTMLDivElement;
-  const editorPane = root.querySelector('.ev2-editor-pane') as HTMLDivElement;
+  const splitArea = root.querySelector('#ev2-split-area') as HTMLDivElement;
   const sidebarToggle = root.querySelector('#ev2-sidebar-toggle') as HTMLButtonElement;
   const sidebarResizeHandle = root.querySelector('#ev2-sidebar-resize') as HTMLDivElement;
-  const previewResizeHandle = root.querySelector('#ev2-preview-resize') as HTMLDivElement;
   const treeContainer = root.querySelector('#ev2-tree-container') as HTMLDivElement;
 
-  // ---- Preview ----
-  let lastPreviewHtml = '';
-  const preview = {
-    setContent(html: string) {
-      if (html === lastPreviewHtml) return;
-      lastPreviewHtml = html;
-      const scrollTop = previewContent.scrollTop;
-      previewContent.innerHTML = `<div class="docs-content"><article class="docs-article"><div class="docs-body markdown-content">${html}</div></article></div>`;
-      previewContent.scrollTop = scrollTop;
-      document.dispatchEvent(new CustomEvent('diagrams:render'));
-    },
-  };
+  // ---- Preview panel ----
+  const preview = initPreviewPanel(previewPane, previewContent, previewResizeHandle);
+  _activePreview = preview;
+  cleanupFns.push(preview.cleanup);
 
-  // ---- Split direction ----
-  const splitArea = root.querySelector('#ev2-split-area') as HTMLDivElement;
-  let currentSplitDir: SplitDirection = (localStorage.getItem('ev2-split-dir') as SplitDirection) || 'vertical';
-
-  function applySplitDirection(dir: SplitDirection) {
-    currentSplitDir = dir;
-    splitArea.classList.toggle('horizontal', dir === 'horizontal');
-  }
+  // ---- View manager ----
+  const viewManager = initViewManager(
+    { editorPane, previewPane, previewResizeHandle, splitArea },
+    preview,
+    () => currentTheme,
+  );
+  activeViewManager = viewManager;
+  cleanupFns.push(viewManager.cleanup);
 
   // ---- Formatting toolbar ----
   const toolbar = initFormattingToolbar(toolbarContainer);
   activeToolbar = toolbar;
   cleanupFns.push(toolbar.cleanup);
 
-  // ---- View mode ----
-  async function applyViewMode(mode: ViewMode) {
-    activeViewMode = mode;
-    const showEditor = mode === 'source' || mode === 'split' || mode === 'live-preview';
-    const showPreview = mode === 'preview' || mode === 'split';
-
-    editorPane.style.display = showEditor ? 'flex' : 'none';
-    previewPane.style.display = showPreview ? 'flex' : 'none';
-    previewResizeHandle.style.display = (mode === 'split') ? 'block' : 'none';
-
-    if (mode === 'preview') {
-      previewPane.style.width = '';
-      previewPane.style.maxWidth = '';
-      previewPane.style.height = '';
-      previewPane.style.borderLeft = 'none';
-      previewPane.style.borderTop = 'none';
-      editorPane.style.display = 'none';
-    } else if (mode === 'split') {
-      applySplitDirection(currentSplitDir);
-      previewPane.style.borderLeft = '';
-      previewPane.style.borderTop = '';
-    } else {
-      previewPane.style.width = '';
-      previewPane.style.maxWidth = '';
-      previewPane.style.height = '';
-      previewPane.style.borderLeft = '';
-      previewPane.style.borderTop = '';
-    }
-
-    // Toggle Live Preview decorations
-    if (activeView) {
-      const { livePreviewCompartment } = await import('./core/codemirror-setup.js');
-      if (mode === 'live-preview') {
-        const { livePreviewExtension } = await import('./live-preview/index.js');
-        activeView.dispatch({
-          effects: livePreviewCompartment.reconfigure(livePreviewExtension(currentTheme)),
-        });
-      } else {
-        activeView.dispatch({
-          effects: livePreviewCompartment.reconfigure([]),
-        });
-      }
-    }
-  }
-
   // ---- Word wrap ----
   async function toggleWordWrap(wrap: boolean) {
     if (!activeView) return;
     const { lineWrappingCompartment } = await import('./core/codemirror-setup.js');
     const { EditorView: EV } = await import('@codemirror/view');
-    if (!activeView) return;
     activeView.dispatch({
       effects: lineWrappingCompartment.reconfigure(wrap ? EV.lineWrapping : []),
     });
@@ -224,8 +167,6 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     root.setAttribute('data-editor-theme', currentTheme);
     localStorage.setItem('ev2-theme', currentTheme);
     themeToggle.innerHTML = icon(currentTheme === 'dark' ? 'sun' : 'moon', 16);
-
-    // Hot-swap theme via compartment — no editor destroy/recreate
     if (activeView) {
       const { themeCompartment } = await import('./core/codemirror-setup.js');
       const { darkTheme, lightTheme } = await import('./core/editor-theme.js');
@@ -253,24 +194,23 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
         try {
           const result = await createFile(opts.contentRoot, name);
           await refreshTree();
-          openFile(result.filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
+          doOpenFile(result.filePath);
           highlightTreeItem(treeContainer, result.filePath);
         } catch (err: any) {
           console.error('[editor-v2] Create file failed:', err);
         }
       });
     },
-    onViewModeChange: applyViewMode,
+    onModeChange: (mode) => viewManager.setMode(mode),
+    onPreviewToggle: (open) => viewManager.setPreviewOpen(open),
+    onPreviewOnly: () => viewManager.setPreviewOnly(true),
     onToggleSidebar: () => {
       sidebar.classList.toggle('collapsed');
       localStorage.setItem('ev2-sidebar-collapsed', String(sidebar.classList.contains('collapsed')));
     },
     onToggleTheme: toggleTheme,
     onToggleWordWrap: toggleWordWrap,
-    onSplitDirectionChange: (dir) => {
-      currentSplitDir = dir;
-      applySplitDirection(dir);
-    },
+    onSplitDirectionChange: (dir) => viewManager.setSplitDirection(dir),
     onUndo: () => {},
     onRedo: () => {},
     onFind: () => {},
@@ -282,7 +222,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   menubarRight.innerHTML = `
     <span class="ev2-active-file" id="ev2-active-file"></span>
     <span class="ev2-status saved" id="ev2-status">Saved</span>
-    <span class="ev2-user-badge" id="ev2-user-badge" style="background:${identity.color}15;color:${identity.color}">${identity.name}</span>
+    <span class="ev2-user-badge" style="background:${identity.color}15;color:${identity.color}">${identity.name}</span>
     <button class="ev2-icon-btn" id="ev2-theme-toggle" title="Toggle Theme">${icon(currentTheme === 'dark' ? 'sun' : 'moon', 16)}</button>
     <button class="ev2-btn primary" id="ev2-save-btn">${icon('save', 14)} Save</button>
     <button class="ev2-icon-btn" id="ev2-close-btn" title="Close">${icon('x', 16)}</button>
@@ -292,9 +232,6 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   const saveBtn = root.querySelector('#ev2-save-btn') as HTMLButtonElement;
   const closeBtn = root.querySelector('#ev2-close-btn') as HTMLButtonElement;
   const themeToggle = root.querySelector('#ev2-theme-toggle') as HTMLButtonElement;
-
-  applyViewMode(menubar.getViewMode());
-  applySplitDirection(menubar.getSplitDirection());
 
   // ---- Resize handles ----
   const sr = initResizeHandle(sidebarResizeHandle, sidebar, 'left', 'ev2-sidebar-width');
@@ -307,16 +244,19 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     statusEl.textContent = status === 'saved' ? 'Saved' : status === 'unsaved' ? 'Unsaved' : 'Saving...';
   }
 
-  // ---- Sidebar toggle ----
+  // ---- Sidebar ----
   const sidebarCollapsed = localStorage.getItem('ev2-sidebar-collapsed') === 'true';
   if (sidebarCollapsed) sidebar.classList.add('collapsed');
   sidebarToggle.addEventListener('click', () => {
     sidebar.classList.toggle('collapsed');
     localStorage.setItem('ev2-sidebar-collapsed', String(sidebar.classList.contains('collapsed')));
   });
-
-  // ---- Theme toggle button ----
   themeToggle.addEventListener('click', toggleTheme);
+
+  // ---- Helper: open file (used by tree, CRUD, auto-open) ----
+  function doOpenFile(filePath: string) {
+    openFile(filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap(), viewManager);
+  }
 
   // ---- File tree ----
   let treeData: any = null;
@@ -326,12 +266,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
       const res = await fetch(`/__editor/tree?root=${encodeURIComponent(opts.contentRoot)}`);
       if (res.ok) {
         treeData = await res.json();
-        renderFileTree(treeContainer, treeData, {
-          onSelect: (filePath: string) => {
-            openFile(filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
-          },
-        });
-        // Re-highlight active file if still exists
+        renderFileTree(treeContainer, treeData, { onSelect: doOpenFile });
         if (activeFilePath) highlightTreeItem(treeContainer, activeFilePath);
       }
     } catch (err) {
@@ -343,11 +278,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     const res = await fetch(`/__editor/tree?root=${encodeURIComponent(opts.contentRoot)}`);
     if (res.ok) {
       treeData = await res.json();
-      renderFileTree(treeContainer, treeData, {
-        onSelect: (filePath: string) => {
-          openFile(filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
-        },
-      });
+      renderFileTree(treeContainer, treeData, { onSelect: doOpenFile });
     } else {
       treeContainer.innerHTML = `<div style="padding:12px;color:var(--ev-danger);font-size:12px">Failed to load tree</div>`;
     }
@@ -363,46 +294,34 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
         try {
           const result = await createFile(parentDir, name);
           await refreshTree();
-          // Open the newly created file
-          openFile(result.filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
+          doOpenFile(result.filePath);
           highlightTreeItem(treeContainer, result.filePath);
-        } catch (err: any) {
-          console.error('[editor-v2] Create file failed:', err);
-        }
+        } catch (err: any) { console.error('[editor-v2] Create file failed:', err); }
       });
     },
     onNewFolder: (parentDir) => {
       showNewFolderDialog(async (name) => {
-        try {
-          await createFolder(parentDir, name);
-          await refreshTree();
-        } catch (err: any) {
-          console.error('[editor-v2] Create folder failed:', err);
-        }
+        try { await createFolder(parentDir, name); await refreshTree(); }
+        catch (err: any) { console.error('[editor-v2] Create folder failed:', err); }
       });
     },
     onRename: (itemPath, itemName, _isDir) => {
       showRenameDialog(itemName, async (newName) => {
         try {
           const result = await renameItem(itemPath, newName);
-          // If the renamed file was active, update state
           if (activeFilePath === itemPath) {
             activeFilePath = result.newPath;
             sessionStorage.setItem('ev2-open-file', result.newPath);
-            const shortName = result.newPath.split('/').slice(-2).join('/');
-            activeFileEl.textContent = shortName;
+            activeFileEl.textContent = result.newPath.split('/').slice(-2).join('/');
           }
           await refreshTree();
           if (activeFilePath) highlightTreeItem(treeContainer, activeFilePath);
-        } catch (err: any) {
-          console.error('[editor-v2] Rename failed:', err);
-        }
+        } catch (err: any) { console.error('[editor-v2] Rename failed:', err); }
       });
     },
     onDelete: (itemPath, itemName) => {
       showDeleteDialog(itemName, async () => {
         try {
-          // If deleting the active file, close it first
           if (activeFilePath === itemPath || (activeFilePath && activeFilePath.startsWith(itemPath + '/'))) {
             await closeCurrentFile();
             editorContainer.innerHTML = '<div class="ev2-editor-empty">Select a file from the explorer</div>';
@@ -411,25 +330,17 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
           }
           await deleteItem(itemPath);
           await refreshTree();
-        } catch (err: any) {
-          console.error('[editor-v2] Delete failed:', err);
-        }
+        } catch (err: any) { console.error('[editor-v2] Delete failed:', err); }
       });
     },
   });
   cleanupFns.push(ctxMenu.cleanup);
 
-  // ---- Auto-open: session (HMR) > last doc page > referrer ----
+  // ---- Auto-open ----
   if (treeData) {
     let autoOpenPath: string | null = null;
-
-    // 1. Session — same file was open before HMR / reload
     const sessionFile = sessionStorage.getItem('ev2-open-file');
-    if (sessionFile) {
-      autoOpenPath = sessionFile;
-    }
-
-    // 2. Last doc page — stored by the toolbar when navigating to editor
+    if (sessionFile) autoOpenPath = sessionFile;
     if (!autoOpenPath) {
       const lastDocPath = sessionStorage.getItem('ev2-last-doc-path');
       if (lastDocPath) {
@@ -437,8 +348,6 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
         if (file) autoOpenPath = file.path;
       }
     }
-
-    // 3. Referrer — came from a doc page
     if (!autoOpenPath && document.referrer) {
       try {
         const refPath = new URL(document.referrer).pathname.replace(/\/$/, '');
@@ -446,10 +355,9 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
         if (file) autoOpenPath = file.path;
       } catch {}
     }
-
     if (autoOpenPath) {
       highlightTreeItem(treeContainer, autoOpenPath);
-      openFile(autoOpenPath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
+      doOpenFile(autoOpenPath);
     }
   }
 
@@ -479,32 +387,26 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
 
 // ---- Open file ----
 
-interface PreviewHandle { setContent(html: string): void }
-
 async function openFile(
   filePath: string,
   container: HTMLElement,
-  preview: PreviewHandle,
+  preview: PreviewPanel,
   updateStatus: (s: SaveStatus) => void,
   activeFileEl: HTMLElement,
   identity: Identity,
   theme: 'dark' | 'light',
-  previewContentEl?: HTMLElement,
-  wordWrap?: boolean,
+  previewContentEl: HTMLElement,
+  wordWrap: boolean,
+  viewManager: ViewManagerHandle,
 ) {
   await closeCurrentFile();
 
   activeFilePath = filePath;
-  // Persist to session so HMR and navigation preserve state
   sessionStorage.setItem('ev2-open-file', filePath);
-  const shortName = filePath.split('/').slice(-2).join('/');
-  activeFileEl.textContent = shortName;
+  activeFileEl.textContent = filePath.split('/').slice(-2).join('/');
   container.innerHTML = '<div class="ev2-editor-empty">Loading...</div>';
 
-  // ---- Client-side renderer ----
-  if (activeRenderer) activeRenderer.cleanup();
-  const renderer = createClientRenderer((html) => preview.setContent(html));
-  activeRenderer = renderer;
+  const renderer = preview.getRenderer();
 
   const yjs = initYjsClientV2({
     filePath,
@@ -516,17 +418,14 @@ async function openFile(
         const { createYjsExtensions } = await import('./core/codemirror-yjs.js');
         const { darkTheme, lightTheme } = await import('./core/editor-theme.js');
 
-        const yjsExtensions = createYjsExtensions(yjs.ytext, yjs.awareness);
-        const themeExtensions = theme === 'dark' ? darkTheme() : lightTheme();
-
         const view = createEditorView({
           parent: container,
           onSave: () => yjs.save(),
           onClose: () => {},
           readOnly: false,
           wordWrap: wordWrap !== false,
-          themeExtensions,
-          extensions: yjsExtensions,
+          themeExtensions: theme === 'dark' ? darkTheme() : lightTheme(),
+          extensions: createYjsExtensions(yjs.ytext, yjs.awareness),
           initialDoc: yjs.ytext.toString(),
         });
 
@@ -538,30 +437,21 @@ async function openFile(
 
         activeView = view;
         activeToolbar?.setEditorView(view);
+        viewManager.setEditorView(view);
 
-        // Apply current view mode (live preview decorations if active)
-        if (activeViewMode === 'live-preview') {
-          const { livePreviewCompartment } = await import('./core/codemirror-setup.js');
-          const { livePreviewExtension } = await import('./live-preview/index.js');
-          view.dispatch({
-            effects: livePreviewCompartment.reconfigure(livePreviewExtension(theme)),
-          });
-        }
-
-        // Client-side render: initial render + observe ytext for changes
-        console.log('[editor-v2] Client-side rendering active');
+        // Client-side rendering: observe ytext for changes
         renderer.renderDebounced(yjs.ytext.toString());
         yjs.ytext.observe(() => {
           renderer.renderDebounced(yjs.ytext.toString());
         });
 
-        if (previewContentEl) setupScrollSync(view, previewContentEl);
+        setupScrollSync(view, previewContentEl);
       } catch (err) {
         console.error('[editor-v2] Failed to mount:', err);
         container.innerHTML = `<div class="ev2-editor-empty" style="color:var(--ev-danger)">Failed: ${err}</div>`;
       }
     },
-    onRender: () => {}, // Server-side rendering no longer used for preview
+    onRender: () => {},
     onStatusChange: updateStatus,
   });
 
@@ -575,17 +465,14 @@ let scrollSyncCleanup: (() => void) | null = null;
 
 function setupScrollSync(view: EditorView, previewEl: HTMLElement) {
   if (scrollSyncCleanup) scrollSyncCleanup();
-
   const editorScroller = view.scrollDOM;
 
   function onEditorScroll() {
     if (scrollSyncSource === 'preview') return;
     scrollSyncSource = 'editor';
-    const maxScroll = editorScroller.scrollHeight - editorScroller.clientHeight;
-    if (maxScroll > 0) {
-      const ratio = editorScroller.scrollTop / maxScroll;
-      const previewMax = previewEl.scrollHeight - previewEl.clientHeight;
-      previewEl.scrollTop = ratio * previewMax;
+    const max = editorScroller.scrollHeight - editorScroller.clientHeight;
+    if (max > 0) {
+      previewEl.scrollTop = (editorScroller.scrollTop / max) * (previewEl.scrollHeight - previewEl.clientHeight);
     }
     requestAnimationFrame(() => { scrollSyncSource = 'none'; });
   }
@@ -593,18 +480,15 @@ function setupScrollSync(view: EditorView, previewEl: HTMLElement) {
   function onPreviewScroll() {
     if (scrollSyncSource === 'editor') return;
     scrollSyncSource = 'preview';
-    const maxScroll = previewEl.scrollHeight - previewEl.clientHeight;
-    if (maxScroll > 0) {
-      const ratio = previewEl.scrollTop / maxScroll;
-      const editorMax = editorScroller.scrollHeight - editorScroller.clientHeight;
-      editorScroller.scrollTop = ratio * editorMax;
+    const max = previewEl.scrollHeight - previewEl.clientHeight;
+    if (max > 0) {
+      editorScroller.scrollTop = (previewEl.scrollTop / max) * (editorScroller.scrollHeight - editorScroller.clientHeight);
     }
     requestAnimationFrame(() => { scrollSyncSource = 'none'; });
   }
 
   editorScroller.addEventListener('scroll', onEditorScroll);
   previewEl.addEventListener('scroll', onPreviewScroll);
-
   scrollSyncCleanup = () => {
     editorScroller.removeEventListener('scroll', onEditorScroll);
     previewEl.removeEventListener('scroll', onPreviewScroll);
@@ -616,8 +500,9 @@ function setupScrollSync(view: EditorView, previewEl: HTMLElement) {
 
 async function closeCurrentFile() {
   if (scrollSyncCleanup) scrollSyncCleanup();
-  if (activeRenderer) { activeRenderer.cleanup(); activeRenderer = null; }
   if (activeView) { activeView.destroy(); activeView = null; }
   if (activeYjs) { await activeYjs.close(); activeYjs = null; }
+  activeViewManager?.setEditorView(null);
+  activeToolbar?.setEditorView(null);
   activeFilePath = null;
 }

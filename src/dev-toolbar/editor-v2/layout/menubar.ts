@@ -1,18 +1,19 @@
 /**
  * Menu bar — File, Edit, View dropdown menus
  *
- * View menu: mode switcher, wrap text toggle, split orientation, sidebar, theme.
+ * View menu:
+ *   Mode: Source, Live Preview, WYSIWYG (greyed)
+ *   Preview: toggle on/off, Preview Only
+ *   Split direction, word wrap, sidebar, theme
  */
 
 import { icon } from './icons.js';
 import type { Disposable } from '../types.js';
-
-export type ViewMode = 'source' | 'split' | 'preview' | 'live-preview';
-export type SplitDirection = 'vertical' | 'horizontal';
+import type { EditorMode, SplitDirection } from '../views/types.js';
 
 export interface MenuBarHandle extends Disposable {
-  getViewMode: () => ViewMode;
-  setViewMode: (mode: ViewMode) => void;
+  getMode: () => EditorMode;
+  getPreviewOpen: () => boolean;
   getWordWrap: () => boolean;
   getSplitDirection: () => SplitDirection;
 }
@@ -21,7 +22,9 @@ export interface MenuBarCallbacks {
   onSave: () => void;
   onClose: () => void;
   onNewFile: () => void;
-  onViewModeChange: (mode: ViewMode) => void;
+  onModeChange: (mode: EditorMode) => void;
+  onPreviewToggle: (open: boolean) => void;
+  onPreviewOnly: () => void;
   onToggleSidebar: () => void;
   onToggleTheme: () => void;
   onToggleWordWrap: (wrap: boolean) => void;
@@ -35,8 +38,9 @@ export function initMenuBar(
   container: HTMLElement,
   callbacks: MenuBarCallbacks,
 ): MenuBarHandle {
-  let currentMode: ViewMode = (localStorage.getItem('ev2-view-mode') as ViewMode) || 'source';
-  let wordWrap: boolean = localStorage.getItem('ev2-word-wrap') !== 'false'; // default on
+  let currentMode: EditorMode = (localStorage.getItem('ev2-editor-mode') as EditorMode) || 'source';
+  let previewOpen: boolean = localStorage.getItem('ev2-preview-open') !== 'false';
+  let wordWrap: boolean = localStorage.getItem('ev2-word-wrap') !== 'false';
   let splitDir: SplitDirection = (localStorage.getItem('ev2-split-dir') as SplitDirection) || 'vertical';
   let openMenu: HTMLElement | null = null;
 
@@ -64,16 +68,17 @@ export function initMenuBar(
       <div class="ev2-menu" data-menu="view">
         <button class="ev2-menu-trigger">View</button>
         <div class="ev2-menu-dropdown">
-          <div class="ev2-menu-item" data-action="mode-source">${icon('code', 14)}<span>Source</span><span class="ev2-check" id="ev2-check-source"></span></div>
-          <div class="ev2-menu-item" data-action="mode-split">${icon('columns', 14)}<span>Split</span><span class="ev2-check" id="ev2-check-split"></span></div>
-          <div class="ev2-menu-item" data-action="mode-preview">${icon('eye', 14)}<span>Preview</span><span class="ev2-check" id="ev2-check-preview"></span></div>
-          <div class="ev2-menu-item" data-action="mode-live-preview">${icon('eye', 14)}<span>Live Preview</span><span class="ev2-check" id="ev2-check-live-preview"></span></div>
-          <div class="ev2-menu-item disabled" data-action="mode-wysiwyg">${icon('heading', 14)}<span>WYSIWYG</span><span class="ev2-shortcut">Soon</span></div>
+          <div class="ev2-menu-item" data-action="mode-source">${icon('code', 14)}<span>Source</span><span class="ev2-check" id="ev2-chk-source"></span></div>
+          <div class="ev2-menu-item" data-action="mode-live-preview">${icon('eye', 14)}<span>Live Preview</span><span class="ev2-check" id="ev2-chk-live-preview"></span></div>
+          <div class="ev2-menu-item disabled">${icon('heading', 14)}<span>WYSIWYG</span><span class="ev2-shortcut">Soon</span></div>
           <div class="ev2-menu-separator"></div>
-          <div class="ev2-menu-item" data-action="split-vertical">${icon('columns', 14)}<span>Split Vertical</span><span class="ev2-check" id="ev2-check-split-v"></span></div>
-          <div class="ev2-menu-item" data-action="split-horizontal">${icon('rows', 14)}<span>Split Horizontal</span><span class="ev2-check" id="ev2-check-split-h"></span></div>
+          <div class="ev2-menu-item" data-action="toggle-preview">${icon('columns', 14)}<span>Preview</span><span class="ev2-check" id="ev2-chk-preview"></span></div>
+          <div class="ev2-menu-item" data-action="preview-only">${icon('eye', 14)}<span>Preview Only</span></div>
           <div class="ev2-menu-separator"></div>
-          <div class="ev2-menu-item" data-action="toggle-wrap">${icon('wrap-text', 14)}<span>Word Wrap</span><span class="ev2-check" id="ev2-check-wrap"></span></div>
+          <div class="ev2-menu-item" data-action="split-vertical">${icon('columns', 14)}<span>Split Vertical</span><span class="ev2-check" id="ev2-chk-split-v"></span></div>
+          <div class="ev2-menu-item" data-action="split-horizontal">${icon('rows', 14)}<span>Split Horizontal</span><span class="ev2-check" id="ev2-chk-split-h"></span></div>
+          <div class="ev2-menu-separator"></div>
+          <div class="ev2-menu-item" data-action="toggle-wrap">${icon('wrap-text', 14)}<span>Word Wrap</span><span class="ev2-check" id="ev2-chk-wrap"></span></div>
           <div class="ev2-menu-separator"></div>
           <div class="ev2-menu-item" data-action="toggle-sidebar">${icon('panel-left', 14)}<span>Toggle Sidebar</span><span class="ev2-shortcut">Ctrl+\\</span></div>
           <div class="ev2-menu-separator"></div>
@@ -86,17 +91,25 @@ export function initMenuBar(
   `;
 
   function updateChecks() {
-    const modes: ViewMode[] = ['source', 'split', 'preview', 'live-preview'];
-    for (const m of modes) {
-      const el = container.querySelector(`#ev2-check-${m}`);
-      if (el) el.textContent = currentMode === m ? '✓' : '';
-    }
-    const wrapEl = container.querySelector('#ev2-check-wrap');
-    if (wrapEl) wrapEl.textContent = wordWrap ? '✓' : '';
-    const splitVEl = container.querySelector('#ev2-check-split-v');
-    if (splitVEl) splitVEl.textContent = splitDir === 'vertical' ? '✓' : '';
-    const splitHEl = container.querySelector('#ev2-check-split-h');
-    if (splitHEl) splitHEl.textContent = splitDir === 'horizontal' ? '✓' : '';
+    // Mode checks
+    const src = container.querySelector('#ev2-chk-source');
+    const lp = container.querySelector('#ev2-chk-live-preview');
+    if (src) src.textContent = currentMode === 'source' ? '✓' : '';
+    if (lp) lp.textContent = currentMode === 'live-preview' ? '✓' : '';
+
+    // Preview toggle
+    const prev = container.querySelector('#ev2-chk-preview');
+    if (prev) prev.textContent = previewOpen ? '✓' : '';
+
+    // Split direction
+    const sv = container.querySelector('#ev2-chk-split-v');
+    const sh = container.querySelector('#ev2-chk-split-h');
+    if (sv) sv.textContent = splitDir === 'vertical' ? '✓' : '';
+    if (sh) sh.textContent = splitDir === 'horizontal' ? '✓' : '';
+
+    // Word wrap
+    const wr = container.querySelector('#ev2-chk-wrap');
+    if (wr) wr.textContent = wordWrap ? '✓' : '';
   }
   updateChecks();
 
@@ -151,10 +164,27 @@ export function initMenuBar(
           updateChecks();
           callbacks.onSplitDirectionChange(splitDir);
           break;
-        case 'mode-source': setViewMode('source'); break;
-        case 'mode-split': setViewMode('split'); break;
-        case 'mode-preview': setViewMode('preview'); break;
-        case 'mode-live-preview': setViewMode('live-preview'); break;
+        case 'mode-source':
+          currentMode = 'source';
+          localStorage.setItem('ev2-editor-mode', currentMode);
+          updateChecks();
+          callbacks.onModeChange(currentMode);
+          break;
+        case 'mode-live-preview':
+          currentMode = 'live-preview';
+          localStorage.setItem('ev2-editor-mode', currentMode);
+          updateChecks();
+          callbacks.onModeChange(currentMode);
+          break;
+        case 'toggle-preview':
+          previewOpen = !previewOpen;
+          localStorage.setItem('ev2-preview-open', String(previewOpen));
+          updateChecks();
+          callbacks.onPreviewToggle(previewOpen);
+          break;
+        case 'preview-only':
+          callbacks.onPreviewOnly();
+          break;
       }
     }
   });
@@ -173,16 +203,9 @@ export function initMenuBar(
   function onDocClick() { closeAllMenus(); }
   document.addEventListener('click', onDocClick);
 
-  function setViewMode(mode: ViewMode) {
-    currentMode = mode;
-    localStorage.setItem('ev2-view-mode', mode);
-    updateChecks();
-    callbacks.onViewModeChange(mode);
-  }
-
   return {
-    getViewMode: () => currentMode,
-    setViewMode,
+    getMode: () => currentMode,
+    getPreviewOpen: () => previewOpen,
     getWordWrap: () => wordWrap,
     getSplitDirection: () => splitDir,
     cleanup() {
