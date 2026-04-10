@@ -1,18 +1,20 @@
 /**
  * Menu bar — File, Edit, View dropdown menus
  *
- * Renders a minimal menu bar with dropdown menus.
- * View menu contains the view mode switcher (Source/Split/Preview/WYSIWYG).
+ * View menu: mode switcher, wrap text toggle, split orientation, sidebar, theme.
  */
 
 import { icon } from './icons.js';
 import type { Disposable } from '../types.js';
 
 export type ViewMode = 'source' | 'split' | 'preview' | 'wysiwyg';
+export type SplitDirection = 'vertical' | 'horizontal';
 
 export interface MenuBarHandle extends Disposable {
   getViewMode: () => ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  getWordWrap: () => boolean;
+  getSplitDirection: () => SplitDirection;
 }
 
 export interface MenuBarCallbacks {
@@ -22,6 +24,8 @@ export interface MenuBarCallbacks {
   onViewModeChange: (mode: ViewMode) => void;
   onToggleSidebar: () => void;
   onToggleTheme: () => void;
+  onToggleWordWrap: (wrap: boolean) => void;
+  onSplitDirectionChange: (dir: SplitDirection) => void;
   onUndo: () => void;
   onRedo: () => void;
   onFind: () => void;
@@ -32,6 +36,8 @@ export function initMenuBar(
   callbacks: MenuBarCallbacks,
 ): MenuBarHandle {
   let currentMode: ViewMode = (localStorage.getItem('ev2-view-mode') as ViewMode) || 'source';
+  let wordWrap: boolean = localStorage.getItem('ev2-word-wrap') !== 'false'; // default on
+  let splitDir: SplitDirection = (localStorage.getItem('ev2-split-dir') as SplitDirection) || 'vertical';
   let openMenu: HTMLElement | null = null;
 
   container.innerHTML = `
@@ -59,33 +65,45 @@ export function initMenuBar(
         <button class="ev2-menu-trigger">View</button>
         <div class="ev2-menu-dropdown">
           <div class="ev2-menu-item" data-action="mode-source">${icon('code', 14)}<span>Source</span><span class="ev2-check" id="ev2-check-source"></span></div>
-          <div class="ev2-menu-item" data-action="mode-split">${icon('panel-left', 14)}<span>Split</span><span class="ev2-check" id="ev2-check-split"></span></div>
+          <div class="ev2-menu-item" data-action="mode-split">${icon('columns', 14)}<span>Split</span><span class="ev2-check" id="ev2-check-split"></span></div>
           <div class="ev2-menu-item" data-action="mode-preview">${icon('eye', 14)}<span>Preview</span><span class="ev2-check" id="ev2-check-preview"></span></div>
           <div class="ev2-menu-item disabled" data-action="mode-wysiwyg">${icon('heading', 14)}<span>WYSIWYG</span><span class="ev2-shortcut">Soon</span></div>
+          <div class="ev2-menu-separator"></div>
+          <div class="ev2-menu-item" data-action="split-vertical">${icon('columns', 14)}<span>Split Vertical</span><span class="ev2-check" id="ev2-check-split-v"></span></div>
+          <div class="ev2-menu-item" data-action="split-horizontal">${icon('rows', 14)}<span>Split Horizontal</span><span class="ev2-check" id="ev2-check-split-h"></span></div>
+          <div class="ev2-menu-separator"></div>
+          <div class="ev2-menu-item" data-action="toggle-wrap">${icon('wrap-text', 14)}<span>Word Wrap</span><span class="ev2-check" id="ev2-check-wrap"></span></div>
           <div class="ev2-menu-separator"></div>
           <div class="ev2-menu-item" data-action="toggle-sidebar">${icon('panel-left', 14)}<span>Toggle Sidebar</span><span class="ev2-shortcut">Ctrl+B</span></div>
           <div class="ev2-menu-separator"></div>
           <div class="ev2-menu-item" data-action="toggle-theme">${icon('sun', 14)}<span>Toggle Theme</span></div>
         </div>
       </div>
+      <span class="ev2-menubar-spacer"></span>
+      <div class="ev2-menubar-right" id="ev2-menubar-right"></div>
     </div>
   `;
 
-  function updateModeChecks() {
+  function updateChecks() {
     const modes: ViewMode[] = ['source', 'split', 'preview'];
     for (const m of modes) {
       const el = container.querySelector(`#ev2-check-${m}`);
       if (el) el.textContent = currentMode === m ? '✓' : '';
     }
+    const wrapEl = container.querySelector('#ev2-check-wrap');
+    if (wrapEl) wrapEl.textContent = wordWrap ? '✓' : '';
+    const splitVEl = container.querySelector('#ev2-check-split-v');
+    if (splitVEl) splitVEl.textContent = splitDir === 'vertical' ? '✓' : '';
+    const splitHEl = container.querySelector('#ev2-check-split-h');
+    if (splitHEl) splitHEl.textContent = splitDir === 'horizontal' ? '✓' : '';
   }
-  updateModeChecks();
+  updateChecks();
 
   function closeAllMenus() {
     container.querySelectorAll('.ev2-menu.open').forEach(m => m.classList.remove('open'));
     openMenu = null;
   }
 
-  // Menu trigger clicks
   container.addEventListener('click', (e) => {
     const trigger = (e.target as HTMLElement).closest('.ev2-menu-trigger') as HTMLElement;
     if (trigger) {
@@ -114,6 +132,24 @@ export function initMenuBar(
         case 'find': callbacks.onFind(); break;
         case 'toggle-sidebar': callbacks.onToggleSidebar(); break;
         case 'toggle-theme': callbacks.onToggleTheme(); break;
+        case 'toggle-wrap':
+          wordWrap = !wordWrap;
+          localStorage.setItem('ev2-word-wrap', String(wordWrap));
+          updateChecks();
+          callbacks.onToggleWordWrap(wordWrap);
+          break;
+        case 'split-vertical':
+          splitDir = 'vertical';
+          localStorage.setItem('ev2-split-dir', splitDir);
+          updateChecks();
+          callbacks.onSplitDirectionChange(splitDir);
+          break;
+        case 'split-horizontal':
+          splitDir = 'horizontal';
+          localStorage.setItem('ev2-split-dir', splitDir);
+          updateChecks();
+          callbacks.onSplitDirectionChange(splitDir);
+          break;
         case 'mode-source': setViewMode('source'); break;
         case 'mode-split': setViewMode('split'); break;
         case 'mode-preview': setViewMode('preview'); break;
@@ -133,20 +169,21 @@ export function initMenuBar(
     }
   }, true);
 
-  // Close on click outside
   function onDocClick() { closeAllMenus(); }
   document.addEventListener('click', onDocClick);
 
   function setViewMode(mode: ViewMode) {
     currentMode = mode;
     localStorage.setItem('ev2-view-mode', mode);
-    updateModeChecks();
+    updateChecks();
     callbacks.onViewModeChange(mode);
   }
 
   return {
     getViewMode: () => currentMode,
     setViewMode,
+    getWordWrap: () => wordWrap,
+    getSplitDirection: () => splitDir,
     cleanup() {
       document.removeEventListener('click', onDocClick);
     },

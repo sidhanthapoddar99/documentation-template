@@ -6,15 +6,17 @@
  */
 
 import { EditorState, type Extension, Compartment } from '@codemirror/state';
-import { EditorView, keymap, drawSelection, highlightActiveLine, highlightSpecialChars } from '@codemirror/view';
+import { EditorView, keymap, drawSelection, highlightActiveLine, highlightSpecialChars, lineNumbers } from '@codemirror/view';
 import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands';
 import { bracketMatching, indentOnInput } from '@codemirror/language';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
+import { languages } from '@codemirror/language-data';
 import { autocompletion } from '@codemirror/autocomplete';
 import { search, searchKeymap } from '@codemirror/search';
 
 export const readOnlyCompartment = new Compartment();
 export const languageCompartment = new Compartment();
+export const lineWrappingCompartment = new Compartment();
 
 export interface EditorSetupOptions {
   onSave: () => void;
@@ -22,23 +24,25 @@ export interface EditorSetupOptions {
   parent: HTMLElement;
   initialDoc?: string;
   readOnly?: boolean;
+  wordWrap?: boolean;
   extensions?: Extension[];
 }
 
 export function createEditorView(opts: EditorSetupOptions): EditorView {
   const extensions: Extension[] = [
     highlightSpecialChars(),
+    lineNumbers(),
     history(),
     drawSelection(),
     indentOnInput(),
     bracketMatching(),
     highlightActiveLine(),
 
-    // Markdown language
-    languageCompartment.of(markdown({ base: markdownLanguage })),
+    // Markdown language with nested code block highlighting
+    languageCompartment.of(markdown({ base: markdownLanguage, codeLanguages: languages })),
 
-    // Line wrapping
-    EditorView.lineWrapping,
+    // Line wrapping (toggleable via compartment)
+    lineWrappingCompartment.of(opts.wordWrap !== false ? EditorView.lineWrapping : []),
 
     // Autocomplete (slash commands added later)
     autocompletion({ override: [] }),

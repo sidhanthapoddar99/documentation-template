@@ -2,17 +2,20 @@
  * Editor V2 — Page-based entry point
  *
  * Mounts into #editor-root at /editor?root=...
- * Pure black/white theme, Lucide icons, file tree, auto-open.
+ * Orchestrates: menubar, file tree, CM6 editor, Yjs sync, preview.
  */
 
 import type { EditorView } from '@codemirror/view';
 import type { SaveStatus, Identity } from './types.js';
 import { initResizeHandle } from './layout/resize-handles.js';
-import { initMenuBar, type ViewMode } from './layout/menubar.js';
+import { initMenuBar, type ViewMode, type SplitDirection } from './layout/menubar.js';
 import { initYjsClientV2, type YjsV2Handle } from './sync/yjs-client-v2.js';
-import { getShellCSS } from './layout/shell-styles.js';
-import { icon, fileIcon } from './layout/icons.js';
-import { editorFetch } from './util/dom-helpers.js';
+import { renderFileTree, highlightTreeItem, findFileByUrlPath } from './file-tree/file-tree.js';
+import { icon } from './layout/icons.js';
+
+// CSS — Vite injects these as <style> tags
+import './styles/editor.css';
+import './styles/preview.css';
 
 // ---- Identity ----
 
@@ -53,13 +56,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   let currentTheme: 'dark' | 'light' = (savedTheme as any) || (prefersDark ? 'dark' : 'light');
   root.setAttribute('data-editor-theme', currentTheme);
 
-  // Inject shell CSS
-  const styleEl = document.createElement('style');
-  styleEl.textContent = getShellCSS();
-  document.head.appendChild(styleEl);
-  cleanupFns.push(() => styleEl.remove());
-
-  // Load content CSS for the preview panel (markdown styles, code blocks, etc.)
+  // Load content CSS for the preview panel (markdown styles from the site theme)
   try {
     const cssRes = await fetch('/__editor/styles');
     if (cssRes.ok) {
@@ -71,31 +68,14 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     }
   } catch {}
 
-  // Inject preview dark/light overrides for code blocks
-  const previewThemeEl = document.createElement('style');
-  previewThemeEl.textContent = getPreviewThemeCSS();
-  document.head.appendChild(previewThemeEl);
-  cleanupFns.push(() => previewThemeEl.remove());
-
   // Build shell
   root.innerHTML = `
     <div class="ev2-menubar-container" id="ev2-menubar-container"></div>
-    <div class="ev2-header">
-      <button class="ev2-icon-btn" id="ev2-sidebar-toggle" title="Toggle Sidebar">${icon('panel-left', 16)}</button>
-      <span class="ev2-header-title">${opts.contentRootKey}</span>
-      <span class="ev2-active-file" id="ev2-active-file"></span>
-      <span style="flex:1"></span>
-      <span class="ev2-status saved" id="ev2-status">Saved</span>
-      <span class="ev2-user-badge" id="ev2-user-badge" style="background:${identity.color}15;color:${identity.color}">${identity.name}</span>
-      <button class="ev2-icon-btn" id="ev2-theme-toggle" title="Toggle Theme">${icon(currentTheme === 'dark' ? 'sun' : 'moon', 16)}</button>
-      <button class="ev2-btn primary" id="ev2-save-btn">${icon('save', 14)} Save</button>
-      <button class="ev2-icon-btn" id="ev2-close-btn" title="Close">${icon('x', 16)}</button>
-    </div>
 
     <div class="ev2-body">
       <div class="ev2-sidebar" id="ev2-sidebar">
         <div class="ev2-sidebar-header">
-          <span>Explorer</span>
+          <span>${opts.contentRootKey}</span>
           <div class="ev2-sidebar-actions">
             <button class="ev2-icon-btn" id="ev2-new-file" title="New File">${icon('plus', 14)}</button>
           </div>
@@ -110,28 +90,32 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
 
       <div class="ev2-resize-handle" id="ev2-sidebar-resize"></div>
 
-      <div class="ev2-editor-pane">
-        <div class="ev2-editor-container" id="ev2-editor-container">
-          <div class="ev2-editor-empty">Select a file from the explorer</div>
+      <button class="ev2-sidebar-float-toggle" id="ev2-sidebar-toggle" title="Toggle Sidebar">${icon('chevron-left', 14)}</button>
+
+      <div class="ev2-split-area" id="ev2-split-area">
+        <div class="ev2-editor-pane">
+          <div class="ev2-editor-container" id="ev2-editor-container">
+            <div class="ev2-editor-empty">Select a file from the explorer</div>
+          </div>
         </div>
-      </div>
 
-      <div class="ev2-resize-handle" id="ev2-preview-resize"></div>
+        <div class="ev2-resize-handle" id="ev2-preview-resize"></div>
 
-      <div class="ev2-preview-pane" id="ev2-preview-pane">
-        <div class="ev2-preview-header"><span>Preview</span></div>
-        <div class="ev2-preview-content" id="ev2-preview-content">
-          <div style="color:var(--ev-text-faint);padding:24px;font-style:italic">Open a file to preview</div>
+        <div class="ev2-preview-pane" id="ev2-preview-pane">
+          <div class="ev2-preview-header"><span>Preview</span></div>
+          <div class="ev2-preview-content" id="ev2-preview-content">
+            <div style="color:var(--ev-text-faint);padding:24px;font-style:italic">Open a file to preview</div>
+          </div>
         </div>
-      </div>
 
-      <div class="ev2-wysiwyg-pane" id="ev2-wysiwyg-pane" style="display:none">
-        <div class="ev2-wysiwyg-placeholder">
-          <div style="text-align:center;padding:48px 24px;">
-            <div style="font-size:32px;margin-bottom:12px;opacity:0.3">${icon('heading', 32)}</div>
-            <div style="font-size:15px;font-weight:500;margin-bottom:6px;color:var(--ev-text)">WYSIWYG Mode</div>
-            <div style="font-size:13px;color:var(--ev-text-muted)">Rich text editing coming soon.</div>
-            <div style="font-size:12px;color:var(--ev-text-faint);margin-top:4px">Use Source or Preview mode for now.</div>
+        <div class="ev2-wysiwyg-pane" id="ev2-wysiwyg-pane" style="display:none">
+          <div class="ev2-wysiwyg-placeholder">
+            <div style="text-align:center;padding:48px 24px;">
+              <div style="font-size:32px;margin-bottom:12px;opacity:0.3">${icon('heading', 32)}</div>
+              <div style="font-size:15px;font-weight:500;margin-bottom:6px;color:var(--ev-text)">WYSIWYG Mode</div>
+              <div style="font-size:13px;color:var(--ev-text-muted)">Rich text editing coming soon.</div>
+              <div style="font-size:12px;color:var(--ev-text-faint);margin-top:4px">Use Source or Preview mode for now.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -146,17 +130,12 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   const menubarContainer = root.querySelector('#ev2-menubar-container') as HTMLDivElement;
   const editorPane = root.querySelector('.ev2-editor-pane') as HTMLDivElement;
   const wysiwygPane = root.querySelector('#ev2-wysiwyg-pane') as HTMLDivElement;
-  const statusEl = root.querySelector('#ev2-status') as HTMLSpanElement;
-  const activeFileEl = root.querySelector('#ev2-active-file') as HTMLSpanElement;
-  const saveBtn = root.querySelector('#ev2-save-btn') as HTMLButtonElement;
-  const closeBtn = root.querySelector('#ev2-close-btn') as HTMLButtonElement;
   const sidebarToggle = root.querySelector('#ev2-sidebar-toggle') as HTMLButtonElement;
-  const themeToggle = root.querySelector('#ev2-theme-toggle') as HTMLButtonElement;
   const sidebarResizeHandle = root.querySelector('#ev2-sidebar-resize') as HTMLDivElement;
   const previewResizeHandle = root.querySelector('#ev2-preview-resize') as HTMLDivElement;
   const treeContainer = root.querySelector('#ev2-tree-container') as HTMLDivElement;
 
-  // ---- Preview content handler ----
+  // ---- Preview ----
   let lastPreviewHtml = '';
   const preview = {
     setContent(html: string) {
@@ -167,12 +146,18 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
       previewContent.scrollTop = scrollTop;
       document.dispatchEvent(new CustomEvent('diagrams:render'));
     },
-    toggle() { menubar.setViewMode(menubar.getViewMode() === 'split' ? 'source' : 'split'); },
-    isCollapsed() { return menubar.getViewMode() === 'source' || menubar.getViewMode() === 'wysiwyg'; },
-    cleanup() {},
   };
 
-  // ---- View mode logic ----
+  // ---- Split direction ----
+  const splitArea = root.querySelector('#ev2-split-area') as HTMLDivElement;
+  let currentSplitDir: SplitDirection = (localStorage.getItem('ev2-split-dir') as SplitDirection) || 'vertical';
+
+  function applySplitDirection(dir: SplitDirection) {
+    currentSplitDir = dir;
+    splitArea.classList.toggle('horizontal', dir === 'horizontal');
+  }
+
+  // ---- View mode ----
   function applyViewMode(mode: ViewMode) {
     const showEditor = mode === 'source' || mode === 'split';
     const showPreview = mode === 'preview' || mode === 'split';
@@ -184,13 +169,44 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     wysiwygPane.style.display = showWysiwyg ? 'flex' : 'none';
 
     if (mode === 'preview') {
-      previewPane.style.width = '100%';
-      previewPane.style.maxWidth = '100%';
+      previewPane.style.width = '';
+      previewPane.style.maxWidth = '';
+      previewPane.style.height = '';
       previewPane.style.borderLeft = 'none';
+      previewPane.style.borderTop = 'none';
+      editorPane.style.display = 'none';
+    } else if (mode === 'split') {
+      applySplitDirection(currentSplitDir);
+      previewPane.style.borderLeft = '';
+      previewPane.style.borderTop = '';
     } else {
       previewPane.style.width = '';
       previewPane.style.maxWidth = '';
+      previewPane.style.height = '';
       previewPane.style.borderLeft = '';
+      previewPane.style.borderTop = '';
+    }
+  }
+
+  // ---- Word wrap ----
+  async function toggleWordWrap(wrap: boolean) {
+    if (!activeView) return;
+    const { lineWrappingCompartment } = await import('./core/codemirror-setup.js');
+    const { EditorView: EV } = await import('@codemirror/view');
+    if (!activeView) return;
+    activeView.dispatch({
+      effects: lineWrappingCompartment.reconfigure(wrap ? EV.lineWrapping : []),
+    });
+  }
+
+  // ---- Theme toggle ----
+  function toggleTheme() {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-editor-theme', currentTheme);
+    localStorage.setItem('ev2-theme', currentTheme);
+    themeToggle.innerHTML = icon(currentTheme === 'dark' ? 'sun' : 'moon', 16);
+    if (activeFilePath && activeYjs) {
+      openFile(activeFilePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
     }
   }
 
@@ -210,14 +226,35 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
       localStorage.setItem('ev2-sidebar-collapsed', String(sidebar.classList.contains('collapsed')));
     },
     onToggleTheme: toggleTheme,
-    onUndo: () => { /* CM6 handles Ctrl+Z natively */ },
-    onRedo: () => { /* CM6 handles Ctrl+Y natively */ },
-    onFind: () => { /* CM6 handles Ctrl+F natively */ },
+    onToggleWordWrap: toggleWordWrap,
+    onSplitDirectionChange: (dir) => {
+      currentSplitDir = dir;
+      applySplitDirection(dir);
+    },
+    onUndo: () => {},
+    onRedo: () => {},
+    onFind: () => {},
   });
   cleanupFns.push(menubar.cleanup);
 
-  // Apply saved view mode
+  // ---- Menubar right side ----
+  const menubarRight = root.querySelector('#ev2-menubar-right') as HTMLDivElement;
+  menubarRight.innerHTML = `
+    <span class="ev2-active-file" id="ev2-active-file"></span>
+    <span class="ev2-status saved" id="ev2-status">Saved</span>
+    <span class="ev2-user-badge" id="ev2-user-badge" style="background:${identity.color}15;color:${identity.color}">${identity.name}</span>
+    <button class="ev2-icon-btn" id="ev2-theme-toggle" title="Toggle Theme">${icon(currentTheme === 'dark' ? 'sun' : 'moon', 16)}</button>
+    <button class="ev2-btn primary" id="ev2-save-btn">${icon('save', 14)} Save</button>
+    <button class="ev2-icon-btn" id="ev2-close-btn" title="Close">${icon('x', 16)}</button>
+  `;
+  const statusEl = root.querySelector('#ev2-status') as HTMLSpanElement;
+  const activeFileEl = root.querySelector('#ev2-active-file') as HTMLSpanElement;
+  const saveBtn = root.querySelector('#ev2-save-btn') as HTMLButtonElement;
+  const closeBtn = root.querySelector('#ev2-close-btn') as HTMLButtonElement;
+  const themeToggle = root.querySelector('#ev2-theme-toggle') as HTMLButtonElement;
+
   applyViewMode(menubar.getViewMode());
+  applySplitDirection(menubar.getSplitDirection());
 
   // ---- Resize handles ----
   const sr = initResizeHandle(sidebarResizeHandle, sidebar, 'left', 'ev2-sidebar-width');
@@ -238,17 +275,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     localStorage.setItem('ev2-sidebar-collapsed', String(sidebar.classList.contains('collapsed')));
   });
 
-  // ---- Theme toggle ----
-  function toggleTheme() {
-    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-editor-theme', currentTheme);
-    localStorage.setItem('ev2-theme', currentTheme);
-    themeToggle.innerHTML = icon(currentTheme === 'dark' ? 'sun' : 'moon', 16);
-    if (activeFilePath && activeYjs) {
-      const fp = activeFilePath;
-      openFile(fp, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent);
-    }
-  }
+  // ---- Theme toggle button ----
   themeToggle.addEventListener('click', toggleTheme);
 
   // ---- File tree ----
@@ -257,8 +284,10 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     const res = await fetch(`/__editor/tree?root=${encodeURIComponent(opts.contentRoot)}`);
     if (res.ok) {
       treeData = await res.json();
-      renderFileTree(treeContainer, treeData, (filePath: string) => {
-        openFile(filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent);
+      renderFileTree(treeContainer, treeData, {
+        onSelect: (filePath: string) => {
+          openFile(filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
+        },
       });
     } else {
       treeContainer.innerHTML = `<div style="padding:12px;color:var(--ev-danger);font-size:12px">Failed to load tree</div>`;
@@ -268,7 +297,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     treeContainer.innerHTML = `<div style="padding:12px;color:var(--ev-danger);font-size:12px">Failed to load tree</div>`;
   }
 
-  // ---- Auto-open: find matching file from referrer ----
+  // ---- Auto-open from referrer ----
   if (treeData) {
     const referrer = document.referrer;
     if (referrer) {
@@ -277,16 +306,14 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
         const file = findFileByUrlPath(treeData, refPath, opts.returnUrl);
         if (file) {
           highlightTreeItem(treeContainer, file.path);
-          openFile(file.path, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent);
+          openFile(file.path, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
         }
       } catch {}
     }
   }
 
-  // ---- Save ----
+  // ---- Save / Close buttons ----
   saveBtn.addEventListener('click', () => activeYjs?.save());
-
-  // ---- Close ----
   closeBtn.addEventListener('click', () => {
     closeCurrentFile();
     for (const fn of cleanupFns) fn();
@@ -305,101 +332,20 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   cleanupFns.push(() => document.removeEventListener('keydown', onKeydown));
 }
 
-// ---- File tree rendering ----
-
-function renderFileTree(container: HTMLElement, tree: any, onSelect: (path: string) => void) {
-  container.innerHTML = '';
-  const ul = document.createElement('ul');
-  ul.className = 'ev2-tree';
-  const children = tree.children || [];
-  for (const node of children) {
-    ul.appendChild(createTreeNode(node, onSelect));
-  }
-  container.appendChild(ul);
-}
-
-function createTreeNode(node: any, onSelect: (path: string) => void): HTMLLIElement {
-  const li = document.createElement('li');
-
-  if (node.type === 'folder') {
-    li.className = 'ev2-tree-folder';
-    const item = document.createElement('div');
-    item.className = 'ev2-tree-item';
-    item.innerHTML = `<span class="tree-chevron">${icon('chevron-right', 12)}</span><span class="tree-icon">${icon('folder', 15)}</span><span class="tree-name">${node.displayName || node.name}</span>`;
-    item.addEventListener('click', (e) => {
-      e.stopPropagation();
-      li.classList.toggle('collapsed');
-    });
-    li.appendChild(item);
-
-    if (node.children?.length) {
-      const childUl = document.createElement('ul');
-      for (const child of node.children) {
-        childUl.appendChild(createTreeNode(child, onSelect));
-      }
-      li.appendChild(childUl);
-    }
-  } else {
-    const item = document.createElement('div');
-    item.className = 'ev2-tree-item';
-    item.dataset.path = node.path;
-    const displayName = node.frontmatter?.sidebar_label || node.frontmatter?.title || node.displayName || node.name;
-    item.innerHTML = `<span class="tree-icon">${fileIcon(node.extension || '', 15)}</span><span class="tree-name">${displayName}</span>`;
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.ev2-tree-item.active').forEach(el => el.classList.remove('active'));
-      item.classList.add('active');
-      onSelect(node.path);
-    });
-    li.appendChild(item);
-  }
-
-  return li;
-}
-
-function highlightTreeItem(container: HTMLElement, filePath: string) {
-  const item = container.querySelector(`.ev2-tree-item[data-path="${CSS.escape(filePath)}"]`);
-  if (item) {
-    document.querySelectorAll('.ev2-tree-item.active').forEach(el => el.classList.remove('active'));
-    item.classList.add('active');
-  }
-}
-
-function findFileByUrlPath(tree: any, urlPath: string, baseUrl: string): any | null {
-  // Try matching URL path segments to file names
-  const urlSlug = urlPath.replace(baseUrl + '/', '').replace(baseUrl, '');
-  if (!urlSlug) return null;
-
-  const slugParts = urlSlug.split('/').filter(Boolean);
-
-  function search(nodes: any[]): any | null {
-    for (const node of nodes) {
-      if (node.type === 'file' && (node.extension === '.md' || node.extension === '.mdx')) {
-        // Match by slug: remove XX_ prefix and extension from filename
-        const nameSlug = node.name.replace(/^\d+_/, '').replace(/\.(md|mdx)$/, '');
-        if (slugParts[slugParts.length - 1] === nameSlug) return node;
-      }
-      if (node.children) {
-        const found = search(node.children);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-
-  return search(tree.children || []);
-}
-
 // ---- Open file ----
+
+interface PreviewHandle { setContent(html: string): void }
 
 async function openFile(
   filePath: string,
   container: HTMLElement,
-  preview: ReturnType<typeof initPreviewPanel>,
+  preview: PreviewHandle,
   updateStatus: (s: SaveStatus) => void,
   activeFileEl: HTMLElement,
   identity: Identity,
   theme: 'dark' | 'light',
   previewContentEl?: HTMLElement,
+  wordWrap?: boolean,
 ) {
   await closeCurrentFile();
 
@@ -426,6 +372,7 @@ async function openFile(
           onSave: () => yjs.save(),
           onClose: () => {},
           readOnly: false,
+          wordWrap: wordWrap !== false,
           extensions: [...yjsExtensions, ...themeExtensions],
           initialDoc: yjs.ytext.toString(),
         });
@@ -438,7 +385,6 @@ async function openFile(
 
         activeView = view;
 
-        // Set up scroll sync between editor and preview
         if (previewContentEl) setupScrollSync(view, previewContentEl);
       } catch (err) {
         console.error('[editor-v2] Failed to mount:', err);
@@ -494,120 +440,6 @@ function setupScrollSync(view: EditorView, previewEl: HTMLElement) {
     previewEl.removeEventListener('scroll', onPreviewScroll);
     scrollSyncCleanup = null;
   };
-}
-
-// ---- Preview theme CSS ----
-
-function getPreviewThemeCSS(): string {
-  return `
-    /* Preview dark mode overrides */
-    [data-editor-theme="dark"] .ev2-preview-content {
-      color: #e0e0e0;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content pre,
-    [data-editor-theme="dark"] .ev2-preview-content code {
-      background: #161616 !important;
-      color: #e0e0e0 !important;
-      border-color: #222 !important;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content pre {
-      padding: 12px 16px;
-      border-radius: 4px;
-      overflow-x: auto;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content code {
-      padding: 2px 5px;
-      border-radius: 3px;
-      font-size: 0.9em;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content pre code {
-      padding: 0;
-      background: transparent !important;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content blockquote {
-      border-left: 3px solid #333;
-      color: #999;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content table th,
-    [data-editor-theme="dark"] .ev2-preview-content table td {
-      border-color: #222;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content table th {
-      background: #161616;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content table tr:nth-child(even) td {
-      background: #111;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content table tr:nth-child(odd) td {
-      background: transparent;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content a {
-      color: #7aa2f7;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content h1,
-    [data-editor-theme="dark"] .ev2-preview-content h2,
-    [data-editor-theme="dark"] .ev2-preview-content h3,
-    [data-editor-theme="dark"] .ev2-preview-content h4,
-    [data-editor-theme="dark"] .ev2-preview-content h5,
-    [data-editor-theme="dark"] .ev2-preview-content h6 {
-      color: #ffffff;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content hr {
-      border-color: #222;
-    }
-    [data-editor-theme="dark"] .ev2-preview-content img {
-      border-radius: 4px;
-    }
-    /* Shiki dark mode */
-    [data-editor-theme="dark"] .ev2-preview-content .shiki,
-    [data-editor-theme="dark"] .ev2-preview-content .shiki span {
-      color: var(--shiki-dark, inherit) !important;
-      background-color: var(--shiki-dark-bg, #161616) !important;
-    }
-
-    /* Preview light mode */
-    [data-editor-theme="light"] .ev2-preview-content {
-      color: #1a1a1a;
-    }
-    [data-editor-theme="light"] .ev2-preview-content pre,
-    [data-editor-theme="light"] .ev2-preview-content code {
-      background: #f5f5f5 !important;
-      border-color: #e5e5e5 !important;
-    }
-    [data-editor-theme="light"] .ev2-preview-content pre {
-      padding: 12px 16px;
-      border-radius: 4px;
-      overflow-x: auto;
-    }
-    [data-editor-theme="light"] .ev2-preview-content code {
-      padding: 2px 5px;
-      border-radius: 3px;
-      font-size: 0.9em;
-    }
-    [data-editor-theme="light"] .ev2-preview-content pre code {
-      padding: 0;
-      background: transparent !important;
-    }
-
-    /* Preview content spacing */
-    .ev2-preview-content .docs-body {
-      max-width: none;
-      padding: 0;
-    }
-    .ev2-preview-content .docs-body h1 { font-size: 1.8em; margin: 0.8em 0 0.4em; }
-    .ev2-preview-content .docs-body h2 { font-size: 1.4em; margin: 0.7em 0 0.35em; }
-    .ev2-preview-content .docs-body h3 { font-size: 1.15em; margin: 0.6em 0 0.3em; }
-    .ev2-preview-content .docs-body p { margin: 0.5em 0; line-height: 1.6; }
-    .ev2-preview-content .docs-body ul,
-    .ev2-preview-content .docs-body ol { margin: 0.5em 0; padding-left: 1.5em; }
-    .ev2-preview-content .docs-body li { margin: 0.25em 0; line-height: 1.6; }
-    .ev2-preview-content .docs-body pre { margin: 0.8em 0; }
-    .ev2-preview-content .docs-body table { margin: 0.8em 0; border-collapse: collapse; width: 100%; }
-    .ev2-preview-content .docs-body table th,
-    .ev2-preview-content .docs-body table td { padding: 6px 12px; border: 1px solid; text-align: left; }
-    .ev2-preview-content .docs-body blockquote { margin: 0.8em 0; padding: 0.5em 1em; }
-    .ev2-preview-content .docs-body hr { margin: 1.5em 0; border: none; border-top: 1px solid; }
-  `;
 }
 
 // ---- Close ----
