@@ -1,22 +1,59 @@
 /**
- * Editor V2 CSS — Obsidian-style layout
+ * Editor V2 CSS — Minimalistic, no tint
+ *
+ * Dark: pure black (#0a0a0a), white text
+ * Light: pure white (#ffffff), black text
+ * CSS custom properties for theme switching
  */
 
 export function getShellCSS(): string {
   return `
-    /* ---- Full-screen overlay ---- */
-    #editor-v2-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 999999;
-      display: flex;
-      flex-direction: column;
-      background: var(--color-bg-primary, #16161e);
-      color: var(--color-text-primary, #c0caf5);
-      font-family: system-ui, -apple-system, sans-serif;
-      isolation: isolate;
-      contain: layout style paint;
+    /* ---- Theme variables ---- */
+    [data-editor-theme="dark"] {
+      --ev-bg: #0a0a0a;
+      --ev-surface: #111111;
+      --ev-border: #222222;
+      --ev-text: #e0e0e0;
+      --ev-text-muted: #666666;
+      --ev-text-faint: #444444;
+      --ev-hover: rgba(255, 255, 255, 0.05);
+      --ev-active: rgba(255, 255, 255, 0.08);
+      --ev-accent: #e0e0e0;
+      --ev-scrollbar: #333333;
+      --ev-scrollbar-hover: #444444;
+      --ev-danger: #e55561;
+      --ev-success: #7ec699;
     }
+    [data-editor-theme="light"] {
+      --ev-bg: #ffffff;
+      --ev-surface: #fafafa;
+      --ev-border: #e5e5e5;
+      --ev-text: #1a1a1a;
+      --ev-text-muted: #999999;
+      --ev-text-faint: #cccccc;
+      --ev-hover: rgba(0, 0, 0, 0.03);
+      --ev-active: rgba(0, 0, 0, 0.06);
+      --ev-accent: #1a1a1a;
+      --ev-scrollbar: #cccccc;
+      --ev-scrollbar-hover: #aaaaaa;
+      --ev-danger: #d32f2f;
+      --ev-success: #2e7d32;
+    }
+
+    /* ---- Root ---- */
+    #editor-root {
+      background: var(--ev-bg);
+      color: var(--ev-text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- Global scrollbar ---- */
+    #editor-root ::-webkit-scrollbar { width: 6px; height: 6px; }
+    #editor-root ::-webkit-scrollbar-track { background: transparent; }
+    #editor-root ::-webkit-scrollbar-thumb { background: var(--ev-scrollbar); border-radius: 3px; }
+    #editor-root ::-webkit-scrollbar-thumb:hover { background: var(--ev-scrollbar-hover); }
 
     /* ---- Header ---- */
     .ev2-header {
@@ -24,48 +61,85 @@ export function getShellCSS(): string {
       align-items: center;
       gap: 8px;
       padding: 0 12px;
-      height: 40px;
-      min-height: 40px;
-      background: var(--color-bg-secondary, #1a1b26);
-      border-bottom: 1px solid var(--color-border-default, #292e42);
+      height: 36px;
+      min-height: 36px;
+      background: var(--ev-surface);
+      border-bottom: 1px solid var(--ev-border);
       flex-shrink: 0;
+      user-select: none;
     }
     .ev2-header-title {
       font-size: 12px;
       font-weight: 600;
-      color: var(--color-text-muted, #565f89);
-      margin-right: auto;
+      color: var(--ev-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .ev2-active-file {
+      font-size: 12px;
+      color: var(--ev-text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 300px;
     }
     .ev2-status {
       font-size: 11px;
-      padding: 2px 8px;
+      padding: 1px 6px;
       border-radius: 3px;
+      font-weight: 500;
     }
-    .ev2-status.saved { color: #9ece6a; }
-    .ev2-status.unsaved { color: #e0af68; }
-    .ev2-status.saving { color: #7aa2f7; }
+    .ev2-status.saved { color: var(--ev-success); }
+    .ev2-status.unsaved { color: #d4a017; }
+    .ev2-status.saving { color: var(--ev-text-muted); }
+
+    /* ---- Buttons ---- */
     .ev2-btn {
-      padding: 4px 10px;
-      border: 1px solid var(--color-border-default, #292e42);
-      border-radius: 4px;
+      padding: 3px 8px;
+      border: 1px solid var(--ev-border);
+      border-radius: 3px;
       background: transparent;
-      color: var(--color-text-primary, #c0caf5);
+      color: var(--ev-text-muted);
       font-size: 12px;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: all 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
     }
     .ev2-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: var(--ev-hover);
+      color: var(--ev-text);
+      border-color: var(--ev-text-faint);
     }
     .ev2-btn.primary {
-      background: rgba(99, 102, 241, 0.3);
-      border-color: rgba(99, 102, 241, 0.5);
+      color: var(--ev-text);
+      border-color: var(--ev-text-faint);
     }
     .ev2-btn.primary:hover {
-      background: rgba(99, 102, 241, 0.45);
+      background: var(--ev-active);
     }
+    .ev2-btn svg { width: 14px; height: 14px; }
+    .ev2-icon-btn {
+      background: none;
+      border: none;
+      color: var(--ev-text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+    }
+    .ev2-icon-btn:hover {
+      color: var(--ev-text);
+      background: var(--ev-hover);
+    }
+    .ev2-icon-btn svg { width: 16px; height: 16px; }
 
-    /* ---- Main body (sidebar + editor + preview) ---- */
+    /* ---- Main body ---- */
     .ev2-body {
       display: flex;
       flex: 1;
@@ -77,42 +151,36 @@ export function getShellCSS(): string {
       width: 240px;
       min-width: 180px;
       max-width: 400px;
-      background: var(--color-bg-secondary, #1a1b26);
-      border-right: 1px solid var(--color-border-default, #292e42);
+      background: var(--ev-surface);
+      border-right: 1px solid var(--ev-border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       flex-shrink: 0;
+      transition: width 0.15s;
+    }
+    .ev2-sidebar.collapsed {
+      width: 0;
+      min-width: 0;
+      border-right: none;
+      overflow: hidden;
     }
     .ev2-sidebar-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: 6px 12px;
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: var(--color-text-muted, #565f89);
-      border-bottom: 1px solid var(--color-border-default, #292e42);
+      color: var(--ev-text-muted);
+      border-bottom: 1px solid var(--ev-border);
+      flex-shrink: 0;
     }
     .ev2-sidebar-actions {
       display: flex;
-      gap: 4px;
-    }
-    .ev2-sidebar-actions button {
-      background: none;
-      border: none;
-      color: var(--color-text-muted, #565f89);
-      cursor: pointer;
-      padding: 2px;
-      border-radius: 3px;
-      font-size: 14px;
-      line-height: 1;
-    }
-    .ev2-sidebar-actions button:hover {
-      color: var(--color-text-primary, #c0caf5);
-      background: rgba(255, 255, 255, 0.08);
+      gap: 2px;
     }
     .ev2-tree-container {
       flex: 1;
@@ -126,47 +194,63 @@ export function getShellCSS(): string {
       list-style: none;
       margin: 0;
       padding: 0;
-      font-size: 13px;
     }
     .ev2-tree ul {
       list-style: none;
       margin: 0;
-      padding: 0 0 0 16px;
+      padding: 0 0 0 12px;
     }
     .ev2-tree-item {
       display: flex;
       align-items: center;
       gap: 4px;
-      padding: 3px 12px 3px 8px;
+      padding: 2px 12px 2px 6px;
       cursor: pointer;
       border-radius: 3px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-size: 13px;
+      color: var(--ev-text);
+      margin: 0 4px;
+      transition: background 0.1s;
     }
     .ev2-tree-item:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--ev-hover);
     }
     .ev2-tree-item.active {
-      background: rgba(99, 102, 241, 0.15);
-      color: #7aa2f7;
+      background: var(--ev-active);
     }
-    .ev2-tree-item .icon {
+    .ev2-tree-item .tree-icon {
       flex-shrink: 0;
-      width: 16px;
-      text-align: center;
-      font-size: 12px;
-      opacity: 0.6;
+      display: flex;
+      align-items: center;
+      color: var(--ev-text-muted);
     }
-    .ev2-tree-item .name {
+    .ev2-tree-item .tree-icon svg {
+      width: 15px;
+      height: 15px;
+    }
+    .ev2-tree-item .tree-chevron {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      color: var(--ev-text-faint);
+      transition: transform 0.1s;
+    }
+    .ev2-tree-item .tree-chevron svg {
+      width: 12px;
+      height: 12px;
+    }
+    .ev2-tree-item .tree-name {
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .ev2-tree-folder > .ev2-tree-item .icon {
-      transition: transform 0.15s;
+    .ev2-tree-folder.collapsed > .ev2-tree-item .tree-chevron {
+      transform: rotate(0deg);
     }
-    .ev2-tree-folder.collapsed > .ev2-tree-item .icon {
-      transform: rotate(-90deg);
+    .ev2-tree-folder:not(.collapsed) > .ev2-tree-item .tree-chevron {
+      transform: rotate(90deg);
     }
     .ev2-tree-folder.collapsed > ul {
       display: none;
@@ -174,7 +258,7 @@ export function getShellCSS(): string {
 
     /* ---- Resize handles ---- */
     .ev2-resize-handle {
-      width: 4px;
+      width: 3px;
       cursor: col-resize;
       background: transparent;
       flex-shrink: 0;
@@ -182,7 +266,7 @@ export function getShellCSS(): string {
     }
     .ev2-resize-handle:hover,
     .ev2-resize-handle.dragging {
-      background: rgba(99, 102, 241, 0.4);
+      background: var(--ev-text-faint);
     }
 
     /* ---- Editor pane ---- */
@@ -200,16 +284,24 @@ export function getShellCSS(): string {
     .ev2-editor-container .cm-editor {
       height: 100%;
     }
+    .ev2-editor-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--ev-text-faint);
+      font-size: 14px;
+    }
 
     /* ---- Preview pane ---- */
     .ev2-preview-pane {
-      width: 45%;
+      width: 40%;
       min-width: 250px;
-      max-width: 60%;
+      max-width: 55%;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      border-left: 1px solid var(--color-border-default, #292e42);
+      border-left: 1px solid var(--ev-border);
     }
     .ev2-preview-pane.collapsed {
       display: none;
@@ -217,88 +309,100 @@ export function getShellCSS(): string {
     .ev2-preview-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 4px 12px;
+      padding: 6px 12px;
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: var(--color-text-muted, #565f89);
-      background: var(--color-bg-secondary, #1a1b26);
-      border-bottom: 1px solid var(--color-border-default, #292e42);
+      color: var(--ev-text-muted);
+      background: var(--ev-surface);
+      border-bottom: 1px solid var(--ev-border);
       flex-shrink: 0;
     }
     .ev2-preview-content {
       flex: 1;
       overflow-y: auto;
       padding: 16px;
-      background: var(--color-bg-primary, #16161e);
+      background: var(--ev-bg);
     }
 
     /* ---- Context menu ---- */
     .ev2-context-menu {
       position: fixed;
-      z-index: 1000000;
-      background: var(--color-bg-secondary, #1a1b26);
-      border: 1px solid var(--color-border-default, #292e42);
-      border-radius: 6px;
+      z-index: 10000;
+      background: var(--ev-surface);
+      border: 1px solid var(--ev-border);
+      border-radius: 4px;
       padding: 4px 0;
-      min-width: 180px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      min-width: 160px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     }
     .ev2-context-menu-item {
-      padding: 6px 12px;
+      padding: 5px 12px;
       font-size: 13px;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 8px;
+      color: var(--ev-text);
     }
     .ev2-context-menu-item:hover {
-      background: rgba(99, 102, 241, 0.15);
+      background: var(--ev-hover);
     }
+    .ev2-context-menu-item svg { width: 14px; height: 14px; color: var(--ev-text-muted); }
     .ev2-context-menu-separator {
       height: 1px;
-      background: var(--color-border-default, #292e42);
+      background: var(--ev-border);
       margin: 4px 0;
     }
-    .ev2-context-menu-item.danger {
-      color: #f7768e;
-    }
+    .ev2-context-menu-item.danger { color: var(--ev-danger); }
+    .ev2-context-menu-item.danger svg { color: var(--ev-danger); }
 
     /* ---- Modal ---- */
     .ev2-modal-backdrop {
       position: fixed;
       inset: 0;
-      z-index: 1000001;
+      z-index: 10001;
       background: rgba(0,0,0,0.5);
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .ev2-modal {
-      background: var(--color-bg-secondary, #1a1b26);
-      border: 1px solid var(--color-border-default, #292e42);
-      border-radius: 8px;
+      background: var(--ev-surface);
+      border: 1px solid var(--ev-border);
+      border-radius: 6px;
       padding: 20px;
       min-width: 320px;
       max-width: 480px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
     .ev2-modal h3 {
       margin: 0 0 12px;
-      font-size: 15px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .ev2-modal label {
+      display: block;
+      font-size: 12px;
+      color: var(--ev-text-muted);
+      margin-bottom: 4px;
     }
     .ev2-modal input,
     .ev2-modal select {
       width: 100%;
-      padding: 6px 10px;
-      margin: 4px 0 12px;
-      background: var(--color-bg-primary, #16161e);
-      border: 1px solid var(--color-border-default, #292e42);
-      border-radius: 4px;
-      color: var(--color-text-primary, #c0caf5);
+      padding: 6px 8px;
+      margin-bottom: 12px;
+      background: var(--ev-bg);
+      border: 1px solid var(--ev-border);
+      border-radius: 3px;
+      color: var(--ev-text);
       font-size: 13px;
+      outline: none;
+    }
+    .ev2-modal input:focus,
+    .ev2-modal select:focus {
+      border-color: var(--ev-text-muted);
     }
     .ev2-modal-actions {
       display: flex;
@@ -307,22 +411,21 @@ export function getShellCSS(): string {
       margin-top: 16px;
     }
 
-    /* ---- Loading skeleton ---- */
+    /* ---- Skeleton loader ---- */
     .ev2-skeleton {
-      background: linear-gradient(90deg,
-        var(--color-bg-secondary, #1a1b26) 25%,
-        rgba(255,255,255,0.05) 50%,
-        var(--color-bg-secondary, #1a1b26) 75%
-      );
-      background-size: 200% 100%;
-      animation: ev2-shimmer 1.5s infinite;
+      background: var(--ev-border);
       border-radius: 3px;
-      height: 20px;
-      margin: 4px 12px;
+      height: 16px;
+      margin: 6px 12px;
+      opacity: 0.5;
     }
-    @keyframes ev2-shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+
+    /* ---- User badge ---- */
+    .ev2-user-badge {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-weight: 500;
     }
   `;
 }

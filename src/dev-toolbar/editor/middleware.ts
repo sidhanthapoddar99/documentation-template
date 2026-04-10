@@ -20,6 +20,109 @@ import type { YjsSync } from './yjs-sync';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import matter from 'gray-matter';
+
+interface FileTreeNode {
+  name: string;
+  displayName: string;
+  prefix: number | null;
+  path: string;
+  type: 'file' | 'folder';
+  extension: string;
+  children?: FileTreeNode[];
+  settings?: Record<string, any>;
+  frontmatter?: { title?: string; sidebar_label?: string };
+}
+
+function parsePrefix(name: string): { prefix: number | null; baseName: string } {
+  const match = name.match(/^(\d+)_(.+)$/);
+  if (match) return { prefix: parseInt(match[1], 10), baseName: match[2] };
+  return { prefix: null, baseName: name };
+}
+
+function cleanDisplayName(name: string): string {
+  const { baseName } = parsePrefix(name);
+  const withoutExt = baseName.replace(/\.[^.]+$/, '');
+  return withoutExt.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function buildFileTree(dirPath: string): FileTreeNode {
+  const dirName = path.basename(dirPath);
+  const { prefix } = parsePrefix(dirName);
+
+  // Read settings.json if present
+  let settings: Record<string, any> | undefined;
+  const settingsPath = path.join(dirPath, 'settings.json');
+  if (fs.existsSync(settingsPath)) {
+    try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8')); } catch {}
+  }
+
+  const displayName = settings?.label || cleanDisplayName(dirName);
+
+  const node: FileTreeNode = {
+    name: dirName,
+    displayName,
+    prefix,
+    path: dirPath,
+    type: 'folder',
+    extension: '',
+    settings,
+    children: [],
+  };
+
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  } catch {
+    return node;
+  }
+
+  for (const entry of entries) {
+    if (entry.name === 'settings.json' || entry.name.startsWith('.')) continue;
+
+    const fullPath = path.join(dirPath, entry.name);
+    const { prefix: childPrefix } = parsePrefix(entry.name);
+
+    if (entry.isDirectory()) {
+      node.children!.push(buildFileTree(fullPath));
+    } else {
+      const ext = path.extname(entry.name).toLowerCase();
+      let fm: { title?: string; sidebar_label?: string } | undefined;
+
+      // Read frontmatter from markdown files
+      if (ext === '.md' || ext === '.mdx') {
+        try {
+          const raw = fs.readFileSync(fullPath, 'utf-8');
+          const { data } = matter(raw);
+          if (data.title || data.sidebar_label) {
+            fm = { title: data.title, sidebar_label: data.sidebar_label };
+          }
+        } catch {}
+      }
+
+      node.children!.push({
+        name: entry.name,
+        displayName: fm?.sidebar_label || fm?.title || cleanDisplayName(entry.name),
+        prefix: childPrefix,
+        path: fullPath,
+        type: 'file',
+        extension: ext,
+        frontmatter: fm,
+      });
+    }
+  }
+
+  // Sort: folders first, then by prefix, then alphabetically
+  node.children!.sort((a, b) => {
+    if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
+    if (a.prefix !== null && b.prefix !== null) return a.prefix - b.prefix;
+    if (a.prefix !== null) return -1;
+    if (b.prefix !== null) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  return node;
+}
 
 /**
  * Parse JSON body from an incoming request
@@ -139,6 +242,23 @@ export function setupEditorMiddleware(
 
       // Do NOT call next() — keep connection open
       return;
+    }
+
+    // GET /__editor/tree?root=<contentDir> — file tree for content directory
+    if (url.startsWith('/__editor/tree') && req.method === 'GET') {
+      const parsedUrl = new URL(url, 'http://localhost');
+      const contentRoot = parsedUrl.searchParams.get('root');
+
+      if (!contentRoot) {
+        return sendJson(res, 400, { error: 'root query parameter is required' });
+      }
+
+      try {
+        const tree = buildFileTree(contentRoot);
+        return sendJson(res, 200, tree);
+      } catch (err: any) {
+        return sendJson(res, 500, { error: err.message || 'Failed to read directory' });
+      }
     }
 
     // GET /__editor/stats — room and document stats for debugging

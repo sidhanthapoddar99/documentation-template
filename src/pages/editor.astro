@@ -1,0 +1,93 @@
+---
+/**
+ * Editor V2 — Dedicated page at /editor?root=dev-docs
+ *
+ * Usage:
+ *   /editor?root=dev-docs      → editor scoped to dev-docs content
+ *   /editor?root=user-guide    → editor scoped to user-guide content
+ *   /editor?root=blog          → editor scoped to blog content
+ *
+ * The editor is a full-page client-side app (CodeMirror 6 + Yjs).
+ * No doc rendering pipeline runs — just the editor shell.
+ */
+
+import { loadSiteConfig } from '@loaders/index';
+
+const url = new URL(Astro.request.url);
+const rootParam = url.searchParams.get('root') || '';
+const siteConfig = loadSiteConfig();
+
+// Resolve the content root from the query param
+const pages = siteConfig.pages || {};
+let contentRoot = '';
+let contentRootKey = '';
+let returnUrl = '/';
+let pageTitle = 'Editor';
+
+for (const [pageName, pageConfig] of Object.entries(pages) as [string, any][]) {
+  const baseUrl = (pageConfig.base_url || '').replace(/^\//, '');
+  if (rootParam === baseUrl || rootParam === pageName) {
+    contentRoot = pageConfig.data;
+    contentRootKey = pageName;
+    returnUrl = `/${baseUrl}`;
+    pageTitle = `Editor — ${pageName}`;
+    break;
+  }
+}
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{pageTitle}</title>
+  <style is:global>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #16161e;
+      color: #c0caf5;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #editor-root {
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body>
+  <div id="editor-root"
+    data-content-root={contentRoot}
+    data-content-root-key={contentRootKey}
+    data-return-url={returnUrl}
+  >
+    <div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#565f89;">
+      Loading editor...
+    </div>
+  </div>
+
+  <script>
+    import { mountEditor } from '../dev-toolbar/editor-v2/editor-page';
+
+    const root = document.getElementById('editor-root')!;
+    const contentRoot = root.dataset.contentRoot || '';
+    const contentRootKey = root.dataset.contentRootKey || '';
+    const returnUrl = root.dataset.returnUrl || '/';
+
+    if (!contentRoot) {
+      root.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#f7768e;">
+        <div style="text-align:center">
+          <h2 style="margin-bottom:8px">No content root specified</h2>
+          <p style="color:#565f89">Use /editor?root=dev-docs or /editor?root=user-guide</p>
+          <a href="/" style="color:#7aa2f7;margin-top:16px;display:inline-block">Go home</a>
+        </div>
+      </div>`;
+    } else {
+      mountEditor(root, { contentRoot, contentRootKey, slug: '', returnUrl });
+    }
+  </script>
+</body>
+</html>

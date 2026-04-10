@@ -139,7 +139,7 @@ if (!pageType) {
   const slug = Astro.params.slug || '';
 
   // Skip internal routes (API endpoints)
-  if (slug.startsWith('api/') || slug === 'api' || slug.startsWith('_')) {
+  if (slug.startsWith('api/') || slug === 'api' || slug.startsWith('_') || slug === 'editor') {
     return new Response(null, { status: 404 });
   }
 
@@ -191,6 +191,11 @@ if (!pageType) {
       }
       break;
     }
+  }
+
+  // No matching page config found — return 404
+  if (!pageType) {
+    return new Response('Not Found', { status: 404 });
   }
 }
 
