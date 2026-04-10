@@ -7,8 +7,8 @@
 
 import type { EditorView } from '@codemirror/view';
 import type { SaveStatus, Identity } from './types.js';
-import { initPreviewPanel } from './layout/preview-panel.js';
 import { initResizeHandle } from './layout/resize-handles.js';
+import { initMenuBar, type ViewMode } from './layout/menubar.js';
 import { initYjsClientV2, type YjsV2Handle } from './sync/yjs-client-v2.js';
 import { getShellCSS } from './layout/shell-styles.js';
 import { icon, fileIcon } from './layout/icons.js';
@@ -79,20 +79,15 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
 
   // Build shell
   root.innerHTML = `
+    <div class="ev2-menubar-container" id="ev2-menubar-container"></div>
     <div class="ev2-header">
-      <button class="ev2-icon-btn" id="ev2-sidebar-toggle" title="Toggle Explorer">${icon('panel-left', 16)}</button>
+      <button class="ev2-icon-btn" id="ev2-sidebar-toggle" title="Toggle Sidebar">${icon('panel-left', 16)}</button>
       <span class="ev2-header-title">${opts.contentRootKey}</span>
       <span class="ev2-active-file" id="ev2-active-file"></span>
       <span style="flex:1"></span>
       <span class="ev2-status saved" id="ev2-status">Saved</span>
       <span class="ev2-user-badge" id="ev2-user-badge" style="background:${identity.color}15;color:${identity.color}">${identity.name}</span>
       <button class="ev2-icon-btn" id="ev2-theme-toggle" title="Toggle Theme">${icon(currentTheme === 'dark' ? 'sun' : 'moon', 16)}</button>
-      <div class="ev2-mode-switcher" id="ev2-mode-switcher">
-        <button class="ev2-mode-btn active" data-mode="source" title="Source mode">${icon('code', 14)}</button>
-        <button class="ev2-mode-btn" data-mode="split" title="Split view">${icon('panel-left', 14)}</button>
-        <button class="ev2-mode-btn" data-mode="preview" title="Preview">${icon('eye', 14)}</button>
-        <button class="ev2-mode-btn" data-mode="wysiwyg" title="WYSIWYG (coming soon)">${icon('heading', 14)}</button>
-      </div>
       <button class="ev2-btn primary" id="ev2-save-btn">${icon('save', 14)} Save</button>
       <button class="ev2-icon-btn" id="ev2-close-btn" title="Close">${icon('x', 16)}</button>
     </div>
@@ -148,7 +143,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   const editorContainer = root.querySelector('#ev2-editor-container') as HTMLDivElement;
   const previewPane = root.querySelector('#ev2-preview-pane') as HTMLDivElement;
   const previewContent = root.querySelector('#ev2-preview-content') as HTMLElement;
-  const modeSwitcher = root.querySelector('#ev2-mode-switcher') as HTMLDivElement;
+  const menubarContainer = root.querySelector('#ev2-menubar-container') as HTMLDivElement;
   const editorPane = root.querySelector('.ev2-editor-pane') as HTMLDivElement;
   const wysiwygPane = root.querySelector('#ev2-wysiwyg-pane') as HTMLDivElement;
   const statusEl = root.querySelector('#ev2-status') as HTMLSpanElement;
@@ -161,7 +156,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   const previewResizeHandle = root.querySelector('#ev2-preview-resize') as HTMLDivElement;
   const treeContainer = root.querySelector('#ev2-tree-container') as HTMLDivElement;
 
-  // ---- Preview (controlled by mode switcher, not a toggle button) ----
+  // ---- Preview content handler ----
   let lastPreviewHtml = '';
   const preview = {
     setContent(html: string) {
@@ -172,25 +167,13 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
       previewContent.scrollTop = scrollTop;
       document.dispatchEvent(new CustomEvent('diagrams:render'));
     },
-    toggle() { setViewMode(currentMode === 'split' ? 'source' : 'split'); },
-    isCollapsed() { return currentMode === 'source' || currentMode === 'wysiwyg'; },
+    toggle() { menubar.setViewMode(menubar.getViewMode() === 'split' ? 'source' : 'split'); },
+    isCollapsed() { return menubar.getViewMode() === 'source' || menubar.getViewMode() === 'wysiwyg'; },
     cleanup() {},
   };
 
-  // ---- View mode switcher ----
-  type ViewMode = 'source' | 'split' | 'preview' | 'wysiwyg';
-  let currentMode: ViewMode = (localStorage.getItem('ev2-view-mode') as ViewMode) || 'source';
-
-  function setViewMode(mode: ViewMode) {
-    currentMode = mode;
-    localStorage.setItem('ev2-view-mode', mode);
-
-    // Update button states
-    modeSwitcher.querySelectorAll('.ev2-mode-btn').forEach(btn => {
-      btn.classList.toggle('active', (btn as HTMLElement).dataset.mode === mode);
-    });
-
-    // Show/hide panes
+  // ---- View mode logic ----
+  function applyViewMode(mode: ViewMode) {
     const showEditor = mode === 'source' || mode === 'split';
     const showPreview = mode === 'preview' || mode === 'split';
     const showWysiwyg = mode === 'wysiwyg';
@@ -200,7 +183,6 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     previewResizeHandle.style.display = (mode === 'split') ? 'block' : 'none';
     wysiwygPane.style.display = showWysiwyg ? 'flex' : 'none';
 
-    // In preview-only mode, preview takes full width
     if (mode === 'preview') {
       previewPane.style.width = '100%';
       previewPane.style.maxWidth = '100%';
@@ -212,16 +194,30 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     }
   }
 
-  // Wire up mode buttons
-  modeSwitcher.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement).closest('.ev2-mode-btn') as HTMLElement;
-    if (!btn) return;
-    const mode = btn.dataset.mode as ViewMode;
-    if (mode) setViewMode(mode);
+  // ---- Menu bar ----
+  const menubar = initMenuBar(menubarContainer, {
+    onSave: () => activeYjs?.save(),
+    onClose: () => {
+      closeCurrentFile();
+      for (const fn of cleanupFns) fn();
+      cleanupFns = [];
+      window.location.href = opts.returnUrl;
+    },
+    onNewFile: () => { /* TODO: new file dialog */ },
+    onViewModeChange: applyViewMode,
+    onToggleSidebar: () => {
+      sidebar.classList.toggle('collapsed');
+      localStorage.setItem('ev2-sidebar-collapsed', String(sidebar.classList.contains('collapsed')));
+    },
+    onToggleTheme: toggleTheme,
+    onUndo: () => { /* CM6 handles Ctrl+Z natively */ },
+    onRedo: () => { /* CM6 handles Ctrl+Y natively */ },
+    onFind: () => { /* CM6 handles Ctrl+F natively */ },
   });
+  cleanupFns.push(menubar.cleanup);
 
-  // Apply saved mode
-  setViewMode(currentMode);
+  // Apply saved view mode
+  applyViewMode(menubar.getViewMode());
 
   // ---- Resize handles ----
   const sr = initResizeHandle(sidebarResizeHandle, sidebar, 'left', 'ev2-sidebar-width');
@@ -243,17 +239,17 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   });
 
   // ---- Theme toggle ----
-  themeToggle.addEventListener('click', () => {
+  function toggleTheme() {
     currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-editor-theme', currentTheme);
     localStorage.setItem('ev2-theme', currentTheme);
     themeToggle.innerHTML = icon(currentTheme === 'dark' ? 'sun' : 'moon', 16);
-    // Recreate CM6 view with new theme if a file is open
     if (activeFilePath && activeYjs) {
       const fp = activeFilePath;
       openFile(fp, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent);
     }
-  });
+  }
+  themeToggle.addEventListener('click', toggleTheme);
 
   // ---- File tree ----
   let treeData: any = null;

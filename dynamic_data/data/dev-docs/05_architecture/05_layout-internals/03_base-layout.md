@@ -16,7 +16,7 @@ sidebar_position: 3
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      BaseLayout.astro                        │
+│                      BaseLayout.astro                       │
 │                                                             │
 │   <html>                                                    │
 │     <head>                                                  │

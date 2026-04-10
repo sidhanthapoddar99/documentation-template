@@ -45,8 +45,101 @@ export function getShellCSS(): string {
       background: var(--ev-bg);
       color: var(--ev-text);
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
-      font-size: 13px;
+      font-size: 14px;
       -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- Menu bar ---- */
+    .ev2-menubar-container {
+      flex-shrink: 0;
+    }
+    .ev2-menubar {
+      display: flex;
+      align-items: center;
+      height: 28px;
+      background: var(--ev-surface);
+      border-bottom: 1px solid var(--ev-border);
+      padding: 0 4px;
+      user-select: none;
+    }
+    .ev2-menu {
+      position: relative;
+    }
+    .ev2-menu-trigger {
+      background: none;
+      border: none;
+      color: var(--ev-text-muted);
+      font-size: 13px;
+      padding: 4px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.1s;
+    }
+    .ev2-menu-trigger:hover,
+    .ev2-menu.open .ev2-menu-trigger {
+      color: var(--ev-text);
+      background: var(--ev-hover);
+    }
+    .ev2-menu-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      min-width: 200px;
+      background: var(--ev-surface);
+      border: 1px solid var(--ev-border);
+      border-radius: 4px;
+      padding: 4px 0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      z-index: 10000;
+    }
+    .ev2-menu.open .ev2-menu-dropdown {
+      display: block;
+    }
+    .ev2-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--ev-text);
+      transition: background 0.1s;
+    }
+    .ev2-menu-item:hover {
+      background: var(--ev-hover);
+    }
+    .ev2-menu-item.disabled {
+      color: var(--ev-text-faint);
+      cursor: default;
+    }
+    .ev2-menu-item.disabled:hover {
+      background: transparent;
+    }
+    .ev2-menu-item svg {
+      width: 14px;
+      height: 14px;
+      color: var(--ev-text-muted);
+      flex-shrink: 0;
+    }
+    .ev2-menu-item span:first-of-type {
+      flex: 1;
+    }
+    .ev2-shortcut {
+      font-size: 11px;
+      color: var(--ev-text-faint);
+      margin-left: auto;
+    }
+    .ev2-check {
+      font-size: 12px;
+      width: 14px;
+      text-align: center;
+      color: var(--ev-success);
+    }
+    .ev2-menu-separator {
+      height: 1px;
+      background: var(--ev-border);
+      margin: 4px 0;
     }
 
     /* ---- Global scrollbar ---- */
@@ -61,22 +154,22 @@ export function getShellCSS(): string {
       align-items: center;
       gap: 8px;
       padding: 0 12px;
-      height: 36px;
-      min-height: 36px;
+      height: 38px;
+      min-height: 38px;
       background: var(--ev-surface);
       border-bottom: 1px solid var(--ev-border);
       flex-shrink: 0;
       user-select: none;
     }
     .ev2-header-title {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--ev-text-muted);
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
     .ev2-active-file {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--ev-text-muted);
       overflow: hidden;
       text-overflow: ellipsis;
@@ -84,7 +177,7 @@ export function getShellCSS(): string {
       max-width: 300px;
     }
     .ev2-status {
-      font-size: 11px;
+      font-size: 12px;
       padding: 1px 6px;
       border-radius: 3px;
       font-weight: 500;
@@ -95,12 +188,12 @@ export function getShellCSS(): string {
 
     /* ---- Buttons ---- */
     .ev2-btn {
-      padding: 3px 8px;
+      padding: 4px 10px;
       border: 1px solid var(--ev-border);
       border-radius: 3px;
       background: transparent;
       color: var(--ev-text-muted);
-      font-size: 12px;
+      font-size: 13px;
       cursor: pointer;
       transition: all 0.1s;
       display: flex;
@@ -173,8 +266,8 @@ export function getShellCSS(): string {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px 12px;
-      font-size: 11px;
+      padding: 8px 12px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -282,35 +375,6 @@ export function getShellCSS(): string {
       background: var(--ev-text-faint);
     }
 
-    /* ---- Mode switcher ---- */
-    .ev2-mode-switcher {
-      display: flex;
-      gap: 1px;
-      background: var(--ev-border);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .ev2-mode-btn {
-      background: var(--ev-surface);
-      border: none;
-      color: var(--ev-text-muted);
-      cursor: pointer;
-      padding: 3px 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.1s;
-    }
-    .ev2-mode-btn:hover {
-      color: var(--ev-text);
-      background: var(--ev-hover);
-    }
-    .ev2-mode-btn.active {
-      color: var(--ev-text);
-      background: var(--ev-bg);
-    }
-    .ev2-mode-btn svg { width: 14px; height: 14px; }
-
     /* ---- Editor pane ---- */
     .ev2-editor-pane {
       flex: 1;
@@ -351,8 +415,8 @@ export function getShellCSS(): string {
     .ev2-preview-header {
       display: flex;
       align-items: center;
-      padding: 6px 12px;
-      font-size: 11px;
+      padding: 8px 12px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
