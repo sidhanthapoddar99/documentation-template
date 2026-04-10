@@ -28,6 +28,8 @@ function createTreeNode(node: any, callbacks: FileTreeCallbacks): HTMLLIElement 
     li.className = 'ev2-tree-folder';
     const item = document.createElement('div');
     item.className = 'ev2-tree-item';
+    item.dataset.path = node.path;
+    item.dataset.type = 'folder';
     item.innerHTML = `<span class="tree-chevron"></span><span class="tree-name">${node.displayName || node.name}</span>`;
     item.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -46,6 +48,7 @@ function createTreeNode(node: any, callbacks: FileTreeCallbacks): HTMLLIElement 
     const item = document.createElement('div');
     item.className = 'ev2-tree-item';
     item.dataset.path = node.path;
+    item.dataset.type = 'file';
     const displayName = node.frontmatter?.sidebar_label || node.frontmatter?.title || node.displayName || node.name;
     const ext = node.extension || '';
     const showExt = ext && ext !== '.md' && ext !== '.mdx';

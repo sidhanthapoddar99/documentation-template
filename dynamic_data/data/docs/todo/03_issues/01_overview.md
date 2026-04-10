@@ -12,9 +12,32 @@ sidebar_label: Status
   - [x] Line numbers
   - [x] Word wrap toggle
   - [x] Source mode (color only, no bold/size)
-- [ ] Formatting toolbar (source mode)
-  - [ ] Bold, italic, link, code, list, quote, table buttons
-  - [ ] Heading level picker
+- [x] <span style="color: #f0c674">Formatting toolbar (source + live preview)</span>
+  - [x] Bold, italic, strikethrough, link, code, list, quote, table, HR buttons
+  - [x] Heading level picker (H1-H6 dropdown)
+  - [x] Keyboard shortcuts (Ctrl+B bold, Ctrl+I italic, Ctrl+K link, Ctrl+E code)
+  - [ ] <span style="color: #f0c674">Test toolbar in live preview mode</span>
+- [x] <span style="color: #f0c674">Live Preview mode (Obsidian-style)</span>
+  - [x] CM6 StateField decorations — hide syntax, render styled content
+  - [x] Cursor on line reveals raw markdown for editing
+  - [x] Headings with proper sizing (H1 1.8em → H6 0.9em)
+  - [x] Bold, italic, strikethrough, inline code — hide markers when unfocused
+  - [x] Links — show link text only, hide [](url) when unfocused
+  - [x] Blockquotes — left border, hide > markers
+  - [x] Code blocks — background styling, hide fences when unfocused
+  - [x] Tables — header/row styling, hide separator row
+  - [x] Horizontal rules — widget replacement
+  - [x] Frontmatter — Properties widget (Obsidian-style key-value display)
+  - [x] Task checkboxes — widget replacement for [ ] and [x]
+  - [x] Lists — bullet styling
+  - [ ] <span style="color: #f0c674">Polish: refine table rendering, test edge cases</span>
+- [ ] Client-side markdown rendering — [see design doc](./client-side-rendering)
+  - [ ] Move markdown→HTML rendering from server to browser
+  - [ ] Bundle unified/remark/rehype for client (or use marked)
+  - [ ] Instant preview updates (no network round-trip, no render timer)
+  - [ ] Live Preview widgets use same renderer for code blocks, tables
+  - [ ] Remove server-side MSG_RENDER / MSG_RENDER_REQ from Yjs protocol
+  - [ ] Server only handles: file I/O, Yjs text sync, save/open/close
 - [ ] Slash commands
   - [ ] /callout, /table, /code, /image, /link
   - [ ] Autocomplete popup in CM6
@@ -22,7 +45,6 @@ sidebar_label: Status
   - [ ] Autocomplete file picker on [[
   - [ ] Resolve to actual page URLs
 - [ ] Auto-save timer
-- [ ] Keyboard shortcuts (Ctrl+B bold, etc.)
 - [ ] Tab bar for multiple open files
 - [ ] Embedding support
   - [ ] Embed other docs inline via ![[filename]]
@@ -31,7 +53,7 @@ sidebar_label: Status
 - [ ] Split screen View or rather diff layouts for docs (opening multiple docs at a time)
 - [ ] Drag and drop file upload into editor
 - [ ] doc tabs with close buttons and drag to reorder
-- [ ] Live Staus
+- [ ] Live Status
 - [ ] Sidebar primary providing options
 - [ ] View only mode | Edit mode lock
 - [ ] Secondary sidebar 
@@ -51,6 +73,9 @@ sidebar_label: Status
   - [x] Textarea readonly until sync completes
   - [x] Room idle eviction (30min, 0 connections)
   - [x] Stats endpoint (/__editor/stats)
+- [x] Theme toggle hot-swap (no editor destroy — prevents content duplication)
+- [x] Room connection-aware close (only destroy room when no other users connected)
+- [ ] Client-side rendering (move markdown→HTML rendering to browser, server only syncs text)
 - [ ] Live users display
   - [ ] Show active users in menubar with avatars/colors
   - [ ] Goto user cursor position on click
@@ -69,13 +94,13 @@ sidebar_label: Status
   - [x] No icons, clean layout
   - [x] Auto-open from session / referrer
   - [x] Session persistence (survives HMR)
-- [ ] Right-click context menu
-- [ ] New file creator dialog
-  - [ ] Auto XX_ prefix assignment
-  - [ ] Frontmatter template
-- [ ] New folder creator
-- [ ] Rename file / folder
-- [ ] Delete file / folder
+- [ ] <span style="color: #e55561"> Right-click context menu</span> — <span style="color: #e55561">built, needs testing</span>
+- [ ] <span style="color: #e55561">New file creator dialog</span>
+  - [ ] <span style="color: #e55561">Auto XX_ prefix assignment</span>
+  - [ ] <span style="color: #e55561">Frontmatter template</span>
+- [ ] <span style="color: #e55561">New folder creator</span>
+- [ ] <span style="color: #e55561">Rename file / folder</span>
+- [ ] <span style="color: #e55561">Delete file / folder</span>
 - [ ] settings.json form editor per folder
 - [ ] Frontmatter form editor per file
 
@@ -83,12 +108,11 @@ sidebar_label: Status
 
 - [x] Menu bar (File / Edit / View)
   - [x] Right-side status (save, user, theme, close)
-  - [x] View modes: Source, Split, Preview
+  - [x] View modes: Source, Split, Preview, Live Preview
   - [x] Split vertical / horizontal
-  - [x] WYSIWYG placeholder
 - [x] Floating sidebar toggle
 - [x] Resize handles (sidebar, preview)
-- [x] Dark / light theme toggle
+- [x] Dark / light theme toggle (hot-swap, no destroy)
 - [x] CSS moved to .css files
 - [x] Scroll sync editor <-> preview
 - [x] Close navigates to last edited file URL
@@ -122,12 +146,13 @@ sidebar_label: Status
   - [ ] .excalidraw file editing
   - [ ] Inline diagram editor
 
-## WYSIWYG
+## WYSIWYG (Future)
 
-- [ ] Real WYSIWYG mode (not placeholder)
-  - [ ] Rich text editing with CM6 or ProseMirror
-  - [ ] Inline formatting (bold, italic visible)
+- [ ] Real WYSIWYG mode — planned for future
+  - [ ] Rich text editing with ProseMirror or similar
+  - [ ] Inline formatting (bold, italic visible, no markdown syntax)
   - [ ] Block-level elements (headings, lists, tables)
+  - [ ] Currently greyed out in View menu as "Coming Soon"
 
 ## Canvas Rendering
 
@@ -224,6 +249,8 @@ sidebar_label: Status
 - [x] Sidebar collapse not working (inline style override)
 - [x] Dark mode table alternate row coloring
 - [x] Code blocks all green (missing codeLanguages)
+- [x] Theme toggle destroyed editor + Yjs room (caused content duplication in multi-user)
+- [x] Room destroyed on close even with other users connected
 
 ---
 

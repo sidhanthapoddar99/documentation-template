@@ -13,10 +13,15 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { autocompletion } from '@codemirror/autocomplete';
 import { search, searchKeymap } from '@codemirror/search';
+import { formattingKeymap } from './formatting-commands.js';
+import { livePreviewCompartment } from '../live-preview/index.js';
+
+export { livePreviewCompartment } from '../live-preview/index.js';
 
 export const readOnlyCompartment = new Compartment();
 export const languageCompartment = new Compartment();
 export const lineWrappingCompartment = new Compartment();
+export const themeCompartment = new Compartment();
 
 export interface EditorSetupOptions {
   onSave: () => void;
@@ -25,6 +30,9 @@ export interface EditorSetupOptions {
   initialDoc?: string;
   readOnly?: boolean;
   wordWrap?: boolean;
+  /** Theme extensions (inside themeCompartment — hot-swappable) */
+  themeExtensions?: Extension[];
+  /** Other extensions (Yjs, etc. — static) */
   extensions?: Extension[];
 }
 
@@ -55,6 +63,7 @@ export function createEditorView(opts: EditorSetupOptions): EditorView {
       ...defaultKeymap,
       ...historyKeymap,
       ...searchKeymap,
+      ...formattingKeymap(),
       indentWithTab,
       { key: 'Mod-s', run: () => { opts.onSave(); return true; } },
       { key: 'Escape', run: () => { opts.onClose(); return true; } },
@@ -63,7 +72,13 @@ export function createEditorView(opts: EditorSetupOptions): EditorView {
     // ReadOnly (toggled after Yjs sync)
     readOnlyCompartment.of(EditorState.readOnly.of(opts.readOnly ?? true)),
 
-    // Theme + Yjs + other extensions from caller
+    // Live Preview decorations (toggled via compartment)
+    livePreviewCompartment.of([]),
+
+    // Theme (hot-swappable via themeCompartment — no editor destroy needed)
+    themeCompartment.of(opts.themeExtensions ?? []),
+
+    // Yjs + other static extensions from caller
     ...(opts.extensions ?? []),
   ];
 

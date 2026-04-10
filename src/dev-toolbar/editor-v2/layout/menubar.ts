@@ -7,7 +7,7 @@
 import { icon } from './icons.js';
 import type { Disposable } from '../types.js';
 
-export type ViewMode = 'source' | 'split' | 'preview' | 'wysiwyg';
+export type ViewMode = 'source' | 'split' | 'preview' | 'live-preview';
 export type SplitDirection = 'vertical' | 'horizontal';
 
 export interface MenuBarHandle extends Disposable {
@@ -67,6 +67,7 @@ export function initMenuBar(
           <div class="ev2-menu-item" data-action="mode-source">${icon('code', 14)}<span>Source</span><span class="ev2-check" id="ev2-check-source"></span></div>
           <div class="ev2-menu-item" data-action="mode-split">${icon('columns', 14)}<span>Split</span><span class="ev2-check" id="ev2-check-split"></span></div>
           <div class="ev2-menu-item" data-action="mode-preview">${icon('eye', 14)}<span>Preview</span><span class="ev2-check" id="ev2-check-preview"></span></div>
+          <div class="ev2-menu-item" data-action="mode-live-preview">${icon('eye', 14)}<span>Live Preview</span><span class="ev2-check" id="ev2-check-live-preview"></span></div>
           <div class="ev2-menu-item disabled" data-action="mode-wysiwyg">${icon('heading', 14)}<span>WYSIWYG</span><span class="ev2-shortcut">Soon</span></div>
           <div class="ev2-menu-separator"></div>
           <div class="ev2-menu-item" data-action="split-vertical">${icon('columns', 14)}<span>Split Vertical</span><span class="ev2-check" id="ev2-check-split-v"></span></div>
@@ -74,7 +75,7 @@ export function initMenuBar(
           <div class="ev2-menu-separator"></div>
           <div class="ev2-menu-item" data-action="toggle-wrap">${icon('wrap-text', 14)}<span>Word Wrap</span><span class="ev2-check" id="ev2-check-wrap"></span></div>
           <div class="ev2-menu-separator"></div>
-          <div class="ev2-menu-item" data-action="toggle-sidebar">${icon('panel-left', 14)}<span>Toggle Sidebar</span><span class="ev2-shortcut">Ctrl+B</span></div>
+          <div class="ev2-menu-item" data-action="toggle-sidebar">${icon('panel-left', 14)}<span>Toggle Sidebar</span><span class="ev2-shortcut">Ctrl+\\</span></div>
           <div class="ev2-menu-separator"></div>
           <div class="ev2-menu-item" data-action="toggle-theme">${icon('sun', 14)}<span>Toggle Theme</span></div>
         </div>
@@ -85,7 +86,7 @@ export function initMenuBar(
   `;
 
   function updateChecks() {
-    const modes: ViewMode[] = ['source', 'split', 'preview'];
+    const modes: ViewMode[] = ['source', 'split', 'preview', 'live-preview'];
     for (const m of modes) {
       const el = container.querySelector(`#ev2-check-${m}`);
       if (el) el.textContent = currentMode === m ? '✓' : '';
@@ -153,7 +154,7 @@ export function initMenuBar(
         case 'mode-source': setViewMode('source'); break;
         case 'mode-split': setViewMode('split'); break;
         case 'mode-preview': setViewMode('preview'); break;
-        case 'mode-wysiwyg': setViewMode('wysiwyg'); break;
+        case 'mode-live-preview': setViewMode('live-preview'); break;
       }
     }
   });

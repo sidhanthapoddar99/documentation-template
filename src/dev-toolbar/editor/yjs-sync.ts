@@ -151,7 +151,16 @@ export class YjsSync {
   }
 
   /**
-   * Destroy a Yjs room when no more connections are open.
+   * Get the number of active connections to a room.
+   */
+  getConnectionCount(filePath: string): number {
+    const room = this.rooms.get(filePath);
+    if (!room) return 0;
+    return room.conns.size;
+  }
+
+  /**
+   * Destroy a Yjs room — closes all connections and removes the room.
    */
   destroyRoom(filePath: string): void {
     const room = this.rooms.get(filePath);

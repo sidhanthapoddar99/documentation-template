@@ -12,10 +12,15 @@ import { initMenuBar, type ViewMode, type SplitDirection } from './layout/menuba
 import { initYjsClientV2, type YjsV2Handle } from './sync/yjs-client-v2.js';
 import { renderFileTree, highlightTreeItem, findFileByUrlPath, filePathToUrl } from './file-tree/file-tree.js';
 import { icon } from './layout/icons.js';
+import { initFormattingToolbar } from './layout/formatting-toolbar.js';
+import { initContextMenu } from './file-tree/context-menu.js';
+import { createFile, createFolder, renameItem, deleteItem } from './file-tree/file-crud.js';
+import { showNewFileDialog, showNewFolderDialog, showRenameDialog, showDeleteDialog } from './file-tree/file-dialogs.js';
 
 // CSS — Vite injects these as <style> tags
 import './styles/editor.css';
 import './styles/preview.css';
+import './styles/toolbar.css';
 
 // ---- Identity ----
 
@@ -39,6 +44,8 @@ let activeView: EditorView | null = null;
 let activeYjs: YjsV2Handle | null = null;
 let activeFilePath: string | null = null;
 let cleanupFns: (() => void)[] = [];
+let activeToolbar: { setEditorView(v: EditorView | null): void } | null = null;
+let activeViewMode: string = 'source';
 
 export interface MountOptions {
   contentRoot: string;
@@ -94,6 +101,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
 
       <div class="ev2-split-area" id="ev2-split-area">
         <div class="ev2-editor-pane">
+          <div class="ev2-toolbar-container" id="ev2-toolbar-container"></div>
           <div class="ev2-editor-container" id="ev2-editor-container">
             <div class="ev2-editor-empty">Select a file from the explorer</div>
           </div>
@@ -108,16 +116,6 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
           </div>
         </div>
 
-        <div class="ev2-wysiwyg-pane" id="ev2-wysiwyg-pane" style="display:none">
-          <div class="ev2-wysiwyg-placeholder">
-            <div style="text-align:center;padding:48px 24px;">
-              <div style="font-size:32px;margin-bottom:12px;opacity:0.3">${icon('heading', 32)}</div>
-              <div style="font-size:15px;font-weight:500;margin-bottom:6px;color:var(--ev-text)">WYSIWYG Mode</div>
-              <div style="font-size:13px;color:var(--ev-text-muted)">Rich text editing coming soon.</div>
-              <div style="font-size:12px;color:var(--ev-text-faint);margin-top:4px">Use Source or Preview mode for now.</div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   `;
@@ -128,8 +126,8 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   const previewPane = root.querySelector('#ev2-preview-pane') as HTMLDivElement;
   const previewContent = root.querySelector('#ev2-preview-content') as HTMLElement;
   const menubarContainer = root.querySelector('#ev2-menubar-container') as HTMLDivElement;
+  const toolbarContainer = root.querySelector('#ev2-toolbar-container') as HTMLDivElement;
   const editorPane = root.querySelector('.ev2-editor-pane') as HTMLDivElement;
-  const wysiwygPane = root.querySelector('#ev2-wysiwyg-pane') as HTMLDivElement;
   const sidebarToggle = root.querySelector('#ev2-sidebar-toggle') as HTMLButtonElement;
   const sidebarResizeHandle = root.querySelector('#ev2-sidebar-resize') as HTMLDivElement;
   const previewResizeHandle = root.querySelector('#ev2-preview-resize') as HTMLDivElement;
@@ -157,16 +155,20 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     splitArea.classList.toggle('horizontal', dir === 'horizontal');
   }
 
+  // ---- Formatting toolbar ----
+  const toolbar = initFormattingToolbar(toolbarContainer);
+  activeToolbar = toolbar;
+  cleanupFns.push(toolbar.cleanup);
+
   // ---- View mode ----
-  function applyViewMode(mode: ViewMode) {
-    const showEditor = mode === 'source' || mode === 'split';
+  async function applyViewMode(mode: ViewMode) {
+    activeViewMode = mode;
+    const showEditor = mode === 'source' || mode === 'split' || mode === 'live-preview';
     const showPreview = mode === 'preview' || mode === 'split';
-    const showWysiwyg = mode === 'wysiwyg';
 
     editorPane.style.display = showEditor ? 'flex' : 'none';
     previewPane.style.display = showPreview ? 'flex' : 'none';
     previewResizeHandle.style.display = (mode === 'split') ? 'block' : 'none';
-    wysiwygPane.style.display = showWysiwyg ? 'flex' : 'none';
 
     if (mode === 'preview') {
       previewPane.style.width = '';
@@ -186,6 +188,21 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
       previewPane.style.borderLeft = '';
       previewPane.style.borderTop = '';
     }
+
+    // Toggle Live Preview decorations
+    if (activeView) {
+      const { livePreviewCompartment } = await import('./core/codemirror-setup.js');
+      if (mode === 'live-preview') {
+        const { livePreviewExtension } = await import('./live-preview/index.js');
+        activeView.dispatch({
+          effects: livePreviewCompartment.reconfigure(livePreviewExtension(currentTheme)),
+        });
+      } else {
+        activeView.dispatch({
+          effects: livePreviewCompartment.reconfigure([]),
+        });
+      }
+    }
   }
 
   // ---- Word wrap ----
@@ -200,13 +217,19 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   }
 
   // ---- Theme toggle ----
-  function toggleTheme() {
+  async function toggleTheme() {
     currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-editor-theme', currentTheme);
     localStorage.setItem('ev2-theme', currentTheme);
     themeToggle.innerHTML = icon(currentTheme === 'dark' ? 'sun' : 'moon', 16);
-    if (activeFilePath && activeYjs) {
-      openFile(activeFilePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
+
+    // Hot-swap theme via compartment — no editor destroy/recreate
+    if (activeView) {
+      const { themeCompartment } = await import('./core/codemirror-setup.js');
+      const { darkTheme, lightTheme } = await import('./core/editor-theme.js');
+      activeView.dispatch({
+        effects: themeCompartment.reconfigure(currentTheme === 'dark' ? darkTheme() : lightTheme()),
+      });
     }
   }
 
@@ -223,7 +246,18 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
       cleanupFns = [];
       window.location.href = returnTo;
     },
-    onNewFile: () => { /* TODO: new file dialog */ },
+    onNewFile: () => {
+      showNewFileDialog(async (name) => {
+        try {
+          const result = await createFile(opts.contentRoot, name);
+          await refreshTree();
+          openFile(result.filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
+          highlightTreeItem(treeContainer, result.filePath);
+        } catch (err: any) {
+          console.error('[editor-v2] Create file failed:', err);
+        }
+      });
+    },
     onViewModeChange: applyViewMode,
     onToggleSidebar: () => {
       sidebar.classList.toggle('collapsed');
@@ -284,6 +318,25 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
 
   // ---- File tree ----
   let treeData: any = null;
+
+  async function refreshTree() {
+    try {
+      const res = await fetch(`/__editor/tree?root=${encodeURIComponent(opts.contentRoot)}`);
+      if (res.ok) {
+        treeData = await res.json();
+        renderFileTree(treeContainer, treeData, {
+          onSelect: (filePath: string) => {
+            openFile(filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
+          },
+        });
+        // Re-highlight active file if still exists
+        if (activeFilePath) highlightTreeItem(treeContainer, activeFilePath);
+      }
+    } catch (err) {
+      console.error('[editor-v2] Tree refresh failed:', err);
+    }
+  }
+
   try {
     const res = await fetch(`/__editor/tree?root=${encodeURIComponent(opts.contentRoot)}`);
     if (res.ok) {
@@ -300,6 +353,69 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     console.error('[editor-v2] Tree load failed:', err);
     treeContainer.innerHTML = `<div style="padding:12px;color:var(--ev-danger);font-size:12px">Failed to load tree</div>`;
   }
+
+  // ---- Context menu + CRUD ----
+  const ctxMenu = initContextMenu(treeContainer, opts.contentRoot, {
+    onNewFile: (parentDir) => {
+      showNewFileDialog(async (name) => {
+        try {
+          const result = await createFile(parentDir, name);
+          await refreshTree();
+          // Open the newly created file
+          openFile(result.filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent, menubar.getWordWrap());
+          highlightTreeItem(treeContainer, result.filePath);
+        } catch (err: any) {
+          console.error('[editor-v2] Create file failed:', err);
+        }
+      });
+    },
+    onNewFolder: (parentDir) => {
+      showNewFolderDialog(async (name) => {
+        try {
+          await createFolder(parentDir, name);
+          await refreshTree();
+        } catch (err: any) {
+          console.error('[editor-v2] Create folder failed:', err);
+        }
+      });
+    },
+    onRename: (itemPath, itemName, _isDir) => {
+      showRenameDialog(itemName, async (newName) => {
+        try {
+          const result = await renameItem(itemPath, newName);
+          // If the renamed file was active, update state
+          if (activeFilePath === itemPath) {
+            activeFilePath = result.newPath;
+            sessionStorage.setItem('ev2-open-file', result.newPath);
+            const shortName = result.newPath.split('/').slice(-2).join('/');
+            activeFileEl.textContent = shortName;
+          }
+          await refreshTree();
+          if (activeFilePath) highlightTreeItem(treeContainer, activeFilePath);
+        } catch (err: any) {
+          console.error('[editor-v2] Rename failed:', err);
+        }
+      });
+    },
+    onDelete: (itemPath, itemName) => {
+      showDeleteDialog(itemName, async () => {
+        try {
+          // If deleting the active file, close it first
+          if (activeFilePath === itemPath || (activeFilePath && activeFilePath.startsWith(itemPath + '/'))) {
+            await closeCurrentFile();
+            editorContainer.innerHTML = '<div class="ev2-editor-empty">Select a file from the explorer</div>';
+            activeFileEl.textContent = '';
+            sessionStorage.removeItem('ev2-open-file');
+          }
+          await deleteItem(itemPath);
+          await refreshTree();
+        } catch (err: any) {
+          console.error('[editor-v2] Delete failed:', err);
+        }
+      });
+    },
+  });
+  cleanupFns.push(ctxMenu.cleanup);
 
   // ---- Auto-open: session (HMR) > last doc page > referrer ----
   if (treeData) {
@@ -402,7 +518,8 @@ async function openFile(
           onClose: () => {},
           readOnly: false,
           wordWrap: wordWrap !== false,
-          extensions: [...yjsExtensions, ...themeExtensions],
+          themeExtensions,
+          extensions: yjsExtensions,
           initialDoc: yjs.ytext.toString(),
         });
 
@@ -413,6 +530,16 @@ async function openFile(
         });
 
         activeView = view;
+        activeToolbar?.setEditorView(view);
+
+        // Apply current view mode (live preview decorations if active)
+        if (activeViewMode === 'live-preview') {
+          const { livePreviewCompartment } = await import('./core/codemirror-setup.js');
+          const { livePreviewExtension } = await import('./live-preview/index.js');
+          view.dispatch({
+            effects: livePreviewCompartment.reconfigure(livePreviewExtension(theme)),
+          });
+        }
 
         if (previewContentEl) setupScrollSync(view, previewContentEl);
       } catch (err) {

@@ -320,9 +320,56 @@ export function setupEditorMiddleware(
           }
 
           store.closeDocument(filePath);
-          // Always destroy Yjs room on close to prevent stale content on reopen
-          yjsSync.destroyRoom(filePath);
+          // Only destroy Yjs room if no other connections remain.
+          // Use <= 1 because the closing user's WS disconnect may not have
+          // been processed yet when this HTTP request arrives.
+          const roomConns = yjsSync.getConnectionCount(filePath);
+          if (roomConns <= 1) {
+            yjsSync.destroyRoom(filePath);
+          }
 
+          return sendJson(res, 200, { success: true });
+        }
+
+        // ---- File CRUD ----
+
+        case '/__editor/create-file': {
+          const { parentDir, fileName } = body;
+          if (!parentDir || !fileName) {
+            return sendJson(res, 400, { error: 'parentDir and fileName are required' });
+          }
+          const result = store.createFile(parentDir, fileName);
+          return sendJson(res, 200, result);
+        }
+
+        case '/__editor/create-folder': {
+          const { parentDir, folderName } = body;
+          if (!parentDir || !folderName) {
+            return sendJson(res, 400, { error: 'parentDir and folderName are required' });
+          }
+          const folderPath = store.createFolder(parentDir, folderName);
+          return sendJson(res, 200, { path: folderPath });
+        }
+
+        case '/__editor/rename': {
+          const { oldPath, newName } = body;
+          if (!oldPath || !newName) {
+            return sendJson(res, 400, { error: 'oldPath and newName are required' });
+          }
+          // Destroy Yjs room if renaming a file that's open
+          yjsSync.destroyRoom(oldPath);
+          const newPath = store.renameItem(oldPath, newName);
+          return sendJson(res, 200, { newPath });
+        }
+
+        case '/__editor/delete': {
+          const { itemPath } = body;
+          if (!itemPath) {
+            return sendJson(res, 400, { error: 'itemPath is required' });
+          }
+          // Destroy Yjs room if deleting a file that's open
+          yjsSync.destroyRoom(itemPath);
+          store.deleteItem(itemPath);
           return sendJson(res, 200, { success: true });
         }
 
