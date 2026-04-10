@@ -33,7 +33,9 @@ export function initResizeHandle(
     const delta = side === 'left'
       ? e.clientX - startX
       : startX - e.clientX;
-    const newWidth = Math.max(180, Math.min(600, startWidth + delta));
+    const parentWidth = target.parentElement?.getBoundingClientRect().width || window.innerWidth;
+    const maxWidth = parentWidth * 0.5;
+    const newWidth = Math.max(180, Math.min(maxWidth, startWidth + delta));
     target.style.width = newWidth + 'px';
   }
 

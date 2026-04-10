@@ -282,6 +282,35 @@ export function getShellCSS(): string {
       background: var(--ev-text-faint);
     }
 
+    /* ---- Mode switcher ---- */
+    .ev2-mode-switcher {
+      display: flex;
+      gap: 1px;
+      background: var(--ev-border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .ev2-mode-btn {
+      background: var(--ev-surface);
+      border: none;
+      color: var(--ev-text-muted);
+      cursor: pointer;
+      padding: 3px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+    }
+    .ev2-mode-btn:hover {
+      color: var(--ev-text);
+      background: var(--ev-hover);
+    }
+    .ev2-mode-btn.active {
+      color: var(--ev-text);
+      background: var(--ev-bg);
+    }
+    .ev2-mode-btn svg { width: 14px; height: 14px; }
+
     /* ---- Editor pane ---- */
     .ev2-editor-pane {
       flex: 1;
@@ -335,8 +364,18 @@ export function getShellCSS(): string {
     .ev2-preview-content {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: 24px 32px;
       background: var(--ev-bg);
+    }
+
+    /* ---- WYSIWYG pane (placeholder) ---- */
+    .ev2-wysiwyg-pane {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ev-bg);
+      min-width: 300px;
     }
 
     /* ---- Context menu ---- */

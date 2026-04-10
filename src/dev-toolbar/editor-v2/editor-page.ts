@@ -87,7 +87,12 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
       <span class="ev2-status saved" id="ev2-status">Saved</span>
       <span class="ev2-user-badge" id="ev2-user-badge" style="background:${identity.color}15;color:${identity.color}">${identity.name}</span>
       <button class="ev2-icon-btn" id="ev2-theme-toggle" title="Toggle Theme">${icon(currentTheme === 'dark' ? 'sun' : 'moon', 16)}</button>
-      <button class="ev2-btn" id="ev2-preview-toggle">${icon('eye', 14)} Preview</button>
+      <div class="ev2-mode-switcher" id="ev2-mode-switcher">
+        <button class="ev2-mode-btn active" data-mode="source" title="Source mode">${icon('code', 14)}</button>
+        <button class="ev2-mode-btn" data-mode="split" title="Split view">${icon('panel-left', 14)}</button>
+        <button class="ev2-mode-btn" data-mode="preview" title="Preview">${icon('eye', 14)}</button>
+        <button class="ev2-mode-btn" data-mode="wysiwyg" title="WYSIWYG (coming soon)">${icon('heading', 14)}</button>
+      </div>
       <button class="ev2-btn primary" id="ev2-save-btn">${icon('save', 14)} Save</button>
       <button class="ev2-icon-btn" id="ev2-close-btn" title="Close">${icon('x', 16)}</button>
     </div>
@@ -121,7 +126,18 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
       <div class="ev2-preview-pane" id="ev2-preview-pane">
         <div class="ev2-preview-header"><span>Preview</span></div>
         <div class="ev2-preview-content" id="ev2-preview-content">
-          <div style="color:var(--ev-text-faint);padding:16px;font-style:italic">Open a file to preview</div>
+          <div style="color:var(--ev-text-faint);padding:24px;font-style:italic">Open a file to preview</div>
+        </div>
+      </div>
+
+      <div class="ev2-wysiwyg-pane" id="ev2-wysiwyg-pane" style="display:none">
+        <div class="ev2-wysiwyg-placeholder">
+          <div style="text-align:center;padding:48px 24px;">
+            <div style="font-size:32px;margin-bottom:12px;opacity:0.3">${icon('heading', 32)}</div>
+            <div style="font-size:15px;font-weight:500;margin-bottom:6px;color:var(--ev-text)">WYSIWYG Mode</div>
+            <div style="font-size:13px;color:var(--ev-text-muted)">Rich text editing coming soon.</div>
+            <div style="font-size:12px;color:var(--ev-text-faint);margin-top:4px">Use Source or Preview mode for now.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -132,7 +148,9 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   const editorContainer = root.querySelector('#ev2-editor-container') as HTMLDivElement;
   const previewPane = root.querySelector('#ev2-preview-pane') as HTMLDivElement;
   const previewContent = root.querySelector('#ev2-preview-content') as HTMLElement;
-  const previewToggleBtn = root.querySelector('#ev2-preview-toggle') as HTMLButtonElement;
+  const modeSwitcher = root.querySelector('#ev2-mode-switcher') as HTMLDivElement;
+  const editorPane = root.querySelector('.ev2-editor-pane') as HTMLDivElement;
+  const wysiwygPane = root.querySelector('#ev2-wysiwyg-pane') as HTMLDivElement;
   const statusEl = root.querySelector('#ev2-status') as HTMLSpanElement;
   const activeFileEl = root.querySelector('#ev2-active-file') as HTMLSpanElement;
   const saveBtn = root.querySelector('#ev2-save-btn') as HTMLButtonElement;
@@ -143,9 +161,67 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   const previewResizeHandle = root.querySelector('#ev2-preview-resize') as HTMLDivElement;
   const treeContainer = root.querySelector('#ev2-tree-container') as HTMLDivElement;
 
-  // ---- Preview ----
-  const preview = initPreviewPanel(previewPane, previewContent, previewToggleBtn);
-  cleanupFns.push(preview.cleanup);
+  // ---- Preview (controlled by mode switcher, not a toggle button) ----
+  let lastPreviewHtml = '';
+  const preview = {
+    setContent(html: string) {
+      if (html === lastPreviewHtml) return;
+      lastPreviewHtml = html;
+      const scrollTop = previewContent.scrollTop;
+      previewContent.innerHTML = `<div class="docs-content"><article class="docs-article"><div class="docs-body markdown-content">${html}</div></article></div>`;
+      previewContent.scrollTop = scrollTop;
+      document.dispatchEvent(new CustomEvent('diagrams:render'));
+    },
+    toggle() { setViewMode(currentMode === 'split' ? 'source' : 'split'); },
+    isCollapsed() { return currentMode === 'source' || currentMode === 'wysiwyg'; },
+    cleanup() {},
+  };
+
+  // ---- View mode switcher ----
+  type ViewMode = 'source' | 'split' | 'preview' | 'wysiwyg';
+  let currentMode: ViewMode = (localStorage.getItem('ev2-view-mode') as ViewMode) || 'source';
+
+  function setViewMode(mode: ViewMode) {
+    currentMode = mode;
+    localStorage.setItem('ev2-view-mode', mode);
+
+    // Update button states
+    modeSwitcher.querySelectorAll('.ev2-mode-btn').forEach(btn => {
+      btn.classList.toggle('active', (btn as HTMLElement).dataset.mode === mode);
+    });
+
+    // Show/hide panes
+    const showEditor = mode === 'source' || mode === 'split';
+    const showPreview = mode === 'preview' || mode === 'split';
+    const showWysiwyg = mode === 'wysiwyg';
+
+    editorPane.style.display = showEditor ? 'flex' : 'none';
+    previewPane.style.display = showPreview ? 'flex' : 'none';
+    previewResizeHandle.style.display = (mode === 'split') ? 'block' : 'none';
+    wysiwygPane.style.display = showWysiwyg ? 'flex' : 'none';
+
+    // In preview-only mode, preview takes full width
+    if (mode === 'preview') {
+      previewPane.style.width = '100%';
+      previewPane.style.maxWidth = '100%';
+      previewPane.style.borderLeft = 'none';
+    } else {
+      previewPane.style.width = '';
+      previewPane.style.maxWidth = '';
+      previewPane.style.borderLeft = '';
+    }
+  }
+
+  // Wire up mode buttons
+  modeSwitcher.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.ev2-mode-btn') as HTMLElement;
+    if (!btn) return;
+    const mode = btn.dataset.mode as ViewMode;
+    if (mode) setViewMode(mode);
+  });
+
+  // Apply saved mode
+  setViewMode(currentMode);
 
   // ---- Resize handles ----
   const sr = initResizeHandle(sidebarResizeHandle, sidebar, 'left', 'ev2-sidebar-width');
@@ -458,10 +534,16 @@ function getPreviewThemeCSS(): string {
     }
     [data-editor-theme="dark"] .ev2-preview-content table th,
     [data-editor-theme="dark"] .ev2-preview-content table td {
-      border-color: #333;
+      border-color: #222;
     }
     [data-editor-theme="dark"] .ev2-preview-content table th {
       background: #161616;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content table tr:nth-child(even) td {
+      background: #111;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content table tr:nth-child(odd) td {
+      background: transparent;
     }
     [data-editor-theme="dark"] .ev2-preview-content a {
       color: #7aa2f7;

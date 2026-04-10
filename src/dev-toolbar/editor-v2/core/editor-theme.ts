@@ -36,7 +36,7 @@ const darkEditorTheme = EditorView.theme({
   '.cm-content': {
     fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace',
     lineHeight: '1.6',
-    padding: '16px 0',
+    padding: '20px 8px',
     caretColor: darkColors.cursor,
   },
   '.cm-cursor, .cm-dropCursor': {
@@ -195,7 +195,7 @@ const lightEditorTheme = EditorView.theme({
   '.cm-content': {
     fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", monospace',
     lineHeight: '1.6',
-    padding: '16px 0',
+    padding: '20px 8px',
     caretColor: lightColors.cursor,
   },
   '.cm-cursor, .cm-dropCursor': {
