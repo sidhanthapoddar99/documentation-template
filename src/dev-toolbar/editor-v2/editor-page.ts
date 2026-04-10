@@ -16,6 +16,7 @@ import { initFormattingToolbar } from './layout/formatting-toolbar.js';
 import { initContextMenu } from './file-tree/context-menu.js';
 import { createFile, createFolder, renameItem, deleteItem } from './file-tree/file-crud.js';
 import { showNewFileDialog, showNewFolderDialog, showRenameDialog, showDeleteDialog } from './file-tree/file-dialogs.js';
+import { createClientRenderer, type ClientRenderer } from './renderer/index.js';
 
 // CSS — Vite injects these as <style> tags
 import './styles/editor.css';
@@ -46,6 +47,7 @@ let activeFilePath: string | null = null;
 let cleanupFns: (() => void)[] = [];
 let activeToolbar: { setEditorView(v: EditorView | null): void } | null = null;
 let activeViewMode: string = 'source';
+let activeRenderer: ClientRenderer | null = null;
 
 export interface MountOptions {
   contentRoot: string;
@@ -499,6 +501,11 @@ async function openFile(
   activeFileEl.textContent = shortName;
   container.innerHTML = '<div class="ev2-editor-empty">Loading...</div>';
 
+  // ---- Client-side renderer ----
+  if (activeRenderer) activeRenderer.cleanup();
+  const renderer = createClientRenderer((html) => preview.setContent(html));
+  activeRenderer = renderer;
+
   const yjs = initYjsClientV2({
     filePath,
     identity,
@@ -541,13 +548,20 @@ async function openFile(
           });
         }
 
+        // Client-side render: initial render + observe ytext for changes
+        console.log('[editor-v2] Client-side rendering active');
+        renderer.renderDebounced(yjs.ytext.toString());
+        yjs.ytext.observe(() => {
+          renderer.renderDebounced(yjs.ytext.toString());
+        });
+
         if (previewContentEl) setupScrollSync(view, previewContentEl);
       } catch (err) {
         console.error('[editor-v2] Failed to mount:', err);
         container.innerHTML = `<div class="ev2-editor-empty" style="color:var(--ev-danger)">Failed: ${err}</div>`;
       }
     },
-    onRender: (html) => preview.setContent(html),
+    onRender: () => {}, // Server-side rendering no longer used for preview
     onStatusChange: updateStatus,
   });
 
@@ -602,6 +616,7 @@ function setupScrollSync(view: EditorView, previewEl: HTMLElement) {
 
 async function closeCurrentFile() {
   if (scrollSyncCleanup) scrollSyncCleanup();
+  if (activeRenderer) { activeRenderer.cleanup(); activeRenderer = null; }
   if (activeView) { activeView.destroy(); activeView = null; }
   if (activeYjs) { await activeYjs.close(); activeYjs = null; }
   activeFilePath = null;

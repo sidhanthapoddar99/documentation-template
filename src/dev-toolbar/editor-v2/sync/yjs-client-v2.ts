@@ -289,11 +289,11 @@ export function initYjsClientV2(opts: YjsV2Options): YjsV2Handle {
 
   // ---- Open document + connect ----
 
-  editorFetch('open', { filePath }).then((data) => {
-    opts.onRender(data.rendered);
+  editorFetch('open', { filePath }).then((_data) => {
+    // Rendering is now client-side — no need for server-rendered HTML
     opts.onStatusChange('saved');
     connect();
-    startRenderTimer();
+    // Render timer no longer needed — client renders locally via ytext.observe
   }).catch((err) => {
     console.error('[editor-v2] Failed to open:', err);
   });
