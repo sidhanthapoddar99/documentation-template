@@ -110,7 +110,7 @@ src/pages/
 ### Phase 3: Menu Bar, Toolbar & Editor Features
 **Goal:** Full editing capabilities.
 
-1. **Menu bar** — File (New, Save, Close), Edit (Undo, Redo, Find), View (Preview, Explorer, Theme)
+1. **Menu bar** — File (New, Save, Close), Edit (Undo, Redo, Find), View (Preview, Explorer, Theme, Wrap Text toggle)
 2. **Editor toolbar** — Bold, Italic, Heading, Link, Image, Code, List, Quote, Table buttons
 3. **Slash commands** — `/heading`, `/callout`, `/tabs`, `/code`, `/table`, `/mermaid`, etc.
 4. **Auto-save** — timer-based, configurable interval, status indicator with animation

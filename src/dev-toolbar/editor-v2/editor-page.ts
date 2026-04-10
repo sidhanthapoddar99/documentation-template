@@ -53,11 +53,29 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
   let currentTheme: 'dark' | 'light' = (savedTheme as any) || (prefersDark ? 'dark' : 'light');
   root.setAttribute('data-editor-theme', currentTheme);
 
-  // Inject CSS
+  // Inject shell CSS
   const styleEl = document.createElement('style');
   styleEl.textContent = getShellCSS();
   document.head.appendChild(styleEl);
   cleanupFns.push(() => styleEl.remove());
+
+  // Load content CSS for the preview panel (markdown styles, code blocks, etc.)
+  try {
+    const cssRes = await fetch('/__editor/styles');
+    if (cssRes.ok) {
+      const contentCSS = await cssRes.text();
+      const contentStyleEl = document.createElement('style');
+      contentStyleEl.textContent = contentCSS;
+      document.head.appendChild(contentStyleEl);
+      cleanupFns.push(() => contentStyleEl.remove());
+    }
+  } catch {}
+
+  // Inject preview dark/light overrides for code blocks
+  const previewThemeEl = document.createElement('style');
+  previewThemeEl.textContent = getPreviewThemeCSS();
+  document.head.appendChild(previewThemeEl);
+  cleanupFns.push(() => previewThemeEl.remove());
 
   // Build shell
   root.innerHTML = `
@@ -157,7 +175,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     // Recreate CM6 view with new theme if a file is open
     if (activeFilePath && activeYjs) {
       const fp = activeFilePath;
-      openFile(fp, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme);
+      openFile(fp, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent);
     }
   });
 
@@ -168,7 +186,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
     if (res.ok) {
       treeData = await res.json();
       renderFileTree(treeContainer, treeData, (filePath: string) => {
-        openFile(filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme);
+        openFile(filePath, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent);
       });
     } else {
       treeContainer.innerHTML = `<div style="padding:12px;color:var(--ev-danger);font-size:12px">Failed to load tree</div>`;
@@ -187,7 +205,7 @@ export async function mountEditor(root: HTMLElement, opts: MountOptions) {
         const file = findFileByUrlPath(treeData, refPath, opts.returnUrl);
         if (file) {
           highlightTreeItem(treeContainer, file.path);
-          openFile(file.path, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme);
+          openFile(file.path, editorContainer, preview, updateStatus, activeFileEl, identity, currentTheme, previewContent);
         }
       } catch {}
     }
@@ -309,6 +327,7 @@ async function openFile(
   activeFileEl: HTMLElement,
   identity: Identity,
   theme: 'dark' | 'light',
+  previewContentEl?: HTMLElement,
 ) {
   await closeCurrentFile();
 
@@ -346,6 +365,9 @@ async function openFile(
         });
 
         activeView = view;
+
+        // Set up scroll sync between editor and preview
+        if (previewContentEl) setupScrollSync(view, previewContentEl);
       } catch (err) {
         console.error('[editor-v2] Failed to mount:', err);
         container.innerHTML = `<div class="ev2-editor-empty" style="color:var(--ev-danger)">Failed: ${err}</div>`;
@@ -358,9 +380,162 @@ async function openFile(
   activeYjs = yjs;
 }
 
+// ---- Scroll sync ----
+
+let scrollSyncSource: 'none' | 'editor' | 'preview' = 'none';
+let scrollSyncCleanup: (() => void) | null = null;
+
+function setupScrollSync(view: EditorView, previewEl: HTMLElement) {
+  if (scrollSyncCleanup) scrollSyncCleanup();
+
+  const editorScroller = view.scrollDOM;
+
+  function onEditorScroll() {
+    if (scrollSyncSource === 'preview') return;
+    scrollSyncSource = 'editor';
+    const maxScroll = editorScroller.scrollHeight - editorScroller.clientHeight;
+    if (maxScroll > 0) {
+      const ratio = editorScroller.scrollTop / maxScroll;
+      const previewMax = previewEl.scrollHeight - previewEl.clientHeight;
+      previewEl.scrollTop = ratio * previewMax;
+    }
+    requestAnimationFrame(() => { scrollSyncSource = 'none'; });
+  }
+
+  function onPreviewScroll() {
+    if (scrollSyncSource === 'editor') return;
+    scrollSyncSource = 'preview';
+    const maxScroll = previewEl.scrollHeight - previewEl.clientHeight;
+    if (maxScroll > 0) {
+      const ratio = previewEl.scrollTop / maxScroll;
+      const editorMax = editorScroller.scrollHeight - editorScroller.clientHeight;
+      editorScroller.scrollTop = ratio * editorMax;
+    }
+    requestAnimationFrame(() => { scrollSyncSource = 'none'; });
+  }
+
+  editorScroller.addEventListener('scroll', onEditorScroll);
+  previewEl.addEventListener('scroll', onPreviewScroll);
+
+  scrollSyncCleanup = () => {
+    editorScroller.removeEventListener('scroll', onEditorScroll);
+    previewEl.removeEventListener('scroll', onPreviewScroll);
+    scrollSyncCleanup = null;
+  };
+}
+
+// ---- Preview theme CSS ----
+
+function getPreviewThemeCSS(): string {
+  return `
+    /* Preview dark mode overrides */
+    [data-editor-theme="dark"] .ev2-preview-content {
+      color: #e0e0e0;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content pre,
+    [data-editor-theme="dark"] .ev2-preview-content code {
+      background: #161616 !important;
+      color: #e0e0e0 !important;
+      border-color: #222 !important;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content pre {
+      padding: 12px 16px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content code {
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content pre code {
+      padding: 0;
+      background: transparent !important;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content blockquote {
+      border-left: 3px solid #333;
+      color: #999;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content table th,
+    [data-editor-theme="dark"] .ev2-preview-content table td {
+      border-color: #333;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content table th {
+      background: #161616;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content a {
+      color: #7aa2f7;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content h1,
+    [data-editor-theme="dark"] .ev2-preview-content h2,
+    [data-editor-theme="dark"] .ev2-preview-content h3,
+    [data-editor-theme="dark"] .ev2-preview-content h4,
+    [data-editor-theme="dark"] .ev2-preview-content h5,
+    [data-editor-theme="dark"] .ev2-preview-content h6 {
+      color: #ffffff;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content hr {
+      border-color: #222;
+    }
+    [data-editor-theme="dark"] .ev2-preview-content img {
+      border-radius: 4px;
+    }
+    /* Shiki dark mode */
+    [data-editor-theme="dark"] .ev2-preview-content .shiki,
+    [data-editor-theme="dark"] .ev2-preview-content .shiki span {
+      color: var(--shiki-dark, inherit) !important;
+      background-color: var(--shiki-dark-bg, #161616) !important;
+    }
+
+    /* Preview light mode */
+    [data-editor-theme="light"] .ev2-preview-content {
+      color: #1a1a1a;
+    }
+    [data-editor-theme="light"] .ev2-preview-content pre,
+    [data-editor-theme="light"] .ev2-preview-content code {
+      background: #f5f5f5 !important;
+      border-color: #e5e5e5 !important;
+    }
+    [data-editor-theme="light"] .ev2-preview-content pre {
+      padding: 12px 16px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    [data-editor-theme="light"] .ev2-preview-content code {
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+    [data-editor-theme="light"] .ev2-preview-content pre code {
+      padding: 0;
+      background: transparent !important;
+    }
+
+    /* Preview content spacing */
+    .ev2-preview-content .docs-body {
+      max-width: none;
+      padding: 0;
+    }
+    .ev2-preview-content .docs-body h1 { font-size: 1.8em; margin: 0.8em 0 0.4em; }
+    .ev2-preview-content .docs-body h2 { font-size: 1.4em; margin: 0.7em 0 0.35em; }
+    .ev2-preview-content .docs-body h3 { font-size: 1.15em; margin: 0.6em 0 0.3em; }
+    .ev2-preview-content .docs-body p { margin: 0.5em 0; line-height: 1.6; }
+    .ev2-preview-content .docs-body ul,
+    .ev2-preview-content .docs-body ol { margin: 0.5em 0; padding-left: 1.5em; }
+    .ev2-preview-content .docs-body li { margin: 0.25em 0; line-height: 1.6; }
+    .ev2-preview-content .docs-body pre { margin: 0.8em 0; }
+    .ev2-preview-content .docs-body table { margin: 0.8em 0; border-collapse: collapse; width: 100%; }
+    .ev2-preview-content .docs-body table th,
+    .ev2-preview-content .docs-body table td { padding: 6px 12px; border: 1px solid; text-align: left; }
+    .ev2-preview-content .docs-body blockquote { margin: 0.8em 0; padding: 0.5em 1em; }
+    .ev2-preview-content .docs-body hr { margin: 1.5em 0; border: none; border-top: 1px solid; }
+  `;
+}
+
 // ---- Close ----
 
 async function closeCurrentFile() {
+  if (scrollSyncCleanup) scrollSyncCleanup();
   if (activeView) { activeView.destroy(); activeView = null; }
   if (activeYjs) { await activeYjs.close(); activeYjs = null; }
   activeFilePath = null;

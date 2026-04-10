@@ -160,10 +160,14 @@ export function getShellCSS(): string {
       transition: width 0.15s;
     }
     .ev2-sidebar.collapsed {
-      width: 0;
-      min-width: 0;
+      width: 0 !important;
+      min-width: 0 !important;
       border-right: none;
       overflow: hidden;
+      padding: 0;
+    }
+    .ev2-sidebar.collapsed + .ev2-resize-handle {
+      display: none;
     }
     .ev2-sidebar-header {
       display: flex;
@@ -258,11 +262,20 @@ export function getShellCSS(): string {
 
     /* ---- Resize handles ---- */
     .ev2-resize-handle {
-      width: 3px;
+      width: 5px;
       cursor: col-resize;
       background: transparent;
       flex-shrink: 0;
-      transition: background 0.15s;
+      position: relative;
+    }
+    /* Wider invisible hit area */
+    .ev2-resize-handle::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -4px;
+      right: -4px;
     }
     .ev2-resize-handle:hover,
     .ev2-resize-handle.dragging {
@@ -297,7 +310,7 @@ export function getShellCSS(): string {
     .ev2-preview-pane {
       width: 40%;
       min-width: 250px;
-      max-width: 55%;
+      max-width: 50%;
       display: flex;
       flex-direction: column;
       overflow: hidden;
