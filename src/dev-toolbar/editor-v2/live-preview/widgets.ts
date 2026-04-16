@@ -57,7 +57,7 @@ export class TaskLineWidget extends WidgetType {
       wrapper.appendChild(indentEl);
     }
 
-    // Checkbox container (holds circle + vertical line)
+    // Checkbox column
     const cbCol = document.createElement('span');
     cbCol.className = 'cm-lp-task-cb-col';
 
@@ -82,14 +82,6 @@ export class TaskLineWidget extends WidgetType {
     });
 
     cbCol.appendChild(cb);
-
-    // Vertical connector line (if has children)
-    if (this.hasChildren) {
-      const line = document.createElement('span');
-      line.className = 'cm-lp-task-connector';
-      cbCol.appendChild(line);
-    }
-
     wrapper.appendChild(cbCol);
 
     // Text content

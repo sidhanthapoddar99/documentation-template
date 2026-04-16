@@ -53,11 +53,8 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
     whiteSpace: 'pre',
     flexShrink: '0',
   },
-  // Checkbox column: holds circle + optional vertical connector
+  // Checkbox column
   '.cm-lp-task-cb-col': {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
     flexShrink: '0',
     marginRight: '8px',
   },
@@ -65,11 +62,14 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
     flex: '1',
     minWidth: '0',
   },
-  // Vertical connector line below checkbox (extends to next sibling)
-  '.cm-lp-task-connector': {
-    width: '1px',
-    flex: '1',
-    minHeight: '8px',
+
+  // Vertical connector on nested child lines — positioned at parent checkbox center
+  '.cm-lp-task-child-line': {
+    borderLeft: '1px solid',
+    // Use CSS var set by the decoration to position the line under parent's checkbox
+    // --task-indent is the parent's whitespace indent in ch units + offset for checkbox center
+    marginLeft: 'calc(var(--task-indent, 0ch) + 8px)',
+    paddingLeft: '4px !important',
   },
 
   // ---- Checkbox circle ----
@@ -117,7 +117,7 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
 export const livePreviewDark: Extension = EditorView.theme({
   '.cm-lp-checkbox': { borderColor: '#555' },
   '.cm-lp-checkbox-checked': { background: '#7ec699', color: '#0a0a0a' },
-  '.cm-lp-task-connector': { background: '#333' },
+  '.cm-lp-task-child-line': { borderColor: '#333' },
   '.cm-lp-code': { background: 'rgba(255,255,255,0.08)' },
   '.cm-lp-link': { color: '#7aa2f7' },
   '.cm-lp-bq': { borderColor: '#444' },
@@ -132,7 +132,7 @@ export const livePreviewDark: Extension = EditorView.theme({
 export const livePreviewLight: Extension = EditorView.theme({
   '.cm-lp-checkbox': { borderColor: '#ccc' },
   '.cm-lp-checkbox-checked': { background: '#2e7d32', color: '#fff' },
-  '.cm-lp-task-connector': { background: '#e0e0e0' },
+  '.cm-lp-task-child-line': { borderColor: '#e0e0e0' },
   '.cm-lp-code': { background: 'rgba(0,0,0,0.06)' },
   '.cm-lp-link': { color: '#0969da' },
   '.cm-lp-bq': { borderColor: '#ddd' },

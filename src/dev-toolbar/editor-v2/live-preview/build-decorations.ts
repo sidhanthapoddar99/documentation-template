@@ -309,10 +309,25 @@ export function buildLivePreviewDecorations(state: EditorState): DecorationSet {
             const fullLine = state.sliceDoc(taskLine.from, taskLine.to);
             const indent = fullLine.match(/^(\s*)/)?.[1] || '';
 
-            // Check if this list item has nested children
-            const hasChildren = !!(listItem && (
-              listItem.getChild('BulletList') || listItem.getChild('OrderedList')
-            ));
+            // Check for nested children and add connector lines to their lines
+            const nestedList = listItem?.getChild('BulletList') || listItem?.getChild('OrderedList');
+            const hasChildren = !!nestedList;
+
+            if (nestedList) {
+              // Add connector line decoration to each nested line
+              // Position it at parent's checkbox center using CSS variable
+              const indentCh = indent.length;
+              const nStart = state.doc.lineAt(nestedList.from);
+              const nEnd = state.doc.lineAt(Math.min(nestedList.to, state.doc.length));
+              for (let ln = nStart.number; ln <= nEnd.number; ln++) {
+                decorations.push(
+                  Decoration.line({
+                    class: 'cm-lp-task-child-line',
+                    attributes: { style: `--task-indent: ${indentCh}ch` },
+                  }).range(state.doc.line(ln).from)
+                );
+              }
+            }
 
             decorations.push(
               Decoration.replace({
