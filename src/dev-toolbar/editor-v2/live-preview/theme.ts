@@ -42,8 +42,8 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
   // ---- Lists ----
   '.cm-lp-bullet': { fontSize: '0', letterSpacing: '0' },
   '.cm-lp-bullet::after': { content: '"\\2022"', fontSize: '14px', letterSpacing: 'normal' },
-  // Nested list indentation line — positioned to align under parent checkbox/bullet
-  '.cm-lp-list-nested': { borderLeft: '1px solid', marginLeft: '12px', paddingLeft: '8px !important' },
+  // Nested list indentation line
+  '.cm-lp-list-nested': { borderLeft: '1px solid', marginLeft: '11px', paddingLeft: '4px !important' },
 
   // ---- Checkbox (circle) ----
   '.cm-lp-checkbox': {
@@ -55,16 +55,14 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
     borderRadius: '50%',
     border: '1.5px solid',
     verticalAlign: 'middle',
-    marginRight: '6px',
+    marginRight: '8px',
     flexShrink: '0',
     cursor: 'pointer',
-    transition: 'all 0.15s',
   },
   '.cm-lp-checkbox svg': {
     width: '10px',
     height: '10px',
   },
-  // Checked: filled circle with tick, text gets dimmed + strikethrough
   '.cm-lp-checkbox-checked': {
     borderWidth: '0',
   },

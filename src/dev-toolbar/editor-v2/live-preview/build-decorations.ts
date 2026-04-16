@@ -317,11 +317,10 @@ export function buildLivePreviewDecorations(state: EditorState): DecorationSet {
         if (!cursorOnLine(state, from, to)) {
           decorations.push(Decoration.replace({ widget: new CheckboxWidget(checked) }).range(from, to));
           if (checked) {
-            // Strikethrough + dim only the text after the checkbox (not the whole line)
-            const line = state.doc.lineAt(from);
-            const textStart = to + 1; // skip the space after [x]
-            if (textStart < line.to) {
-              decorations.push(Decoration.mark({ class: 'cm-lp-task-done' }).range(textStart, line.to));
+            const taskLine = state.doc.lineAt(from);
+            const textStart = to + 1;
+            if (textStart < taskLine.to) {
+              decorations.push(Decoration.mark({ class: 'cm-lp-task-done' }).range(textStart, taskLine.to));
             }
           }
         }

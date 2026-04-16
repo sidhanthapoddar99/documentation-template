@@ -77,6 +77,31 @@ function createMarkedInstance(highlighter: Highlighter | null): Marked {
         const displayLang = lang || 'text';
         return `<pre data-language="${displayLang}"><code class="language-${lang || 'text'}">${escaped}</code></pre>\n`;
       },
+
+      // Task list items: wrap in flex container with separate checkbox + content divs
+      listitem(token: any) {
+        const text = token.text || '';
+        const tokens = token.tokens || [];
+
+        // Check if this is a task item
+        if (token.task) {
+          const checked = token.checked;
+          const checkboxSvg = checked
+            ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 8.5 6.5 11.5 12.5 5.5"/></svg>`
+            : '';
+          const checkedClass = checked ? ' task-checked' : '';
+          const cbClass = checked ? 'task-checkbox task-checkbox-checked' : 'task-checkbox';
+
+          // Parse the inner content (skip the checkbox that marked already added)
+          let inner = this.parser.parse(tokens);
+          // Remove the <input> checkbox that marked injects
+          inner = inner.replace(/<input[^>]*type="checkbox"[^>]*>\s*/gi, '');
+
+          return `<li class="task-item${checkedClass}"><span class="${cbClass}">${checkboxSvg}</span><span class="task-content">${inner}</span></li>\n`;
+        }
+
+        return `<li>${this.parser.parse(tokens)}</li>\n`;
+      },
     },
   });
 

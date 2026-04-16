@@ -121,30 +121,32 @@
    - Checked task dimming + strikethrough
    Only editor-theme-specific color overrides are needed here. */
 
-[data-editor-theme="dark"] .ev2-preview-content li > input[type="checkbox"] {
+/* Dark theme overrides for task checkboxes and connector lines */
+[data-editor-theme="dark"] .ev2-preview-content .task-checkbox {
   border-color: #555;
 }
-[data-editor-theme="dark"] .ev2-preview-content li > input[type="checkbox"]:checked {
+[data-editor-theme="dark"] .ev2-preview-content .task-checkbox-checked {
   background: #7ec699;
-}
-[data-editor-theme="dark"] .ev2-preview-content li > input[type="checkbox"]:checked::after {
-  border-color: #0a0a0a;
+  color: #0a0a0a;
 }
 [data-editor-theme="dark"] .ev2-preview-content li:has(> ul)::after,
-[data-editor-theme="dark"] .ev2-preview-content li:has(> ol)::after {
+[data-editor-theme="dark"] .ev2-preview-content li:has(> ol)::after,
+[data-editor-theme="dark"] .ev2-preview-content li:has(ul)::after,
+[data-editor-theme="dark"] .ev2-preview-content li:has(ol)::after {
   background: #333;
 }
 
-[data-editor-theme="light"] .ev2-preview-content li > input[type="checkbox"] {
+/* Light theme */
+[data-editor-theme="light"] .ev2-preview-content .task-checkbox {
   border-color: #ccc;
 }
-[data-editor-theme="light"] .ev2-preview-content li > input[type="checkbox"]:checked {
+[data-editor-theme="light"] .ev2-preview-content .task-checkbox-checked {
   background: #2e7d32;
-}
-[data-editor-theme="light"] .ev2-preview-content li > input[type="checkbox"]:checked::after {
-  border-color: #fff;
+  color: #fff;
 }
 [data-editor-theme="light"] .ev2-preview-content li:has(> ul)::after,
-[data-editor-theme="light"] .ev2-preview-content li:has(> ol)::after {
+[data-editor-theme="light"] .ev2-preview-content li:has(> ol)::after,
+[data-editor-theme="light"] .ev2-preview-content li:has(ul)::after,
+[data-editor-theme="light"] .ev2-preview-content li:has(ol)::after {
   background: #e0e0e0;
 }
