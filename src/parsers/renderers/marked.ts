@@ -83,6 +83,23 @@ export async function createMarkdownRendererAsync(
         const displayLang = lang || 'text';
         return html.replace('<pre class="shiki', `<pre data-language="${displayLang}" class="shiki`);
       },
+
+      // Task list items: flex container [checkbox] [content]
+      listitem(token: any) {
+        const tokens = token.tokens || [];
+        if (token.task) {
+          const checked = token.checked;
+          const checkboxSvg = checked
+            ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 8.5 6.5 11.5 12.5 5.5"/></svg>`
+            : '';
+          const checkedClass = checked ? ' task-checked' : '';
+          const cbClass = checked ? 'task-checkbox task-checkbox-checked' : 'task-checkbox';
+          let inner = this.parser.parse(tokens);
+          inner = inner.replace(/<input[^>]*type="checkbox"[^>]*>\s*/gi, '');
+          return `<li class="task-item${checkedClass}"><span class="${cbClass}">${checkboxSvg}</span><span class="task-content">${inner}</span></li>\n`;
+        }
+        return `<li>${this.parser.parse(tokens)}</li>\n`;
+      },
     },
   });
 
@@ -104,6 +121,23 @@ export function createMarkdownRenderer(options: MarkdownRendererOptions = {}): (
   const instance = new Marked({
     gfm: mergedOptions.gfm,
     breaks: mergedOptions.breaks,
+    renderer: {
+      listitem(token: any) {
+        const tokens = token.tokens || [];
+        if (token.task) {
+          const checked = token.checked;
+          const checkboxSvg = checked
+            ? `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 8.5 6.5 11.5 12.5 5.5"/></svg>`
+            : '';
+          const checkedClass = checked ? ' task-checked' : '';
+          const cbClass = checked ? 'task-checkbox task-checkbox-checked' : 'task-checkbox';
+          let inner = this.parser.parse(tokens);
+          inner = inner.replace(/<input[^>]*type="checkbox"[^>]*>\s*/gi, '');
+          return `<li class="task-item${checkedClass}"><span class="${cbClass}">${checkboxSvg}</span><span class="task-content">${inner}</span></li>\n`;
+        }
+        return `<li>${this.parser.parse(tokens)}</li>\n`;
+      },
+    },
   });
 
   if (mergedOptions.extensions && mergedOptions.extensions.length > 0) {

@@ -13,7 +13,7 @@
 import { Decoration, type DecorationSet } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import type { EditorState, Range } from '@codemirror/state';
-import { CheckboxWidget, HRWidget, PropertiesWidget } from './widgets.js';
+import { TaskLineWidget, HRWidget, PropertiesWidget } from './widgets.js';
 
 // ---- Cursor helpers ----
 
@@ -270,9 +270,14 @@ export function buildLivePreviewDecorations(state: EditorState): DecorationSet {
 
       // ---- List items — style with indentation lines for nesting ----
       if (name === 'BulletList' || name === 'OrderedList') {
-        // Check if this is a nested list (parent is also a list)
-        const parentNode = node.node.parent;
-        if (parentNode && (parentNode.name === 'ListItem')) {
+        // Check if this is a nested list (any ancestor is a ListItem)
+        let p = node.node.parent;
+        let isNested = false;
+        while (p) {
+          if (p.name === 'ListItem') { isNested = true; break; }
+          p = p.parent;
+        }
+        if (isNested) {
           const startLine = state.doc.lineAt(from);
           const endLine = state.doc.lineAt(Math.min(to, state.doc.length));
           for (let ln = startLine.number; ln <= endLine.number; ln++) {
@@ -282,21 +287,51 @@ export function buildLivePreviewDecorations(state: EditorState): DecorationSet {
         return; // descend for inline formatting + task markers
       }
 
-      // ---- List marker ----
+      // ---- List marker (non-task) ----
       if (name === 'ListMark') {
         if (!cursorOnLine(state, from, to)) {
           const text = state.sliceDoc(from, to);
-          // Check if parent ListItem contains a Task node (which holds TaskMarker)
           const listItem = node.node.parent;
           const hasTask = listItem && (listItem.getChild('Task') || listItem.getChild('TaskMarker'));
 
-          if (hasTask) {
-            // Task list: hide the bullet marker entirely (checkbox replaces it)
-            const hideEnd = (state.sliceDoc(to, to + 1) === ' ') ? to + 1 : to;
-            decorations.push(Decoration.replace({}).range(from, hideEnd));
-          } else if (text === '-' || text === '*' || text === '+') {
-            // Normal bullet: replace with styled bullet
+          // Non-task bullet: replace with styled dot
+          if (!hasTask && (text === '-' || text === '*' || text === '+')) {
             decorations.push(Decoration.mark({ class: 'cm-lp-bullet' }).range(from, to));
+          }
+          // Task items are handled by the Task node below
+        }
+        return false;
+      }
+
+      // ---- Task item: replace entire "- [ ] text" with flex widget ----
+      if (name === 'Task') {
+        const taskLine = state.doc.lineAt(from);
+        if (!cursorOnLine(state, taskLine.from, taskLine.to)) {
+          // Find the TaskMarker child
+          const markerNode = node.node.getChild('TaskMarker');
+          if (markerNode) {
+            const markerText = state.sliceDoc(markerNode.from, markerNode.to);
+            const checked = markerText.includes('x') || markerText.includes('X');
+
+            // Text after the marker (skip space after [x])
+            let textStart = markerNode.to;
+            if (state.sliceDoc(textStart, textStart + 1) === ' ') textStart++;
+            const textContent = state.sliceDoc(textStart, taskLine.to);
+
+            // Find the ListMark that precedes this Task in the ListItem
+            const listItem = node.node.parent;
+            const listMark = listItem?.getChild('ListMark');
+            const replaceFrom = listMark ? listMark.from : from;
+
+            // Leading whitespace (indentation)
+            const fullLine = state.sliceDoc(taskLine.from, taskLine.to);
+            const indent = fullLine.match(/^(\s*)/)?.[1] || '';
+
+            decorations.push(
+              Decoration.replace({
+                widget: new TaskLineWidget(checked, textContent, indent),
+              }).range(replaceFrom, taskLine.to)
+            );
           }
         }
         return false;
@@ -306,23 +341,6 @@ export function buildLivePreviewDecorations(state: EditorState): DecorationSet {
       if (name === 'HorizontalRule') {
         if (!cursorOnLine(state, from, to)) {
           decorations.push(Decoration.replace({ widget: new HRWidget(), block: true }).range(from, to));
-        }
-        return false;
-      }
-
-      // ---- Task list checkboxes ----
-      if (name === 'TaskMarker') {
-        const text = state.sliceDoc(from, to);
-        const checked = text.includes('x') || text.includes('X');
-        if (!cursorOnLine(state, from, to)) {
-          decorations.push(Decoration.replace({ widget: new CheckboxWidget(checked) }).range(from, to));
-          if (checked) {
-            const taskLine = state.doc.lineAt(from);
-            const textStart = to + 1;
-            if (textStart < taskLine.to) {
-              decorations.push(Decoration.mark({ class: 'cm-lp-task-done' }).range(textStart, taskLine.to));
-            }
-          }
         }
         return false;
       }

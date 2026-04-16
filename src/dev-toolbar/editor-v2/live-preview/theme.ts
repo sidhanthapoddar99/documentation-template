@@ -42,8 +42,24 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
   // ---- Lists ----
   '.cm-lp-bullet': { fontSize: '0', letterSpacing: '0' },
   '.cm-lp-bullet::after': { content: '"\\2022"', fontSize: '14px', letterSpacing: 'normal' },
-  // Nested list indentation line
-  '.cm-lp-list-nested': { borderLeft: '1px solid', marginLeft: '11px', paddingLeft: '4px !important' },
+  // Nested list indentation line — no margin (markdown whitespace provides indent)
+  '.cm-lp-list-nested': { borderLeft: '1px solid' },
+
+  // ---- Task line (flex container: indent + checkbox + text) ----
+  '.cm-lp-task-line': {
+    display: 'inline-flex',
+    alignItems: 'flex-start',
+    width: '100%',
+    lineHeight: '1.5',
+  },
+  '.cm-lp-task-indent': {
+    whiteSpace: 'pre',
+    flexShrink: '0',
+  },
+  '.cm-lp-task-text': {
+    flex: '1',
+    minWidth: '0',
+  },
 
   // ---- Checkbox (circle) ----
   '.cm-lp-checkbox': {
@@ -52,12 +68,14 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
     justifyContent: 'center',
     width: '16px',
     height: '16px',
+    minWidth: '16px',
     borderRadius: '50%',
     border: '1.5px solid',
-    verticalAlign: 'middle',
+    marginTop: '2px',
     marginRight: '8px',
     flexShrink: '0',
     cursor: 'pointer',
+    boxSizing: 'border-box',
   },
   '.cm-lp-checkbox svg': {
     width: '10px',
