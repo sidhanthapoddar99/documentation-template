@@ -31,7 +31,7 @@ sidebar_label: Status
   - [x] Task checkboxes — widget replacement for [ ] and [x]
   - [x] Lists — bullet styling
   - [ ] <span style="color: #f0c674">Polish: refine table rendering, test edge cases</span>
-- [ ] Client-side markdown rendering — [see design doc](./client-side-rendering)
+- [ ] Client-side markdown rendering — [see design doc](./inprogress/client-side-rendering)
   - [ ] Move markdown→HTML rendering from server to browser
   - [ ] Bundle unified/remark/rehype for client (or use marked)
   - [ ] Instant preview updates (no network round-trip, no render timer)
