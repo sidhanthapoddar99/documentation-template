@@ -1,12 +1,11 @@
 /**
  * Yjs client for CodeMirror 6
  *
- * Reuses the same WebSocket protocol as v1 (MSG_SYNC, MSG_PING, MSG_CONFIG,
- * MSG_RENDER, MSG_RENDER_REQ) but replaces MSG_CURSOR with MSG_AWARENESS
- * for y-codemirror.next's built-in cursor sharing.
+ * WebSocket protocol: MSG_SYNC for CRDT updates, MSG_AWARENESS for cursor
+ * sharing (y-codemirror.next), MSG_PING for keepalive, MSG_CONFIG for
+ * server-sent settings.
  *
- * The textarea prefix/suffix diffing is eliminated — y-codemirror.next
- * intercepts CodeMirror transactions directly.
+ * Rendering is fully client-side — no server render round-trips.
  */
 
 import * as Y from 'yjs';
@@ -20,18 +19,14 @@ import { editorFetch } from '../util/dom-helpers.js';
 
 // WS message types — must match server (yjs-sync.ts)
 const MSG_SYNC       = 0;
-const MSG_CURSOR     = 1; // v1 compat (ignored)
 const MSG_PING       = 2;
 const MSG_CONFIG     = 3;
-const MSG_RENDER     = 4;
-const MSG_RENDER_REQ = 5;
-const MSG_AWARENESS  = 6; // v2: awareness protocol for remote cursors
+const MSG_AWARENESS  = 6;
 
 export interface YjsV2Handle extends Disposable {
   ydoc: Y.Doc;
   ytext: Y.Text;
   awareness: awarenessProtocol.Awareness;
-  requestRender: () => void;
   save: () => Promise<void>;
   close: () => Promise<void>;
 }
@@ -40,7 +35,6 @@ export interface YjsV2Options {
   filePath: string;
   identity: Identity;
   onSynced: () => void;
-  onRender: (html: string) => void;
   onStatusChange: (status: SaveStatus) => void;
 }
 
@@ -54,15 +48,12 @@ export function initYjsClientV2(opts: YjsV2Options): YjsV2Handle {
   let ws: WebSocket | null = null;
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   let pingTimer: ReturnType<typeof setInterval> | null = null;
-  let renderTimer: ReturnType<typeof setInterval> | null = null;
   let disposed = false;
   let synced = false;
-  let contentChangedSinceLastRender = false;
   let lastLatencyMs = 0;
 
   // Config from server (defaults until MSG_CONFIG received)
   let configPingInterval = 5000;
-  let configRenderInterval = 5000;
 
   // Set local awareness state
   awareness.setLocalStateField('user', {
@@ -116,7 +107,6 @@ export function initYjsClientV2(opts: YjsV2Options): YjsV2Handle {
     encoding.writeVarUint(encoder, MSG_SYNC);
     syncProtocol.writeUpdate(encoder, update);
     sendSync(encoding.toUint8Array(encoder));
-    contentChangedSinceLastRender = true;
     opts.onStatusChange('unsaved');
   });
 
@@ -131,22 +121,6 @@ export function initYjsClientV2(opts: YjsV2Options): YjsV2Handle {
 
   function stopPingLoop(): void {
     if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
-  }
-
-  // ---- Render request ----
-
-  function requestRender(): void {
-    if (!contentChangedSinceLastRender) return;
-    sendJson(MSG_RENDER_REQ, {});
-  }
-
-  function startRenderTimer(): void {
-    if (renderTimer) clearInterval(renderTimer);
-    renderTimer = setInterval(requestRender, configRenderInterval);
-  }
-
-  function stopRenderTimer(): void {
-    if (renderTimer) { clearInterval(renderTimer); renderTimer = null; }
   }
 
   // ---- WebSocket connection ----
@@ -213,26 +187,8 @@ export function initYjsClientV2(opts: YjsV2Options): YjsV2Handle {
           try {
             const payload = JSON.parse(decoding.readVarString(decoder));
             if (payload.pingInterval) configPingInterval = payload.pingInterval;
-            if (payload.renderInterval) configRenderInterval = payload.renderInterval;
             startPingLoop();
-            startRenderTimer();
           } catch { /* ignore */ }
-          break;
-        }
-
-        case MSG_RENDER: {
-          try {
-            const payload = JSON.parse(decoding.readVarString(decoder));
-            if (payload.file === filePath) {
-              opts.onRender(payload.rendered);
-              contentChangedSinceLastRender = false;
-            }
-          } catch { /* ignore */ }
-          break;
-        }
-
-        case MSG_CURSOR: {
-          // v1 cursor messages — ignore in v2 (awareness handles cursors)
           break;
         }
       }
@@ -280,7 +236,6 @@ export function initYjsClientV2(opts: YjsV2Options): YjsV2Handle {
   function cleanup(): void {
     disposed = true;
     stopPingLoop();
-    stopRenderTimer();
     if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
     if (ws) { ws.close(); ws = null; }
     awareness.destroy();
@@ -302,7 +257,6 @@ export function initYjsClientV2(opts: YjsV2Options): YjsV2Handle {
     ydoc,
     ytext,
     awareness,
-    requestRender,
     save,
     close,
     cleanup,

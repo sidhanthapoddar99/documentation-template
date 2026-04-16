@@ -6,10 +6,10 @@
  * the file's raw markdown. The Yjs CRDT handles concurrent edits correctly
  * without manual operational transform.
  *
- * In addition to Yjs sync (MSG_SYNC), the WebSocket carries cursor positions,
- * ping/latency, config delivery, and rendered preview updates. This eliminates
- * the need for HTTP POST and SSE for per-file editing traffic — SSE is only
+ * In addition to Yjs sync (MSG_SYNC), the WebSocket carries awareness
+ * (remote cursors), ping/latency, and config delivery. SSE is only
  * used for the global presence table (join/leave/page).
+ * Rendering is fully client-side — no server render round-trips.
  *
  * Architecture:
  * - Server owns the authoritative Y.Doc per file
@@ -30,13 +30,10 @@ import type { PresenceManager, PresenceConfig } from './presence';
 import type { EditorStore } from './server';
 
 // WS message types (first varuint in every frame)
-const MSG_SYNC       = 0; // Yjs binary sync (unchanged)
-const MSG_CURSOR     = 1; // C→S: cursor pos, S→C: enriched cursor broadcast
+const MSG_SYNC       = 0; // Yjs binary sync
 const MSG_PING       = 2; // C→S: {clientTime, latencyMs}, S→C: {clientTime}
 const MSG_CONFIG     = 3; // S→C: timing config on connect
-const MSG_RENDER     = 4; // S→C: rendered HTML update
-const MSG_RENDER_REQ = 5; // C→S: request server render
-const MSG_AWARENESS  = 6; // Bidirectional: awareness protocol (v2 remote cursors)
+const MSG_AWARENESS  = 6; // Bidirectional: awareness protocol (remote cursors)
 
 interface YjsRoom {
   doc: Y.Doc;
@@ -226,15 +223,6 @@ export class YjsSync {
   }
 
   /**
-   * Broadcast a rendered HTML update to all WS clients in a room.
-   */
-  broadcastRenderUpdate(filePath: string, rendered: string): void {
-    const room = this.rooms.get(filePath);
-    if (!room) return;
-    this.broadcastToRoom(room, MSG_RENDER, { file: filePath, rendered });
-  }
-
-  /**
    * Return stats for all active rooms (for /__editor/stats endpoint).
    */
   getRoomStats(): { filePath: string; connections: number; lastActivity: number }[] {
@@ -259,23 +247,6 @@ export class YjsSync {
   }
 
   /**
-   * Broadcast a JSON message to all clients in a room, optionally excluding one.
-   */
-  private broadcastToRoom(room: YjsRoom, type: number, payload: Record<string, any>, excludeWs?: WebSocket): void {
-    const encoder = encoding.createEncoder();
-    encoding.writeVarUint(encoder, type);
-    encoding.writeVarString(encoder, JSON.stringify(payload));
-    const message = encoding.toUint8Array(encoder);
-
-    for (const [conn] of room.conns) {
-      if (conn === excludeWs) continue;
-      if (conn.readyState === WebSocket.OPEN) {
-        try { conn.send(message); } catch { /* broken */ }
-      }
-    }
-  }
-
-  /**
    * Handle a new WebSocket connection for a file.
    */
   private handleConnection(ws: WebSocket, filePath: string, userId: string): void {
@@ -293,7 +264,6 @@ export class YjsSync {
       this.sendWsJson(ws, MSG_CONFIG, {
         pingInterval: this.config.pingInterval,
         cursorThrottle: this.config.cursorThrottle,
-        renderInterval: this.config.renderInterval,
       });
     }
 
@@ -326,22 +296,6 @@ export class YjsSync {
             break;
           }
 
-          case MSG_CURSOR: {
-            const payload = JSON.parse(decoding.readVarString(decoder));
-            // Update presence state (no SSE broadcast)
-            this.presence?.updateCursorState(userId, filePath, payload.cursor);
-            // Enrich with user info and broadcast to room peers
-            const user = this.presence?.getUser(userId);
-            this.broadcastToRoom(room, MSG_CURSOR, {
-              userId,
-              name: user?.name || 'Anonymous',
-              color: user?.color || '#7aa2f7',
-              cursor: payload.cursor,
-              file: filePath,
-            }, ws);
-            break;
-          }
-
           case MSG_PING: {
             const payload = JSON.parse(decoding.readVarString(decoder));
             // Update latency in presence
@@ -366,17 +320,6 @@ export class YjsSync {
             break;
           }
 
-          case MSG_RENDER_REQ: {
-            // Client requests a re-render
-            if (this.store) {
-              this.store.renderDocument(filePath).then(doc => {
-                this.broadcastRenderUpdate(filePath, doc.rendered);
-              }).catch(err => {
-                console.error('[yjs] Render request failed:', err);
-              });
-            }
-            break;
-          }
         }
       } catch (err) {
         console.error('[yjs] Error handling message:', err);

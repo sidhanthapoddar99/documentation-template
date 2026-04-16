@@ -22,8 +22,6 @@ export interface PresenceConfig {
   cursorThrottle: number;
   /** Debounce for raw text diff sync (ms). */
   contentDebounce: number;
-  /** Interval for rendered preview updates (ms). Sent via WS MSG_CONFIG. */
-  renderInterval: number;
   /** SSE keepalive comment interval (ms). */
   sseKeepalive: number;
   /** SSE auto-reconnect delay on disconnect (ms). */
@@ -203,19 +201,6 @@ export class PresenceManager {
    */
   getUser(userId: string): PresenceUser | undefined {
     return this.users.get(userId);
-  }
-
-  /**
-   * Update a user's cursor state without SSE broadcast.
-   * Used by YjsSync — WS handles cursor distribution directly.
-   */
-  updateCursorState(userId: string, file: string, cursor: { line: number; col: number; offset: number }): void {
-    const user = this.users.get(userId);
-    if (user) {
-      user.editingFile = file;
-      user.cursor = cursor;
-      user.lastSeen = Date.now();
-    }
   }
 
   /**

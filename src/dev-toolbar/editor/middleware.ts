@@ -293,13 +293,11 @@ export function setupEditorMiddleware(
             return sendJson(res, 400, { error: 'filePath is required' });
           }
 
-          const doc = await store.openDocument(filePath);
+          const doc = store.openDocument(filePath);
           // Create Yjs room (idempotent — returns existing if already open)
           yjsSync.getOrCreateRoom(filePath, doc.raw);
           return sendJson(res, 200, {
             raw: doc.raw,
-            rendered: doc.rendered,
-            title: doc.frontmatter.title || 'Untitled',
           });
         }
 

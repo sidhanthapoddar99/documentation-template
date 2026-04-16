@@ -28,7 +28,7 @@ import { YjsSync } from './editor/yjs-sync';
  * Throws a clear error if editor.autosave_interval is missing.
  * Presence settings are optional with sensible defaults.
  */
-function getEditorConfig(): { autosaveInterval: number; presence: PresenceConfig; editorVersion: number } {
+function getEditorConfig(): { autosaveInterval: number; presence: PresenceConfig } {
   const siteYamlPath = path.join(paths.config, 'site.yaml');
 
   if (!fs.existsSync(siteYamlPath)) {
@@ -64,14 +64,11 @@ function getEditorConfig(): { autosaveInterval: number; presence: PresenceConfig
     staleThreshold: Math.max(Number(p.stale_threshold) || 30000, 5000),
     cursorThrottle: Math.max(Number(p.cursor_throttle) || 100, 16),
     contentDebounce: Math.max(Number(p.content_debounce) || 150, 50),
-    renderInterval: Math.max(Number(p.render_interval) || 5000, 1000),
     sseKeepalive: Math.max(Number(p.sse_keepalive) || 15000, 5000),
     sseReconnect: Math.max(Number(p.sse_reconnect) || 2000, 500),
   };
 
-  const editorVersion = Number(config.editor?.version) || 1;
-
-  return { autosaveInterval, presence, editorVersion };
+  return { autosaveInterval, presence };
 }
 
 export function devToolbarIntegration(): AstroIntegration {
@@ -183,10 +180,8 @@ export function devToolbarIntegration(): AstroIntegration {
                       if (editorStore.isEditing(file)) {
                         if (!editorStore.consumeEditorSave(file)) {
                           console.log(`[editor] External file add detected: ${shortPath}`);
-                          editorStore.reloadFromDisk(file).then(doc => {
-                            yjsSync.resetContent(file, doc.raw);
-                            yjsSync.broadcastRenderUpdate(file, doc.rendered);
-                          }).catch(() => {});
+                          const doc = editorStore.reloadFromDisk(file);
+                          yjsSync.resetContent(file, doc.raw);
                         }
                       } else {
                         server.ws.send({ type: 'full-reload' });
@@ -228,9 +223,8 @@ export function devToolbarIntegration(): AstroIntegration {
                       // External edit — reload from disk and push via Yjs
                       console.log(`[editor] External edit detected: ${shortPath}`);
                       try {
-                        const doc = await editorStore.reloadFromDisk(file);
+                        const doc = editorStore.reloadFromDisk(file);
                         yjsSync.resetContent(file, doc.raw);
-                        yjsSync.broadcastRenderUpdate(file, doc.rendered);
                       } catch (err) {
                         console.error(`[editor] Failed to reload from disk: ${shortPath}`, err);
                       }
@@ -266,16 +260,12 @@ export function devToolbarIntegration(): AstroIntegration {
           entrypoint: './src/dev-toolbar/error-logger.ts',
         });
 
-        // Live Documentation Editor (v1 = textarea, v2 = CodeMirror 6)
-        const editorEntrypoint = editorConfig.editorVersion >= 2
-          ? './src/dev-toolbar/editor-v2/index.ts'
-          : './src/dev-toolbar/editor-app.ts';
-        const editorId = editorConfig.editorVersion >= 2 ? 'doc-editor-v2' : 'doc-editor';
+        // Live Documentation Editor (CodeMirror 6)
         addDevToolbarApp({
-          id: editorId,
+          id: 'doc-editor-v2',
           name: 'Edit Page',
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
-          entrypoint: editorEntrypoint,
+          entrypoint: './src/dev-toolbar/editor-v2/index.ts',
         });
       },
     },

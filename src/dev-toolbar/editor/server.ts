@@ -3,39 +3,24 @@
  *
  * Manages open documents during editing sessions:
  * - Reads files from disk on open
- * - Parses frontmatter and renders markdown through the full pipeline
  * - Tracks dirty state for auto-save
  * - Writes back to disk on save
+ * - File CRUD (create, rename, delete)
  *
+ * Rendering is fully client-side — this store only handles file I/O and Yjs sync.
  * Dev-only: never loaded in production builds.
  */
 
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
-
-import { DocsParser } from '../../parsers/content-types/docs';
-import { BlogParser } from '../../parsers/content-types/blog';
-import type { ProcessContext, ContentType } from '../../parsers/types';
-import { createMarkdownRendererAsync } from '../../parsers/renderers/marked';
 
 export interface EditorDocument {
   /** Absolute path to the file on disk */
   filePath: string;
   /** Raw file content (frontmatter + body) */
   raw: string;
-  /** Parsed frontmatter object */
-  frontmatter: Record<string, unknown>;
-  /** Raw markdown body (without frontmatter) */
-  body: string;
-  /** Rendered HTML preview */
-  rendered: string;
   /** Whether the in-memory content differs from disk */
   dirty: boolean;
-  /** Content type (docs or blog) */
-  contentType: ContentType;
-  /** Base path of the content directory */
-  basePath: string;
 }
 
 export interface EditorConfig {
@@ -47,10 +32,6 @@ export interface EditorConfig {
 
 export class EditorStore {
   private documents = new Map<string, EditorDocument>();
-  private docsParser: DocsParser;
-  private blogParser: BlogParser;
-  private render: ((content: string) => string) | null = null;
-  private renderReady: Promise<void>;
   private autosaveTimer: ReturnType<typeof setInterval> | null = null;
   private config: EditorConfig;
   /** Counter-based save tracking — each writeFileSync increments, each watcher consume decrements */
@@ -58,11 +39,6 @@ export class EditorStore {
 
   constructor(config: EditorConfig) {
     this.config = config;
-    this.docsParser = new DocsParser();
-    this.blogParser = new BlogParser();
-    this.renderReady = createMarkdownRendererAsync().then((fn) => {
-      this.render = fn;
-    });
 
     // Safety: close all orphaned documents on process signals (dev server restart)
     const closeAll = () => this.closeAll();
@@ -89,61 +65,9 @@ export class EditorStore {
   }
 
   /**
-   * Detect content type from file path
-   */
-  private detectContentType(filePath: string): ContentType {
-    const normalized = filePath.replace(/\\/g, '/');
-    if (normalized.includes('/blog/')) return 'blog';
-    return 'docs';
-  }
-
-  /**
-   * Find the base path (content root) for a file
-   */
-  private findBasePath(filePath: string): string {
-    // Walk up to find the docs/ or blog/ directory
-    const normalized = filePath.replace(/\\/g, '/');
-    const segments = normalized.split('/');
-
-    for (let i = segments.length - 1; i >= 0; i--) {
-      if (segments[i] === 'docs' || segments[i] === 'blog') {
-        return segments.slice(0, i + 1).join('/');
-      }
-    }
-
-    return path.dirname(filePath);
-  }
-
-  /**
-   * Render markdown body through the full pipeline
-   */
-  private async renderBody(
-    body: string,
-    filePath: string,
-    contentType: ContentType,
-    basePath: string,
-    frontmatter: Record<string, unknown>
-  ): Promise<string> {
-    const parser = contentType === 'blog' ? this.blogParser : this.docsParser;
-    const pipeline = parser.getPipeline();
-
-    const context: ProcessContext = {
-      filePath,
-      fileDir: path.dirname(filePath),
-      contentType,
-      frontmatter,
-      basePath,
-      frontmatterLineCount: 0,
-    };
-
-    await this.renderReady;
-    return pipeline.process(body, context, this.render!);
-  }
-
-  /**
    * Open a document for editing
    */
-  async openDocument(filePath: string): Promise<EditorDocument> {
+  openDocument(filePath: string): EditorDocument {
     if (!this.isAllowedPath(filePath)) {
       throw new Error(`File path not allowed: ${filePath}`);
     }
@@ -154,52 +78,15 @@ export class EditorStore {
 
     // Read from disk
     const raw = fs.readFileSync(filePath, 'utf-8');
-    const { data: frontmatter, content: body } = matter(raw);
-
-    const contentType = this.detectContentType(filePath);
-    const basePath = this.findBasePath(filePath);
-
-    // Render through pipeline
-    const rendered = await this.renderBody(body, filePath, contentType, basePath, frontmatter);
 
     const doc: EditorDocument = {
       filePath,
       raw,
-      frontmatter,
-      body,
-      rendered,
       dirty: false,
-      contentType,
-      basePath,
     };
 
     this.documents.set(filePath, doc);
     console.log(`[editor] Opened: ${path.basename(filePath)}`);
-    return doc;
-  }
-
-  /**
-   * Update document content (from keystroke)
-   */
-  async updateDocument(filePath: string, rawContent: string): Promise<EditorDocument> {
-    const doc = this.documents.get(filePath);
-    if (!doc) {
-      throw new Error(`Document not open: ${filePath}`);
-    }
-
-    // Re-parse frontmatter and body
-    const { data: frontmatter, content: body } = matter(rawContent);
-
-    // Re-render through pipeline
-    const rendered = await this.renderBody(body, filePath, doc.contentType, doc.basePath, frontmatter);
-
-    // Update in-memory document
-    doc.raw = rawContent;
-    doc.frontmatter = frontmatter;
-    doc.body = body;
-    doc.rendered = rendered;
-    doc.dirty = true;
-
     return doc;
   }
 
@@ -214,43 +101,15 @@ export class EditorStore {
   }
 
   /**
-   * Re-parse frontmatter and re-render the document through the full pipeline.
-   * Returns the updated document.
-   */
-  async renderDocument(filePath: string): Promise<EditorDocument> {
-    const doc = this.documents.get(filePath);
-    if (!doc) {
-      throw new Error(`Document not open: ${filePath}`);
-    }
-
-    const { data: frontmatter, content: body } = matter(doc.raw);
-    const rendered = await this.renderBody(body, filePath, doc.contentType, doc.basePath, frontmatter);
-
-    doc.frontmatter = frontmatter;
-    doc.body = body;
-    doc.rendered = rendered;
-
-    return doc;
-  }
-
-  /**
    * Reload a document from disk (for external edit detection).
-   * Re-reads the file, re-parses frontmatter, and re-renders.
    */
-  async reloadFromDisk(filePath: string): Promise<EditorDocument> {
+  reloadFromDisk(filePath: string): EditorDocument {
     const doc = this.documents.get(filePath);
     if (!doc) {
       throw new Error(`Document not open: ${filePath}`);
     }
 
-    const raw = fs.readFileSync(filePath, 'utf-8');
-    const { data: frontmatter, content: body } = matter(raw);
-    const rendered = await this.renderBody(body, filePath, doc.contentType, doc.basePath, frontmatter);
-
-    doc.raw = raw;
-    doc.frontmatter = frontmatter;
-    doc.body = body;
-    doc.rendered = rendered;
+    doc.raw = fs.readFileSync(filePath, 'utf-8');
     doc.dirty = false;
 
     console.log(`[editor] Reloaded from disk: ${path.basename(filePath)}`);

@@ -451,7 +451,6 @@ async function openFile(
         container.innerHTML = `<div class="ev2-editor-empty" style="color:var(--ev-danger)">Failed: ${err}</div>`;
       }
     },
-    onRender: () => {},
     onStatusChange: updateStatus,
   });
 
