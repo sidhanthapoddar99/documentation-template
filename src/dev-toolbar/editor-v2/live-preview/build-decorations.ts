@@ -268,23 +268,9 @@ export function buildLivePreviewDecorations(state: EditorState): DecorationSet {
         return false;
       }
 
-      // ---- List items — style with indentation lines for nesting ----
+      // ---- Lists — descend for inline formatting + task markers ----
       if (name === 'BulletList' || name === 'OrderedList') {
-        // Check if this is a nested list (any ancestor is a ListItem)
-        let p = node.node.parent;
-        let isNested = false;
-        while (p) {
-          if (p.name === 'ListItem') { isNested = true; break; }
-          p = p.parent;
-        }
-        if (isNested) {
-          const startLine = state.doc.lineAt(from);
-          const endLine = state.doc.lineAt(Math.min(to, state.doc.length));
-          for (let ln = startLine.number; ln <= endLine.number; ln++) {
-            decorations.push(Decoration.line({ class: 'cm-lp-list-nested' }).range(state.doc.line(ln).from));
-          }
-        }
-        return; // descend for inline formatting + task markers
+        return; // descend into children
       }
 
       // ---- List marker (non-task) ----
@@ -307,29 +293,34 @@ export function buildLivePreviewDecorations(state: EditorState): DecorationSet {
       if (name === 'Task') {
         const taskLine = state.doc.lineAt(from);
         if (!cursorOnLine(state, taskLine.from, taskLine.to)) {
-          // Find the TaskMarker child
           const markerNode = node.node.getChild('TaskMarker');
           if (markerNode) {
             const markerText = state.sliceDoc(markerNode.from, markerNode.to);
             const checked = markerText.includes('x') || markerText.includes('X');
 
-            // Text after the marker (skip space after [x])
             let textStart = markerNode.to;
             if (state.sliceDoc(textStart, textStart + 1) === ' ') textStart++;
             const textContent = state.sliceDoc(textStart, taskLine.to);
 
-            // Find the ListMark that precedes this Task in the ListItem
             const listItem = node.node.parent;
             const listMark = listItem?.getChild('ListMark');
             const replaceFrom = listMark ? listMark.from : from;
 
-            // Leading whitespace (indentation)
             const fullLine = state.sliceDoc(taskLine.from, taskLine.to);
             const indent = fullLine.match(/^(\s*)/)?.[1] || '';
 
+            // Check if this list item has nested children
+            const hasChildren = !!(listItem && (
+              listItem.getChild('BulletList') || listItem.getChild('OrderedList')
+            ));
+
             decorations.push(
               Decoration.replace({
-                widget: new TaskLineWidget(checked, textContent, indent),
+                widget: new TaskLineWidget(
+                  checked, textContent, indent,
+                  markerNode.from, markerNode.to,
+                  hasChildren,
+                ),
               }).range(replaceFrom, taskLine.to)
             );
           }

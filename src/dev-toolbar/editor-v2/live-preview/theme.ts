@@ -42,28 +42,39 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
   // ---- Lists ----
   '.cm-lp-bullet': { fontSize: '0', letterSpacing: '0' },
   '.cm-lp-bullet::after': { content: '"\\2022"', fontSize: '14px', letterSpacing: 'normal' },
-  // Nested list indentation line — no margin (markdown whitespace provides indent)
-  '.cm-lp-list-nested': { borderLeft: '1px solid' },
 
-  // ---- Task line (flex container: indent + checkbox + text) ----
+  // ---- Task line (flex: indent + checkbox-column + text) ----
   '.cm-lp-task-line': {
     display: 'inline-flex',
     alignItems: 'flex-start',
     width: '100%',
-    lineHeight: '1.5',
   },
   '.cm-lp-task-indent': {
     whiteSpace: 'pre',
     flexShrink: '0',
   },
+  // Checkbox column: holds circle + optional vertical connector
+  '.cm-lp-task-cb-col': {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    flexShrink: '0',
+    marginRight: '8px',
+  },
   '.cm-lp-task-text': {
     flex: '1',
     minWidth: '0',
   },
+  // Vertical connector line below checkbox (extends to next sibling)
+  '.cm-lp-task-connector': {
+    width: '1px',
+    flex: '1',
+    minHeight: '8px',
+  },
 
-  // ---- Checkbox (circle) ----
+  // ---- Checkbox circle ----
   '.cm-lp-checkbox': {
-    display: 'inline-flex',
+    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     width: '16px',
@@ -71,11 +82,9 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
     minWidth: '16px',
     borderRadius: '50%',
     border: '1.5px solid',
-    marginTop: '2px',
-    marginRight: '8px',
-    flexShrink: '0',
     cursor: 'pointer',
     boxSizing: 'border-box',
+    flexShrink: '0',
   },
   '.cm-lp-checkbox svg': {
     width: '10px',
@@ -108,7 +117,7 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
 export const livePreviewDark: Extension = EditorView.theme({
   '.cm-lp-checkbox': { borderColor: '#555' },
   '.cm-lp-checkbox-checked': { background: '#7ec699', color: '#0a0a0a' },
-  '.cm-lp-list-nested': { borderColor: '#333' },
+  '.cm-lp-task-connector': { background: '#333' },
   '.cm-lp-code': { background: 'rgba(255,255,255,0.08)' },
   '.cm-lp-link': { color: '#7aa2f7' },
   '.cm-lp-bq': { borderColor: '#444' },
@@ -123,7 +132,7 @@ export const livePreviewDark: Extension = EditorView.theme({
 export const livePreviewLight: Extension = EditorView.theme({
   '.cm-lp-checkbox': { borderColor: '#ccc' },
   '.cm-lp-checkbox-checked': { background: '#2e7d32', color: '#fff' },
-  '.cm-lp-list-nested': { borderColor: '#e0e0e0' },
+  '.cm-lp-task-connector': { background: '#e0e0e0' },
   '.cm-lp-code': { background: 'rgba(0,0,0,0.06)' },
   '.cm-lp-link': { color: '#0969da' },
   '.cm-lp-bq': { borderColor: '#ddd' },

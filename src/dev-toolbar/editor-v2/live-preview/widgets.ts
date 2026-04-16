@@ -23,36 +23,74 @@ export class CheckboxWidget extends WidgetType {
 }
 
 /**
- * Task line widget — replaces "- [ ] text" or "- [x] text" with a flex container:
- *   [checkbox] [text content]
- * This ensures wrapped text aligns under the first letter, not under the checkbox.
+ * Task line widget — replaces "- [ ] text" with a custom flex element:
+ *
+ *   [indent][connector-line][checkbox][text content]
+ *
+ * Features:
+ * - Flex layout: wrapped text aligns under first letter, not under checkbox
+ * - Clickable checkbox: toggles [ ] ↔ [x] in the document
+ * - Vertical connector line from checkbox down to nested items
+ * - Indent preserved from markdown whitespace
  */
 export class TaskLineWidget extends WidgetType {
   constructor(
     public checked: boolean,
     public textContent: string,
     public indent: string,
+    /** Position of [ ] or [x] in the document — for click-to-toggle */
+    public markerFrom: number,
+    public markerTo: number,
+    /** Whether this task has nested children below it */
+    public hasChildren: boolean,
   ) { super(); }
 
-  toDOM() {
+  toDOM(view: import('@codemirror/view').EditorView) {
     const wrapper = document.createElement('span');
     wrapper.className = 'cm-lp-task-line';
 
-    // Preserve leading whitespace for indentation
+    // Indent (preserves markdown whitespace)
     if (this.indent) {
-      const indentSpan = document.createElement('span');
-      indentSpan.textContent = this.indent;
-      indentSpan.className = 'cm-lp-task-indent';
-      wrapper.appendChild(indentSpan);
+      const indentEl = document.createElement('span');
+      indentEl.className = 'cm-lp-task-indent';
+      indentEl.textContent = this.indent;
+      wrapper.appendChild(indentEl);
     }
 
-    // Checkbox
+    // Checkbox container (holds circle + vertical line)
+    const cbCol = document.createElement('span');
+    cbCol.className = 'cm-lp-task-cb-col';
+
+    // Checkbox circle
     const cb = document.createElement('span');
     cb.className = `cm-lp-checkbox${this.checked ? ' cm-lp-checkbox-checked' : ''}`;
     if (this.checked) {
       cb.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 8.5 6.5 11.5 12.5 5.5"/></svg>`;
     }
-    wrapper.appendChild(cb);
+
+    // Click to toggle
+    const markerFrom = this.markerFrom;
+    const markerTo = this.markerTo;
+    const checked = this.checked;
+    cb.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const newMarker = checked ? '[ ]' : '[x]';
+      view.dispatch({
+        changes: { from: markerFrom, to: markerTo, insert: newMarker },
+      });
+    });
+
+    cbCol.appendChild(cb);
+
+    // Vertical connector line (if has children)
+    if (this.hasChildren) {
+      const line = document.createElement('span');
+      line.className = 'cm-lp-task-connector';
+      cbCol.appendChild(line);
+    }
+
+    wrapper.appendChild(cbCol);
 
     // Text content
     const text = document.createElement('span');
@@ -65,10 +103,17 @@ export class TaskLineWidget extends WidgetType {
   }
 
   eq(other: TaskLineWidget) {
-    return this.checked === other.checked && this.textContent === other.textContent && this.indent === other.indent;
+    return this.checked === other.checked
+      && this.textContent === other.textContent
+      && this.indent === other.indent
+      && this.markerFrom === other.markerFrom
+      && this.hasChildren === other.hasChildren;
   }
 
-  ignoreEvent() { return false; }
+  ignoreEvent(e: Event) {
+    // Let mousedown through for checkbox click
+    return e.type === 'mousedown';
+  }
 }
 
 /** Horizontal rule — replaces `---` / `***` / `___` */
