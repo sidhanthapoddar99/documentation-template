@@ -268,22 +268,34 @@ export function buildLivePreviewDecorations(state: EditorState): DecorationSet {
         return false;
       }
 
-      // ---- List items — style with proper indentation ----
+      // ---- List items — style with indentation lines for nesting ----
       if (name === 'BulletList' || name === 'OrderedList') {
-        const startLine = state.doc.lineAt(from);
-        const endLine = state.doc.lineAt(Math.min(to, state.doc.length));
-        for (let ln = startLine.number; ln <= endLine.number; ln++) {
-          decorations.push(Decoration.line({ class: 'cm-lp-list' }).range(state.doc.line(ln).from));
+        // Check if this is a nested list (parent is also a list)
+        const parentNode = node.node.parent;
+        if (parentNode && (parentNode.name === 'ListItem')) {
+          const startLine = state.doc.lineAt(from);
+          const endLine = state.doc.lineAt(Math.min(to, state.doc.length));
+          for (let ln = startLine.number; ln <= endLine.number; ln++) {
+            decorations.push(Decoration.line({ class: 'cm-lp-list-nested' }).range(state.doc.line(ln).from));
+          }
         }
         return; // descend for inline formatting + task markers
       }
 
-      // ---- List marker (- or 1.) — hide and replace with styled bullet when unfocused ----
+      // ---- List marker ----
       if (name === 'ListMark') {
         if (!cursorOnLine(state, from, to)) {
           const text = state.sliceDoc(from, to);
-          // For bullet lists, replace - or * with a proper bullet
-          if (text === '-' || text === '*' || text === '+') {
+          // Check if parent ListItem contains a Task node (which holds TaskMarker)
+          const listItem = node.node.parent;
+          const hasTask = listItem && (listItem.getChild('Task') || listItem.getChild('TaskMarker'));
+
+          if (hasTask) {
+            // Task list: hide the bullet marker entirely (checkbox replaces it)
+            const hideEnd = (state.sliceDoc(to, to + 1) === ' ') ? to + 1 : to;
+            decorations.push(Decoration.replace({}).range(from, hideEnd));
+          } else if (text === '-' || text === '*' || text === '+') {
+            // Normal bullet: replace with styled bullet
             decorations.push(Decoration.mark({ class: 'cm-lp-bullet' }).range(from, to));
           }
         }
@@ -304,6 +316,14 @@ export function buildLivePreviewDecorations(state: EditorState): DecorationSet {
         const checked = text.includes('x') || text.includes('X');
         if (!cursorOnLine(state, from, to)) {
           decorations.push(Decoration.replace({ widget: new CheckboxWidget(checked) }).range(from, to));
+          if (checked) {
+            // Strikethrough + dim only the text after the checkbox (not the whole line)
+            const line = state.doc.lineAt(from);
+            const textStart = to + 1; // skip the space after [x]
+            if (textStart < line.to) {
+              decorations.push(Decoration.mark({ class: 'cm-lp-task-done' }).range(textStart, line.to));
+            }
+          }
         }
         return false;
       }

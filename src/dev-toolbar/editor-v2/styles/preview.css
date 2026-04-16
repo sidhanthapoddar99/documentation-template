@@ -113,3 +113,38 @@
 .ev2-preview-content .docs-body table td { padding: 6px 12px; border: 1px solid; text-align: left; }
 .ev2-preview-content .docs-body blockquote { margin: 0.8em 0; padding: 0.5em 1em; }
 .ev2-preview-content .docs-body hr { margin: 1.5em 0; border: none; border-top: 1px solid; }
+
+/* ---- Task list & connector lines ---- */
+/* The preview pane loads markdown.css via /__editor/styles which handles:
+   - Checkbox styling (circle, tick, checked state)
+   - List connector lines (::after on li)
+   - Checked task dimming + strikethrough
+   Only editor-theme-specific color overrides are needed here. */
+
+[data-editor-theme="dark"] .ev2-preview-content li > input[type="checkbox"] {
+  border-color: #555;
+}
+[data-editor-theme="dark"] .ev2-preview-content li > input[type="checkbox"]:checked {
+  background: #7ec699;
+}
+[data-editor-theme="dark"] .ev2-preview-content li > input[type="checkbox"]:checked::after {
+  border-color: #0a0a0a;
+}
+[data-editor-theme="dark"] .ev2-preview-content li:has(> ul)::after,
+[data-editor-theme="dark"] .ev2-preview-content li:has(> ol)::after {
+  background: #333;
+}
+
+[data-editor-theme="light"] .ev2-preview-content li > input[type="checkbox"] {
+  border-color: #ccc;
+}
+[data-editor-theme="light"] .ev2-preview-content li > input[type="checkbox"]:checked {
+  background: #2e7d32;
+}
+[data-editor-theme="light"] .ev2-preview-content li > input[type="checkbox"]:checked::after {
+  border-color: #fff;
+}
+[data-editor-theme="light"] .ev2-preview-content li:has(> ul)::after,
+[data-editor-theme="light"] .ev2-preview-content li:has(> ol)::after {
+  background: #e0e0e0;
+}

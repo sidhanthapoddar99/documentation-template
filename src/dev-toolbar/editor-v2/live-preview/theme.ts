@@ -40,18 +40,37 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
   '.cm-lp-table-header': { fontWeight: '600' },
 
   // ---- Lists ----
-  '.cm-lp-list': { },
   '.cm-lp-bullet': { fontSize: '0', letterSpacing: '0' },
   '.cm-lp-bullet::after': { content: '"\\2022"', fontSize: '14px', letterSpacing: 'normal' },
+  // Nested list indentation line — positioned to align under parent checkbox/bullet
+  '.cm-lp-list-nested': { borderLeft: '1px solid', marginLeft: '12px', paddingLeft: '8px !important' },
 
-  // ---- Checkbox ----
+  // ---- Checkbox (circle) ----
   '.cm-lp-checkbox': {
-    cursor: 'pointer',
-    width: '15px',
-    height: '15px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '16px',
+    height: '16px',
+    borderRadius: '50%',
+    border: '1.5px solid',
     verticalAlign: 'middle',
-    marginRight: '4px',
-    accentColor: 'currentColor',
+    marginRight: '6px',
+    flexShrink: '0',
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+  },
+  '.cm-lp-checkbox svg': {
+    width: '10px',
+    height: '10px',
+  },
+  // Checked: filled circle with tick, text gets dimmed + strikethrough
+  '.cm-lp-checkbox-checked': {
+    borderWidth: '0',
+  },
+  '.cm-lp-task-done': {
+    opacity: '0.5',
+    textDecoration: 'line-through',
   },
 
   // ---- HR ----
@@ -71,6 +90,9 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
 });
 
 export const livePreviewDark: Extension = EditorView.theme({
+  '.cm-lp-checkbox': { borderColor: '#555' },
+  '.cm-lp-checkbox-checked': { background: '#7ec699', color: '#0a0a0a' },
+  '.cm-lp-list-nested': { borderColor: '#333' },
   '.cm-lp-code': { background: 'rgba(255,255,255,0.08)' },
   '.cm-lp-link': { color: '#7aa2f7' },
   '.cm-lp-bq': { borderColor: '#444' },
@@ -83,6 +105,9 @@ export const livePreviewDark: Extension = EditorView.theme({
 }, { dark: true });
 
 export const livePreviewLight: Extension = EditorView.theme({
+  '.cm-lp-checkbox': { borderColor: '#ccc' },
+  '.cm-lp-checkbox-checked': { background: '#2e7d32', color: '#fff' },
+  '.cm-lp-list-nested': { borderColor: '#e0e0e0' },
   '.cm-lp-code': { background: 'rgba(0,0,0,0.06)' },
   '.cm-lp-link': { color: '#0969da' },
   '.cm-lp-bq': { borderColor: '#ddd' },

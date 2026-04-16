@@ -10,12 +10,14 @@ import { WidgetType } from '@codemirror/view';
 export class CheckboxWidget extends WidgetType {
   constructor(public checked: boolean) { super(); }
   toDOM() {
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.checked = this.checked;
-    cb.className = 'cm-lp-checkbox';
-    cb.setAttribute('aria-label', this.checked ? 'Completed' : 'Incomplete');
-    return cb;
+    const el = document.createElement('span');
+    el.className = `cm-lp-checkbox${this.checked ? ' cm-lp-checkbox-checked' : ''}`;
+    el.setAttribute('aria-label', this.checked ? 'Completed' : 'Incomplete');
+    // Tick SVG for checked state
+    if (this.checked) {
+      el.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3.5 8.5 6.5 11.5 12.5 5.5"/></svg>`;
+    }
+    return el;
   }
   eq(other: CheckboxWidget) { return this.checked === other.checked; }
   ignoreEvent() { return false; }

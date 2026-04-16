@@ -124,8 +124,6 @@ body {
 
 .markdown-content h2 {
   font-size: var(--font-size-2xl);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--color-border-light);
 }
 
 .markdown-content h3 {
@@ -379,4 +377,99 @@ body {
   background: var(--color-bg-primary, #fff);
   border-radius: var(--border-radius-md);
   padding: 1rem;
+}
+
+/* =================================
+   Task List Checkboxes
+   ================================= */
+
+/* Any li with a checkbox: remove bullet dot */
+.markdown-content li:has(> input[type="checkbox"]) {
+  list-style: none;
+}
+
+/* Checkbox circle */
+.markdown-content li > input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border-default, #ccc);
+  vertical-align: text-bottom;
+  margin: 0 10px 0 0;
+  padding: 0;
+  cursor: default;
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Checked: filled green circle */
+.markdown-content li > input[type="checkbox"]:checked {
+  border: none;
+  background: var(--color-success, #2e7d32);
+}
+
+/* Tick mark centered in circle */
+.markdown-content li > input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 3px;
+  width: 4px;
+  height: 9px;
+  border: solid var(--color-bg-primary, #fff);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Checked task: dimmed + strikethrough */
+.markdown-content li:has(> input[type="checkbox"]:checked) {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* =================================
+   List Vertical Connector Lines
+   Runs from parent item down to children.
+   Uses ::after on the <li> itself (not ::before on nested <ul>)
+   so it's anchored to the parent's checkbox/bullet position.
+   ================================= */
+
+.markdown-content li {
+  position: relative;
+}
+
+/* Line on any li that has children — anchored under the bullet/checkbox */
+.markdown-content li:has(> ul)::after,
+.markdown-content li:has(> ol)::after {
+  content: '';
+  position: absolute;
+  width: 1px;
+  background: var(--color-border-default, #e0e0e0);
+}
+
+/* Unordered without checkbox: line under bullet center */
+.markdown-content ul > li:not(:has(> input[type="checkbox"])):has(> ul)::after,
+.markdown-content ul > li:not(:has(> input[type="checkbox"])):has(> ol)::after {
+  left: -0.75em;
+  top: 1.6em;
+  bottom: 0.5em;
+}
+
+/* Unordered with checkbox: line under checkbox center */
+.markdown-content ul > li:has(> input[type="checkbox"]):has(> ul)::after,
+.markdown-content ul > li:has(> input[type="checkbox"]):has(> ol)::after {
+  left: 8px;
+  top: 1.8em;
+  bottom: 0.5em;
+}
+
+/* Ordered: line under number center */
+.markdown-content ol > li:has(> ul)::after,
+.markdown-content ol > li:has(> ol)::after {
+  left: -1.1em;
+  top: 1.6em;
+  bottom: 0.5em;
 }
