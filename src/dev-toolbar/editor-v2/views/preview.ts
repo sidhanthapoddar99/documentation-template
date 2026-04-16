@@ -56,14 +56,18 @@ export function initPreviewPanel(
 
   function setFullWidth(full: boolean) {
     if (full) {
-      pane.style.width = '';
-      pane.style.maxWidth = '';
+      pane.style.width = '100%';
+      pane.style.maxWidth = '100%';
       pane.style.height = '';
       pane.style.borderLeft = 'none';
       pane.style.borderTop = 'none';
+      pane.classList.add('ev2-preview-full');
     } else {
+      pane.style.width = '';
+      pane.style.maxWidth = '';
       pane.style.borderLeft = '';
       pane.style.borderTop = '';
+      pane.classList.remove('ev2-preview-full');
     }
   }
 

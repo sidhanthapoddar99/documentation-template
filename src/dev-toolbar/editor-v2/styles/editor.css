@@ -493,6 +493,16 @@
   background: var(--ev-bg);
 }
 
+/* Preview-only mode: center content with readable width */
+.ev2-preview-full .ev2-preview-content {
+  display: flex;
+  justify-content: center;
+}
+.ev2-preview-full .ev2-preview-content > * {
+  width: 100%;
+  max-width: 800px;
+}
+
 /* ---- WYSIWYG pane (placeholder) ---- */
 .ev2-wysiwyg-pane {
   flex: 1;

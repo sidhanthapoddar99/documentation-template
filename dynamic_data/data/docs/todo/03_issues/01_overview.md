@@ -6,18 +6,18 @@ sidebar_label: Status
 
 ## Editor
 
-- [x] CM6 integration
+- [ ] CM6 integration
   - [x] VS Code Dark+ syntax highlighting
   - [x] Nested code block highlighting
   - [x] Line numbers
   - [x] Word wrap toggle
   - [x] Source mode (color only, no bold/size)
-- [x] <span style="color: #f0c674">Formatting toolbar (source + live preview)</span>
+- [ ] <span style="color: #f0c674">Formatting toolbar (source + live preview)</span>
   - [x] Bold, italic, strikethrough, link, code, list, quote, table, HR buttons
   - [x] Heading level picker (H1-H6 dropdown)
   - [x] Keyboard shortcuts (Ctrl+B bold, Ctrl+I italic, Ctrl+K link, Ctrl+E code)
   - [ ] <span style="color: #f0c674">Test toolbar in live preview mode</span>
-- [x] <span style="color: #f0c674">Live Preview mode (Obsidian-style)</span>
+- [ ] <span style="color: #f0c674">Live Preview mode (Obsidian-style)</span>
   - [x] CM6 StateField decorations — hide syntax, render styled content
   - [x] Cursor on line reveals raw markdown for editing
   - [x] Headings with proper sizing (H1 1.8em → H6 0.9em)

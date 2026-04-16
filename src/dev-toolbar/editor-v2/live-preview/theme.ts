@@ -94,8 +94,9 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
     borderWidth: '0',
   },
   '.cm-lp-task-done': {
-    opacity: '0.5',
     textDecoration: 'line-through',
+    textDecorationColor: 'rgba(128,128,128,0.5)',
+    color: '#999',
   },
 
   // ---- HR ----
@@ -115,8 +116,8 @@ export const livePreviewBaseTheme: Extension = EditorView.baseTheme({
 });
 
 export const livePreviewDark: Extension = EditorView.theme({
-  '.cm-lp-checkbox': { borderColor: '#555' },
-  '.cm-lp-checkbox-checked': { background: '#7ec699', color: '#0a0a0a' },
+  '.cm-lp-checkbox': { borderColor: '#888' },
+  '.cm-lp-checkbox-checked': { background: '#555', color: '#fff' },
   '.cm-lp-task-child-line': { borderColor: '#333' },
   '.cm-lp-code': { background: 'rgba(255,255,255,0.08)' },
   '.cm-lp-link': { color: '#7aa2f7' },
@@ -131,7 +132,7 @@ export const livePreviewDark: Extension = EditorView.theme({
 
 export const livePreviewLight: Extension = EditorView.theme({
   '.cm-lp-checkbox': { borderColor: '#ccc' },
-  '.cm-lp-checkbox-checked': { background: '#2e7d32', color: '#fff' },
+  '.cm-lp-checkbox-checked': { background: '#555', color: '#fff' },
   '.cm-lp-task-child-line': { borderColor: '#e0e0e0' },
   '.cm-lp-code': { background: 'rgba(0,0,0,0.06)' },
   '.cm-lp-link': { color: '#0969da' },

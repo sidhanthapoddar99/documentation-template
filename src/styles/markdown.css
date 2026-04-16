@@ -400,16 +400,16 @@ body {
   height: 16px;
   min-width: 16px;
   border-radius: 50%;
-  border: 1.5px solid var(--color-border-default, #ccc);
+  border: 1.5px solid var(--color-text-tertiary, #888);
   margin-top: 3px;
   box-sizing: border-box;
 }
 
-/* Checked: filled green circle with SVG tick */
+/* Checked: filled gray circle with SVG tick */
 .markdown-content .task-checkbox-checked {
   border: none;
-  background: var(--color-success, #2e7d32);
-  color: var(--color-bg-primary, #fff);
+  background: #555;
+  color: #fff;
 }
 
 .markdown-content .task-checkbox svg {
@@ -428,10 +428,18 @@ body {
   margin: 0;
 }
 
-/* Checked: dimmed + strikethrough on content only */
-.markdown-content .task-checked .task-content {
-  opacity: 0.5;
+/* Checked: dimmed + strikethrough on content only (direct child, not nested) */
+.markdown-content .task-checked > .task-content {
   text-decoration: line-through;
+  text-decoration-color: rgba(128, 128, 128, 0.5);
+  color: var(--color-text-tertiary, #999);
+}
+
+/* Reset styling on nested lists inside checked task content */
+.markdown-content .task-checked > .task-content ul,
+.markdown-content .task-checked > .task-content ol {
+  text-decoration: none;
+  color: var(--color-text-primary, inherit);
 }
 
 /* =================================
