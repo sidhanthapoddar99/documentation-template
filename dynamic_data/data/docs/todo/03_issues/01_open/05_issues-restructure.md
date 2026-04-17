@@ -8,7 +8,7 @@ sidebar_label: Issues Restructure
 
 **Type:** Refactor
 **Priority:** Medium
-**Component:** `dynamic_data/data/` + new layout `layouts/custom/issues/`
+**Component:** `src/layouts/issues/` (new first-class layout, on par with `docs/` and `blogs/`) + `src/parsers/content-types/issues.ts` + `dynamic_data/data/issues/`
 **Status:** Design
 
 ---
@@ -302,7 +302,14 @@ After this restructure ships, the documentation needs a new top-level section (l
 
 **Plan-of-record:** do not ship the issues restructure without the skill and the documentation updates. The whole value proposition rests on Claude being able to reason over this tracker, and without the skill every interaction burns context re-discovering the format.
 
-## UI — new `issues` content type
+## UI — new first-class `issues` content type
+
+**Not a `custom/` layout — a peer of `docs/` and `blogs/`.** Lives at `src/layouts/issues/default/`, follows the same conventions:
+
+- Standard `Layout.astro` / `IndexLayout.astro` split (like `blogs/`).
+- Its own entry in `src/parsers/content-types/issues.ts`.
+- Its own glob in `src/pages/[...slug].astro` (`builtinIssuesIndexLayouts`, `builtinIssuesDetailLayouts`).
+- Declared in `site.yaml` with `layout_index: "@issues/default"` and `layout_detail: "@issues/default"`.
 
 Modeled on `blog` (index + detail), not `docs`.
 
@@ -325,22 +332,179 @@ Modeled on `blog` (index + detail), not `docs`.
 
 The existing dev-toolbar editor already handles `settings.json` (folders in docs). Extend to open / edit per-issue `settings.json` via a richer form UI (dropdowns from vocabulary, date pickers) instead of raw JSON editing.
 
-## Migration plan
+## Development phases
 
-1. **Create root `settings.json`** with the vocabulary above.
-2. **Convert existing todo items** — one folder per item, move content to `issue.md`, extract metadata to `settings.json`. Candidates:
-   - `03_issues/01_open/01_wysiwyg-mode.md` → `issues/wysiwyg-mode/`
-   - `03_issues/01_open/02_excalidraw-integration.md` → `issues/excalidraw-integration/`
-   - `03_issues/01_open/03_canvas-rendering.md` → `issues/canvas-rendering/`
-   - `03_issues/01_open/04_editor-performance.md` → `issues/editor-performance/`
-   - `03_issues/01_open/05_issues-restructure.md` → `issues/issues-restructure/` (this doc)
+Development is split into **two distinct phases**. Do not interleave. Complete Phase 1 and sign off on it against a throwaway testbed before touching any real TODO content in Phase 2.
+
+### Phase 1 — Build the layout + system against a testbed
+
+1. **Create the first-class layout** at `src/layouts/issues/default/` (see [Implementation sketch](#implementation-sketch) below).
+2. **Add `issues` as a content type** in `src/parsers/content-types/issues.ts` (settings.json-driven, not frontmatter).
+3. **Register the layout** in `src/pages/[...slug].astro` (new globs + resolution branch).
+4. **Create a testbed data folder** — `dynamic_data/data/issues-test/` with a root `settings.json` (vocabulary) and 3–5 hand-crafted sample issues covering the main status/type/priority combinations. This is throwaway data — it exists so the layout can be exercised without risking real TODO content.
+5. **Declare the test section in `site.yaml`** — `pages.issues-test` pointing at `@data/issues-test` with base URL `/issues-test`.
+6. **Build the indexer** — a dev-server-side process that scans `issues-test/` on startup and on file watcher events, writing `issues-test/_index.json`.
+7. **Iterate on the list view** — filter chips, sort controls, URL-persisted state, visual design.
+8. **Iterate on the detail view** — `issue.md` rendering, `comments/` thread, `settings.json` metadata panel, editing affordances.
+9. **Build the Claude skill** for issue traversal (see the [Claude / AI integration](#claude--ai-integration) section).
+10. **Write the user-guide and dev-docs sections** for the new content type.
+
+Exit criteria for Phase 1: the layout works end-to-end against `issues-test/`, including creating / editing / commenting / filtering, and the skill can read and update issues.
+
+### Phase 2 — Migrate real TODO content
+
+Only after Phase 1 is signed off:
+
+1. **Create the real data folder** at `dynamic_data/data/issues/` with its own root `settings.json`.
+2. **Point `site.yaml` pages.issues** at `@data/issues` with base URL `/issues`.
+3. **Migrate existing TODO items** — one folder per item, move content to `issue.md`, extract metadata to `settings.json`. Candidates:
+   - `03_issues/01_open/01_wysiwyg-mode.md` → `issues/2026-xx-xx-wysiwyg-mode/`
+   - `03_issues/01_open/02_excalidraw-integration.md` → `issues/2026-xx-xx-excalidraw-integration/`
+   - `03_issues/01_open/03_canvas-rendering.md` → `issues/2026-xx-xx-canvas-rendering/`
+   - `03_issues/01_open/04_editor-performance.md` → `issues/2026-04-17-editor-performance/`
+   - `03_issues/01_open/05_issues-restructure.md` → `issues/2026-04-17-issues-restructure/` (this doc)
    - `02_backlog/01_bugs.md` → split each bug into its own folder, label `bug`
    - `02_backlog/02_feature-ideas.md` → split each into its own folder, label `idea`
    - `01_sprints/*` → extract items, set `milestone` from the sprint name, discard the sprint folder
    - `04_testing.md`, `01_overview.md` → keep as docs, not issues (they describe project state, not work items)
-3. **Route `/issues`** through the existing `docs/default` layout initially so content is readable while UI is built.
-4. **Build `layouts/custom/issues/`** — list view first, detail view second.
-5. **Delete `dynamic_data/data/docs/todo/`** once migration is verified.
+   - For historical items without known creation dates, use the earliest commit date touching that file (`git log --follow --diff-filter=A`).
+4. **Delete `dynamic_data/data/docs/todo/`** once migration is verified.
+5. **Delete `dynamic_data/data/issues-test/`** once real data is flowing and the layout is confirmed stable.
+
+## Implementation sketch
+
+Concrete guidance for the next session building this. Mirror the blog layout — it's the closest precedent (index + detail, flat folder, date prefix).
+
+### `src/layouts/issues/default/` structure
+
+```
+src/layouts/issues/default/
+├── index.ts                  # barrel export
+├── IndexLayout.astro         # /issues — filterable list view
+├── IndexBody.astro           # filter chips + results list + sort controls
+├── IssueCard.astro           # single row in the list (title, badges, meta)
+├── DetailLayout.astro        # /issues/<id> — single issue view
+├── DetailBody.astro          # issue.md + comments/ rendered thread
+├── MetaPanel.astro           # sidebar showing settings.json as badges
+├── StatusBadge.astro         # shared: colored pill for status/priority/type
+├── README.md                 # component contract for external layouts
+└── styles.css                # scoped styles
+```
+
+**Why not reuse `blogs/default/` components directly?** Blogs are content-first (title + body). Issues are metadata-first (the sidebar badges and filter chips are load-bearing UI). Enough divergence to warrant a separate tree; steal patterns, not files.
+
+### `src/parsers/content-types/issues.ts` — new parser
+
+Model on `blog.ts` but with these differences:
+
+- **Folder-per-item, not file-per-item.** Scan `dataPath` for directories matching `^\d{4}-\d{2}-\d{2}-[a-z0-9-]+$`.
+- **Metadata source is `<folder>/settings.json`, not frontmatter.** Read and validate against root `settings.json` vocabulary.
+- **Body is `<folder>/issue.md`.** Pure markdown, no frontmatter required (but tolerate if present for portability).
+- **Comments are `<folder>/comments/NNN_*.md`.** Sorted by filename.
+- **Supporting docs are `<folder>/*.md` excluding `issue.md`.** Surface as a list on the detail view.
+- **Parse filename** extracts `{ date, slug }` from folder name — reuse blog's `parseFilename` shape.
+- **Asset resolution** works like blog's (`[[diagram.excalidraw]]` → `<folder>/assets/diagram.excalidraw`).
+
+### `src/pages/[...slug].astro` — routing additions
+
+Mirror the blog pattern at `[...slug].astro:21-25`:
+
+```ts
+const builtinIssuesIndexLayouts = import.meta.glob('/src/layouts/issues/*/IndexLayout.astro');
+const extIssuesIndexLayouts = import.meta.glob('@ext-layouts/issues/*/IndexLayout.astro');
+
+const builtinIssuesDetailLayouts = import.meta.glob('/src/layouts/issues/*/DetailLayout.astro');
+const extIssuesDetailLayouts = import.meta.glob('@ext-layouts/issues/*/DetailLayout.astro');
+```
+
+Merge them like the existing `blogIndexLayouts` / `blogPostLayouts`. Add an `issues` branch to the page-type resolver that loads index layout for the base URL and detail layout for `/<id>`.
+
+### `site.yaml` — declaring the section
+
+```yaml
+paths:
+  data: "./dynamic_data/data"
+
+pages:
+  issues:
+    base_url: "/issues"
+    data: "@data/issues"
+    content_type: "issues"
+    layout_index: "@issues/default"
+    layout_detail: "@issues/default"
+```
+
+For Phase 1, declare `issues-test` with the same shape pointing at `@data/issues-test`. Both can coexist during Phase 1 and Phase 2 cutover.
+
+### Alias additions
+
+Add `@issues/` to the layout alias resolver (mirroring `@docs/`, `@blog/`, `@custom/`) in the config loader so `@issues/default` resolves to `src/layouts/issues/default/`.
+
+### The indexer — where it lives
+
+Runs in the **dev-toolbar integration** (`src/dev-toolbar/integration.ts`), alongside the editor store and presence manager. Pattern:
+
+- On `configureServer`, scan each configured issues data path once, build `_index.json`.
+- On Vite watcher `change`/`add`/`unlink` for any `settings.json` under an issues dir, rebuild the index incrementally (update just the affected entry).
+- Written to disk at `<issues-dir>/_index.json` so cold reloads have instant filter UI.
+- Use the existing `cache-manager.ts` for mtime-based invalidation.
+
+**For production builds:** the index is regenerated at build time (from `astro:build:start` hook) if any issues section is not marked `draft: true`. Otherwise skipped entirely.
+
+### `_index.json` schema
+
+```json
+{
+  "generated": "2026-04-17T14:22:11.000Z",
+  "issues": [
+    {
+      "id": "2026-04-17-editor-performance",
+      "title": "Editor V2 — Performance Optimizations",
+      "description": "Outstanding performance wins in the live editor.",
+      "status": "open",
+      "priority": "medium",
+      "type": "performance",
+      "component": "editor-v2",
+      "milestone": "v2",
+      "labels": [],
+      "author": "sidhantha",
+      "assignees": ["sidhantha"],
+      "created": "2026-04-17",
+      "updated": "2026-04-17",
+      "due": null,
+      "draft": false
+    }
+  ]
+}
+```
+
+`created` is derived from the folder name prefix (not stored in `settings.json`).
+
+### List-view UX spec
+
+- **Filter chips:** one per enum field (`status`, `priority`, `type`, `component`, `milestone`, `labels`). Multi-select within a field is OR, across fields is AND.
+- **URL state:** filters serialize to query params (`?status=open,in-progress&type=bug`). Shareable, back/forward navigable.
+- **Sort:** default `updated desc`. Options: `updated`, `created`, `priority`, `due`. Sort control persists via query param too.
+- **Empty states:** "No issues match these filters — clear filters" button.
+- **Counts per chip:** show `(N)` next to each filter value representing matches under current other filters.
+- **"New issue" button:** top-right. Opens a modal that creates the folder + boilerplate files and immediately opens in detail view.
+
+### Detail-view UX spec
+
+- **Header:** title, status badge, key metadata chips inline.
+- **Main:** rendered `issue.md`, followed by `comments/` thread in chronological order, followed by list of supporting docs as links.
+- **Sidebar (right, sticky):** all `settings.json` fields as editable dropdowns / date pickers / chip selectors. Save-on-change, debounced writes to `settings.json`.
+- **"Add comment" input:** at the bottom of the thread. Submits as `comments/NNN_YYYY-MM-DD_<author>.md`.
+- **Breadcrumb / back:** preserves list-view filter state when returning.
+
+### Editor integration
+
+The existing dev-toolbar editor already handles markdown files. Extensions needed:
+
+- **Open `issue.md`:** existing flow.
+- **Open `comments/NNN_*.md`:** same.
+- **`settings.json` editing:** wire a richer form (not raw JSON) using the vocabulary in root `settings.json` for dropdown values. Validation against enum values.
+- **Create issue:** a command that mints `<today>-<slug>/`, writes the boilerplate `settings.json` + empty `issue.md`, then opens it.
 
 ## Tradeoffs / decisions made
 
@@ -362,3 +526,19 @@ The existing dev-toolbar editor already handles `settings.json` (folders in docs
 - Supporting docs as a subfolder (`docs/`) or sibling `.md` files? **Sibling for now** — less nesting, easier to discover.
 - Exact skill path — `.claude/skills/issues.md` or `dynamic_data/data/.claude/...` or a user-invocable plugin skill? Decide during skill implementation.
 - GitHub Issues sync — one-way or two-way, and who triggers it (CI vs dev-server)? Deferred until someone actually needs the bridge.
+- Does the issues layout need its own `compact` variant (like `docs/compact/`) for dense list views? Defer until one style feels insufficient.
+- `_index.json` on disk vs memory-only — on-disk means faster cold starts, but it's a generated file that wants a `.gitignore` entry. Lean on-disk + gitignore it; regenerate on startup anyway.
+
+## References for the next session
+
+Key files to read before starting implementation:
+
+- `src/layouts/blogs/default/` — the closest structural precedent (index + detail split, flat folder, date-prefixed items).
+- `src/parsers/content-types/blog.ts` — the parser pattern to mirror, especially `parseFilename` and asset resolution.
+- `src/pages/[...slug].astro:1-90` — how layouts are discovered and routed. Need to add issues globs and a resolution branch.
+- `src/loaders/data.ts:75-250` — content loading with mtime caching and draft filtering. New `loadIssues` helper mirrors `loadContent` but scans folders not files.
+- `src/loaders/config.ts` — where aliases are resolved at load time. Add `@issues/` to the alias table.
+- `src/dev-toolbar/integration.ts` — where the indexer runs. Parallel to existing `editorStore.startBackgroundSave()`, `presenceManager.startCleanup()`, `yjsSync.startEviction()`.
+- `src/loaders/cache-manager.ts` — mtime-based caching with dependency tracking. Issues get a new category alongside content/config/asset/theme.
+- `dynamic_data/data/user-guide/15_content/04_blogs/` — user-facing docs for the blog content type; the issues docs should follow the same structure.
+- `src/loaders/data.ts:115` — where `includeDrafts = !import.meta.env.PROD` lives; the draft filter we're reusing.
