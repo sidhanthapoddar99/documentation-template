@@ -20,6 +20,9 @@ items:
   - label: "Todo"
     href: "/todo"
 
+  - label: "Issues"
+    href: "/issues-test"
+
   - label: "Blog"
     href: "/blog"
 

@@ -1,0 +1,21 @@
+---
+/**
+ * StatusBadge - Colored pill for a single enum value
+ * Reads the color from the vocabulary passed in so the palette stays
+ * in sync with root settings.json.
+ */
+interface Props {
+  field: string;
+  value: string | null | undefined;
+  vocabulary?: Record<string, { values: string[]; colors?: Record<string, string> }>;
+}
+
+const { field, value, vocabulary } = Astro.props;
+const color = value && vocabulary?.[field]?.colors?.[value];
+---
+
+{value && (
+  <span class="issue-badge" data-field={field} data-value={value} style={color ? `--badge-color: ${color}` : undefined}>
+    {value}
+  </span>
+)}

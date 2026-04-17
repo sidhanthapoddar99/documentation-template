@@ -1,0 +1,86 @@
+---
+/**
+ * Pagination - Per-page selector + prev/next + range display
+ * Client-side logic wires up in parts/client.ts.
+ */
+---
+
+<nav class="issues-pagination" id="issues-pagination" aria-label="Pagination" hidden>
+  <div class="issues-pagination__size">
+    <label>
+      Per page
+      <select id="issues-page-size">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </label>
+  </div>
+  <div class="issues-pagination__range">
+    <span id="issues-range">0–0 of 0</span>
+  </div>
+  <div class="issues-pagination__nav">
+    <button type="button" id="issues-prev" class="issues-pagination__btn" disabled>← Prev</button>
+    <span class="issues-pagination__page">
+      Page <span id="issues-page-num">1</span> / <span id="issues-page-total">1</span>
+    </span>
+    <button type="button" id="issues-next" class="issues-pagination__btn" disabled>Next →</button>
+  </div>
+</nav>
+
+<style>
+  .issues-pagination {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border, #2a2a2a);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    background: var(--color-surface, transparent);
+  }
+  .issues-pagination__size label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-text-muted, #888);
+    font-size: 0.8rem;
+  }
+  .issues-pagination__size select {
+    padding: 0.25rem 0.5rem;
+    background: var(--color-bg, transparent);
+    color: inherit;
+    border: 1px solid var(--color-border, #2a2a2a);
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+  .issues-pagination__range {
+    color: var(--color-text-muted, #888);
+    font-size: 0.8rem;
+    font-family: var(--font-mono, monospace);
+  }
+  .issues-pagination__nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .issues-pagination__btn {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.8rem;
+    background: transparent;
+    color: var(--color-text-muted, #888);
+    border: 1px solid var(--color-border, #2a2a2a);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .issues-pagination__btn:hover:not(:disabled) { color: inherit; }
+  .issues-pagination__btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .issues-pagination__page {
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #888);
+  }
+</style>

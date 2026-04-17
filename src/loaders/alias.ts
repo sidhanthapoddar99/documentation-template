@@ -28,6 +28,7 @@ function getReservedAliases(): Record<string, string> {
   return {
     '@docs': path.join(paths.layouts, 'docs'),
     '@blog': path.join(paths.layouts, 'blogs'),
+    '@issues': path.join(paths.layouts, 'issues'),
     '@custom': path.join(paths.layouts, 'custom'),
     '@navbar': path.join(paths.layouts, 'navbar'),
     '@footer': path.join(paths.layouts, 'footer'),

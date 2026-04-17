@@ -31,7 +31,7 @@ export interface SiteLogo {
   favicon?: string;
 }
 
-export type PageType = 'docs' | 'blog' | 'custom';
+export type PageType = 'docs' | 'blog' | 'custom' | 'issues';
 
 export interface PageConfig {
   base_url: string;

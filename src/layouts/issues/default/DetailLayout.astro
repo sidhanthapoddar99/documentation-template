@@ -1,0 +1,14 @@
+---
+import DetailBody from './DetailBody.astro';
+import type { Issue, IssuesVocabulary } from '@loaders/issues';
+
+interface Props {
+  issue: Issue;
+  vocabulary: IssuesVocabulary;
+  baseUrl: string;
+}
+
+const props = Astro.props;
+---
+
+<DetailBody {...props} />

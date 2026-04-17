@@ -1,0 +1,133 @@
+---
+/**
+ * IndexBody - Orchestrator for the issues list page.
+ * Heavy lifting lives in parts/:
+ *   ViewToggle, FilterBar, IssuesCards, IssuesTable, Pagination, client.ts
+ */
+import { loadIssues } from '@loaders/issues';
+import ViewToggle from './parts/ViewToggle.astro';
+import FilterBar from './parts/FilterBar.astro';
+import IssuesCards from './parts/IssuesCards.astro';
+import IssuesTable from './parts/IssuesTable.astro';
+import Pagination from './parts/Pagination.astro';
+
+interface Props {
+  dataPath: string;
+  baseUrl: string;
+}
+
+const { dataPath, baseUrl } = Astro.props;
+const { vocabulary, rootDraft, issues } = await loadIssues(dataPath);
+
+const FILTER_FIELDS = ['status', 'priority', 'type', 'component', 'milestone', 'labels'] as const;
+const filterGroups = FILTER_FIELDS
+  .filter((f) => vocabulary.fields?.[f]?.values?.length)
+  .map((f) => ({
+    key: f,
+    label: f,
+    values: vocabulary.fields[f].values,
+    colors: vocabulary.fields[f].colors || {},
+  }));
+
+function searchBlob(issue: typeof issues[number]): string {
+  return [issue.id, issue.meta.title, issue.meta.description || '']
+    .join(' ')
+    .toLowerCase();
+}
+
+const TODAY = new Date().toISOString().slice(0, 10);
+const CLOSED_STATUSES = new Set(['done', 'cancelled', 'archived']);
+function isOverdue(meta: typeof issues[number]['meta']): boolean {
+  if (!meta.due) return false;
+  if (meta.due >= TODAY) return false;
+  return !CLOSED_STATUSES.has(meta.status);
+}
+
+// Server-side config passed to the client script via a JSON script tag
+const clientConfig = {
+  priorityOrder: vocabulary.fields?.priority?.values ?? [],
+  statusOrder: vocabulary.fields?.status?.values ?? [],
+  colorsByField: Object.fromEntries(filterGroups.map((g) => [g.key, g.colors])),
+};
+---
+
+<div class="issues-index">
+  <header class="issues-index__header">
+    <div class="issues-index__titlebar">
+      <div>
+        <h1 class="issues-index__title">{vocabulary.label || 'Issues'}</h1>
+        <p class="issues-index__summary">
+          <span id="issues-count">{issues.length}</span> of {issues.length} issue{issues.length === 1 ? '' : 's'}
+          {rootDraft ? ' · dev-only tracker' : ''}
+        </p>
+      </div>
+      <ViewToggle />
+    </div>
+  </header>
+
+  <FilterBar filterGroups={filterGroups} />
+
+  {issues.length > 0 ? (
+    <>
+      <IssuesCards
+        issues={issues}
+        vocabulary={vocabulary}
+        baseUrl={baseUrl}
+        searchBlob={searchBlob}
+        isOverdue={isOverdue}
+      />
+      <IssuesTable
+        issues={issues}
+        vocabulary={vocabulary}
+        baseUrl={baseUrl}
+        searchBlob={searchBlob}
+        isOverdue={isOverdue}
+      />
+    </>
+  ) : (
+    <div class="issues-index__empty">
+      <p>No issues found.</p>
+    </div>
+  )}
+
+  <div class="issues-index__empty" id="issues-empty" hidden>
+    <p>No issues match these filters. <a href="#" id="issues-reset">Clear filters</a>.</p>
+  </div>
+
+  <Pagination />
+</div>
+
+<script type="application/json" id="issues-config" set:html={JSON.stringify(clientConfig)} />
+
+<script>
+  import { initIssuesIndex } from './parts/client';
+  initIssuesIndex();
+</script>
+
+<style>
+  .issues-index {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  .issues-index__header { margin-bottom: 1.25rem; }
+  .issues-index__titlebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .issues-index__title { margin: 0 0 0.25rem; font-size: 1.75rem; }
+  .issues-index__summary {
+    margin: 0;
+    color: var(--color-text-muted, #888);
+    font-size: 0.9rem;
+  }
+  .issues-index__empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-text-muted, #888);
+  }
+  .issues-index__empty a { color: var(--color-accent, #7aa2f7); }
+</style>

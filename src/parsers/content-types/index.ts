@@ -4,3 +4,4 @@
 
 export { DocsParser, createDocsParser } from './docs';
 export { BlogParser, createBlogParser } from './blog';
+export { IssuesParser, createIssuesParser } from './issues';

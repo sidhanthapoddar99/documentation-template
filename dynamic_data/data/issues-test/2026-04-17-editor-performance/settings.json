@@ -1,0 +1,14 @@
+{
+  "title": "Editor V2 — Performance Optimizations",
+  "description": "Outstanding performance wins in the live editor (CM6 + Yjs + middleware).",
+  "status": "open",
+  "priority": "medium",
+  "type": "performance",
+  "component": "editor-v2",
+  "milestone": "v2",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": ["sidhantha"],
+  "updated": "2026-04-17",
+  "due": "2026-04-10"
+}

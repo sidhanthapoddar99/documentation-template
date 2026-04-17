@@ -1,0 +1,347 @@
+---
+/**
+ * FilterBar - Search box + per-field filter rows
+ *
+ * Each field row shows: label, [+ Add filter] button (opens value dropdown),
+ * the active-tag chips for that field, and a per-field Clear button.
+ * Active-tag chips are rendered client-side via client.ts from URL state.
+ */
+
+interface FilterGroup {
+  key: string;
+  label: string;
+  values: string[];
+  colors: Record<string, string>;
+}
+
+interface Props {
+  filterGroups: FilterGroup[];
+}
+
+const { filterGroups } = Astro.props;
+---
+
+<div class="issues-filters">
+  <div class="issues-filters__search">
+    <span class="issues-filters__search-icon" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+        <circle cx="7" cy="7" r="4.5"/>
+        <line x1="10.5" y1="10.5" x2="14" y2="14"/>
+      </svg>
+    </span>
+    <input
+      type="search"
+      id="issues-search"
+      placeholder="Search title, description, id…"
+      autocomplete="off"
+    />
+    <button type="button" id="issues-clear" class="issues-filters__clear" title="Clear all filters and search">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <path d="M3 8a5 5 0 1 1 1.5 3.5L3 13"/>
+        <polyline points="3 9 3 13 7 13"/>
+      </svg>
+      <span>Clear all</span>
+    </button>
+  </div>
+
+  <div class="issues-filters__rows">
+    {filterGroups.map((group) => (
+      <div class="issues-filters__row" data-field-row={group.key}>
+        <div class="issues-filters__row-label">{group.label}</div>
+        <div class="issues-filters__row-controls">
+          <div class="issues-filters__add" data-add-wrap={group.key}>
+            <button type="button" class="issues-filters__add-btn" data-add-toggle={group.key}>
+              <span class="issues-filters__add-plus" aria-hidden="true">+</span>
+              <span>Add filter</span>
+            </button>
+            <div class="issues-filters__add-menu" data-add-menu={group.key}>
+              {group.values.map((v) => (
+                <button
+                  type="button"
+                  class="issues-filters__add-option"
+                  data-add-field={group.key}
+                  data-add-value={v}
+                  style={group.colors[v] ? `--chip-color: ${group.colors[v]}` : undefined}
+                >
+                  <span class="issues-filters__add-dot"></span>
+                  <span class="issues-filters__add-label">{v}</span>
+                  <span class="issues-filters__add-count" data-add-count={`${group.key}:${v}`}>0</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div class="issues-filters__tags" data-tags-for={group.key}></div>
+          <button type="button" class="issues-filters__field-clear" data-clear-field={group.key} title="Clear this field" hidden>
+            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <line x1="3" y1="3" x2="13" y2="13"/>
+              <line x1="13" y1="3" x2="3" y2="13"/>
+            </svg>
+            <span>Clear</span>
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .issues-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid color-mix(in srgb, var(--color-accent, #7aa2f7) 20%, var(--color-border, #2a2a2a));
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+    background:
+      linear-gradient(to bottom, color-mix(in srgb, var(--color-accent, #7aa2f7) 4%, transparent), transparent 60%),
+      var(--color-surface, transparent);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--color-accent, #7aa2f7) 8%, transparent);
+  }
+
+  .issues-filters__search {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    position: relative;
+  }
+  .issues-filters__search-icon {
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-muted, #888);
+    pointer-events: none;
+    display: inline-flex;
+  }
+  .issues-filters__search input {
+    flex: 1;
+    padding: 0.55rem 0.85rem 0.55rem 2.1rem;
+    font-size: 0.9rem;
+    background: var(--color-bg, transparent);
+    color: inherit;
+    border: 1px solid var(--color-border, #2a2a2a);
+    border-radius: 999px;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .issues-filters__search input:focus {
+    border-color: var(--color-accent, #7aa2f7);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent, #7aa2f7) 20%, transparent);
+  }
+  .issues-filters__clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    background: transparent;
+    color: var(--color-text-muted, #888);
+    border: 1px solid var(--color-border, #2a2a2a);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+  .issues-filters__clear:hover {
+    color: #e06c75;
+    border-color: color-mix(in srgb, #e06c75 55%, transparent);
+    background: color-mix(in srgb, #e06c75 10%, transparent);
+  }
+
+  .issues-filters__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-top: 0.25rem;
+  }
+  .issues-filters__row {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.45rem 0.6rem;
+    min-height: 34px;
+    border-radius: 10px;
+    transition: background 0.15s ease;
+  }
+  .issues-filters__row:has(.issues-filters__tag) {
+    background: color-mix(in srgb, var(--color-accent, #7aa2f7) 6%, transparent);
+  }
+  .issues-filters__row-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted, #888);
+    font-weight: 700;
+  }
+  .issues-filters__row-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  /* Add filter button + dropdown */
+  .issues-filters__add { position: relative; }
+  .issues-filters__add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: transparent;
+    color: var(--color-text-muted, #888);
+    border: 1px dashed var(--color-border, #2a2a2a);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+  .issues-filters__add-btn:hover {
+    color: var(--color-accent, #7aa2f7);
+    border-style: solid;
+    border-color: var(--color-accent, #7aa2f7);
+    background: color-mix(in srgb, var(--color-accent, #7aa2f7) 10%, transparent);
+  }
+  .issues-filters__add.is-open .issues-filters__add-btn {
+    color: var(--color-accent, #7aa2f7);
+    border-style: solid;
+    border-color: var(--color-accent, #7aa2f7);
+    background: color-mix(in srgb, var(--color-accent, #7aa2f7) 12%, transparent);
+  }
+  .issues-filters__add-plus {
+    font-size: 1rem;
+    line-height: 0.7;
+    font-weight: 400;
+  }
+  .issues-filters__add-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 220px;
+    padding: 0.35rem;
+    border: 1px solid var(--color-border, #2a2a2a);
+    border-radius: 10px;
+    background: var(--color-bg, #1a1a1a);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+    z-index: 20;
+    flex-direction: column;
+    gap: 0.1rem;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .issues-filters__add.is-open .issues-filters__add-menu { display: flex; }
+  .issues-filters__add-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.6rem;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 3px;
+    text-align: left;
+    text-transform: capitalize;
+  }
+  .issues-filters__add-option:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-border, #2a2a2a) 50%, transparent);
+  }
+  .issues-filters__add-option:disabled,
+  .issues-filters__add-option.is-selected { opacity: 0.4; cursor: default; }
+  .issues-filters__add-option.is-empty:not(.is-selected) { opacity: 0.45; }
+  .issues-filters__add-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--chip-color, var(--color-text-muted, #888));
+    flex-shrink: 0;
+  }
+  .issues-filters__add-label { flex: 1; }
+  .issues-filters__add-count {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    color: var(--color-text-muted, #888);
+  }
+
+  /* display: contents makes the tag chips participate directly in the parent's
+     flex layout, so [Add filter] + all tags + [Clear] wrap as one continuous
+     sequence instead of the tag group wrapping as a single block. */
+  .issues-filters__tags {
+    display: contents;
+  }
+
+  .issues-filters__field-clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--color-text-muted, #888);
+    font-size: 0.72rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+  }
+  .issues-filters__field-clear:hover {
+    color: #e06c75;
+    border-color: color-mix(in srgb, #e06c75 50%, transparent);
+    background: color-mix(in srgb, #e06c75 10%, transparent);
+  }
+  .issues-filters__field-clear svg { opacity: 0.8; }
+
+  /* Active tag chips — rendered client-side so styles must be global to match
+     dynamically-created nodes that lack Astro's data-astro-cid attribute. */
+  :global(.issues-filters__tag) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.25rem 0.2rem 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: color-mix(in srgb, var(--chip-color, #7aa2f7) 15%, transparent);
+    color: color-mix(in srgb, var(--chip-color, #7aa2f7) 90%, #fff);
+    border: 1px solid color-mix(in srgb, var(--chip-color, #7aa2f7) 50%, transparent);
+    border-radius: 14px;
+    text-transform: capitalize;
+    line-height: 1.4;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--chip-color, #7aa2f7) 15%, transparent);
+    transition: border-color 0.1s ease, background 0.1s ease;
+  }
+  :global(.issues-filters__tag:hover) {
+    background: color-mix(in srgb, var(--chip-color, #7aa2f7) 22%, transparent);
+    border-color: var(--chip-color, #7aa2f7);
+  }
+  :global(.issues-filters__tag-dot) {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--chip-color, #7aa2f7);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--chip-color, #7aa2f7) 25%, transparent);
+  }
+  :global(.issues-filters__tag-label) { display: inline-block; }
+  :global(.issues-filters__tag-remove) {
+    background: transparent;
+    border: none;
+    color: currentColor;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    opacity: 0.6;
+    transition: all 0.1s ease;
+  }
+  :global(.issues-filters__tag-remove:hover) {
+    opacity: 1;
+    background: color-mix(in srgb, currentColor 25%, transparent);
+  }
+</style>

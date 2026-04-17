@@ -1,0 +1,102 @@
+---
+/**
+ * IssuesCards - Card view container. Each card row carries the same
+ * data-* attributes as the table rows so client.ts can filter/sort both views
+ * with one code path.
+ */
+import IssueCard from '../IssueCard.astro';
+import type { Issue, IssuesVocabulary } from '@loaders/issues';
+
+interface Props {
+  issues: Issue[];
+  vocabulary: IssuesVocabulary;
+  baseUrl: string;
+  searchBlob: (issue: Issue) => string;
+  isOverdue: (meta: Issue['meta']) => boolean;
+}
+
+const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
+---
+
+<div class="issues-view issues-view--cards is-active" id="view-cards">
+  {issues.map((issue) => (
+    <div
+      class="issues-view__row"
+      data-issue
+      data-status={issue.meta.status}
+      data-priority={issue.meta.priority}
+      data-type={issue.meta.type}
+      data-component={issue.meta.component}
+      data-milestone={issue.meta.milestone}
+      data-labels={issue.meta.labels.join(' ')}
+      data-updated={issue.meta.updated || ''}
+      data-created={issue.created}
+      data-due={issue.meta.due || ''}
+      data-overdue={isOverdue(issue.meta) ? '1' : '0'}
+      data-title={issue.meta.title}
+      data-search={searchBlob(issue)}
+    >
+      <IssueCard issue={issue} href={`${baseUrl}/${issue.id}`} vocabulary={vocabulary} />
+    </div>
+  ))}
+</div>
+
+<style>
+  .issues-view { display: none; }
+  .issues-view.is-active { display: block; }
+  .issues-view--cards { display: none; flex-direction: column; gap: 0.5rem; }
+  .issues-view--cards.is-active { display: flex; }
+
+  /* IssueCard uses un-scoped classes (component-level) so these have to be global */
+  :global(.issue-card) {
+    border: 1px solid var(--color-border, #2a2a2a);
+    border-radius: 6px;
+    background: var(--color-surface, transparent);
+    transition: border-color 0.1s ease;
+  }
+  :global(.issue-card:hover) { border-color: var(--color-border-hover, #444); }
+  :global(.issue-card__link) {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.9rem 1rem;
+    gap: 1rem;
+    text-decoration: none;
+    color: inherit;
+  }
+  :global(.issue-card__main) { flex: 1; min-width: 0; }
+  :global(.issue-card__title) {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  :global(.issue-card__description) {
+    margin: 0 0 0.5rem;
+    color: var(--color-text-muted, #888);
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  :global(.issue-card__badges) { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  :global(.issue-card__meta) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted, #888);
+    font-family: var(--font-mono, monospace);
+    white-space: nowrap;
+  }
+  :global(.issue-badge) {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    line-height: 1.4;
+    background: color-mix(in srgb, var(--badge-color, #7aa2f7) 20%, transparent);
+    color: var(--badge-color, #7aa2f7);
+    border: 1px solid color-mix(in srgb, var(--badge-color, #7aa2f7) 40%, transparent);
+    text-transform: capitalize;
+  }
+</style>

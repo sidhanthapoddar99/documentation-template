@@ -1,0 +1,105 @@
+---
+import StatusBadge from './StatusBadge.astro';
+import type { Issue, IssuesVocabulary } from '@loaders/issues';
+
+interface Props {
+  issue: Issue;
+  vocabulary: IssuesVocabulary;
+}
+
+const { issue, vocabulary } = Astro.props;
+const { meta } = issue;
+
+const singleFields = [
+  ['Status', 'status', meta.status],
+  ['Priority', 'priority', meta.priority],
+  ['Type', 'type', meta.type],
+  ['Component', 'component', meta.component],
+  ['Milestone', 'milestone', meta.milestone],
+] as const;
+---
+
+<aside class="issue-meta-panel">
+  <dl>
+    {singleFields.map(([label, field, value]) => (
+      <div class="issue-meta-panel__row">
+        <dt>{label}</dt>
+        <dd><StatusBadge field={field} value={value} vocabulary={vocabulary.fields} /></dd>
+      </div>
+    ))}
+
+    <div class="issue-meta-panel__row">
+      <dt>Labels</dt>
+      <dd>
+        {meta.labels.length > 0
+          ? meta.labels.map((l) => <StatusBadge field="labels" value={l} vocabulary={vocabulary.fields} />)
+          : <span class="issue-meta-panel__empty">—</span>}
+      </dd>
+    </div>
+
+    <div class="issue-meta-panel__row">
+      <dt>Assignees</dt>
+      <dd>
+        {meta.assignees.length > 0
+          ? meta.assignees.join(', ')
+          : <span class="issue-meta-panel__empty">—</span>}
+      </dd>
+    </div>
+
+    <div class="issue-meta-panel__row">
+      <dt>Author</dt>
+      <dd>{meta.author || '—'}</dd>
+    </div>
+
+    <div class="issue-meta-panel__row">
+      <dt>Created</dt>
+      <dd>{issue.created}</dd>
+    </div>
+
+    <div class="issue-meta-panel__row">
+      <dt>Updated</dt>
+      <dd>{meta.updated}</dd>
+    </div>
+
+    <div class="issue-meta-panel__row">
+      <dt>Due</dt>
+      <dd>{meta.due || <span class="issue-meta-panel__empty">—</span>}</dd>
+    </div>
+  </dl>
+</aside>
+
+<style>
+  .issue-meta-panel {
+    border: 1px solid var(--color-border, #2a2a2a);
+    border-radius: 6px;
+    padding: 1rem;
+    font-size: 0.85rem;
+  }
+  .issue-meta-panel dl {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .issue-meta-panel__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .issue-meta-panel__row dt {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted, #888);
+  }
+  .issue-meta-panel__row dd {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .issue-meta-panel__empty {
+    color: var(--color-text-muted, #888);
+  }
+</style>

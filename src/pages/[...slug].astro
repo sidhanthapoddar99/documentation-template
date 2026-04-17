@@ -13,6 +13,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 
 import { loadSiteConfig, loadContent } from '@loaders/index';
 import { getNavbarLayout, getFooterLayout } from '@loaders/config';
+import { loadIssues, loadIssue } from '@loaders/issues';
 
 // Auto-discover all layouts using glob patterns (built-in + external)
 const builtinDocsLayouts = import.meta.glob('/src/layouts/docs/*/Layout.astro');
@@ -23,6 +24,12 @@ const extBlogIndexLayouts = import.meta.glob('@ext-layouts/blogs/*/IndexLayout.a
 
 const builtinBlogPostLayouts = import.meta.glob('/src/layouts/blogs/*/PostLayout.astro');
 const extBlogPostLayouts = import.meta.glob('@ext-layouts/blogs/*/PostLayout.astro');
+
+const builtinIssuesIndexLayouts = import.meta.glob('/src/layouts/issues/*/IndexLayout.astro');
+const extIssuesIndexLayouts = import.meta.glob('@ext-layouts/issues/*/IndexLayout.astro');
+
+const builtinIssuesDetailLayouts = import.meta.glob('/src/layouts/issues/*/DetailLayout.astro');
+const extIssuesDetailLayouts = import.meta.glob('@ext-layouts/issues/*/DetailLayout.astro');
 
 const builtinCustomLayouts = import.meta.glob('/src/layouts/custom/*/Layout.astro');
 const extCustomLayouts = import.meta.glob('@ext-layouts/custom/*/Layout.astro');
@@ -59,6 +66,8 @@ const layoutNamePattern = /\/([^/]+)\/[^/]+\.astro$/;
 const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, layoutNamePattern);
 const blogIndexLayouts = mergeLayouts(builtinBlogIndexLayouts, extBlogIndexLayouts, layoutNamePattern);
 const blogPostLayouts = mergeLayouts(builtinBlogPostLayouts, extBlogPostLayouts, layoutNamePattern);
+const issuesIndexLayouts = mergeLayouts(builtinIssuesIndexLayouts, extIssuesIndexLayouts, layoutNamePattern);
+const issuesDetailLayouts = mergeLayouts(builtinIssuesDetailLayouts, extIssuesDetailLayouts, layoutNamePattern);
 const customLayouts = mergeLayouts(builtinCustomLayouts, extCustomLayouts, layoutNamePattern);
 const navbarLayouts = mergeLayouts(builtinNavbarLayouts, extNavbarLayouts, layoutNamePattern);
 const footerLayouts = mergeLayouts(builtinFooterLayouts, extFooterLayouts, layoutNamePattern);
@@ -66,6 +75,7 @@ const footerLayouts = mergeLayouts(builtinFooterLayouts, extFooterLayouts, layou
 // Available styles for error messages and dev toolbar validation
 const availableDocsStyles = docsLayouts.styles;
 const availableBlogStyles = blogIndexLayouts.styles;
+const availableIssuesStyles = issuesIndexLayouts.styles;
 const availableCustomStyles = customLayouts.styles;
 const availableNavbarStyles = navbarLayouts.styles;
 const availableFooterStyles = footerLayouts.styles;
@@ -121,6 +131,20 @@ export async function getStaticPaths() {
           props: { pageName, pageConfig, dataPath, pageType: 'blog-post', post, layout },
         });
       }
+    } else if (pageConfig.type === 'issues') {
+      const { issues, vocabulary } = await loadIssues(dataPath);
+
+      paths.push({
+        params: { slug: baseUrl || undefined },
+        props: { pageName, pageConfig, dataPath, pageType: 'issues-index', issues, vocabulary, layout },
+      });
+
+      for (const issue of issues) {
+        paths.push({
+          params: { slug: `${baseUrl}/${issue.id}` },
+          props: { pageName, pageConfig, dataPath, pageType: 'issues-detail', issue, vocabulary, layout },
+        });
+      }
     }
   }
 
@@ -132,7 +156,7 @@ export async function getStaticPaths() {
 // ============================================================================
 
 // In server mode, getStaticPaths() is ignored, so we compute props from URL
-let { pageName, pageConfig, dataPath, pageType, doc, post, allContent, layout: configLayout } = Astro.props;
+let { pageName, pageConfig, dataPath, pageType, doc, post, issue, vocabulary, issues, allContent, layout: configLayout } = Astro.props;
 
 // Server mode: compute props dynamically if not provided by getStaticPaths
 if (!pageType) {
@@ -187,6 +211,19 @@ if (!pageType) {
           const postSlug = slug.slice(baseUrl.length + 1);
           post = posts.find(p => p.slug === postSlug);
           pageType = 'blog-post';
+        }
+      } else if (config.type === 'issues') {
+        if (slug === baseUrl) {
+          const loaded = await loadIssues(dataPath);
+          issues = loaded.issues;
+          vocabulary = loaded.vocabulary;
+          pageType = 'issues-index';
+        } else {
+          const issueId = slug.slice(baseUrl.length + 1);
+          const loaded = await loadIssues(dataPath);
+          vocabulary = loaded.vocabulary;
+          issue = await loadIssue(dataPath, issueId);
+          pageType = 'issues-detail';
         }
       }
       break;
@@ -312,12 +349,29 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
         `  Available: ${available.join(', ') || '(none)'}\n`
       );
     }
+  } else if (type === 'issues') {
+    available = availableIssuesStyles;
+    if (variant === 'index') {
+      entry = issuesIndexLayouts.byStyle.get(style);
+    } else {
+      entry = issuesDetailLayouts.byStyle.get(style);
+    }
+
+    if (!entry) {
+      throw new Error(
+        `\n[CONFIG ERROR] Issues layout "${style}" does not exist.\n` +
+        `  Page: ${pageName}\n` +
+        `  Config: ${layoutAlias}\n` +
+        `  Expected: src/layouts/issues/${style}/${variant === 'index' ? 'Index' : 'Detail'}Layout.astro\n` +
+        `  Available: ${available.join(', ') || '(none)'}\n`
+      );
+    }
   } else {
     throw new Error(
       `\n[CONFIG ERROR] Unknown layout type: "${type}"\n` +
       `  Page: ${pageName}\n` +
       `  Config: ${layoutAlias}\n` +
-      `  Valid types: docs, blog, custom\n`
+      `  Valid types: docs, blog, custom, issues\n`
     );
   }
 
@@ -366,6 +420,12 @@ if (pageType === 'custom' || pageType === 'docs') {
 } else if (pageType === 'blog-post') {
   const loader = validateAndResolve(layout, 'post');
   LayoutComponent = (await loader()).default;
+} else if (pageType === 'issues-index') {
+  const loader = validateAndResolve(layout, 'index');
+  LayoutComponent = (await loader()).default;
+} else if (pageType === 'issues-detail') {
+  const loader = validateAndResolve(layout, 'post');
+  LayoutComponent = (await loader()).default;
 }
 
 // Resolve navbar and footer components
@@ -377,6 +437,8 @@ let title = 'Page';
 if (pageType === 'docs' && doc) title = doc.data.title;
 else if (pageType === 'blog-post' && post) title = post.data.title;
 else if (pageType === 'blog-index') title = 'Blog';
+else if (pageType === 'issues-index') title = (vocabulary?.label as string) || 'Issues';
+else if (pageType === 'issues-detail' && issue) title = issue.meta.title;
 
 // Derive content type from page type for dev toolbar
 let contentType: 'docs' | 'blog' | 'custom' | undefined;
@@ -420,6 +482,20 @@ if (pageType === 'docs' && doc) {
     author: post.data.author as string,
     tags: post.data.tags as string[],
     content: post.content,
+  };
+} else if (pageType === 'issues-index') {
+  layoutProps = {
+    dataPath,
+    baseUrl: pageConfig.base_url,
+  };
+} else if (pageType === 'issues-detail') {
+  if (!issue) {
+    return new Response('Not Found', { status: 404 });
+  }
+  layoutProps = {
+    issue,
+    vocabulary,
+    baseUrl: pageConfig.base_url,
   };
 }
 ---

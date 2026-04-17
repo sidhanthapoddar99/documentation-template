@@ -1,0 +1,12 @@
+---
+import IndexBody from './IndexBody.astro';
+
+interface Props {
+  dataPath: string;
+  baseUrl: string;
+}
+
+const props = Astro.props;
+---
+
+<IndexBody {...props} />

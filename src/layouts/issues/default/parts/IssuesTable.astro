@@ -1,0 +1,238 @@
+---
+/**
+ * IssuesTable - Table view. Sortable column headers, status/id sub-line in
+ * the Title cell, a two-line subtasks cell (count on top, progress bar below),
+ * and an overdue-highlighted Due cell.
+ *
+ * Labels column was intentionally removed — label filter still works from
+ * the filter bar, but the column adds visual noise in dense rows.
+ */
+import StatusBadge from '../StatusBadge.astro';
+import type { Issue, IssuesVocabulary } from '@loaders/issues';
+
+interface Props {
+  issues: Issue[];
+  vocabulary: IssuesVocabulary;
+  baseUrl: string;
+  searchBlob: (issue: Issue) => string;
+  isOverdue: (meta: Issue['meta']) => boolean;
+}
+
+const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
+
+const columns = [
+  { key: 'title', label: 'Title', sortable: true, className: 'issues-table__th-title' },
+  { key: 'priority', label: 'Priority', sortable: true },
+  { key: 'type', label: 'Type', sortable: true },
+  { key: 'component', label: 'Component', sortable: true },
+  { key: 'milestone', label: 'Milestone', sortable: true },
+  { key: 'subtasks', label: 'Subtasks', sortable: false },
+  { key: 'due', label: 'Due', sortable: true },
+];
+---
+
+<div class="issues-view issues-view--table" id="view-table">
+  <div class="issues-table-wrap">
+    <table class="issues-table">
+      <thead>
+        <tr>
+          {columns.map((col) => (
+            <th class={col.className} data-col={col.key}>
+              {col.sortable ? (
+                <button type="button" class="issues-table__sort" data-sort={col.key}>
+                  <span>{col.label}</span>
+                  <span class="issues-table__sort-icon" data-sort-icon={col.key} aria-hidden="true">⇅</span>
+                </button>
+              ) : (
+                <span class="issues-table__label">{col.label}</span>
+              )}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {issues.map((issue) => (
+          <tr
+            class={`issues-table__row ${isOverdue(issue.meta) ? 'is-overdue' : ''}`}
+            data-issue
+            data-status={issue.meta.status}
+            data-priority={issue.meta.priority}
+            data-type={issue.meta.type}
+            data-component={issue.meta.component}
+            data-milestone={issue.meta.milestone}
+            data-labels={issue.meta.labels.join(' ')}
+            data-updated={issue.meta.updated || ''}
+            data-created={issue.created}
+            data-due={issue.meta.due || ''}
+            data-overdue={isOverdue(issue.meta) ? '1' : '0'}
+            data-title={issue.meta.title}
+            data-search={searchBlob(issue)}
+            data-href={`${baseUrl}/${issue.id}`}
+          >
+            <td class="issues-table__title-cell">
+              <a href={`${baseUrl}/${issue.id}`} class="issues-table__title-link">{issue.meta.title}</a>
+              <div class="issues-table__sub">
+                <StatusBadge field="status" value={issue.meta.status} vocabulary={vocabulary.fields} />
+                <span class="issues-table__sub-sep">·</span>
+                <span class="issues-table__id">{issue.id}</span>
+              </div>
+            </td>
+            <td><StatusBadge field="priority" value={issue.meta.priority} vocabulary={vocabulary.fields} /></td>
+            <td><StatusBadge field="type" value={issue.meta.type} vocabulary={vocabulary.fields} /></td>
+            <td class="issues-table__muted">{issue.meta.component || '—'}</td>
+            <td class="issues-table__muted">{issue.meta.milestone || '—'}</td>
+            <td class="issues-table__subtasks-cell">
+              <div class="issues-table__progress" title="Subtasks (coming soon)">
+                <div class="issues-table__progress-label">0 / 0</div>
+                <div class="issues-table__progress-bar">
+                  <div class="issues-table__progress-fill" style="width: 0%"></div>
+                </div>
+              </div>
+            </td>
+            <td class={`issues-table__date ${isOverdue(issue.meta) ? 'is-overdue-cell' : ''}`}>
+              {issue.meta.due || <span class="issues-table__muted">—</span>}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .issues-view { display: none; }
+  .issues-view.is-active { display: block; }
+
+  .issues-table-wrap {
+    border: 1px solid var(--color-border, #2a2a2a);
+    border-radius: 6px;
+    overflow: auto;
+    background: var(--color-surface, transparent);
+  }
+  .issues-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .issues-table thead {
+    background: color-mix(in srgb, var(--color-border, #2a2a2a) 30%, transparent);
+  }
+  .issues-table th {
+    text-align: left;
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--color-border, #2a2a2a);
+    white-space: nowrap;
+    vertical-align: middle;
+    position: sticky;
+    top: 0;
+    background: color-mix(in srgb, var(--color-border, #2a2a2a) 30%, transparent);
+    z-index: 1;
+  }
+  .issues-table__th-title { min-width: 260px; }
+  .issues-table__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--color-text-muted, #888);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .issues-table__sort:hover { color: inherit; }
+  .issues-table__sort-icon { font-size: 0.75rem; opacity: 0.5; }
+  .issues-table__sort-icon.is-active {
+    opacity: 1;
+    color: var(--color-accent, #7aa2f7);
+  }
+  .issues-table__label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted, #888);
+    font-weight: 600;
+  }
+
+  .issues-table td {
+    padding: 0.55rem 0.75rem;
+    border-top: 1px solid var(--color-border, #2a2a2a);
+    vertical-align: middle;
+  }
+  .issues-table__row {
+    cursor: pointer;
+    transition: background 0.08s ease;
+  }
+  .issues-table__row:hover {
+    background: color-mix(in srgb, var(--color-border, #2a2a2a) 25%, transparent);
+  }
+  .issues-table__row.is-overdue {
+    background: color-mix(in srgb, #e06c75 6%, transparent);
+  }
+  .issues-table__row.is-overdue:hover {
+    background: color-mix(in srgb, #e06c75 12%, transparent);
+  }
+
+  .issues-table__title-cell { line-height: 1.35; }
+  .issues-table__title-link {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .issues-table__title-link:hover { color: var(--color-accent, #7aa2f7); }
+  .issues-table__sub {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    color: var(--color-text-muted, #888);
+    flex-wrap: wrap;
+  }
+  .issues-table__sub-sep { opacity: 0.5; }
+  .issues-table__id {
+    font-family: var(--font-mono, monospace);
+  }
+  .issues-table__muted {
+    color: var(--color-text-muted, #888);
+    text-transform: capitalize;
+  }
+  .issues-table__date {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+  .is-overdue-cell { color: #e06c75 !important; font-weight: 600; }
+
+  /* Two-line subtasks cell */
+  .issues-table__subtasks-cell {
+    min-width: 90px;
+  }
+  .issues-table__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .issues-table__progress-label {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    color: var(--color-text-muted, #888);
+  }
+  .issues-table__progress-bar {
+    width: 100%;
+    height: 4px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--color-border, #2a2a2a) 70%, transparent);
+    overflow: hidden;
+  }
+  .issues-table__progress-fill {
+    height: 100%;
+    background: var(--color-accent, #7aa2f7);
+    border-radius: 4px;
+  }
+</style>
