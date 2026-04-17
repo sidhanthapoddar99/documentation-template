@@ -173,25 +173,25 @@ function initial(name: string | null | undefined): string {
   .issue-detail__back {
     display: inline-block;
     margin-bottom: 1rem;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     text-decoration: none;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
   }
   .issue-detail__back:hover {
     color: inherit;
   }
   .issue-detail__id {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.75rem;
-    color: var(--color-text-muted, #888);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
   }
   .issue-detail__title {
     margin: 0.25rem 0 0.5rem;
-    font-size: 1.75rem;
+    font-size: var(--font-size-2xl);
   }
   .issue-detail__description {
     margin: 0 0 2rem;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
   }
   .issue-detail__layout {
     display: grid;
@@ -219,9 +219,7 @@ function initial(name: string | null | undefined): string {
   }
   .issue-filenav__heading {
     font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     padding: 0 0.5rem;
     margin-bottom: 0.35rem;
   }
@@ -234,19 +232,19 @@ function initial(name: string | null | undefined): string {
     background: transparent;
     border: none;
     border-radius: 4px;
-    color: var(--color-text-muted, #888);
-    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
     cursor: pointer;
     text-align: left;
     transition: background 0.08s ease;
   }
   .issue-filenav__item:hover {
-    background: color-mix(in srgb, var(--color-border, #2a2a2a) 40%, transparent);
+    background: color-mix(in srgb, var(--color-border-default) 40%, transparent);
     color: inherit;
   }
   .issue-filenav__item.is-active {
-    background: color-mix(in srgb, var(--color-accent, #7aa2f7) 15%, transparent);
-    color: var(--color-accent, #7aa2f7);
+    background: color-mix(in srgb, var(--color-brand-primary) 15%, transparent);
+    color: var(--color-brand-primary);
   }
   .issue-filenav__icon {
     display: inline-flex;
@@ -260,13 +258,13 @@ function initial(name: string | null | undefined): string {
     white-space: nowrap;
   }
   .issue-filenav__count {
-    background: var(--color-border, #2a2a2a);
-    color: var(--color-text-muted, #888);
+    background: var(--color-border-default);
+    color: var(--color-text-muted);
     border-radius: 10px;
     padding: 0 0.4rem;
     font-size: 0.65rem;
     line-height: 1.5;
-    font-family: var(--font-mono, monospace);
+    font-family: var(--font-family-mono);
   }
 
   /* Overview thread (GitHub-style comments) */
@@ -283,7 +281,7 @@ function initial(name: string | null | undefined): string {
     top: 40px;
     bottom: 20px;
     width: 2px;
-    background: var(--color-border, #2a2a2a);
+    background: var(--color-border-default);
     z-index: 0;
   }
   .issue-thread__item {
@@ -302,16 +300,16 @@ function initial(name: string | null | undefined): string {
     justify-content: center;
     color: #fff;
     font-weight: 600;
-    font-size: 0.95rem;
-    font-family: var(--font-sans, system-ui);
-    border: 2px solid var(--color-bg, #111);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family-base);
+    border: 2px solid var(--color-bg-primary);
   }
   .issue-thread__bubble {
     flex: 1;
     min-width: 0;
-    border: 1px solid var(--color-border, #2a2a2a);
+    border: 1px solid var(--color-border-default);
     border-radius: 6px;
-    background: var(--color-surface, transparent);
+    background: var(--color-bg-secondary);
     overflow: hidden;
     position: relative;
   }
@@ -324,7 +322,7 @@ function initial(name: string | null | undefined): string {
     height: 0;
     border-top: 7px solid transparent;
     border-bottom: 7px solid transparent;
-    border-right: 8px solid var(--color-border, #2a2a2a);
+    border-right: 8px solid var(--color-border-default);
   }
   .issue-thread__bubble::after {
     content: '';
@@ -335,17 +333,17 @@ function initial(name: string | null | undefined): string {
     height: 0;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
-    border-right: 7px solid var(--color-surface, #111);
+    border-right: 7px solid var(--color-bg-secondary);
   }
   .issue-thread__bubble-header {
     display: flex;
     align-items: center;
     gap: 0.4rem;
     padding: 0.5rem 0.9rem;
-    background: color-mix(in srgb, var(--color-border, #2a2a2a) 30%, transparent);
-    border-bottom: 1px solid var(--color-border, #2a2a2a);
-    font-size: 0.8rem;
-    color: var(--color-text-muted, #888);
+    /* No tint — border-bottom alone separates header from body */
+    border-bottom: 1px solid var(--color-border-default);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
     flex-wrap: wrap;
   }
   .issue-thread__author {
@@ -353,13 +351,13 @@ function initial(name: string | null | undefined): string {
     color: inherit;
   }
   .issue-thread__date {
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
   }
   .issue-thread__seq {
     margin-left: auto;
-    font-family: var(--font-mono, monospace);
-    font-size: 0.7rem;
-    color: var(--color-text-muted, #888);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
   }
   .issue-thread__bubble-body {
     padding: 1rem;
@@ -373,18 +371,18 @@ function initial(name: string | null | undefined): string {
 
   /* Supporting doc panel — plain markdown */
   .issue-doc {
-    border: 1px solid var(--color-border, #2a2a2a);
+    border: 1px solid var(--color-border-default);
     border-radius: 6px;
     padding: 1.5rem;
-    background: var(--color-surface, transparent);
+    background: var(--color-bg-secondary);
   }
   .issue-doc__path {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.75rem;
-    color: var(--color-text-muted, #888);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
     margin-bottom: 1rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--color-border, #2a2a2a);
+    border-bottom: 1px solid var(--color-border-default);
   }
   .issue-doc__body :global(p:first-child),
   .issue-doc__body :global(h1:first-child),

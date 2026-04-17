@@ -33,35 +33,36 @@
   .issues-pagination {
     margin-top: 1rem;
     padding: 0.75rem 1rem;
-    border: 1px solid var(--color-border, #2a2a2a);
+    border: 1px solid var(--color-border-default);
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
-    font-size: 0.85rem;
-    background: var(--color-surface, transparent);
+    font-size: var(--font-size-sm);
+    /* Plain background — border only, matches "no chrome tint" rule */
+    background: transparent;
   }
   .issues-pagination__size label {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--color-text-muted, #888);
-    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs, 0.75rem);
   }
   .issues-pagination__size select {
     padding: 0.25rem 0.5rem;
-    background: var(--color-bg, transparent);
+    background: var(--color-bg-primary);
     color: inherit;
-    border: 1px solid var(--color-border, #2a2a2a);
+    border: 1px solid var(--color-border-default);
     border-radius: 4px;
-    font-size: 0.8rem;
+    font-size: var(--font-size-xs, 0.75rem);
   }
   .issues-pagination__range {
-    color: var(--color-text-muted, #888);
-    font-size: 0.8rem;
-    font-family: var(--font-mono, monospace);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs, 0.75rem);
+    font-family: var(--font-family-mono);
   }
   .issues-pagination__nav {
     display: inline-flex;
@@ -70,17 +71,17 @@
   }
   .issues-pagination__btn {
     padding: 0.3rem 0.65rem;
-    font-size: 0.8rem;
+    font-size: var(--font-size-xs, 0.75rem);
     background: transparent;
-    color: var(--color-text-muted, #888);
-    border: 1px solid var(--color-border, #2a2a2a);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border-default);
     border-radius: 4px;
     cursor: pointer;
   }
   .issues-pagination__btn:hover:not(:disabled) { color: inherit; }
   .issues-pagination__btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .issues-pagination__page {
-    font-size: 0.8rem;
-    color: var(--color-text-muted, #888);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
   }
 </style>

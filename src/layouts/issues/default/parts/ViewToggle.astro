@@ -5,15 +5,7 @@
 ---
 
 <div class="issues-view-toggle" role="tablist" aria-label="View mode">
-  <button type="button" class="issues-view-toggle__btn is-active" data-view="cards" title="Card view" aria-selected="true">
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="2" y="2" width="12" height="4" rx="1"/>
-      <rect x="2" y="8" width="12" height="2" rx="1"/>
-      <rect x="2" y="12" width="12" height="2" rx="1"/>
-    </svg>
-    <span>Cards</span>
-  </button>
-  <button type="button" class="issues-view-toggle__btn" data-view="table" title="Table view" aria-selected="false">
+  <button type="button" class="issues-view-toggle__btn is-active" data-view="table" title="Table view" aria-selected="true">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
       <rect x="2" y="2" width="12" height="12" rx="1"/>
       <line x1="2" y1="6" x2="14" y2="6"/>
@@ -22,12 +14,20 @@
     </svg>
     <span>Table</span>
   </button>
+  <button type="button" class="issues-view-toggle__btn" data-view="cards" title="Card view" aria-selected="false">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="2" y="2" width="12" height="4" rx="1"/>
+      <rect x="2" y="8" width="12" height="2" rx="1"/>
+      <rect x="2" y="12" width="12" height="2" rx="1"/>
+    </svg>
+    <span>Cards</span>
+  </button>
 </div>
 
 <style>
   .issues-view-toggle {
     display: inline-flex;
-    border: 1px solid var(--color-border, #2a2a2a);
+    border: 1px solid var(--color-border-default);
     border-radius: 6px;
     overflow: hidden;
   }
@@ -38,17 +38,17 @@
     padding: 0.4rem 0.75rem;
     background: transparent;
     border: none;
-    color: var(--color-text-muted, #888);
-    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs, 0.75rem);
     cursor: pointer;
     transition: background 0.1s ease;
   }
   .issues-view-toggle__btn + .issues-view-toggle__btn {
-    border-left: 1px solid var(--color-border, #2a2a2a);
+    border-left: 1px solid var(--color-border-default);
   }
   .issues-view-toggle__btn:hover { color: inherit; }
   .issues-view-toggle__btn.is-active {
-    background: color-mix(in srgb, var(--color-accent, #7aa2f7) 15%, transparent);
-    color: var(--color-accent, #7aa2f7);
+    background: color-mix(in srgb, var(--color-brand-primary) 15%, transparent);
+    color: var(--color-brand-primary);
   }
 </style>

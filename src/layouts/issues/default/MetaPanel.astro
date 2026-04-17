@@ -70,10 +70,10 @@ const singleFields = [
 
 <style>
   .issue-meta-panel {
-    border: 1px solid var(--color-border, #2a2a2a);
+    border: 1px solid var(--color-border-default);
     border-radius: 6px;
     padding: 1rem;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
   }
   .issue-meta-panel dl {
     margin: 0;
@@ -87,10 +87,8 @@ const singleFields = [
     gap: 0.25rem;
   }
   .issue-meta-panel__row dt {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--color-text-muted, #888);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
   }
   .issue-meta-panel__row dd {
     margin: 0;
@@ -100,6 +98,6 @@ const singleFields = [
     align-items: center;
   }
   .issue-meta-panel__empty {
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
   }
 </style>

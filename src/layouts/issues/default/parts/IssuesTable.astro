@@ -31,7 +31,7 @@ const columns = [
 ];
 ---
 
-<div class="issues-view issues-view--table" id="view-table">
+<div class="issues-view issues-view--table is-active" id="view-table">
   <div class="issues-table-wrap">
     <table class="issues-table">
       <thead>
@@ -104,28 +104,27 @@ const columns = [
   .issues-view.is-active { display: block; }
 
   .issues-table-wrap {
-    border: 1px solid var(--color-border, #2a2a2a);
+    border: 1px solid var(--color-border-default);
     border-radius: 6px;
     overflow: auto;
-    background: var(--color-surface, transparent);
+    background: var(--color-bg-secondary);
   }
   .issues-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
   }
-  .issues-table thead {
-    background: color-mix(in srgb, var(--color-border, #2a2a2a) 30%, transparent);
-  }
-  .issues-table th {
+  .issues-table thead th {
     text-align: left;
     padding: 0.55rem 0.75rem;
-    border-bottom: 1px solid var(--color-border, #2a2a2a);
+    border-bottom: 1px solid var(--color-border-default);
     white-space: nowrap;
     vertical-align: middle;
     position: sticky;
     top: 0;
-    background: color-mix(in srgb, var(--color-border, #2a2a2a) 30%, transparent);
+    /* Opaque bg needed for sticky, but kept neutral — page bg, no tint.
+       Separation from the body comes from the border-bottom only. */
+    background: var(--color-bg-primary);
     z-index: 1;
   }
   .issues-table__th-title { min-width: 260px; }
@@ -136,78 +135,73 @@ const columns = [
     background: transparent;
     border: none;
     padding: 0;
-    color: var(--color-text-muted, #888);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs, 0.75rem);
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
   }
   .issues-table__sort:hover { color: inherit; }
-  .issues-table__sort-icon { font-size: 0.75rem; opacity: 0.5; }
+  .issues-table__sort-icon { font-size: var(--font-size-xs, 0.75rem); opacity: 0.5; }
   .issues-table__sort-icon.is-active {
     opacity: 1;
-    color: var(--color-accent, #7aa2f7);
+    color: var(--color-brand-primary);
   }
   .issues-table__label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--color-text-muted, #888);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
     font-weight: 600;
   }
 
   .issues-table td {
     padding: 0.55rem 0.75rem;
-    border-top: 1px solid var(--color-border, #2a2a2a);
+    border-top: 1px solid var(--color-border-default);
     vertical-align: middle;
   }
   .issues-table__row {
     cursor: pointer;
     transition: background 0.08s ease;
   }
-  .issues-table__row:hover {
-    background: color-mix(in srgb, var(--color-border, #2a2a2a) 25%, transparent);
-  }
+  /* No row-hover tint. Overdue rows keep their red tint — that's the only
+     row color in the table, and it survives hover so the state is obvious. */
   .issues-table__row.is-overdue {
-    background: color-mix(in srgb, #e06c75 6%, transparent);
+    background: color-mix(in srgb, var(--color-error) 6%, transparent);
   }
   .issues-table__row.is-overdue:hover {
-    background: color-mix(in srgb, #e06c75 12%, transparent);
+    background: color-mix(in srgb, var(--color-error) 10%, transparent);
   }
 
   .issues-table__title-cell { line-height: 1.35; }
   .issues-table__title-link {
-    display: inline-block;
+    display: block; /* force the sub line (status + id) onto the next line always */
     color: inherit;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: var(--font-weight-normal, 400);
   }
-  .issues-table__title-link:hover { color: var(--color-accent, #7aa2f7); }
+  .issues-table__title-link:hover { color: var(--color-brand-primary); }
   .issues-table__sub {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 0.5rem;
     margin-top: 0.2rem;
-    font-size: 0.7rem;
-    color: var(--color-text-muted, #888);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
     flex-wrap: wrap;
   }
   .issues-table__sub-sep { opacity: 0.5; }
   .issues-table__id {
-    font-family: var(--font-mono, monospace);
+    font-family: var(--font-family-mono);
   }
   .issues-table__muted {
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted);
     text-transform: capitalize;
   }
   .issues-table__date {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.75rem;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs, 0.75rem);
     white-space: nowrap;
   }
-  .is-overdue-cell { color: #e06c75 !important; font-weight: 600; }
+  .is-overdue-cell { color: var(--color-error) !important; font-weight: 600; }
 
   /* Two-line subtasks cell */
   .issues-table__subtasks-cell {
@@ -219,20 +213,20 @@ const columns = [
     gap: 0.35rem;
   }
   .issues-table__progress-label {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.72rem;
-    color: var(--color-text-muted, #888);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
   }
   .issues-table__progress-bar {
     width: 100%;
     height: 4px;
     border-radius: 4px;
-    background: color-mix(in srgb, var(--color-border, #2a2a2a) 70%, transparent);
+    background: color-mix(in srgb, var(--color-border-default) 70%, transparent);
     overflow: hidden;
   }
   .issues-table__progress-fill {
     height: 100%;
-    background: var(--color-accent, #7aa2f7);
+    background: var(--color-brand-primary);
     border-radius: 4px;
   }
 </style>

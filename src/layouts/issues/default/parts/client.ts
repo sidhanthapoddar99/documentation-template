@@ -412,8 +412,8 @@ export function initIssuesIndex() {
   document.getElementById('issues-clear')?.addEventListener('click', clearAll);
   document.getElementById('issues-reset')?.addEventListener('click', clearAll);
 
-  // Restore view preference
-  let savedView: ViewMode = 'cards';
+  // Restore view preference (default: table)
+  let savedView: ViewMode = 'table';
   try {
     const v = localStorage.getItem(VIEW_KEY);
     if (v === 'table' || v === 'cards') savedView = v;

@@ -18,7 +18,7 @@ interface Props {
 const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
 ---
 
-<div class="issues-view issues-view--cards is-active" id="view-cards">
+<div class="issues-view issues-view--cards" id="view-cards">
   {issues.map((issue) => (
     <div
       class="issues-view__row"
@@ -49,12 +49,13 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
 
   /* IssueCard uses un-scoped classes (component-level) so these have to be global */
   :global(.issue-card) {
-    border: 1px solid var(--color-border, #2a2a2a);
+    border: 1px solid var(--color-border-default);
     border-radius: 6px;
-    background: var(--color-surface, transparent);
+    /* Plain background — just a border to separate from the page */
+    background: transparent;
     transition: border-color 0.1s ease;
   }
-  :global(.issue-card:hover) { border-color: var(--color-border-hover, #444); }
+  :global(.issue-card:hover) { border-color: var(--color-border-light); }
   :global(.issue-card__link) {
     display: flex;
     justify-content: space-between;
@@ -67,13 +68,13 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
   :global(.issue-card__main) { flex: 1; min-width: 0; }
   :global(.issue-card__title) {
     margin: 0 0 0.25rem;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal, 400);
   }
   :global(.issue-card__description) {
     margin: 0 0 0.5rem;
-    color: var(--color-text-muted, #888);
-    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
     line-height: 1.4;
   }
   :global(.issue-card__badges) { display: flex; flex-wrap: wrap; gap: 0.35rem; }
@@ -82,16 +83,16 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.25rem;
-    font-size: 0.75rem;
-    color: var(--color-text-muted, #888);
-    font-family: var(--font-mono, monospace);
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-muted);
+    font-family: var(--font-family-mono);
     white-space: nowrap;
   }
   :global(.issue-badge) {
     display: inline-block;
     padding: 0.1rem 0.5rem;
     border-radius: 10px;
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs, 0.75rem);
     font-weight: 500;
     line-height: 1.4;
     background: color-mix(in srgb, var(--badge-color, #7aa2f7) 20%, transparent);
