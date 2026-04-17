@@ -11,7 +11,6 @@ interface Props {
 const { issue, vocabulary, baseUrl } = Astro.props;
 const { meta } = issue;
 
-// Deterministic color per author — stable hash into a small palette
 const AVATAR_COLORS = ['#7aa2f7', '#bb9af7', '#f7768e', '#e0af68', '#9ece6a', '#2ac3de', '#ff9e64'];
 function avatarColor(name: string | null | undefined): string {
   if (!name) return AVATAR_COLORS[0];
@@ -22,242 +21,397 @@ function avatarColor(name: string | null | undefined): string {
 function initial(name: string | null | undefined): string {
   return (name || '?').trim().charAt(0).toUpperCase();
 }
+
+const subtaskDone = issue.subtasks.filter((s) => s.done).length;
+const subtaskTotal = issue.subtasks.length;
 ---
 
-<article class="issue-detail">
-  <div class="issue-detail__container">
-    <a href={baseUrl} class="issue-detail__back">← Back to issues</a>
+<div class="issue-layout">
+  <!-- Left sidebar — full-height, collapsible sections -->
+  <aside class="issue-sidebar">
+    <a href={baseUrl} class="issue-sidebar__back">← All issues</a>
+    <div class="issue-sidebar__id">{issue.id}</div>
 
-    <header class="issue-detail__header">
-      <div class="issue-detail__id">{issue.id}</div>
-      <h1 class="issue-detail__title">{meta.title}</h1>
-      {meta.description && <p class="issue-detail__description">{meta.description}</p>}
-    </header>
-
-    <div class="issue-detail__layout">
-      <!-- Left sidebar: Overview + supporting files -->
-      <aside class="issue-filenav">
-        <div class="issue-filenav__group">
-          <div class="issue-filenav__heading">This issue</div>
-          <button
-            type="button"
-            class="issue-filenav__item is-active"
-            data-file="overview"
-            aria-current="page"
-          >
-            <span class="issue-filenav__icon" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M2 2h9l3 3v9H2V2z"/><path d="M11 2v3h3"/>
-              </svg>
-            </span>
-            <span class="issue-filenav__label">Overview</span>
-            {issue.comments.length > 0 && <span class="issue-filenav__count">{issue.comments.length}</span>}
+    <nav class="issue-sidebar__nav">
+      <!-- This issue -->
+      <details class="issue-sidebar__section" open>
+        <summary class="issue-sidebar__heading">
+          <svg class="issue-sidebar__chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l3 3 3-3"/></svg>
+          <span>This issue</span>
+        </summary>
+        <div class="issue-sidebar__items">
+          <button type="button" class="issue-sidebar__item is-active" data-panel="overview" aria-current="page">
+            <span class="issue-sidebar__label">Overview</span>
+            {issue.comments.length > 0 && <span class="issue-sidebar__count">{issue.comments.length}</span>}
           </button>
         </div>
+      </details>
 
-        {issue.supportingDocs.length > 0 && (
-          <div class="issue-filenav__group">
-            <div class="issue-filenav__heading">Files</div>
-            {issue.supportingDocs.map((d) => (
-              <button
-                type="button"
-                class="issue-filenav__item"
-                data-file={`doc-${d.name}`}
-              >
-                <span class="issue-filenav__icon" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M3 1h7l3 3v11H3V1z"/><path d="M10 1v3h3"/>
-                  </svg>
-                </span>
-                <span class="issue-filenav__label">{d.name}.md</span>
-              </button>
-            ))}
+      <!-- Subtasks -->
+      <details class="issue-sidebar__section" open>
+        <summary class="issue-sidebar__heading">
+          <svg class="issue-sidebar__chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l3 3 3-3"/></svg>
+          <span>Subtasks</span>
+          {subtaskTotal > 0 && <span class="issue-sidebar__heading-count">{subtaskDone}/{subtaskTotal}</span>}
+        </summary>
+        <div class="issue-sidebar__items">
+          {issue.subtasks.length > 0 ? issue.subtasks.map((s) => (
+            <button type="button" class={`issue-sidebar__item ${s.done ? 'is-done' : ''}`} data-panel={`subtask-${s.slug}`} data-subtask-slug={s.slug}>
+              <span class="issue-sidebar__check" aria-hidden="true">
+                {s.done ? (
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>
+                ) : (
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>
+                )}
+              </span>
+              <span class="issue-sidebar__label">{s.title}</span>
+            </button>
+          )) : (
+            <div class="issue-sidebar__empty">No subtasks</div>
+          )}
+        </div>
+      </details>
+
+      <!-- Notes -->
+      <details class="issue-sidebar__section" open>
+        <summary class="issue-sidebar__heading">
+          <svg class="issue-sidebar__chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l3 3 3-3"/></svg>
+          <span>Notes</span>
+          {issue.notes.length > 0 && <span class="issue-sidebar__heading-count">{issue.notes.length}</span>}
+        </summary>
+        <div class="issue-sidebar__items">
+          {issue.notes.length > 0 ? issue.notes.map((n) => (
+            <button type="button" class="issue-sidebar__item" data-panel={`note-${n.name}`}>
+              <span class="issue-sidebar__icon" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M3 1h7l3 3v11H3V1z"/><path d="M10 1v3h3"/>
+                </svg>
+              </span>
+              <span class="issue-sidebar__label">{n.name}.md</span>
+            </button>
+          )) : (
+            <div class="issue-sidebar__empty">No notes</div>
+          )}
+        </div>
+      </details>
+
+      <!-- Agent log -->
+      <details class="issue-sidebar__section" open>
+        <summary class="issue-sidebar__heading">
+          <svg class="issue-sidebar__chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l3 3 3-3"/></svg>
+          <span>Agent log</span>
+          {issue.agentLogs.length > 0 && <span class="issue-sidebar__heading-count">{issue.agentLogs.length}</span>}
+        </summary>
+        <div class="issue-sidebar__items">
+          {issue.agentLogs.length > 0 ? issue.agentLogs.map((log) => (
+            <button type="button" class="issue-sidebar__item" data-panel={`log-${log.name}`}>
+              <span class="issue-sidebar__icon" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/>
+                </svg>
+              </span>
+              <span class="issue-sidebar__label">
+                {log.iteration !== null ? `#${log.iteration} ` : ''}{log.name.replace(/^\d+[_-]/, '').replace(/[-_]/g, ' ')}
+              </span>
+            </button>
+          )) : (
+            <div class="issue-sidebar__empty">No agent-log entries</div>
+          )}
+        </div>
+      </details>
+    </nav>
+  </aside>
+
+  <!-- Main content — one panel visible at a time -->
+  <main class="issue-main">
+    <header class="issue-main__header">
+      <h1 class="issue-main__title">{meta.title}</h1>
+      {meta.description && <p class="issue-main__description">{meta.description}</p>}
+    </header>
+
+    <!-- Overview: original issue body + GitHub-style comment thread -->
+    <section class="issue-panel is-active" data-panel="overview" role="tabpanel">
+      <div class="issue-thread">
+        <div class="issue-thread__item">
+          <div class="issue-thread__avatar" style={`background: ${avatarColor(meta.author)}`}>
+            {initial(meta.author)}
           </div>
-        )}
-      </aside>
+          <div class="issue-thread__bubble">
+            <div class="issue-thread__bubble-header">
+              <span class="issue-thread__author">{meta.author || 'unknown'}</span>
+              <span class="issue-thread__action">opened this issue</span>
+              <span class="issue-thread__date">on {issue.created}</span>
+            </div>
+            <div class="issue-thread__bubble-body markdown-content">
+              <Fragment set:html={issue.html} />
+            </div>
+          </div>
+        </div>
 
-      <!-- Main content panels -->
-      <div class="issue-detail__main">
-        <!-- Overview: issue body + GitHub-style comments thread -->
-        <section class="issue-panel is-active" data-panel="overview" role="tabpanel">
-          <div class="issue-thread">
-            <!-- Initial comment = issue body -->
-            <div class="issue-thread__item">
-              <div class="issue-thread__avatar" style={`background: ${avatarColor(meta.author)}`}>
-                {initial(meta.author)}
+        {issue.comments.map((c) => (
+          <div class="issue-thread__item">
+            <div class="issue-thread__avatar" style={`background: ${avatarColor(c.author)}`}>
+              {initial(c.author)}
+            </div>
+            <div class="issue-thread__bubble">
+              <div class="issue-thread__bubble-header">
+                <span class="issue-thread__author">{c.author || 'unknown'}</span>
+                <span class="issue-thread__action">commented</span>
+                <span class="issue-thread__date">on {c.date || '—'}</span>
+                <span class="issue-thread__seq">#{String(c.sequence).padStart(3, '0')}</span>
               </div>
-              <div class="issue-thread__bubble">
-                <div class="issue-thread__bubble-header">
-                  <span class="issue-thread__author">{meta.author || 'unknown'}</span>
-                  <span class="issue-thread__action">opened this issue</span>
-                  <span class="issue-thread__date">on {issue.created}</span>
-                </div>
-                <div class="issue-thread__bubble-body markdown-content">
-                  <Fragment set:html={issue.html} />
-                </div>
+              <div class="issue-thread__bubble-body markdown-content">
+                <Fragment set:html={c.html} />
               </div>
             </div>
-
-            <!-- Each comment -->
-            {issue.comments.map((c) => (
-              <div class="issue-thread__item">
-                <div class="issue-thread__avatar" style={`background: ${avatarColor(c.author)}`}>
-                  {initial(c.author)}
-                </div>
-                <div class="issue-thread__bubble">
-                  <div class="issue-thread__bubble-header">
-                    <span class="issue-thread__author">{c.author || 'unknown'}</span>
-                    <span class="issue-thread__action">commented</span>
-                    <span class="issue-thread__date">on {c.date || '—'}</span>
-                    <span class="issue-thread__seq">#{String(c.sequence).padStart(3, '0')}</span>
-                  </div>
-                  <div class="issue-thread__bubble-body markdown-content">
-                    <Fragment set:html={c.html} />
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
-        </section>
-
-        <!-- Supporting docs: plain markdown, no comment styling -->
-        {issue.supportingDocs.map((d) => (
-          <section class="issue-panel" data-panel={`doc-${d.name}`} role="tabpanel" hidden>
-            <div class="issue-doc">
-              <div class="issue-doc__path">{d.name}.md</div>
-              <div class="issue-doc__body markdown-content">
-                <Fragment set:html={d.html} />
-              </div>
-            </div>
-          </section>
         ))}
       </div>
+    </section>
 
-      <!-- Right sidebar: metadata -->
-      <div class="issue-detail__meta">
-        <MetaPanel issue={issue} vocabulary={vocabulary} />
-      </div>
-    </div>
-  </div>
-</article>
+    <!-- Subtask pages -->
+    {issue.subtasks.map((s) => (
+      <section class="issue-panel" data-panel={`subtask-${s.slug}`} role="tabpanel" hidden>
+        <div class="issue-doc">
+          <div class="issue-doc__path">subtasks/{s.slug}.md</div>
+          <div class="issue-subtask-page" data-subtask-slug={s.slug} data-file={s.filePath}>
+            <label class="issue-subtask-page__header">
+              <input type="checkbox" class="issue-subtask-page__checkbox" checked={s.done} />
+              <span class={`issue-subtask-page__title ${s.done ? 'is-done' : ''}`}>{s.title}</span>
+            </label>
+            {s.html && (
+              <div class="issue-subtask-page__body markdown-content">
+                <Fragment set:html={s.html} />
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <!-- Note pages -->
+    {issue.notes.map((n) => (
+      <section class="issue-panel" data-panel={`note-${n.name}`} role="tabpanel" hidden>
+        <div class="issue-doc">
+          <div class="issue-doc__path">notes/{n.name}.md</div>
+          <div class="issue-doc__body markdown-content">
+            <Fragment set:html={n.html} />
+          </div>
+        </div>
+      </section>
+    ))}
+
+    <!-- Agent-log pages -->
+    {issue.agentLogs.map((log) => (
+      <section class="issue-panel" data-panel={`log-${log.name}`} role="tabpanel" hidden>
+        <div class="issue-doc">
+          <div class="issue-log__header">
+            <span class="issue-doc__path">agent-log/{log.name}.md</span>
+            <div class="issue-log__meta">
+              {log.iteration !== null && <span class="issue-log__chip">iter {log.iteration}</span>}
+              {log.agent && <span class="issue-log__chip">{log.agent}</span>}
+              {log.status && <span class={`issue-log__chip issue-log__chip--status is-${log.status.replace(/\s+/g, '-')}`}>{log.status}</span>}
+              {log.date && <span class="issue-log__chip">{log.date}</span>}
+            </div>
+          </div>
+          <div class="issue-doc__body markdown-content">
+            <Fragment set:html={log.html} />
+          </div>
+        </div>
+      </section>
+    ))}
+  </main>
+
+  <!-- Right sidebar — status panel -->
+  <aside class="issue-meta">
+    <MetaPanel issue={issue} vocabulary={vocabulary} />
+  </aside>
+</div>
 
 <script>
-  const filenav = document.querySelector<HTMLElement>('.issue-filenav');
-  filenav?.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement).closest('[data-file]') as HTMLElement | null;
-    if (!btn) return;
-    const key = btn.dataset.file!;
-    filenav.querySelectorAll<HTMLElement>('.issue-filenav__item').forEach((b) => {
-      const active = b.dataset.file === key;
+  const sidebar = document.querySelector<HTMLElement>('.issue-sidebar');
+
+  function activate(panelKey: string) {
+    sidebar?.querySelectorAll<HTMLElement>('.issue-sidebar__item').forEach((b) => {
+      const active = b.dataset.panel === panelKey;
       b.classList.toggle('is-active', active);
       if (active) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
     });
     document.querySelectorAll<HTMLElement>('.issue-panel').forEach((p) => {
-      const match = p.dataset.panel === key;
+      const match = p.dataset.panel === panelKey;
       p.classList.toggle('is-active', match);
       if (match) p.removeAttribute('hidden');
       else p.setAttribute('hidden', '');
     });
+  }
+
+  sidebar?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-panel]');
+    if (!btn) return;
+    activate(btn.dataset.panel!);
   });
+
+  // Subtask checkbox on the subtask page → POST toggle, optimistic
+  document.querySelectorAll<HTMLElement>('.issue-subtask-page').forEach((page) => {
+    const cb = page.querySelector<HTMLInputElement>('.issue-subtask-page__checkbox');
+    const titleEl = page.querySelector<HTMLElement>('.issue-subtask-page__title');
+    if (!cb) return;
+    cb.addEventListener('change', async () => {
+      const done = cb.checked;
+      const slug = page.dataset.subtaskSlug!;
+      const filePath = page.dataset.file!;
+      titleEl?.classList.toggle('is-done', done);
+      syncSidebarCheck(slug, done);
+      try {
+        const res = await fetch('/__editor/subtask-toggle', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ filePath, done }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      } catch (err) {
+        console.error('[issues] subtask toggle failed', err);
+        cb.checked = !done;
+        titleEl?.classList.toggle('is-done', !done);
+        syncSidebarCheck(slug, !done);
+      }
+    });
+  });
+
+  function syncSidebarCheck(slug: string, done: boolean) {
+    const sideBtn = document.querySelector<HTMLElement>(`.issue-sidebar__item[data-subtask-slug="${CSS.escape(slug)}"]`);
+    if (!sideBtn) return;
+    sideBtn.classList.toggle('is-done', done);
+    const icon = sideBtn.querySelector<HTMLElement>('.issue-sidebar__check');
+    if (!icon) return;
+    icon.innerHTML = done
+      ? '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>'
+      : '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>';
+    updateSubtaskHeadingCount();
+  }
+
+  function updateSubtaskHeadingCount() {
+    const items = document.querySelectorAll<HTMLElement>('.issue-sidebar__item[data-subtask-slug]');
+    const done = Array.from(items).filter((i) => i.classList.contains('is-done')).length;
+    const heading = document.querySelectorAll<HTMLElement>('.issue-sidebar__heading-count');
+    if (heading.length > 0 && items.length > 0) {
+      heading[0].textContent = `${done}/${items.length}`;
+    }
+  }
 </script>
 
 <style>
-  .issue-detail {
-    padding: 2rem 1.5rem;
-  }
-  .issue-detail__container {
-    max-width: 1300px;
+  .issue-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr 280px;
+    min-height: calc(100vh - var(--navbar-height, 60px));
+    max-width: 1600px;
     margin: 0 auto;
   }
-  .issue-detail__back {
-    display: inline-block;
-    margin-bottom: 1rem;
+
+  /* ===== Left sidebar ===== */
+  .issue-sidebar {
+    border-right: 1px solid var(--color-border-default);
+    padding: 1.25rem 0.75rem;
+    position: sticky;
+    top: var(--navbar-height, 60px);
+    height: calc(100vh - var(--navbar-height, 60px));
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .issue-sidebar__back {
     color: var(--color-text-muted);
     text-decoration: none;
     font-size: var(--ui-text-body);
+    padding: 0 0.5rem;
   }
-  .issue-detail__back:hover {
-    color: inherit;
-  }
-  .issue-detail__id {
+  .issue-sidebar__back:hover { color: inherit; }
+  .issue-sidebar__id {
     font-family: var(--font-family-mono);
     font-size: var(--ui-text-micro);
     color: var(--color-text-muted);
+    padding: 0 0.5rem;
   }
-  .issue-detail__title {
-    margin: 0.25rem 0 0.5rem;
-    font-size: var(--ui-text-title);
-  }
-  .issue-detail__description {
-    margin: 0 0 2rem;
-    color: var(--color-text-muted);
-  }
-  .issue-detail__layout {
-    display: grid;
-    grid-template-columns: 200px 1fr 280px;
-    gap: 1.5rem;
-    align-items: start;
-  }
-  .issue-detail__meta {
-    position: sticky;
-    top: 1rem;
-  }
-
-  /* Left sidebar: file nav */
-  .issue-filenav {
-    position: sticky;
-    top: 1rem;
+  .issue-sidebar__nav {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
   }
-  .issue-filenav__group {
+  .issue-sidebar__section { border: none; }
+  .issue-sidebar__section > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .issue-sidebar__section > summary::-webkit-details-marker { display: none; }
+  .issue-sidebar__heading {
     display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-  }
-  .issue-filenav__heading {
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.5rem;
     font-size: var(--ui-text-micro);
     color: var(--color-text-muted);
-    padding: 0 0.5rem;
-    margin-bottom: 0.35rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    border-radius: 4px;
   }
-  .issue-filenav__item {
+  .issue-sidebar__heading:hover { background: color-mix(in srgb, var(--color-border-default) 30%, transparent); }
+  .issue-sidebar__chevron {
+    transition: transform 0.12s ease;
+    flex-shrink: 0;
+  }
+  .issue-sidebar__section:not([open]) .issue-sidebar__chevron { transform: rotate(-90deg); }
+  .issue-sidebar__heading-count {
+    margin-left: auto;
+    font-family: var(--font-family-mono);
+    font-size: var(--ui-text-micro);
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+  .issue-sidebar__items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    padding: 0.15rem 0 0.25rem 0.4rem;
+    border-left: 1px solid var(--color-border-default);
+    margin-left: 0.7rem;
+  }
+  .issue-sidebar__item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     width: 100%;
-    padding: 0.4rem 0.5rem;
+    padding: 0.3rem 0.5rem;
     background: transparent;
     border: none;
     border-radius: 4px;
-    color: var(--color-text-muted);
+    color: var(--color-text-secondary);
     font-size: var(--ui-text-body);
     cursor: pointer;
     text-align: left;
-    transition: background 0.08s ease;
+    font-family: inherit;
+    transition: background 0.08s ease, color 0.08s ease;
   }
-  .issue-filenav__item:hover {
-    background: color-mix(in srgb, var(--color-border-default) 40%, transparent);
-    color: inherit;
+  .issue-sidebar__item:hover {
+    background: color-mix(in srgb, var(--color-border-default) 35%, transparent);
+    color: var(--color-text-primary);
   }
-  .issue-filenav__item.is-active {
-    background: color-mix(in srgb, var(--color-brand-primary) 15%, transparent);
+  .issue-sidebar__item.is-active {
+    background: color-mix(in srgb, var(--color-brand-primary) 14%, transparent);
     color: var(--color-brand-primary);
+    font-weight: 500;
   }
-  .issue-filenav__icon {
-    display: inline-flex;
-    flex-shrink: 0;
-  }
-  .issue-filenav__label {
+  .issue-sidebar__icon, .issue-sidebar__check { display: inline-flex; flex-shrink: 0; }
+  .issue-sidebar__label {
     flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .issue-filenav__count {
+  .issue-sidebar__count {
     background: var(--color-border-default);
     color: var(--color-text-muted);
     border-radius: 10px;
@@ -266,14 +420,24 @@ function initial(name: string | null | undefined): string {
     line-height: 1.5;
     font-family: var(--font-family-mono);
   }
-
-  /* Overview thread (GitHub-style comments) */
-  .issue-thread {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    position: relative;
+  .issue-sidebar__item.is-done { color: var(--color-text-muted); }
+  .issue-sidebar__item.is-done .issue-sidebar__label { text-decoration: line-through; }
+  .issue-sidebar__item.is-done .issue-sidebar__check { color: var(--color-success); }
+  .issue-sidebar__empty {
+    padding: 0.35rem 0.5rem;
+    color: var(--color-text-muted);
+    font-size: var(--ui-text-micro);
+    font-style: italic;
   }
+
+  /* ===== Main ===== */
+  .issue-main { padding: 1.5rem 2rem; min-width: 0; }
+  .issue-main__header { margin-bottom: 1.25rem; }
+  .issue-main__title { margin: 0 0 0.35rem; font-size: var(--ui-text-title); }
+  .issue-main__description { margin: 0; color: var(--color-text-muted); }
+
+  /* ===== Thread ===== */
+  .issue-thread { display: flex; flex-direction: column; gap: 1rem; position: relative; }
   .issue-thread::before {
     content: '';
     position: absolute;
@@ -284,12 +448,7 @@ function initial(name: string | null | undefined): string {
     background: var(--color-border-default);
     z-index: 0;
   }
-  .issue-thread__item {
-    display: flex;
-    gap: 0.75rem;
-    position: relative;
-    z-index: 1;
-  }
+  .issue-thread__item { display: flex; gap: 0.75rem; position: relative; z-index: 1; }
   .issue-thread__avatar {
     flex-shrink: 0;
     width: 40px;
@@ -301,7 +460,6 @@ function initial(name: string | null | undefined): string {
     color: #fff;
     font-weight: 600;
     font-size: var(--ui-text-body);
-    font-family: var(--font-family-base);
     border: 2px solid var(--color-bg-primary);
   }
   .issue-thread__bubble {
@@ -318,8 +476,7 @@ function initial(name: string | null | undefined): string {
     position: absolute;
     left: -8px;
     top: 14px;
-    width: 0;
-    height: 0;
+    width: 0; height: 0;
     border-top: 7px solid transparent;
     border-bottom: 7px solid transparent;
     border-right: 8px solid var(--color-border-default);
@@ -329,8 +486,7 @@ function initial(name: string | null | undefined): string {
     position: absolute;
     left: -7px;
     top: 15px;
-    width: 0;
-    height: 0;
+    width: 0; height: 0;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
     border-right: 7px solid var(--color-bg-secondary);
@@ -340,36 +496,21 @@ function initial(name: string | null | undefined): string {
     align-items: center;
     gap: 0.4rem;
     padding: 0.5rem 0.9rem;
-    /* No tint — border-bottom alone separates header from body */
     border-bottom: 1px solid var(--color-border-default);
     font-size: var(--ui-text-micro);
     color: var(--color-text-muted);
     flex-wrap: wrap;
   }
-  .issue-thread__author {
-    font-weight: 600;
-    color: inherit;
-  }
-  .issue-thread__date {
-    color: var(--color-text-muted);
-  }
+  .issue-thread__author { font-weight: 600; color: inherit; }
   .issue-thread__seq {
     margin-left: auto;
     font-family: var(--font-family-mono);
-    font-size: var(--ui-text-micro);
-    color: var(--color-text-muted);
   }
-  .issue-thread__bubble-body {
-    padding: 1rem;
-  }
-  .issue-thread__bubble-body :global(p:first-child) {
-    margin-top: 0;
-  }
-  .issue-thread__bubble-body :global(p:last-child) {
-    margin-bottom: 0;
-  }
+  .issue-thread__bubble-body { padding: 1rem; }
+  .issue-thread__bubble-body :global(p:first-child) { margin-top: 0; }
+  .issue-thread__bubble-body :global(p:last-child) { margin-bottom: 0; }
 
-  /* Supporting doc panel — plain markdown */
+  /* ===== Doc-style panels (subtask / note / agent-log) ===== */
   .issue-doc {
     border: 1px solid var(--color-border-default);
     border-radius: 6px;
@@ -387,39 +528,91 @@ function initial(name: string | null | undefined): string {
   .issue-doc__body :global(p:first-child),
   .issue-doc__body :global(h1:first-child),
   .issue-doc__body :global(h2:first-child),
-  .issue-doc__body :global(h3:first-child) {
-    margin-top: 0;
+  .issue-doc__body :global(h3:first-child) { margin-top: 0; }
+
+  /* Subtask page */
+  .issue-subtask-page__header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border-default);
+  }
+  .issue-subtask-page__checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-brand-primary);
+    cursor: pointer;
+  }
+  .issue-subtask-page__title {
+    font-size: var(--ui-text-body);
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+  .issue-subtask-page__title.is-done {
+    color: var(--color-text-muted);
+    text-decoration: line-through;
+  }
+  .issue-subtask-page__body :global(p:first-child),
+  .issue-subtask-page__body :global(h1:first-child),
+  .issue-subtask-page__body :global(h2:first-child) { margin-top: 0; }
+
+  /* Agent-log frontmatter strip */
+  .issue-log__header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border-default);
+  }
+  .issue-log__header .issue-doc__path {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  .issue-log__meta { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .issue-log__chip {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    font-size: var(--ui-text-micro);
+    background: color-mix(in srgb, var(--color-border-default) 50%, transparent);
+    color: var(--color-text-muted);
+    font-family: var(--font-family-mono);
+    text-transform: capitalize;
+  }
+  .issue-log__chip--status.is-success { color: var(--color-success); background: color-mix(in srgb, var(--color-success) 15%, transparent); }
+  .issue-log__chip--status.is-failed { color: var(--color-error); background: color-mix(in srgb, var(--color-error) 15%, transparent); }
+  .issue-log__chip--status.is-in-progress { color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 15%, transparent); }
+
+  /* ===== Right meta ===== */
+  .issue-meta {
+    border-left: 1px solid var(--color-border-default);
+    padding: 1.25rem 1rem;
+    position: sticky;
+    top: var(--navbar-height, 60px);
+    height: calc(100vh - var(--navbar-height, 60px));
+    overflow-y: auto;
   }
 
-  @media (max-width: 1100px) {
-    .issue-detail__layout {
-      grid-template-columns: 180px 1fr;
-    }
-    .issue-detail__meta {
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .issue-layout { grid-template-columns: 240px 1fr; }
+    .issue-meta {
       grid-column: 1 / -1;
+      border-left: none;
+      border-top: 1px solid var(--color-border-default);
       position: static;
+      height: auto;
     }
   }
-  @media (max-width: 700px) {
-    .issue-detail__layout {
-      grid-template-columns: 1fr;
-    }
-    .issue-filenav {
+  @media (max-width: 800px) {
+    .issue-layout { grid-template-columns: 1fr; }
+    .issue-sidebar {
       position: static;
-      flex-direction: row;
-      overflow-x: auto;
-      gap: 1.5rem;
-    }
-    .issue-filenav__group {
-      flex-direction: row;
-      gap: 0.25rem;
-      align-items: center;
-    }
-    .issue-filenav__heading {
-      margin: 0;
-    }
-    .issue-thread::before {
-      display: none;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--color-border-default);
     }
   }
 </style>

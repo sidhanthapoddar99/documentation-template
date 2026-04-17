@@ -7,6 +7,7 @@
  * - POST /__editor/open      — Open document + create Yjs room
  * - POST /__editor/save      — Save document to disk
  * - POST /__editor/close     — Close document, destroy Yjs room
+ * - POST /__editor/subtask-toggle — Flip `done` in a subtask's frontmatter
  * - POST /__editor/presence  — Presence actions (join/leave/page/cursor-clear)
  * - WS   /__editor/yjs       — Yjs CRDT sync + cursors, ping, config, render (handled by YjsSync)
  *
@@ -358,6 +359,33 @@ export function setupEditorMiddleware(
           yjsSync.destroyRoom(oldPath);
           const newPath = store.renameItem(oldPath, newName);
           return sendJson(res, 200, { newPath });
+        }
+
+        case '/__editor/subtask-toggle': {
+          const { filePath, done } = body;
+          if (!filePath || typeof filePath !== 'string') {
+            return sendJson(res, 400, { error: 'filePath is required' });
+          }
+          if (!filePath.endsWith('.md') || !filePath.includes('/subtasks/')) {
+            return sendJson(res, 400, { error: 'Not a subtask file' });
+          }
+          const resolved = path.resolve(filePath);
+          // Reuse the store's watchPaths gate by attempting an open() —
+          // the store throws if outside allowed paths. We don't actually
+          // want to keep a doc open for subtasks, so rewrite + close.
+          if (!fs.existsSync(resolved)) {
+            return sendJson(res, 404, { error: 'Subtask file not found' });
+          }
+          // Path is gated via the same rule the EditorStore uses.
+          const allowed = (store as any).config?.watchPaths as string[] | undefined;
+          if (allowed && !allowed.some((wp) => resolved.startsWith(path.resolve(wp)))) {
+            return sendJson(res, 403, { error: 'Path not allowed' });
+          }
+          const raw = fs.readFileSync(resolved, 'utf-8');
+          const parsed = matter(raw);
+          parsed.data = { ...parsed.data, done: !!done };
+          fs.writeFileSync(resolved, matter.stringify(parsed.content, parsed.data));
+          return sendJson(res, 200, { ok: true, done: !!done });
         }
 
         case '/__editor/delete': {

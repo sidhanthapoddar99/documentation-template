@@ -6,7 +6,9 @@
  *     settings.json          (metadata, required)
  *     issue.md               (body, required)
  *     comments/NNN_*.md      (thread, optional)
- *     *.md                   (supporting docs, optional)
+ *     subtasks/*.md          (checklist items — frontmatter {title, done}, optional)
+ *     notes/*.md             (supporting documents, optional)
+ *     agent-log/NNN_*.md    (iterative AI agent notes — frontmatter {iteration, agent, status, date}, optional)
  *
  * The root <dataPath>/settings.json defines the tag vocabulary (status, priority,
  * type, component, milestone, labels, authors) — returned as `vocabulary`.
@@ -17,6 +19,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import matter from 'gray-matter';
 import { createIssuesParser } from '../parsers/content-types/issues';
 
 export interface IssueMetadata {
@@ -49,12 +52,46 @@ export interface IssueComment {
   filePath: string;
 }
 
-export interface IssueSupportingDoc {
+export interface IssueNote {
   /** e.g. "design" (filename without extension) */
   name: string;
   filePath: string;
   relativePath: string;
   /** Rendered HTML */
+  html: string;
+}
+
+export interface IssueAgentLog {
+  /** Filename without extension, e.g. "001_initial-triage" */
+  name: string;
+  /** Numeric prefix if filename starts with "NNN_", else the sort order */
+  sequence: number;
+  /** Frontmatter `iteration` field (falls back to sequence) */
+  iteration: number | null;
+  /** Frontmatter `agent` — which agent wrote this log */
+  agent: string | null;
+  /** Frontmatter `status` — free-form (in-progress / success / failed / …) */
+  status: string | null;
+  /** Frontmatter `date` */
+  date: string | null;
+  filePath: string;
+  relativePath: string;
+  /** Rendered HTML of the body */
+  html: string;
+}
+
+export interface IssueSubtask {
+  /** Filename without extension, used as stable id within the issue */
+  slug: string;
+  /** Display title (from frontmatter `title`, or derived from slug) */
+  title: string;
+  /** Done state from frontmatter `done: true/false` */
+  done: boolean;
+  /** Absolute path — used by the toggle endpoint */
+  filePath: string;
+  /** Relative path from dataPath — safer wire format */
+  relativePath: string;
+  /** Rendered HTML of the body (markdown below the frontmatter) */
   html: string;
 }
 
@@ -73,8 +110,12 @@ export interface Issue {
   html: string;
   /** Sorted comments (by filename) */
   comments: IssueComment[];
-  /** Supporting .md docs other than issue.md */
-  supportingDocs: IssueSupportingDoc[];
+  /** Subtasks (sorted by filename) */
+  subtasks: IssueSubtask[];
+  /** Notes — supporting markdown docs under notes/ */
+  notes: IssueNote[];
+  /** Agent logs — iterative AI execution notes under agent-log/ */
+  agentLogs: IssueAgentLog[];
 }
 
 export interface IssuesVocabularyField {
@@ -138,21 +179,15 @@ function computeSignature(dataPath: string): number {
     sig += statMtime(path.join(folder, 'settings.json'));
     sig += statMtime(path.join(folder, 'issue.md'));
 
-    // Comments dir + each comment file
-    const commentsDir = path.join(folder, 'comments');
-    sig += statMtime(commentsDir);
-    try {
-      for (const f of fs.readdirSync(commentsDir)) {
-        if (f.endsWith('.md')) sig += statMtime(path.join(commentsDir, f));
-      }
-    } catch { /* no comments dir */ }
-
-    // Root-level supporting .md files
-    try {
-      for (const f of fs.readdirSync(folder)) {
-        if (f.endsWith('.md') && f !== 'issue.md') sig += statMtime(path.join(folder, f));
-      }
-    } catch { /* skip */ }
+    for (const sub of ['comments', 'subtasks', 'notes', 'agent-log']) {
+      const subDir = path.join(folder, sub);
+      sig += statMtime(subDir);
+      try {
+        for (const f of fs.readdirSync(subDir)) {
+          if (f.endsWith('.md')) sig += statMtime(path.join(subDir, f));
+        }
+      } catch { /* dir absent */ }
+    }
   }
 
   return sig;
@@ -226,21 +261,69 @@ async function loadIssueFolder(folderPath: string, dataPath: string): Promise<Is
     c.html = await renderMarkdown(c.filePath, dataPath);
   }
 
-  // Supporting docs: *.md at the folder root, excluding issue.md
-  const supportingDocs: IssueSupportingDoc[] = [];
-  const rootEntries = fs.readdirSync(folderPath, { withFileTypes: true });
-  const docEntries = rootEntries
+  // Subtasks: frontmatter-driven files under subtasks/ (body optional)
+  const subtasks = await readSubtasks(path.join(folderPath, 'subtasks'), dataPath);
+
+  // Notes: rendered markdown under notes/
+  const notes: IssueNote[] = [];
+  const notesDir = path.join(folderPath, 'notes');
+  if (fs.existsSync(notesDir)) {
+    const noteEntries = fs
+      .readdirSync(notesDir, { withFileTypes: true })
+      .filter((e) => e.isFile() && e.name.endsWith('.md'))
+      .map((e) => e.name)
+      .sort();
+    for (const name of noteEntries) {
+      const abs = path.join(notesDir, name);
+      notes.push({
+        name: name.replace(/\.md$/, ''),
+        filePath: abs,
+        relativePath: path.relative(dataPath, abs),
+        html: await renderMarkdown(abs, dataPath),
+      });
+    }
+  }
+
+  // Agent logs: NNN_*.md with optional {iteration, agent, status, date} frontmatter
+  const agentLogs: IssueAgentLog[] = [];
+  const logsDir = path.join(folderPath, 'agent-log');
+  if (fs.existsSync(logsDir)) {
+    const logFiles = fs
+      .readdirSync(logsDir, { withFileTypes: true })
+      .filter((e) => e.isFile() && e.name.endsWith('.md'))
+      .map((e) => e.name)
+      .sort();
+    let i = 0;
+    for (const name of logFiles) {
+      const abs = path.join(logsDir, name);
+      const base = name.replace(/\.md$/, '');
+      const prefixMatch = base.match(/^(\d+)[_-]/);
+      const sequence = prefixMatch ? parseInt(prefixMatch[1], 10) : ++i;
+      let fm: { iteration?: number; agent?: string; status?: string; date?: string } = {};
+      try { fm = matter(fs.readFileSync(abs, 'utf-8')).data as typeof fm; } catch {}
+      agentLogs.push({
+        name: base,
+        sequence,
+        iteration: typeof fm.iteration === 'number' ? fm.iteration : null,
+        agent: fm.agent || null,
+        status: fm.status || null,
+        date: fm.date || null,
+        filePath: abs,
+        relativePath: path.relative(dataPath, abs),
+        html: await renderMarkdown(abs, dataPath),
+      });
+    }
+  }
+
+  // Warn on stray root-level *.md (users upgrading from the old layout)
+  const stray = fs
+    .readdirSync(folderPath, { withFileTypes: true })
     .filter((e) => e.isFile() && e.name.endsWith('.md') && e.name !== 'issue.md')
-    .map((e) => e.name)
-    .sort();
-  for (const name of docEntries) {
-    const abs = path.join(folderPath, name);
-    supportingDocs.push({
-      name: name.replace(/\.md$/, ''),
-      filePath: abs,
-      relativePath: path.relative(dataPath, abs),
-      html: await renderMarkdown(abs, dataPath),
-    });
+    .map((e) => e.name);
+  if (stray.length) {
+    console.warn(
+      `[issues] "${id}" has loose .md files at the folder root — move them into notes/: ${stray.join(', ')}`,
+    );
   }
 
   return {
@@ -255,8 +338,44 @@ async function loadIssueFolder(folderPath: string, dataPath: string): Promise<Is
     },
     html,
     comments,
-    supportingDocs,
+    subtasks,
+    notes,
+    agentLogs,
   };
+}
+
+async function readSubtasks(subtasksDir: string, dataPath: string): Promise<IssueSubtask[]> {
+  if (!fs.existsSync(subtasksDir)) return [];
+  const files = fs
+    .readdirSync(subtasksDir, { withFileTypes: true })
+    .filter((e) => e.isFile() && e.name.endsWith('.md'))
+    .map((e) => e.name)
+    .sort();
+  const out: IssueSubtask[] = [];
+  for (const name of files) {
+    const abs = path.join(subtasksDir, name);
+    const slug = name.replace(/\.md$/, '');
+    let title = slug.replace(/^\d+[-_]?/, '').replace(/[-_]/g, ' ');
+    let done = false;
+    try {
+      const parsed = matter(fs.readFileSync(abs, 'utf-8'));
+      const fm = parsed.data as { title?: string; done?: boolean };
+      if (fm.title) title = fm.title;
+      done = fm.done === true;
+    } catch {
+      // malformed frontmatter — fall back to defaults
+    }
+    const html = await renderMarkdown(abs, dataPath);
+    out.push({
+      slug,
+      title,
+      done,
+      filePath: abs,
+      relativePath: path.relative(dataPath, abs),
+      html,
+    });
+  }
+  return out;
 }
 
 /**

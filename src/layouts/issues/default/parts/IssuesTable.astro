@@ -82,12 +82,21 @@ const columns = [
             <td class="issues-table__muted">{issue.meta.component || '—'}</td>
             <td class="issues-table__muted">{issue.meta.milestone || '—'}</td>
             <td class="issues-table__subtasks-cell">
-              <div class="issues-table__progress" title="Subtasks (coming soon)">
-                <div class="issues-table__progress-label">0 / 0</div>
-                <div class="issues-table__progress-bar">
-                  <div class="issues-table__progress-fill" style="width: 0%"></div>
+              {issue.subtasks.length > 0 ? (
+                <div class="issues-table__progress">
+                  <div class="issues-table__progress-label">
+                    {issue.subtasks.filter((s) => s.done).length} / {issue.subtasks.length}
+                  </div>
+                  <div class="issues-table__progress-bar">
+                    <div
+                      class="issues-table__progress-fill"
+                      style={`width: ${(issue.subtasks.filter((s) => s.done).length / issue.subtasks.length) * 100}%`}
+                    ></div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <span class="issues-table__muted">—</span>
+              )}
             </td>
             <td class={`issues-table__date ${isOverdue(issue.meta) ? 'is-overdue-cell' : ''}`}>
               {issue.meta.due || <span class="issues-table__muted">—</span>}

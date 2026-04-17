@@ -58,12 +58,14 @@
      Consumed by markdown.css; custom layouts embedding prose can reuse.
      h-sizes follow the conventional docs/blog heading scale (h1 largest). */
   --content-body: var(--font-size-base);
-  --content-h1:   var(--font-size-4xl);
-  --content-h2:   var(--font-size-2xl);
-  --content-h3:   var(--font-size-xl);
-  --content-h4:   var(--font-size-lg);
+  --content-h1:   var(--font-size-2xl);
+  --content-h2:   var(--font-size-xl);
+  --content-h3:   var(--font-size-lg);
+  /* h4–h6: same size as body. They're structural landmarks for outlines/TOCs,
+     not visual emphasis — use font-weight/color to differentiate, not size. */
+  --content-h4:   var(--font-size-base);
   --content-h5:   var(--font-size-base);
-  --content-h6:   var(--font-size-sm);
+  --content-h6:   var(--font-size-base);
   --content-code: 0.9em;    /* em — intentionally scales with parent */
 
   /* Display — marketing / landing / countdown surfaces only.
