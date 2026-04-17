@@ -21,6 +21,11 @@ const singleFields = [
 
 <aside class="issue-meta-panel">
   <dl>
+    <div class="issue-meta-panel__row">
+      <dt>ID</dt>
+      <dd><code class="issue-meta-panel__id">{issue.id}</code></dd>
+    </div>
+
     {singleFields.map(([label, field, value]) => (
       <div class="issue-meta-panel__row">
         <dt>{label}</dt>
@@ -99,5 +104,13 @@ const singleFields = [
   }
   .issue-meta-panel__empty {
     color: var(--color-text-muted);
+  }
+  .issue-meta-panel__id {
+    font-family: var(--font-family-mono);
+    font-size: var(--ui-text-micro);
+    color: var(--color-text-primary);
+    background: transparent;
+    padding: 0;
+    word-break: break-all;
   }
 </style>

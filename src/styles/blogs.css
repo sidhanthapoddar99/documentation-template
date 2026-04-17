@@ -21,7 +21,7 @@
 
 .blog-index__title {
   font-size: var(--content-h1);
-  font-weight: 700;
+  font-weight: var(--font-weight-normal);
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-sm);
 }
@@ -236,7 +236,7 @@
 
 .blog-post__title {
   font-size: var(--content-h1);
-  font-weight: 700;
+  font-weight: var(--font-weight-normal);
   color: var(--color-text-primary);
   line-height: 1.2;
   margin-bottom: var(--spacing-md);
@@ -270,14 +270,14 @@
 
 .blog-post__content h2 {
   font-size: var(--content-h2);
-  font-weight: 600;
+  font-weight: var(--font-weight-normal);
   margin-top: var(--spacing-2xl);
   margin-bottom: var(--spacing-md);
 }
 
 .blog-post__content h3 {
   font-size: var(--content-h3);
-  font-weight: 600;
+  font-weight: var(--font-weight-normal);
   margin-top: var(--spacing-xl);
   margin-bottom: var(--spacing-sm);
 }

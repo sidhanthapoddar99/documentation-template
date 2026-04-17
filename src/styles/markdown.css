@@ -109,7 +109,7 @@ body {
 .markdown-content h5,
 .markdown-content h6 {
   font-family: var(--font-family-heading);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-normal);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
   margin-top: var(--spacing-xl);
@@ -118,7 +118,6 @@ body {
 
 .markdown-content h1 {
   font-size: var(--content-h1);
-  font-weight: var(--font-weight-bold);
   margin-top: 0;
 }
 
@@ -130,17 +129,15 @@ body {
   font-size: var(--content-h3);
 }
 
-.markdown-content h4 {
-  font-size: var(--content-h4);
-}
-
-.markdown-content h5 {
-  font-size: var(--content-h5);
-}
-
+/* h4–h6: structural anchors only, no visual emphasis.
+   Same size, weight, and color as body text — distinguished by position/role,
+   or by the outline/TOC that links to them. */
+.markdown-content h4,
+.markdown-content h5,
 .markdown-content h6 {
-  font-size: var(--content-h6);
-  color: var(--color-text-secondary);
+  font-size: var(--content-body);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
 }
 
 /* Paragraphs */

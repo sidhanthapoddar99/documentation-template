@@ -24,13 +24,18 @@ function initial(name: string | null | undefined): string {
 
 const subtaskDone = issue.subtasks.filter((s) => s.done).length;
 const subtaskTotal = issue.subtasks.length;
+// Sort: incomplete first (so unfinished work is on top), completed below.
+// Preserve filename order within each group.
+const sortedSubtasks = [...issue.subtasks].sort((a, b) => Number(a.done) - Number(b.done));
 ---
 
 <div class="issue-layout">
   <!-- Left sidebar — full-height, collapsible sections -->
   <aside class="issue-sidebar">
-    <a href={baseUrl} class="issue-sidebar__back">← All issues</a>
-    <div class="issue-sidebar__id">{issue.id}</div>
+    <a href={baseUrl} class="issue-sidebar__back">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="10 4 6 8 10 12"/></svg>
+      <span>All issues</span>
+    </a>
 
     <nav class="issue-sidebar__nav">
       <!-- This issue -->
@@ -47,33 +52,8 @@ const subtaskTotal = issue.subtasks.length;
         </div>
       </details>
 
-      <!-- Subtasks -->
-      <details class="issue-sidebar__section" open>
-        <summary class="issue-sidebar__heading">
-          <svg class="issue-sidebar__chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l3 3 3-3"/></svg>
-          <span>Subtasks</span>
-          {subtaskTotal > 0 && <span class="issue-sidebar__heading-count">{subtaskDone}/{subtaskTotal}</span>}
-        </summary>
-        <div class="issue-sidebar__items">
-          {issue.subtasks.length > 0 ? issue.subtasks.map((s) => (
-            <button type="button" class={`issue-sidebar__item ${s.done ? 'is-done' : ''}`} data-panel={`subtask-${s.slug}`} data-subtask-slug={s.slug}>
-              <span class="issue-sidebar__check" aria-hidden="true">
-                {s.done ? (
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>
-                ) : (
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>
-                )}
-              </span>
-              <span class="issue-sidebar__label">{s.title}</span>
-            </button>
-          )) : (
-            <div class="issue-sidebar__empty">No subtasks</div>
-          )}
-        </div>
-      </details>
-
       <!-- Notes -->
-      <details class="issue-sidebar__section" open>
+      <details class="issue-sidebar__section">
         <summary class="issue-sidebar__heading">
           <svg class="issue-sidebar__chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l3 3 3-3"/></svg>
           <span>Notes</span>
@@ -95,8 +75,33 @@ const subtaskTotal = issue.subtasks.length;
         </div>
       </details>
 
-      <!-- Agent log -->
+      <!-- Subtasks -->
       <details class="issue-sidebar__section" open>
+        <summary class="issue-sidebar__heading">
+          <svg class="issue-sidebar__chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l3 3 3-3"/></svg>
+          <span>Subtasks</span>
+          {subtaskTotal > 0 && <span class="issue-sidebar__heading-count">{subtaskDone}/{subtaskTotal}</span>}
+        </summary>
+        <div class="issue-sidebar__items">
+          {sortedSubtasks.length > 0 ? sortedSubtasks.map((s) => (
+            <button type="button" class={`issue-sidebar__item ${s.done ? 'is-done' : ''}`} data-panel={`subtask-${s.slug}`} data-subtask-slug={s.slug}>
+              <span class="issue-sidebar__check" aria-hidden="true">
+                {s.done ? (
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>
+                ) : (
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>
+                )}
+              </span>
+              <span class="issue-sidebar__label">{s.title}</span>
+            </button>
+          )) : (
+            <div class="issue-sidebar__empty">No subtasks</div>
+          )}
+        </div>
+      </details>
+
+      <!-- Agent log -->
+      <details class="issue-sidebar__section">
         <summary class="issue-sidebar__heading">
           <svg class="issue-sidebar__chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l3 3 3-3"/></svg>
           <span>Agent log</span>
@@ -167,6 +172,31 @@ const subtaskTotal = issue.subtasks.length;
           </div>
         ))}
       </div>
+
+      {sortedSubtasks.length > 0 && (
+        <section class="issue-overview-subtasks" aria-label="Subtasks">
+          <div class="issue-overview-subtasks__header">
+            <span class="issue-overview-subtasks__title">Subtasks</span>
+            <span class="issue-overview-subtasks__count" id="overview-subtasks-count">{subtaskDone} / {subtaskTotal}</span>
+            <div class="issue-overview-subtasks__bar" aria-hidden="true">
+              <div class="issue-overview-subtasks__bar-fill" id="overview-subtasks-fill" style={`width: ${subtaskTotal ? (subtaskDone / subtaskTotal) * 100 : 0}%`}></div>
+            </div>
+          </div>
+          <ul class="issue-overview-subtasks__list">
+            {sortedSubtasks.map((s) => (
+              <li class={`issue-overview-subtasks__item ${s.done ? 'is-done' : ''}`} data-subtask-slug={s.slug} data-file={s.filePath}>
+                <input
+                  type="checkbox"
+                  class="issue-overview-subtasks__checkbox"
+                  checked={s.done}
+                  aria-label={`Mark "${s.title}" as ${s.done ? 'not done' : 'done'}`}
+                />
+                <a href={`#subtask-${s.slug}`} class="issue-overview-subtasks__link">{s.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </section>
 
     <!-- Subtask pages -->
@@ -231,7 +261,17 @@ const subtaskTotal = issue.subtasks.length;
 <script>
   const sidebar = document.querySelector<HTMLElement>('.issue-sidebar');
 
-  function activate(panelKey: string) {
+  function knownPanel(key: string): boolean {
+    return !!document.querySelector(`.issue-panel[data-panel="${CSS.escape(key)}"]`);
+  }
+
+  function expandSectionFor(panelKey: string) {
+    const btn = sidebar?.querySelector<HTMLElement>(`.issue-sidebar__item[data-panel="${CSS.escape(panelKey)}"]`);
+    const section = btn?.closest<HTMLDetailsElement>('details.issue-sidebar__section');
+    if (section && !section.open) section.open = true;
+  }
+
+  function activate(panelKey: string, opts: { updateHash?: boolean } = {}) {
     sidebar?.querySelectorAll<HTMLElement>('.issue-sidebar__item').forEach((b) => {
       const active = b.dataset.panel === panelKey;
       b.classList.toggle('is-active', active);
@@ -244,6 +284,12 @@ const subtaskTotal = issue.subtasks.length;
       if (match) p.removeAttribute('hidden');
       else p.setAttribute('hidden', '');
     });
+    expandSectionFor(panelKey);
+    if (opts.updateHash !== false) {
+      const desired = panelKey === 'overview' ? ' ' : `#${panelKey}`;
+      if (desired === ' ') history.replaceState(null, '', location.pathname + location.search);
+      else history.replaceState(null, '', desired);
+    }
   }
 
   sidebar?.addEventListener('click', (e) => {
@@ -252,30 +298,85 @@ const subtaskTotal = issue.subtasks.length;
     activate(btn.dataset.panel!);
   });
 
-  // Subtask checkbox on the subtask page → POST toggle, optimistic
+  // Initial panel from #hash (if present and valid)
+  const initial = decodeURIComponent(location.hash.slice(1));
+  if (initial && knownPanel(initial)) activate(initial, { updateHash: false });
+
+  // React to back/forward navigation
+  window.addEventListener('hashchange', () => {
+    const key = decodeURIComponent(location.hash.slice(1)) || 'overview';
+    if (key === 'overview' || knownPanel(key)) activate(key, { updateHash: false });
+  });
+
+  async function postToggle(filePath: string, done: boolean) {
+    const res = await fetch('/__editor/subtask-toggle', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ filePath, done }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  }
+
+  function syncAllCheckboxes(slug: string, done: boolean) {
+    // Keep the subtask page + overview list in the same state
+    const pageCb = document.querySelector<HTMLInputElement>(
+      `.issue-subtask-page[data-subtask-slug="${CSS.escape(slug)}"] .issue-subtask-page__checkbox`,
+    );
+    if (pageCb && pageCb.checked !== done) pageCb.checked = done;
+    const pageTitle = document.querySelector<HTMLElement>(
+      `.issue-subtask-page[data-subtask-slug="${CSS.escape(slug)}"] .issue-subtask-page__title`,
+    );
+    pageTitle?.classList.toggle('is-done', done);
+
+    const overviewItem = document.querySelector<HTMLElement>(
+      `.issue-overview-subtasks__item[data-subtask-slug="${CSS.escape(slug)}"]`,
+    );
+    if (overviewItem) {
+      overviewItem.classList.toggle('is-done', done);
+      const ocb = overviewItem.querySelector<HTMLInputElement>('.issue-overview-subtasks__checkbox');
+      if (ocb && ocb.checked !== done) ocb.checked = done;
+    }
+  }
+
+  function updateOverviewProgress() {
+    const items = document.querySelectorAll<HTMLElement>('.issue-overview-subtasks__item');
+    if (!items.length) return;
+    const done = Array.from(items).filter((i) => i.classList.contains('is-done')).length;
+    const count = document.getElementById('overview-subtasks-count');
+    const fill = document.getElementById('overview-subtasks-fill');
+    if (count) count.textContent = `${done} / ${items.length}`;
+    if (fill) fill.style.width = `${(done / items.length) * 100}%`;
+  }
+
+  async function handleToggle(slug: string, filePath: string, done: boolean) {
+    syncAllCheckboxes(slug, done);
+    syncSidebarCheck(slug, done);
+    updateOverviewProgress();
+    try {
+      await postToggle(filePath, done);
+    } catch (err) {
+      console.error('[issues] subtask toggle failed', err);
+      syncAllCheckboxes(slug, !done);
+      syncSidebarCheck(slug, !done);
+      updateOverviewProgress();
+    }
+  }
+
+  // Subtask page checkbox
   document.querySelectorAll<HTMLElement>('.issue-subtask-page').forEach((page) => {
     const cb = page.querySelector<HTMLInputElement>('.issue-subtask-page__checkbox');
-    const titleEl = page.querySelector<HTMLElement>('.issue-subtask-page__title');
     if (!cb) return;
-    cb.addEventListener('change', async () => {
-      const done = cb.checked;
-      const slug = page.dataset.subtaskSlug!;
-      const filePath = page.dataset.file!;
-      titleEl?.classList.toggle('is-done', done);
-      syncSidebarCheck(slug, done);
-      try {
-        const res = await fetch('/__editor/subtask-toggle', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ filePath, done }),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      } catch (err) {
-        console.error('[issues] subtask toggle failed', err);
-        cb.checked = !done;
-        titleEl?.classList.toggle('is-done', !done);
-        syncSidebarCheck(slug, !done);
-      }
+    cb.addEventListener('change', () => {
+      handleToggle(page.dataset.subtaskSlug!, page.dataset.file!, cb.checked);
+    });
+  });
+
+  // Overview subtasks checklist
+  document.querySelectorAll<HTMLInputElement>('.issue-overview-subtasks__checkbox').forEach((cb) => {
+    cb.addEventListener('change', () => {
+      const item = cb.closest<HTMLElement>('.issue-overview-subtasks__item');
+      if (!item) return;
+      handleToggle(item.dataset.subtaskSlug!, item.dataset.file!, cb.checked);
     });
   });
 
@@ -323,18 +424,15 @@ const subtaskTotal = issue.subtasks.length;
     gap: 0.75rem;
   }
   .issue-sidebar__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     color: var(--color-text-muted);
     text-decoration: none;
     font-size: var(--ui-text-body);
     padding: 0 0.5rem;
   }
   .issue-sidebar__back:hover { color: inherit; }
-  .issue-sidebar__id {
-    font-family: var(--font-family-mono);
-    font-size: var(--ui-text-micro);
-    color: var(--color-text-muted);
-    padding: 0 0.5rem;
-  }
   .issue-sidebar__nav {
     display: flex;
     flex-direction: column;
@@ -350,10 +448,10 @@ const subtaskTotal = issue.subtasks.length;
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.35rem 0.5rem;
-    font-size: var(--ui-text-micro);
-    color: var(--color-text-muted);
-    font-weight: 600;
+    padding: 0.4rem 0.5rem;
+    font-size: var(--ui-text-body);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-normal);
     text-transform: capitalize;
     border-radius: 4px;
   }
@@ -433,7 +531,7 @@ const subtaskTotal = issue.subtasks.length;
   /* ===== Main ===== */
   .issue-main { padding: 1.5rem 2rem; min-width: 0; }
   .issue-main__header { margin-bottom: 1.25rem; }
-  .issue-main__title { margin: 0 0 0.35rem; font-size: var(--ui-text-title); }
+  .issue-main__title { margin: 0 0 0.35rem; font-size: var(--ui-text-title); font-weight: var(--font-weight-normal); }
   .issue-main__description { margin: 0; color: var(--color-text-muted); }
 
   /* ===== Thread ===== */
@@ -467,7 +565,7 @@ const subtaskTotal = issue.subtasks.length;
     min-width: 0;
     border: 1px solid var(--color-border-default);
     border-radius: 6px;
-    background: var(--color-bg-secondary);
+    background: transparent;
     overflow: hidden;
     position: relative;
   }
@@ -489,7 +587,7 @@ const subtaskTotal = issue.subtasks.length;
     width: 0; height: 0;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
-    border-right: 7px solid var(--color-bg-secondary);
+    border-right: 7px solid var(--color-bg-primary);
   }
   .issue-thread__bubble-header {
     display: flex;
@@ -510,12 +608,80 @@ const subtaskTotal = issue.subtasks.length;
   .issue-thread__bubble-body :global(p:first-child) { margin-top: 0; }
   .issue-thread__bubble-body :global(p:last-child) { margin-bottom: 0; }
 
+  /* ===== Overview subtasks section (below comments) ===== */
+  .issue-overview-subtasks {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border-default);
+  }
+  .issue-overview-subtasks__header {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .issue-overview-subtasks__title {
+    font-size: var(--ui-text-body);
+    font-weight: 600;
+  }
+  .issue-overview-subtasks__count {
+    font-family: var(--font-family-mono);
+    font-size: var(--ui-text-micro);
+    color: var(--color-text-muted);
+  }
+  .issue-overview-subtasks__bar {
+    height: 4px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--color-border-default) 70%, transparent);
+    overflow: hidden;
+  }
+  .issue-overview-subtasks__bar-fill {
+    height: 100%;
+    background: var(--color-brand-primary);
+    transition: width 0.2s ease;
+  }
+  .issue-overview-subtasks__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+  .issue-overview-subtasks__item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.3rem 0.25rem;
+    border-radius: 4px;
+  }
+  .issue-overview-subtasks__item:hover { background: color-mix(in srgb, var(--color-border-default) 30%, transparent); }
+  .issue-overview-subtasks__checkbox {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--color-brand-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .issue-overview-subtasks__link {
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-size: var(--ui-text-body);
+    flex: 1;
+    min-width: 0;
+  }
+  .issue-overview-subtasks__link:hover { color: var(--color-brand-primary); }
+  .issue-overview-subtasks__item.is-done .issue-overview-subtasks__link {
+    color: var(--color-text-muted);
+    text-decoration: line-through;
+  }
+
   /* ===== Doc-style panels (subtask / note / agent-log) ===== */
   .issue-doc {
-    border: 1px solid var(--color-border-default);
-    border-radius: 6px;
-    padding: 1.5rem;
-    background: var(--color-bg-secondary);
+    border: none;
+    padding: 0;
+    background: transparent;
   }
   .issue-doc__path {
     font-family: var(--font-family-mono);
