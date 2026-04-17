@@ -38,6 +38,8 @@ required_variables:
     - --color-error
     - --color-info
   fonts:
+    # Primitive scale — themes can override, but layouts should consume
+    # the semantic tokens below instead.
     - --font-family-base
     - --font-family-mono
     - --font-size-base
@@ -46,6 +48,20 @@ required_variables:
     - --font-size-xl
     - --font-size-2xl
     - --line-height-base
+    # Semantic UI tokens — 3 tiers. Use font-weight for card-title prominence,
+    # not an additional size tier.
+    - --ui-text-micro
+    - --ui-text-body
+    - --ui-text-title
+    # Semantic content tokens — for rendered markdown / prose
+    - --content-body
+    - --content-h1
+    - --content-h2
+    - --content-h3
+    - --content-h4
+    - --content-h5
+    - --content-h6
+    - --content-code
   elements:
     - --spacing-xs
     - --spacing-sm

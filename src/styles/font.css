@@ -37,4 +37,38 @@
   --letter-spacing-tight: -0.025em;
   --letter-spacing-normal: 0;
   --letter-spacing-wide: 0.025em;
+
+  /* =================================
+     Semantic Type Tokens
+     ----------------------------------
+     Layouts should consume these role-based tokens, NOT the primitive
+     --font-size-* scale above. The primitives are the palette; semantic
+     tokens carry intent (UI chrome vs rendered content vs display).
+     ================================= */
+
+  /* UI chrome — 3 tiers. A dense interface almost never needs more.
+     For card-title / primary-button prominence, combine --ui-text-body
+     with font-weight: 600 rather than adding a dedicated size tier.
+     Use for: buttons, cards, tables, badges, forms, nav, footer. */
+  --ui-text-micro: var(--font-size-xs);    /* badges, counts, ids, timestamps, meta labels */
+  --ui-text-body:  var(--font-size-sm);    /* default body, table rows, inputs, card titles */
+  --ui-text-title: var(--font-size-2xl);   /* page titles, major landmarks */
+
+  /* Content hierarchy — for rendered markdown and prose.
+     Consumed by markdown.css; custom layouts embedding prose can reuse.
+     h-sizes follow the conventional docs/blog heading scale (h1 largest). */
+  --content-body: var(--font-size-base);
+  --content-h1:   var(--font-size-4xl);
+  --content-h2:   var(--font-size-2xl);
+  --content-h3:   var(--font-size-xl);
+  --content-h4:   var(--font-size-lg);
+  --content-h5:   var(--font-size-base);
+  --content-h6:   var(--font-size-sm);
+  --content-code: 0.9em;    /* em — intentionally scales with parent */
+
+  /* Display — marketing / landing / countdown surfaces only.
+     Do not use in docs / blog / app UI chrome. */
+  --display-sm: var(--font-size-3xl);
+  --display-md: var(--font-size-4xl);
+  --display-lg: var(--font-size-5xl);
 }

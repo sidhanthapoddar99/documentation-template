@@ -137,6 +137,56 @@ A **layout** is a folder under `src/layouts/<type>/<style>/` that renders pages 
 
 **Do not** reach for hex codes, arbitrary `rem` font sizes, or invented variable names. If something feels missing from the contract, propose adding it to `theme.yaml` before inventing a private name.
 
+### Where themes live
+
+- **Built-in default theme**: `src/styles/` — `theme.yaml` (contract), `color.css`, `font.css`, `element.css`, `markdown.css`, etc.
+- **User themes**: `dynamic_data/themes/<name>/` — each has its own `theme.yaml` (usually `extends: "@theme/default"`) and any CSS overrides.
+- **Active theme selector**: `site.yaml → theme: "<name>"`; `theme_paths: ["@themes"]` controls which dirs to scan.
+
+### Typography regulations — two-tier token model
+
+The typography system follows the **primitive / semantic token pattern**. Layouts MUST consume the semantic tokens — never the primitive `--font-size-*` scale directly. The primitives are the palette; the semantic tokens carry intent.
+
+**Layer 1 — primitive scale** (in `src/styles/font.css`, theme-internal):
+`--font-size-xs / sm / base / lg / xl / 2xl / 3xl / 4xl / 5xl`. Themes can override these. **Layouts should not reference them.**
+
+**Layer 2 — semantic UI tokens** (for chrome — buttons, cards, tables, badges, forms, nav, footer):
+
+| Tier | Token | Default value | Role |
+|---|---|---|---|
+| Micro | `--ui-text-micro` | `--font-size-xs` (12px) | Badges, counts, ids, timestamps, field labels |
+| Body | `--ui-text-body` | `--font-size-sm` (14px) | Default body, table rows, inputs, descriptions, **card titles** |
+| Title | `--ui-text-title` | `--font-size-2xl` (24px) | Page titles, major landmarks |
+
+Three tiers is the whole chrome palette. For card titles, primary buttons, and anything that needs to feel emphasised, **use `--ui-text-body` + `font-weight: 600` + `color: var(--color-text-primary)`** — hierarchy from weight/color, not size. Modern design systems (Polaris, GitHub Primer for chrome, Linear, Notion) all use this pattern. Adding a fourth chrome size tier is almost always a sign you're encoding importance with size when weight/color/position would do better.
+
+**Layer 2 — semantic content tokens** (for rendered markdown / prose — `markdown.css` + any layout embedding prose):
+
+| Token | Default value | Role |
+|---|---|---|
+| `--content-body` | `--font-size-base` | Body paragraphs |
+| `--content-h1` | `--font-size-4xl` | h1 |
+| `--content-h2` | `--font-size-2xl` | h2 |
+| `--content-h3` | `--font-size-xl` | h3 |
+| `--content-h4` | `--font-size-lg` | h4 |
+| `--content-h5` | `--font-size-base` | h5 |
+| `--content-h6` | `--font-size-sm` | h6 |
+| `--content-code` | `0.9em` | Inline `<code>` — em-relative, scales with parent |
+
+**Layer 2 — display tokens** (marketing / landing / countdown surfaces only):
+
+`--display-sm` (`3xl`) / `--display-md` (`4xl`) / `--display-lg` (`5xl`). Only used in `src/layouts/custom/home`, countdown, hero sections. Do NOT use in docs / blog / issues / app chrome. Fluid `clamp()` is also acceptable here for poster-style text.
+
+**Why the split?** Even when values coincide (`--ui-text-title` and `--content-h2` both resolve to 24px today), the *names* carry intent. A future redesign that bumps UI chrome to a denser scale won't accidentally shrink markdown headings. Reviewers don't have to guess whether `--font-size-lg` in a layout means "large-ish UI" or "h4 content".
+
+**Rules for any layout:**
+
+- Consume semantic tokens (`--ui-text-*`, `--content-*`, `--display-*`) — never primitive `--font-size-*` and never raw rem/px.
+- If a size isn't on any scale, fold it into the nearest tier rather than inventing a new value.
+- Before reaching for a 5th UI chrome size, ask whether color/weight/position would encode the hierarchy better.
+- `em` units are OK when the intent is *relative to surrounding text* (e.g. `<code>` inside a heading). That's a conscious relative choice, not a scale violation.
+- Custom / marketing layouts (`src/layouts/custom/**`) MAY reach for `--display-*` or fluid `clamp()`. Those are the only places display tiers belong.
+
 ## Build Commands
 
 ```bash

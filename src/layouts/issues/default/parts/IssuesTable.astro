@@ -112,7 +112,7 @@ const columns = [
   .issues-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: var(--font-size-sm);
+    font-size: var(--ui-text-body);
   }
   .issues-table thead th {
     text-align: left;
@@ -136,19 +136,19 @@ const columns = [
     border: none;
     padding: 0;
     color: var(--color-text-muted);
-    font-size: var(--font-size-xs, 0.75rem);
+    font-size: var(--ui-text-micro);
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
   }
   .issues-table__sort:hover { color: inherit; }
-  .issues-table__sort-icon { font-size: var(--font-size-xs, 0.75rem); opacity: 0.5; }
+  .issues-table__sort-icon { font-size: var(--ui-text-micro); opacity: 0.5; }
   .issues-table__sort-icon.is-active {
     opacity: 1;
     color: var(--color-brand-primary);
   }
   .issues-table__label {
-    font-size: var(--font-size-xs, 0.75rem);
+    font-size: var(--ui-text-micro);
     color: var(--color-text-muted);
     font-weight: 600;
   }
@@ -184,7 +184,7 @@ const columns = [
     align-items: center;
     gap: 0.5rem;
     margin-top: 0.2rem;
-    font-size: var(--font-size-xs, 0.75rem);
+    font-size: var(--ui-text-micro);
     color: var(--color-text-muted);
     flex-wrap: wrap;
   }
@@ -198,7 +198,7 @@ const columns = [
   }
   .issues-table__date {
     font-family: var(--font-family-mono);
-    font-size: var(--font-size-xs, 0.75rem);
+    font-size: var(--ui-text-micro);
     white-space: nowrap;
   }
   .is-overdue-cell { color: var(--color-error) !important; font-weight: 600; }
@@ -214,7 +214,7 @@ const columns = [
   }
   .issues-table__progress-label {
     font-family: var(--font-family-mono);
-    font-size: var(--font-size-xs, 0.75rem);
+    font-size: var(--ui-text-micro);
     color: var(--color-text-muted);
   }
   .issues-table__progress-bar {

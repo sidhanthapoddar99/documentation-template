@@ -48,7 +48,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--spacing-sm);
-  font-size: var(--font-size-sm);
+  font-size: var(--ui-text-body);
   font-weight: 500;
   letter-spacing: 0.05em;
   color: var(--color-text-primary);
@@ -98,7 +98,7 @@
 .sidebar__link {
   display: block;
   padding: 0 var(--spacing-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--ui-text-body);
   color: var(--color-text-secondary);
   text-decoration: none;
   border-radius: var(--border-radius-sm);
@@ -122,7 +122,7 @@
 }
 
 .sidebar__header--nested {
-  font-size: var(--font-size-sm);
+  font-size: var(--ui-text-body);
   text-transform: none;
   letter-spacing: normal;
 }
@@ -157,7 +157,7 @@
 }
 
 .docs-title {
-  font-size: var(--font-size-4xl);
+  font-size: var(--content-h1);
   font-weight: 700;
   color: var(--color-text-primary);
   line-height: 1.2;
@@ -172,7 +172,7 @@
 
 /* Docs body content typography */
 .docs-body h2 {
-  font-size: var(--font-size-2xl);
+  font-size: var(--content-h2);
   font-weight: 600;
   color: var(--color-text-primary);
   margin-top: var(--spacing-2xl);
@@ -188,7 +188,7 @@
 }
 
 .docs-body h3 {
-  font-size: var(--font-size-xl);
+  font-size: var(--content-h3);
   font-weight: 600;
   color: var(--color-text-primary);
   margin-top: var(--spacing-xl);
@@ -196,7 +196,7 @@
 }
 
 .docs-body h4 {
-  font-size: var(--font-size-lg);
+  font-size: var(--content-h4);
   font-weight: 600;
   color: var(--color-text-primary);
   margin-top: var(--spacing-lg);
@@ -326,7 +326,7 @@
 }
 
 .outline__title {
-  font-size: var(--font-size-sm);
+  font-size: var(--ui-text-body);
   font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-md);
@@ -351,7 +351,7 @@
 
 .outline__link {
   display: block;
-  font-size: var(--font-size-sm);
+  font-size: var(--ui-text-body);
   color: var(--color-text-muted);
   text-decoration: none;
   transition: color var(--transition-fast);
@@ -439,14 +439,14 @@
 }
 
 .pagination__label {
-  font-size: var(--font-size-xs);
+  font-size: var(--ui-text-micro);
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .pagination__title {
-  font-size: var(--font-size-sm);
+  font-size: var(--ui-text-body);
   font-weight: 500;
   color: var(--color-text-primary);
   white-space: nowrap;

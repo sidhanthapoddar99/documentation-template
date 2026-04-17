@@ -68,13 +68,14 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
   :global(.issue-card__main) { flex: 1; min-width: 0; }
   :global(.issue-card__title) {
     margin: 0 0 0.25rem;
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-normal, 400);
+    font-size: var(--ui-text-body);
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--color-text-primary);
   }
   :global(.issue-card__description) {
     margin: 0 0 0.5rem;
     color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
+    font-size: var(--ui-text-body);
     line-height: 1.4;
   }
   :global(.issue-card__badges) { display: flex; flex-wrap: wrap; gap: 0.35rem; }
@@ -83,7 +84,7 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
     flex-direction: column;
     align-items: flex-end;
     gap: 0.25rem;
-    font-size: var(--font-size-xs, 0.75rem);
+    font-size: var(--ui-text-micro);
     color: var(--color-text-muted);
     font-family: var(--font-family-mono);
     white-space: nowrap;
@@ -92,7 +93,7 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
     display: inline-block;
     padding: 0.1rem 0.5rem;
     border-radius: 10px;
-    font-size: var(--font-size-xs, 0.75rem);
+    font-size: var(--ui-text-micro);
     font-weight: 500;
     line-height: 1.4;
     background: color-mix(in srgb, var(--badge-color, #7aa2f7) 20%, transparent);

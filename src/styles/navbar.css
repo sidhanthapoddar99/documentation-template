@@ -75,7 +75,7 @@
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--ui-text-body);
   font-weight: 500;
   color: var(--color-text-secondary);
   text-decoration: none;
@@ -146,7 +146,7 @@
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--ui-text-body);
   color: var(--color-text-secondary);
   text-decoration: none;
   border-radius: var(--border-radius-sm);
@@ -273,7 +273,7 @@
 
 .navbar__mobile-label {
   padding: var(--spacing-md) var(--spacing-sm) var(--spacing-xs);
-  font-size: var(--font-size-xs);
+  font-size: var(--ui-text-micro);
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -285,7 +285,7 @@
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-md);
-  font-size: var(--font-size-base);
+  font-size: var(--ui-text-body);
   color: var(--color-text-secondary);
   text-decoration: none;
   border-radius: var(--border-radius-md);

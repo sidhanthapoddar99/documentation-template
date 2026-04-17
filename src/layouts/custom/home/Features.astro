@@ -74,7 +74,7 @@ const { features } = Astro.props;
   }
 
   .feature-card__icon span {
-    font-size: 1.5rem;
+    font-size: var(--ui-text-title);
   }
 
   .feature-card__title {
@@ -85,7 +85,7 @@ const { features } = Astro.props;
   }
 
   .feature-card__description {
-    font-size: var(--font-size-sm);
+    font-size: var(--ui-text-body);
     color: var(--color-text-secondary);
     line-height: 1.6;
     margin: 0;
