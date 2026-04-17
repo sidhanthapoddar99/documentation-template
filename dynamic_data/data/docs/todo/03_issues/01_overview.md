@@ -252,6 +252,8 @@ sidebar_label: Status
 - [x] Theme toggle destroyed editor + Yjs room (caused content duplication in multi-user)
 - [x] Room destroyed on close even with other users connected
 
+
+
 ---
 
 # Future Options
