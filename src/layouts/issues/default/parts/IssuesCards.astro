@@ -69,7 +69,7 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
   :global(.issue-card__title) {
     margin: 0 0 0.25rem;
     font-size: var(--ui-text-body);
-    font-weight: var(--font-weight-semibold, 600);
+    font-weight: var(--font-weight-normal, 400);
     color: var(--color-text-primary);
   }
   :global(.issue-card__description) {
@@ -96,9 +96,9 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
     font-size: var(--ui-text-micro);
     font-weight: 500;
     line-height: 1.4;
-    background: color-mix(in srgb, var(--badge-color, #7aa2f7) 20%, transparent);
-    color: var(--badge-color, #7aa2f7);
-    border: 1px solid color-mix(in srgb, var(--badge-color, #7aa2f7) 40%, transparent);
+    background: color-mix(in srgb, var(--badge-color, #7aa2f7) 18%, var(--color-bg-primary));
+    color: color-mix(in srgb, var(--badge-color, #7aa2f7) 55%, var(--color-text-primary));
+    border: 1px solid color-mix(in srgb, var(--badge-color, #7aa2f7) 45%, transparent);
     text-transform: capitalize;
   }
 </style>
