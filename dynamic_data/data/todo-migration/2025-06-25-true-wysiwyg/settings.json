@@ -1,0 +1,14 @@
+{
+  "title": "True WYSIWYG mode (future)",
+  "description": "Real WYSIWYG editing on top of ProseMirror (or similar) — distinct from the current Live Preview that uses CM6 decorations.",
+  "status": "open",
+  "priority": "low",
+  "type": "feature",
+  "component": "live-editor",
+  "milestone": "phase-2",
+  "labels": ["idea"],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

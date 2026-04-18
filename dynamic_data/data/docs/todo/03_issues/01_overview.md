@@ -12,27 +12,27 @@ Map H2 = issue, top-level bullet under it = subtask. All `milestone: phase-2` un
 
 | Issue                                                                            | Subtasks | Component   | Status      |
 |----------------------------------------------------------------------------------|---------:|-------------|-------------|
-| [editor-core](/todo-migration/2025-06-25-editor-core)                            | 8        | live-editor | in-progress |
-| [editor-advanced](/todo-migration/2025-06-25-editor-advanced)                    | 6        | live-editor | open        |
-| [editor-sidebars](/todo-migration/2025-06-25-editor-sidebars)                    | 6        | live-editor | open        |
+| [editor-core](/todo-migration/2025-06-25-editor-core)                            | 13       | live-editor | in-progress |
+| [editor-advanced](/todo-migration/2025-06-25-editor-advanced)                    | 8        | live-editor | open        |
+| [editor-sidebars](/todo-migration/2025-06-25-editor-sidebars)                    | 4        | live-editor | open        |
+| [sync-and-presence](/todo-migration/2025-06-25-sync-and-presence)                | 3        | live-editor | in-progress |
+| [true-wysiwyg](/todo-migration/2025-06-25-true-wysiwyg)                          | —        | live-editor | open (low)  |
 
-V1 cleanup, editor v2 documentation, asset manager, and resolved historical bugs are subtasks under **editor-core**.
+Editor menu (doc switcher), menubar & view modes, chrome toggles, TOC view, asset manager, v1 cleanup, editor v2 documentation, and resolved historical bugs are subtasks under **editor-core**.
+
+Preview split vertical and RAM / CPU viewer are subtasks under **editor-advanced**.
 
 ### Pending
 
 | # | Issue                              | Subtasks | Component   | Status      | Notes                                                                                |
 |---|------------------------------------|---------:|-------------|-------------|--------------------------------------------------------------------------------------|
-| 1 | Sync & presence                    | 5        | live-editor | in-progress | Yjs ✓ — left: CSR, live users, presence cursors, sync testing                        |
-| 2 | File explorer                      | 7        | live-editor | in-progress | tree ✓ — left: context menu, new file, new folder, rename, delete, form editors      |
-| 3 | Editor layout & chrome             | 10       | live-editor | in-progress | menubar/themes/scroll sync ✓ — left: TOC view, preview split, RAM/CPU viewer         |
-| 4 | Diagram preview (in editor)        | 3        | live-editor | open        | Mermaid / Graphviz / Excalidraw inside editor pane                                   |
-| 5 | True WYSIWYG (future)              | 1        | live-editor | open (low)  | ProseMirror / rich-text                                                              |
-| 6 | Canvas rendering research          | 1        | live-editor | done        | Researched ✓; revisit when viable libs emerge                                        |
-| 7 | Issues tracker layout              | 7        | layouts     | in-progress | per your instruction — under `layouts`, phase-2                                      |
-| 8 | Editor menu — doc switcher         | 1        | live-editor | open        | dropdown of doc roots                                                                |
-| 9 | Global URL prefix                  | 1        | loaders     | open        | `app.com/docs/...` configurable in `site.yaml`                                       |
-| 10 | Editor security (future)          | 2        | infra       | open (low)  | password / OAuth, access codes                                                       |
-| 11 | Editor server management (future) | 1        | infra       | open (low)  | PM2, health endpoint, graceful shutdown                                              |
+| 1 | File explorer                      | 7        | live-editor | in-progress | tree ✓ — left: context menu, new file, new folder, rename, delete, form editors      |
+| 2 | Diagram preview (in editor)        | 3        | live-editor | open        | Mermaid / Graphviz / Excalidraw inside editor pane                                   |
+| 3 | Canvas rendering research          | 1        | live-editor | done        | Researched ✓; revisit when viable libs emerge                                        |
+| 4 | Issues tracker layout              | 7        | layouts     | in-progress | per your instruction — under `layouts`, phase-2                                      |
+| 5 | Global URL prefix                  | 1        | loaders     | open        | `app.com/docs/...` configurable in `site.yaml`                                       |
+| 6 | Editor security (future)           | 2        | infra       | open (low)  | password / OAuth, access codes                                                       |
+| 7 | Editor server management (future)  | 1        | infra       | open (low)  | PM2, health endpoint, graceful shutdown                                              |
 
 ### Folded into existing issues (no new issue needed)
 
@@ -53,28 +53,6 @@ V1 cleanup, editor v2 documentation, asset manager, and resolved historical bugs
 > [editor-advanced](/todo-migration/2025-06-25-editor-advanced),
 > [editor-sidebars](/todo-migration/2025-06-25-editor-sidebars).
 
-## Sync
-
-- [x] Yjs CRDT via WebSocket
-  - [x] Content duplication bug fix (disposed flag)
-  - [x] Consume-on-read counter (replaced setTimeout)
-  - [x] Textarea readonly until sync completes
-  - [x] Room idle eviction (30min, 0 connections)
-  - [x] Stats endpoint (/__editor/stats)
-- [x] Theme toggle hot-swap (no editor destroy — prevents content duplication)
-- [x] Room connection-aware close (only destroy room when no other users connected)
-- [ ] Client-side rendering (move markdown→HTML rendering to browser, server only syncs text)
-- [ ] Live users display
-  - [ ] Show active users in menubar with avatars/colors
-  - [ ] Goto user cursor position on click
-- [ ] Presence cursors in CM6
-  - [ ] Remote cursor labels with user color
-  - [ ] Remote selection highlights
-- [ ] Sync testing
-  - [ ] Multi-tab concurrent edit test
-  - [ ] Reconnection after disconnect
-  - [ ] Conflict resolution verification
-
 ## Explorer
 
 - [x] File tree sidebar
@@ -92,28 +70,6 @@ V1 cleanup, editor v2 documentation, asset manager, and resolved historical bugs
 - [ ] settings.json form editor per folder
 - [ ] Frontmatter form editor per file
 
-## Layout
-
-- [x] Menu bar (File / Edit / View)
-  - [x] Right-side status (save, user, theme, close)
-  - [x] View modes: Source, Split, Preview, Live Preview
-  - [x] Split vertical / horizontal
-- [x] Floating sidebar toggle
-- [x] Resize handles (sidebar, preview)
-- [x] Dark / light theme toggle (hot-swap, no destroy)
-- [x] CSS moved to .css files
-- [x] Scroll sync editor <-> preview
-- [x] Close navigates to last edited file URL
-- [x] Toolbar single-click to editor
-- [ ] TOC view
-  - [ ] Outline panel showing heading structure
-  - [ ] Click to jump to heading in editor
-- [ ] Preview split vertical option
-  - [ ] Preview on right (current) or below editor
-- [ ] RAM / CPU utilization viewer
-  - [ ] Server-side metrics in menubar
-  - [ ] Client-side memory usage
-
 ## Diagrams
 
 - [ ] Mermaid diagram preview
@@ -124,14 +80,6 @@ V1 cleanup, editor v2 documentation, asset manager, and resolved historical bugs
 - [ ] Excalidraw integration
   - [ ] .excalidraw file editing
   - [ ] Inline diagram editor
-
-## WYSIWYG (Future)
-
-- [ ] Real WYSIWYG mode — planned for future
-  - [ ] Rich text editing with ProseMirror or similar
-  - [ ] Inline formatting (bold, italic visible, no markdown syntax)
-  - [ ] Block-level elements (headings, lists, tables)
-  - [ ] Currently greyed out in View menu as "Coming Soon"
 
 ## Canvas Rendering
 
@@ -151,12 +99,6 @@ V1 cleanup, editor v2 documentation, asset manager, and resolved historical bugs
   - [ ] Sort by date, priority
   - [ ] Badge/label rendering for status and priority
   - [ ] Individual issue page with full markdown body
-
-## Editor Menu
-
-- [ ] Doc switcher dropdown in menubar
-  - [ ] Show all available doc roots (from navbar config)
-  - [ ] Click to switch editor context to another doc
 
 ## Config
 

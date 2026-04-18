@@ -1,0 +1,14 @@
+{
+  "title": "Sync & presence",
+  "description": "Yjs CRDT sync, live user display, presence cursors in CM6, and the test matrix for multi-client editing.",
+  "status": "in-progress",
+  "priority": "medium",
+  "type": "feature",
+  "component": "live-editor",
+  "milestone": "phase-2",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}
