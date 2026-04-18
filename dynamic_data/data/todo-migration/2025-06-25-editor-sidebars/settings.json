@@ -1,0 +1,14 @@
+{
+  "title": "Editor sidebars & tabs",
+  "description": "Editor chrome around the editing surface: tab bar, primary sidebar options, secondary sidebar (file explorer, settings, presence, metrics, AI), view-only mode, live status.",
+  "status": "open",
+  "priority": "medium",
+  "type": "feature",
+  "component": "live-editor",
+  "milestone": "phase-2",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

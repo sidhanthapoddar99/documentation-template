@@ -1,0 +1,14 @@
+{
+  "title": "Editor advanced features",
+  "description": "Power-user features for Editor V2: slash commands, wiki links, embedding, spell check, drag-drop upload, split-screen / diff layouts.",
+  "status": "open",
+  "priority": "medium",
+  "type": "feature",
+  "component": "live-editor",
+  "milestone": "phase-2",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

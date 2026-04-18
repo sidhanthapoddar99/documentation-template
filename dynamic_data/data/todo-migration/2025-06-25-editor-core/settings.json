@@ -1,0 +1,14 @@
+{
+  "title": "Editor core",
+  "description": "Foundational editing surface for Editor V2: CM6, formatting toolbar, live preview, client-side rendering, auto-save, plus v1 cleanup and v2 docs.",
+  "status": "in-progress",
+  "priority": "high",
+  "type": "feature",
+  "component": "live-editor",
+  "milestone": "phase-2",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

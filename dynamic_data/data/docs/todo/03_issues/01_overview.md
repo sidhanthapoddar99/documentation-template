@@ -4,66 +4,54 @@ description: What's done and what's left
 sidebar_label: Status
 ---
 
-## Editor
+## Migration plan
 
-- [ ] CM6 integration
-  - [x] VS Code Dark+ syntax highlighting
-  - [x] Nested code block highlighting
-  - [x] Line numbers
-  - [x] Word wrap toggle
-  - [x] Source mode (color only, no bold/size)
-- [ ] <span style="color: #f0c674">Formatting toolbar (source + live preview)</span>
-  - [x] Bold, italic, strikethrough, link, code, list, quote, table, HR buttons
-  - [x] Heading level picker (H1-H6 dropdown)
-  - [x] Keyboard shortcuts (Ctrl+B bold, Ctrl+I italic, Ctrl+K link, Ctrl+E code)
-  - [ ] <span style="color: #f0c674">Test toolbar in live preview mode</span>
-- [ ] <span style="color: #f0c674">Live Preview mode (Obsidian-style)</span>
-  - [x] CM6 StateField decorations — hide syntax, render styled content
-  - [x] Cursor on line reveals raw markdown for editing
-  - [x] Headings with proper sizing (H1 1.8em → H6 0.9em)
-  - [x] Bold, italic, strikethrough, inline code — hide markers when unfocused
-  - [x] Links — show link text only, hide [](url) when unfocused
-  - [x] Blockquotes — left border, hide > markers
-  - [x] Code blocks — background styling, hide fences when unfocused
-  - [x] Tables — header/row styling, hide separator row
-  - [x] Horizontal rules — widget replacement
-  - [x] Frontmatter — Properties widget (Obsidian-style key-value display)
-  - [x] Task checkboxes — widget replacement for [ ] and [x]
-  - [x] Lists — bullet styling
-  - [ ] <span style="color: #f0c674">Polish: refine table rendering, test edge cases</span>
-- [ ] Client-side markdown rendering — [see design doc](./inprogress/client-side-rendering)
-  - [ ] Move markdown→HTML rendering from server to browser
-  - [ ] Bundle unified/remark/rehype for client (or use marked)
-  - [ ] Instant preview updates (no network round-trip, no render timer)
-  - [ ] Live Preview widgets use same renderer for code blocks, tables
-  - [ ] Remove server-side MSG_RENDER / MSG_RENDER_REQ from Yjs protocol
-  - [ ] Server only handles: file I/O, Yjs text sync, save/open/close
-- [ ] Slash commands
-  - [ ] /callout, /table, /code, /image, /link
-  - [ ] Autocomplete popup in CM6
-- [ ] Obsidian-style [[]] wiki links
-  - [ ] Autocomplete file picker on [[
-  - [ ] Resolve to actual page URLs
-- [ ] Auto-save timer
-- [ ] Tab bar for multiple open files
-- [ ] Embedding support
-  - [ ] Embed other docs inline via ![[filename]]
-  - [ ] Preview rendered embedded content
-- [ ] Spell Check
-- [ ] Split screen View or rather diff layouts for docs (opening multiple docs at a time)
-- [ ] Drag and drop file upload into editor
-- [ ] doc tabs with close buttons and drag to reorder
-- [ ] Live Status
-- [ ] Sidebar primary providing options
-- [ ] View only mode | Edit mode lock
-- [ ] Secondary sidebar 
-  - [ ] file explorer
-  - [ ] settings
-  - [ ] sync status and live users
-  - [ ] ram and cpu usage
-  - [ ] AI assistant 
+Map H2 = issue, top-level bullet under it = subtask. All `milestone: phase-2` unless noted.
 
+### Created
 
+| Issue                                                                            | Subtasks | Component   | Status      |
+|----------------------------------------------------------------------------------|---------:|-------------|-------------|
+| [editor-core](/todo-migration/2025-06-25-editor-core)                            | 8        | live-editor | in-progress |
+| [editor-advanced](/todo-migration/2025-06-25-editor-advanced)                    | 6        | live-editor | open        |
+| [editor-sidebars](/todo-migration/2025-06-25-editor-sidebars)                    | 6        | live-editor | open        |
+
+V1 cleanup, editor v2 documentation, asset manager, and resolved historical bugs are subtasks under **editor-core**.
+
+### Pending
+
+| # | Issue                              | Subtasks | Component   | Status      | Notes                                                                                |
+|---|------------------------------------|---------:|-------------|-------------|--------------------------------------------------------------------------------------|
+| 1 | Sync & presence                    | 5        | live-editor | in-progress | Yjs ✓ — left: CSR, live users, presence cursors, sync testing                        |
+| 2 | File explorer                      | 7        | live-editor | in-progress | tree ✓ — left: context menu, new file, new folder, rename, delete, form editors      |
+| 3 | Editor layout & chrome             | 10       | live-editor | in-progress | menubar/themes/scroll sync ✓ — left: TOC view, preview split, RAM/CPU viewer         |
+| 4 | Diagram preview (in editor)        | 3        | live-editor | open        | Mermaid / Graphviz / Excalidraw inside editor pane                                   |
+| 5 | True WYSIWYG (future)              | 1        | live-editor | open (low)  | ProseMirror / rich-text                                                              |
+| 6 | Canvas rendering research          | 1        | live-editor | done        | Researched ✓; revisit when viable libs emerge                                        |
+| 7 | Issues tracker layout              | 7        | layouts     | in-progress | per your instruction — under `layouts`, phase-2                                      |
+| 8 | Editor menu — doc switcher         | 1        | live-editor | open        | dropdown of doc roots                                                                |
+| 9 | Global URL prefix                  | 1        | loaders     | open        | `app.com/docs/...` configurable in `site.yaml`                                       |
+| 10 | Editor security (future)          | 2        | infra       | open (low)  | password / OAuth, access codes                                                       |
+| 11 | Editor server management (future) | 1        | infra       | open (low)  | PM2, health endpoint, graceful shutdown                                              |
+
+### Folded into existing issues (no new issue needed)
+
+| Source section   | → existing issue                                                            |
+|------------------|-----------------------------------------------------------------------------|
+| Skills           | `2025-06-25-claude-skills` (add subtasks)                                   |
+| Search & RAG     | `2025-06-25-plugin-system` → existing `02_search` subtask + AI subtask      |
+| Deployment skill | `2025-06-25-deployment` (add a subtask for the skill itself)                |
+
+### Open questions
+
+1. Security + Server management — merge into one "Editor server hardening (future)" issue?
+2. Should "Issues tracker layout" subtasks also include the **Phase 2 Issues Tracker** items already in the new framework (vocabulary, multi-file, etc.) — or only the parts still open?
+
+---
+
+> **Migrated to issues:** Editor section → [editor-core](/todo-migration/2025-06-25-editor-core),
+> [editor-advanced](/todo-migration/2025-06-25-editor-advanced),
+> [editor-sidebars](/todo-migration/2025-06-25-editor-sidebars).
 
 ## Sync
 
@@ -125,15 +113,6 @@ sidebar_label: Status
 - [ ] RAM / CPU utilization viewer
   - [ ] Server-side metrics in menubar
   - [ ] Client-side memory usage
-
-## Assets
-
-- [ ] Asset manager (upload, delete, grid view)
-- [ ] Drag-and-drop upload
-- [ ] Inline image preview
-- [ ] View code files directly (JS, TS, CSS etc. as assets)
-  - [ ] Syntax highlighted read-only viewer
-  - [ ] Edit non-markdown files in CM6
 
 ## Diagrams
 
@@ -209,24 +188,6 @@ sidebar_label: Status
     - [ ] idea dump docs
 - [ ] Static build output for docs
 
-## Cleanup
-
-- [ ] Delete v1 editor code after v2 is complete
-  - [ ] Remove src/dev-toolbar/editor/ (old server)
-  - [ ] Remove src/dev-toolbar/editor-ui/ (old client)
-  - [ ] Remove src/dev-toolbar/editor-app.ts
-  - [ ] Remove v1 config from integration.ts
-- [ ] Delete old transition code after migration
-
-## Documentation
-
-- [ ] Update documentation engine docs
-  - [ ] Architecture docs for v2 editor
-  - [ ] Updated dev-docs reflecting new structure
-- [ ] Update README.md
-  - [ ] New setup instructions
-  - [ ] Editor v2 usage guide
-
 ## Skills
 
 - [ ] Improve documentation template skills
@@ -237,22 +198,6 @@ sidebar_label: Status
 ## Search Option and integration
   - [ ] search global with fuzzy and dict corrections
   - [ ] RAG and AI based serach
-
-## Bugs
-
-- [x] Content duplication on long docs without scrolling
-- [x] Zombie WebSocket reconnection after cleanup
-- [x] Yjs sync fires too early (before content arrives)
-- [x] CM6 doc length 0 despite ytext having content
-- [x] Catch-all route crash on /editor
-- [x] Preview not formatted (missing content CSS)
-- [x] Sidebar collapse not working (inline style override)
-- [x] Dark mode table alternate row coloring
-- [x] Code blocks all green (missing codeLanguages)
-- [x] Theme toggle destroyed editor + Yjs room (caused content duplication in multi-user)
-- [x] Room destroyed on close even with other users connected
-
-
 
 ---
 
