@@ -7,6 +7,7 @@
 import { loadIssues } from '@loaders/issues';
 import ViewToggle from './parts/ViewToggle.astro';
 import FilterBar from './parts/FilterBar.astro';
+import StateTabs from './parts/StateTabs.astro';
 import IssuesCards from './parts/IssuesCards.astro';
 import IssuesTable from './parts/IssuesTable.astro';
 import Pagination from './parts/Pagination.astro';
@@ -19,7 +20,7 @@ interface Props {
 const { dataPath, baseUrl } = Astro.props;
 const { vocabulary, rootDraft, issues } = await loadIssues(dataPath);
 
-const FILTER_FIELDS = ['status', 'priority', 'type', 'component', 'milestone', 'labels'] as const;
+const FILTER_FIELDS = ['priority', 'component', 'milestone', 'labels'] as const;
 const filterGroups = FILTER_FIELDS
   .filter((f) => vocabulary.fields?.[f]?.values?.length)
   .map((f) => ({
@@ -36,12 +37,16 @@ function searchBlob(issue: typeof issues[number]): string {
 }
 
 const TODAY = new Date().toISOString().slice(0, 10);
-const CLOSED_STATUSES = new Set(['done', 'cancelled', 'archived']);
+const CLOSED_STATUSES = new Set(['closed', 'cancelled']);
 function isOverdue(meta: typeof issues[number]['meta']): boolean {
   if (!meta.due) return false;
   if (meta.due >= TODAY) return false;
   return !CLOSED_STATUSES.has(meta.status);
 }
+
+const openCount = issues.filter((i) => !CLOSED_STATUSES.has(i.meta.status)).length;
+const closedCount = issues.filter((i) => i.meta.status === 'closed').length;
+const cancelledCount = issues.filter((i) => i.meta.status === 'cancelled').length;
 
 // Server-side config passed to the client script via a JSON script tag
 const clientConfig = {
@@ -66,6 +71,8 @@ const clientConfig = {
   </header>
 
   <FilterBar filterGroups={filterGroups} />
+
+  <StateTabs openCount={openCount} closedCount={closedCount} cancelledCount={cancelledCount} totalCount={issues.length} />
 
   {issues.length > 0 ? (
     <>

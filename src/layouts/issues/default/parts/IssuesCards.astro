@@ -25,7 +25,6 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
       data-issue
       data-status={issue.meta.status}
       data-priority={issue.meta.priority}
-      data-type={issue.meta.type}
       data-component={issue.meta.component}
       data-milestone={issue.meta.milestone}
       data-labels={issue.meta.labels.join(' ')}

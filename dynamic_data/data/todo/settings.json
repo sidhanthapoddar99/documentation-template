@@ -1,15 +1,12 @@
 {
-  "label": "Todo Migration",
+  "label": "Todo",
   "fields": {
     "status": {
-      "values": ["open", "in-progress", "blocked", "done", "cancelled", "archived"],
+      "values": ["open", "closed", "cancelled"],
       "colors": {
         "open": "#888888",
-        "in-progress": "#f0c674",
-        "blocked": "#e06c75",
-        "done": "#7ec699",
-        "cancelled": "#666666",
-        "archived": "#444444"
+        "closed": "#7ec699",
+        "cancelled": "#666666"
       }
     },
     "priority": {
@@ -21,9 +18,6 @@
         "urgent": "#e06c75"
       }
     },
-    "type": {
-      "values": ["bug", "feature", "task", "performance", "refactor", "docs"]
-    },
     "component": {
       "values": ["live-editor", "dev-toolbar", "content-pipeline", "layouts", "loaders", "themes", "components", "ai-skills", "integrations", "infra"]
     },
@@ -31,7 +25,7 @@
       "values": ["phase-1", "phase-2", "phase-3", "phase-4", "backlog", "unassigned"]
     },
     "labels": {
-      "values": ["idea", "documentation", "duplicate", "good-first-issue", "discussion", "blocked-external"]
+      "values": ["wip", "blocked", "bug", "feature", "task", "performance", "refactor", "docs", "idea", "duplicate", "good-first-issue", "discussion", "blocked-external"]
     }
   },
   "authors": ["sidhantha", "claude"]

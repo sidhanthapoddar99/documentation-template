@@ -27,7 +27,6 @@ export interface IssueMetadata {
   description?: string;
   status: string;
   priority: string;
-  type: string;
   component: string;
   milestone: string;
   labels: string[];

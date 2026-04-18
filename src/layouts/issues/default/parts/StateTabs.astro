@@ -1,0 +1,82 @@
+---
+/**
+ * StateTabs — GitHub-style Open / Closed / All tabs above the issue list.
+ * Default state is "open". The Closed tab includes both `closed` and
+ * `cancelled` statuses (closed = no longer open).
+ *
+ * Counts are seeded server-side; `client.ts` updates them live as filters
+ * narrow the visible rows.
+ */
+interface Props {
+  openCount: number;
+  closedCount: number;
+  cancelledCount: number;
+  totalCount: number;
+}
+
+const { openCount, closedCount, cancelledCount, totalCount } = Astro.props;
+
+const tabs = [
+  { key: 'open', label: 'Open', count: openCount },
+  { key: 'closed', label: 'Closed', count: closedCount },
+  { key: 'cancelled', label: 'Cancelled', count: cancelledCount },
+  { key: 'all', label: 'All', count: totalCount },
+];
+---
+
+<div class="issues-state-tabs" role="tablist">
+  {tabs.map((tab) => (
+    <button
+      type="button"
+      class="issues-state-tabs__btn"
+      data-state-tab={tab.key}
+      role="tab"
+      aria-selected={tab.key === 'open' ? 'true' : 'false'}
+    >
+      <span class="issues-state-tabs__label">{tab.label}</span>
+      <span class="issues-state-tabs__count" data-state-count={tab.key}>{tab.count}</span>
+    </button>
+  ))}
+</div>
+
+<style>
+  .issues-state-tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--color-border-default);
+    margin: 1rem 0 0.75rem;
+  }
+  .issues-state-tabs__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.85rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    color: var(--color-text-muted);
+    font-size: var(--ui-text-body);
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.1s ease, border-color 0.1s ease;
+  }
+  .issues-state-tabs__btn:hover {
+    color: var(--color-text-primary);
+  }
+  .issues-state-tabs__btn[aria-selected='true'] {
+    color: var(--color-text-primary);
+    border-bottom-color: var(--color-brand-primary);
+  }
+  .issues-state-tabs__count {
+    font-size: var(--ui-text-micro);
+    color: var(--color-text-muted);
+    font-family: var(--font-family-mono);
+    padding: 0.05rem 0.4rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--color-border-default) 60%, transparent);
+  }
+  .issues-state-tabs__btn[aria-selected='true'] .issues-state-tabs__count {
+    color: var(--color-text-primary);
+  }
+</style>
