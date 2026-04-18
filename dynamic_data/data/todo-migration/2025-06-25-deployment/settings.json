@@ -1,0 +1,14 @@
+{
+  "title": "Deployment",
+  "description": "One-command deployment story: static export, Docker, platform guides (Vercel/Netlify/GH Pages/Cloudflare), and CI/CD templates.",
+  "status": "open",
+  "priority": "medium",
+  "type": "feature",
+  "component": "infra",
+  "milestone": "phase-1",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

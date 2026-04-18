@@ -23,6 +23,9 @@ items:
   - label: "Issues"
     href: "/issues-test"
 
+  - label: "Todo Migration"
+    href: "/todo-migration"
+
   - label: "Blog"
     href: "/blog"
 

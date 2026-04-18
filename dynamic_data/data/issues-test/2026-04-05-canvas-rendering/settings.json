@@ -4,7 +4,7 @@
   "status": "blocked",
   "priority": "low",
   "type": "refactor",
-  "component": "editor-v2",
+  "component": "live-editor",
   "milestone": "v3",
   "labels": ["discussion"],
   "author": "sidhantha",

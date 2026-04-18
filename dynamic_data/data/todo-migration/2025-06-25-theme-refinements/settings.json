@@ -1,0 +1,14 @@
+{
+  "title": "Theme refinements",
+  "description": "Round out theme variable coverage, smooth dark-mode transitions, document the theme contract.",
+  "status": "done",
+  "priority": "low",
+  "type": "task",
+  "component": "themes",
+  "milestone": "phase-1",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

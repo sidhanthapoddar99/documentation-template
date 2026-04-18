@@ -1,0 +1,14 @@
+{
+  "title": "Blog testing & polish",
+  "description": "Verify blog index + post layouts, sorting, filtering, authors/tags, and pagination.",
+  "status": "in-progress",
+  "priority": "medium",
+  "type": "task",
+  "component": "layouts",
+  "milestone": "phase-1",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

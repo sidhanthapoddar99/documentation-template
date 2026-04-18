@@ -1,0 +1,14 @@
+{
+  "title": "Sizing & responsive design",
+  "description": "Consistent widths and spacing across the chrome, plus full mobile responsiveness across all layouts.",
+  "status": "in-progress",
+  "priority": "medium",
+  "type": "task",
+  "component": "layouts",
+  "milestone": "phase-1",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

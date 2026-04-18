@@ -1,0 +1,14 @@
+{
+  "title": "Outline / TOC polish",
+  "description": "Stabilize the outline panel: heading extraction, active-heading tracking, smooth scroll.",
+  "status": "done",
+  "priority": "medium",
+  "type": "task",
+  "component": "layouts",
+  "milestone": "phase-1",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

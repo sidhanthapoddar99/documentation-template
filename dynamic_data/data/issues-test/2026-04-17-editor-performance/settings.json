@@ -4,7 +4,7 @@
   "status": "open",
   "priority": "medium",
   "type": "performance",
-  "component": "editor-v2",
+  "component": "live-editor",
   "milestone": "v2",
   "labels": [],
   "author": "sidhantha",

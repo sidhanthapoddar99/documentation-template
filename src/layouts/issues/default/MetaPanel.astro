@@ -10,6 +10,13 @@ interface Props {
 const { issue, vocabulary } = Astro.props;
 const { meta } = issue;
 
+function formatDate(value: string | null | undefined): string {
+  if (!value) return '';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+}
+
 const singleFields = [
   ['Status', 'status', meta.status],
   ['Priority', 'priority', meta.priority],
@@ -58,17 +65,17 @@ const singleFields = [
 
     <div class="issue-meta-panel__row">
       <dt>Created</dt>
-      <dd>{issue.created}</dd>
+      <dd>{formatDate(issue.created)}</dd>
     </div>
 
     <div class="issue-meta-panel__row">
       <dt>Updated</dt>
-      <dd>{meta.updated}</dd>
+      <dd>{formatDate(meta.updated)}</dd>
     </div>
 
     <div class="issue-meta-panel__row">
       <dt>Due</dt>
-      <dd>{meta.due || <span class="issue-meta-panel__empty">—</span>}</dd>
+      <dd>{meta.due ? formatDate(meta.due) : <span class="issue-meta-panel__empty">—</span>}</dd>
     </div>
   </dl>
 </aside>

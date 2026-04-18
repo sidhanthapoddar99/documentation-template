@@ -1,0 +1,14 @@
+{
+  "title": "Multiple data paths",
+  "description": "Support multiple named data paths via `@key/...` aliases instead of a single DATA_DIR.",
+  "status": "done",
+  "priority": "medium",
+  "type": "feature",
+  "component": "loaders",
+  "milestone": "phase-1",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

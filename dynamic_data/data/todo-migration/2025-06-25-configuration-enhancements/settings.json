@@ -1,0 +1,14 @@
+{
+  "title": "Configuration enhancements",
+  "description": "Expand `site.yaml`: SEO meta, analytics, custom head tags, per-page overrides, env-specific configs, validation, migration tool.",
+  "status": "open",
+  "priority": "medium",
+  "type": "feature",
+  "component": "loaders",
+  "milestone": "phase-1",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

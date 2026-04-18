@@ -1,0 +1,14 @@
+{
+  "title": "Codebase refactoring",
+  "description": "Audit loaders, standardize error handling, improve TS types, split large files, and align docs with the refactored code.",
+  "status": "open",
+  "priority": "medium",
+  "type": "refactor",
+  "component": "infra",
+  "milestone": "phase-1",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

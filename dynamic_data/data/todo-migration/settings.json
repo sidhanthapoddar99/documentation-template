@@ -1,6 +1,5 @@
 {
-  "label": "Issues (Test)",
-  "draft": true,
+  "label": "Todo Migration",
   "fields": {
     "status": {
       "values": ["open", "in-progress", "blocked", "done", "cancelled", "archived"],
@@ -29,7 +28,7 @@
       "values": ["live-editor", "dev-toolbar", "content-pipeline", "layouts", "loaders", "themes", "components", "ai-skills", "integrations", "infra"]
     },
     "milestone": {
-      "values": ["v1", "v2", "v3", "unassigned"]
+      "values": ["phase-1", "phase-2", "phase-3", "phase-4", "backlog", "unassigned"]
     },
     "labels": {
       "values": ["idea", "documentation", "duplicate", "good-first-issue", "discussion", "blocked-external"]

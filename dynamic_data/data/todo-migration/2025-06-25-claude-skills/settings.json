@@ -1,0 +1,14 @@
+{
+  "title": "Claude skills for development",
+  "description": "Author Claude skills that accelerate working in the framework — themes, layouts, components, configs, content.",
+  "status": "in-progress",
+  "priority": "medium",
+  "type": "feature",
+  "component": "ai-skills",
+  "milestone": "phase-1",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}
