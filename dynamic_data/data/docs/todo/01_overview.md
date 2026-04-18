@@ -15,5 +15,5 @@ The phase-based roadmap has moved to the [Todo Migration](/todo-migration) issue
 
 ## Backlog
 
-- [Bugs](./02_backlog/01_bugs)
-- [Feature ideas](./02_backlog/02_feature-ideas)
+- Resolved historical bugs → folded into [Outline / TOC polish](/todo-migration/2025-06-25-outline-toc-polish)
+- [Future feature ideas](/todo-migration/2025-06-25-future-feature-ideas)
