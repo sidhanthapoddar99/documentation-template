@@ -1,0 +1,14 @@
+{
+  "title": "Issues tracker layout",
+  "description": "GitHub-style issues tracker as a first-class layout type — folder-per-item data model, vocabulary-driven metadata, index + detail pages, subtask interactivity.",
+  "status": "in-progress",
+  "priority": "high",
+  "type": "feature",
+  "component": "layouts",
+  "milestone": "phase-2",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

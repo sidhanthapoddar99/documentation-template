@@ -17,9 +17,6 @@ items:
   - label: "Components"
     href: "/components"
 
-  - label: "Todo"
-    href: "/todo"
-
   - label: "Issues"
     href: "/issues-test"
 
