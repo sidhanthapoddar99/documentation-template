@@ -85,20 +85,23 @@ export function buildGroupSection(
   section.className = 'issues-table__group-section';
   section.setAttribute('data-group-value', value);
 
-  // Title bar
+  // Title bar owns the whole header strip: group name (left) + compact
+  // state-tab filter (right, inline). No second row of tabs below.
   const titleBar = document.createElement('div');
   titleBar.className = 'issues-table__group-title-bar';
-  titleBar.innerHTML = `
-    <span class="issues-table__group-title">${escapeHtml(value)}</span>
-    <span class="issues-table__group-count">${counts.all}</span>`;
-  section.appendChild(titleBar);
+  const titleInner = document.createElement('div');
+  titleInner.className = 'issues-table__group-title-text';
+  titleInner.innerHTML = `
+    <h2 class="issues-table__group-title">${escapeHtml(value)}</h2>
+    <span class="issues-table__group-count">${counts.all} ${counts.all === 1 ? 'issue' : 'issues'}</span>`;
+  titleBar.appendChild(titleInner);
 
-  // State tabs — clone the global strip so classes/scoping match, then
-  // relabel + rewire via delegation (handler reads closest [data-group-value]).
   const globalTabs = document.getElementById('issues-state-tabs');
   if (globalTabs) {
     const tabsClone = globalTabs.cloneNode(true) as HTMLElement;
     tabsClone.removeAttribute('id');
+    tabsClone.removeAttribute('hidden');
+    tabsClone.classList.add('issues-state-tabs--compact');
     tabsClone.querySelectorAll<HTMLElement>('[data-state-tab]').forEach((btn) => {
       const tab = btn.dataset.stateTab as StateTab;
       const active = tab === sub.tab;
@@ -106,8 +109,9 @@ export function buildGroupSection(
       const countEl = btn.querySelector<HTMLElement>('[data-state-count]');
       if (countEl) countEl.textContent = String(counts[tab]);
     });
-    section.appendChild(tabsClone);
+    titleBar.appendChild(tabsClone);
   }
+  section.appendChild(titleBar);
 
   // Table — deep clone of the main table so all Astro scoped-style
   // attributes (data-astro-cid-*) are inherited and the rows look identical.

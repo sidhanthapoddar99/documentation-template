@@ -1,0 +1,97 @@
+/*
+ * Grouped-table styles. Group sections are built at runtime via
+ * document.createElement in scripts/index/groups.ts, so their outer
+ * wrappers don't carry Astro's scoped-style cid attribute. Putting these
+ * rules in a plain CSS file (imported globally from IndexBody.astro)
+ * keeps the styling consistent.
+ */
+
+.issues-table__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* Each group = its own boxed section, same shell vibe as the main table. */
+.issues-table__group-section {
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background: transparent;
+  overflow: hidden; /* round corners clip bottom pagination border cleanly */
+}
+
+/* Header strip: group name (left) + compact state-tab filter (right) */
+.issues-table__group-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  flex-wrap: wrap;
+  padding: 0.9rem 1.1rem 0.85rem;
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-secondary);
+}
+.issues-table__group-title-text {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.issues-table__group-title {
+  margin: 0;
+  font-size: var(--ui-text-body);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-transform: capitalize;
+  letter-spacing: 0.01em;
+}
+.issues-table__group-count {
+  font-size: var(--ui-text-micro);
+  color: var(--color-text-muted);
+}
+
+/* Compact state-tabs variant — inlined on the right of the title bar.
+   Drops border-bottom + margin, turns tabs into tight pill buttons. */
+.issues-state-tabs--compact {
+  border-bottom: none !important;
+  margin: 0 !important;
+  gap: 0.15rem;
+  flex-wrap: wrap;
+}
+.issues-state-tabs--compact .issues-state-tabs__btn {
+  padding: 0.25rem 0.6rem;
+  font-size: var(--ui-text-micro);
+  border-bottom: none !important;
+  margin-bottom: 0;
+  border-radius: 999px;
+  gap: 0.3rem;
+}
+.issues-state-tabs--compact .issues-state-tabs__btn[aria-selected='true'] {
+  background: color-mix(in srgb, var(--color-brand-primary) 14%, transparent);
+  color: var(--color-brand-primary);
+}
+.issues-state-tabs--compact .issues-state-tabs__btn.is-review[aria-selected='true'] {
+  background: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  color: var(--color-warning);
+}
+.issues-state-tabs--compact .issues-state-tabs__count {
+  padding: 0 0.35rem;
+}
+
+/* Group-table thead loses viewport-sticky (each section has its own thead;
+   stacked stickies collide). Main table keeps its page-level sticky. */
+.issues-table__group-section .issues-table {
+  border-radius: 0;
+}
+.issues-table__group-section .issues-table thead th {
+  position: static !important;
+  background: var(--color-bg-secondary);
+}
+
+/* Group pagination strip inherits .issues-pagination; strip the outer
+   border so it reads as a footer of the section card. */
+.issues-table__group-section .issues-pagination {
+  border: none;
+  border-top: 1px solid var(--color-border-default);
+  border-radius: 0;
+}

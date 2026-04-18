@@ -157,51 +157,9 @@ const columns = [
   .issues-table.is-hide-col-priority tbody td:nth-child(99) { display: none; }
 
   /* Grouped view: each group renders as its own standalone <table>, not a
-     row injected into the main table. Client.ts hides the main table and
-     appends these sections to .issues-table__groups when a group is active. */
-  .issues-table__groups {
-    display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-  }
-  /* Each group = its own boxed table, same shell as the main one. */
-  .issues-table__group-section {
-    border: 1px solid var(--color-border-default);
-    border-radius: 6px;
-    background: transparent;
-  }
-  /* Suppress the inner table's own border (the section owns it now). */
-  .issues-table__group-section .issues-table { border-radius: 0; }
-
-  .issues-table__group-title-bar {
-    display: flex;
-    align-items: baseline;
-    gap: 0.6rem;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--color-border-default);
-    background: var(--color-bg-secondary);
-  }
-  .issues-table__group-title {
-    font-size: var(--ui-text-body);
-    font-weight: 600;
-    color: var(--color-text-primary);
-    text-transform: capitalize;
-  }
-  .issues-table__group-count {
-    font-family: var(--font-family-mono);
-    font-size: var(--ui-text-micro);
-    color: var(--color-text-muted);
-  }
-  /* Group-section tables have their own internal thead; sticky is disabled
-     there because there's a unique thead per section and stacking would
-     conflict. The main thead keeps page-level sticky. */
-  .issues-table__group-section .issues-table thead th {
-    position: static;
-    background: color-mix(in srgb, var(--color-bg-tertiary, var(--color-bg-secondary)) 100%, transparent);
-  }
-  .issues-table__group-section .issues-table {
-    border-radius: 0;
-  }
+     row injected into the main table. Styles for the grouped UI live in
+     styles/groups.css (global sheet) because the group sections are built
+     via createElement and don't carry Astro scoped-style attributes. */
   .issues-table thead th {
     text-align: left;
     padding: 0.55rem 0.75rem;
