@@ -17,11 +17,8 @@ items:
   - label: "Components"
     href: "/components"
 
-  - label: "Issues"
-    href: "/issues-test"
-
-  - label: "Todo Migration"
-    href: "/todo-migration"
+  - label: "Todo"
+    href: "/todo"
 
   - label: "Blog"
     href: "/blog"

@@ -7,7 +7,7 @@ Migrating the legacy `dynamic_data/data/docs/todo/` hierarchy into the new folde
 
 ## Done
 
-- [x] Created `dynamic_data/data/todo-migration/` with root `settings.json` (vocabulary)
+- [x] Created `dynamic_data/data/todo/` with root `settings.json` (vocabulary)
 - [x] Registered `todo-migration` page in `site.yaml` (`type: issues`)
 - [x] Added "Todo Migration" entry to `navbar.yaml`
 - [x] Migrated `todo/01_sprints/01_phase-1.md` → 5 issues (sizing, code blocks, outline, blog, themes)

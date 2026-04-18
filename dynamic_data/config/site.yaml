@@ -82,12 +82,11 @@ pages:
     layout: "@issues/default"
     data: "@data/issues-test"
 
-  # Todo migration — migrating old data/docs/todo into the issues content type
-  todo-migration:
-    base_url: "/todo-migration"
+  todo:
+    base_url: "/todo"
     type: issues
     layout: "@issues/default"
-    data: "@data/todo-migration"
+    data: "@data/todo"
 
   # Blog
   blog:
