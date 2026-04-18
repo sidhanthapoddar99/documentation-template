@@ -5,9 +5,11 @@
   "priority": "medium",
   "component": "live-editor",
   "milestone": "phase-2",
-  "labels": ["feature"],
+  "labels": [
+    "feature"
+  ],
   "author": "sidhantha",
   "assignees": [],
-  "updated": "2025-06-25",
-  "due": null
+  "updated": "2026-04-10",
+  "due": "2026-04-19"
 }

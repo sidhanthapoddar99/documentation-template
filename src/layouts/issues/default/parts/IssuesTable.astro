@@ -20,6 +20,15 @@ interface Props {
 
 const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function formatDate(value: string | null | undefined): string {
+  if (!value) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!m) return value;
+  const [, y, mo, d] = m;
+  return `${MONTHS[Number(mo) - 1]} ${Number(d)} ${y}`;
+}
+
 const columns = [
   { key: 'component', label: 'Component', sortable: true },
   { key: 'title', label: 'Title', sortable: true, className: 'issues-table__th-title' },
@@ -96,9 +105,9 @@ const columns = [
                 <span class="issues-table__muted">—</span>
               )}
             </td>
-            <td class="issues-table__date">{issue.created || <span class="issues-table__muted">—</span>}</td>
+            <td class="issues-table__date">{formatDate(issue.created) || <span class="issues-table__muted">—</span>}</td>
             <td class={`issues-table__date ${isOverdue(issue.meta) ? 'is-overdue-cell' : ''}`}>
-              {issue.meta.due || <span class="issues-table__muted">—</span>}
+              {formatDate(issue.meta.due) || <span class="issues-table__muted">—</span>}
             </td>
           </tr>
         ))}

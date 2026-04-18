@@ -5,9 +5,11 @@
   "priority": "medium",
   "component": "layouts-and-themes",
   "milestone": "phase-2",
-  "labels": ["refactor"],
+  "labels": [
+    "refactor"
+  ],
   "author": "sidhantha",
   "assignees": [],
-  "updated": "2025-06-25",
-  "due": null
+  "updated": "2026-04-10",
+  "due": "2026-04-19"
 }
