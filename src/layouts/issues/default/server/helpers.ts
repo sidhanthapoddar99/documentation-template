@@ -2,7 +2,7 @@
  * Small server-side utilities shared across the detail-page components.
  * Kept here so the .astro files stay focused on templating.
  */
-import type { IssueSubtask, SubtaskState } from '@loaders/issues';
+import type { IssueAgentLog, IssueSubtask, SubtaskState } from '@loaders/issues';
 
 export const TERMINAL: SubtaskState[] = ['closed', 'cancelled'];
 
@@ -54,4 +54,28 @@ export function avatarColor(name: string | null | undefined): string {
 /** First character of a name, uppercased — avatar fallback when no image. */
 export function initial(name: string | null | undefined): string {
   return (name || '?').trim().charAt(0).toUpperCase();
+}
+
+/** Panel key for an agent-log entry. Flat files use `log-<name>`, grouped
+ *  files use `log-<group>--<name>` so nesting doesn't cause id clashes when
+ *  the same filename (`001_spike.md`) appears in two subgroups. */
+export function logPanelKey(log: IssueAgentLog): string {
+  return log.group ? `log-${log.group}--${log.name}` : `log-${log.name}`;
+}
+
+/** Group agent logs: { top: flat files, bySubgroup: Map<group, logs[]> } */
+export function groupAgentLogs(logs: IssueAgentLog[]): {
+  top: IssueAgentLog[];
+  bySubgroup: Map<string, IssueAgentLog[]>;
+} {
+  const top: IssueAgentLog[] = [];
+  const bySubgroup = new Map<string, IssueAgentLog[]>();
+  for (const log of logs) {
+    if (!log.group) top.push(log);
+    else {
+      if (!bySubgroup.has(log.group)) bySubgroup.set(log.group, []);
+      bySubgroup.get(log.group)!.push(log);
+    }
+  }
+  return { top, bySubgroup };
 }

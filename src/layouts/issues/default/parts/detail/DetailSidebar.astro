@@ -7,7 +7,7 @@
  */
 import type { Issue, IssueSubtask } from '@loaders/issues';
 import { stateIconSvg } from '../../server/state-icon';
-import { pad, TERMINAL } from '../../server/helpers';
+import { pad, TERMINAL, logPanelKey, groupAgentLogs } from '../../server/helpers';
 
 interface Props {
   baseUrl: string;
@@ -20,6 +20,16 @@ interface Props {
 
 const { baseUrl, issue, sortedSubtasks, terminalStartIdx, subtaskDone, subtaskReview } = Astro.props;
 const subtaskTotal = issue.subtasks.length;
+
+/** Short visible label for an agent-log sidebar entry — drops the
+ *  "NNN_" numeric prefix and de-kebabs the rest. */
+function logLabel(log: { iteration: number | null; name: string }): string {
+  const stem = log.name.replace(/^\d+[_-]/, '').replace(/[-_]/g, ' ');
+  return log.iteration !== null ? `#${log.iteration} ${stem}` : stem;
+}
+
+const { top: topLogs, bySubgroup: logGroups } = groupAgentLogs(issue.agentLogs);
+const logSubgroupNames = Array.from(logGroups.keys()).sort();
 ---
 
 <aside class="issue-sidebar">
@@ -109,20 +119,42 @@ const subtaskTotal = issue.subtasks.length;
         {issue.agentLogs.length > 0 && <span class="issue-sidebar__heading-count">{issue.agentLogs.length}</span>}
       </summary>
       <div class="issue-sidebar__items">
-        {issue.agentLogs.length > 0 ? issue.agentLogs.map((log) => (
-          <button type="button" class="issue-sidebar__item" data-panel={`log-${log.name}`}>
+        {issue.agentLogs.length === 0 && (
+          <div class="issue-sidebar__empty">No agent-log entries</div>
+        )}
+        {/* Top-level flat files render first, unindented. */}
+        {topLogs.map((log) => (
+          <button type="button" class="issue-sidebar__item" data-panel={logPanelKey(log)}>
             <span class="issue-sidebar__icon" aria-hidden="true">
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/>
               </svg>
             </span>
-            <span class="issue-sidebar__label">
-              {log.iteration !== null ? `#${log.iteration} ` : ''}{log.name.replace(/^\d+[_-]/, '').replace(/[-_]/g, ' ')}
-            </span>
+            <span class="issue-sidebar__label">{logLabel(log)}</span>
           </button>
-        )) : (
-          <div class="issue-sidebar__empty">No agent-log entries</div>
-        )}
+        ))}
+        {/* Subgroups as nested collapsible sections, default collapsed. */}
+        {logSubgroupNames.map((group) => (
+          <details class="issue-sidebar__subgroup">
+            <summary class="issue-sidebar__subgroup-heading">
+              <svg class="issue-sidebar__chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3l3 3 3-3"/></svg>
+              <span class="issue-sidebar__subgroup-name">{group}</span>
+              <span class="issue-sidebar__heading-count">{logGroups.get(group)!.length}</span>
+            </summary>
+            <div class="issue-sidebar__items issue-sidebar__items--nested">
+              {logGroups.get(group)!.map((log) => (
+                <button type="button" class="issue-sidebar__item" data-panel={logPanelKey(log)}>
+                  <span class="issue-sidebar__icon" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/>
+                    </svg>
+                  </span>
+                  <span class="issue-sidebar__label">{logLabel(log)}</span>
+                </button>
+              ))}
+            </div>
+          </details>
+        ))}
       </div>
     </details>
   </nav>

@@ -13,7 +13,7 @@
 import type { Issue, IssueSubtask, IssueNote, IssueAgentLog } from '@loaders/issues';
 import type { TocEntry } from '../../server/toc';
 import { stateIconSvg } from '../../server/state-icon';
-import { pad } from '../../server/helpers';
+import { pad, logPanelKey } from '../../server/helpers';
 
 interface Props {
   issue: Issue;
@@ -113,7 +113,7 @@ const subtaskTotal = sortedSubtasks.length;
   ))}
 
   {logDocs.map((log) => (
-    <div class="issue-meta__panel" data-meta-panel={`log-${log.name}`} hidden>
+    <div class="issue-meta__panel" data-meta-panel={logPanelKey(log)} hidden>
       <div class="issue-meta-index">
         <div class="issue-meta-index__heading">On this page</div>
         {log.toc.length > 0 ? (

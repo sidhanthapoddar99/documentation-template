@@ -145,6 +145,35 @@
   font-style: italic;
 }
 
+/* Agent-log subgroups — nested collapsible under the Agent log section. */
+.issue-sidebar__subgroup { border: none; }
+.issue-sidebar__subgroup > summary { list-style: none; cursor: pointer; }
+.issue-sidebar__subgroup > summary::-webkit-details-marker { display: none; }
+.issue-sidebar__subgroup-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.5rem;
+  font-size: var(--ui-text-micro);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 4px;
+  margin-top: 0.35rem;
+}
+.issue-sidebar__subgroup-heading:hover {
+  background: color-mix(in srgb, var(--color-border-default) 30%, transparent);
+  color: var(--color-text-primary);
+}
+.issue-sidebar__subgroup:not([open]) .issue-sidebar__subgroup-heading .issue-sidebar__chevron {
+  transform: rotate(-90deg);
+}
+.issue-sidebar__subgroup-name { flex: 1; text-transform: capitalize; letter-spacing: 0; font-weight: 600; }
+.issue-sidebar__items--nested {
+  margin-left: 0.5rem;
+}
+
 /* ===== Main column ===== */
 .issue-main { padding: 1.5rem 2rem; min-width: 0; }
 .issue-panel[hidden] { display: none !important; }

@@ -22,7 +22,7 @@ import MetaSidebar from './parts/detail/MetaSidebar.astro';
 import { allStateIcons } from './server/state-icon';
 import { extractAndPrefixToc } from './server/toc';
 import {
-  TERMINAL, sortSubtasksForSidebar, terminalStartIndex,
+  TERMINAL, sortSubtasksForSidebar, terminalStartIndex, logPanelKey,
 } from './server/helpers';
 import type { Issue, IssuesVocabulary } from '@loaders/issues';
 import './styles/detail.css';
@@ -60,7 +60,7 @@ const noteDocs = issue.notes.map((n) => {
   return { ...n, html, toc };
 });
 const logDocs = issue.agentLogs.map((log) => {
-  const { html, toc } = extractAndPrefixToc(log.html, `log-${log.name}`);
+  const { html, toc } = extractAndPrefixToc(log.html, logPanelKey(log));
   return { ...log, html, toc };
 });
 const sortedSubtaskDocs = sortedSubtasks.map(

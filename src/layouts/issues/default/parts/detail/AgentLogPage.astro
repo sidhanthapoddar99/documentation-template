@@ -5,18 +5,20 @@
  */
 import type { IssueAgentLog } from '@loaders/issues';
 import type { TocEntry } from '../../server/toc';
+import { logPanelKey } from '../../server/helpers';
 
 interface Props {
   log: IssueAgentLog & { toc: TocEntry[] };
 }
 
 const { log } = Astro.props;
+const pathDisplay = log.group ? `agent-log/${log.group}/${log.name}.md` : `agent-log/${log.name}.md`;
 ---
 
-<section class="issue-panel" data-panel={`log-${log.name}`} role="tabpanel" hidden>
+<section class="issue-panel" data-panel={logPanelKey(log)} role="tabpanel" hidden>
   <div class="issue-doc">
     <div class="issue-log__header">
-      <span class="issue-doc__path">agent-log/{log.name}.md</span>
+      <span class="issue-doc__path">{pathDisplay}</span>
       <div class="issue-log__meta">
         {log.iteration !== null && <span class="issue-log__chip">iter {log.iteration}</span>}
         {log.agent && <span class="issue-log__chip">{log.agent}</span>}
