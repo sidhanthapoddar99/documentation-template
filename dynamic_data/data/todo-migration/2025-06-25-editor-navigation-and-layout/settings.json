@@ -1,0 +1,14 @@
+{
+  "title": "Editor navigation & layout",
+  "description": "Spatial chrome around the editing surface: tabs, menubar / view modes, primary & secondary sidebars (VSCode-style), split-screen / diff layouts, preview split orientation.",
+  "status": "in-progress",
+  "priority": "medium",
+  "type": "feature",
+  "component": "live-editor",
+  "milestone": "phase-2",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

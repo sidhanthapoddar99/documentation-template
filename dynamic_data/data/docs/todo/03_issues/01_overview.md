@@ -12,9 +12,9 @@ Map H2 = issue, top-level bullet under it = subtask. All `milestone: phase-2` un
 
 | Issue                                                                            | Subtasks | Component   | Status      |
 |----------------------------------------------------------------------------------|---------:|-------------|-------------|
-| [editor-core](/todo-migration/2025-06-25-editor-core)                            | 13       | live-editor | in-progress |
-| [editor-advanced](/todo-migration/2025-06-25-editor-advanced)                    | 8        | live-editor | open        |
-| [editor-sidebars](/todo-migration/2025-06-25-editor-sidebars)                    | 4        | live-editor | open        |
+| [editor-core](/todo-migration/2025-06-25-editor-core)                            | 14       | live-editor | in-progress |
+| [editor-advanced](/todo-migration/2025-06-25-editor-advanced)                    | 6        | live-editor | open        |
+| [editor-navigation-and-layout](/todo-migration/2025-06-25-editor-navigation-and-layout) | 5        | live-editor | in-progress |
 | [sync-and-presence](/todo-migration/2025-06-25-sync-and-presence)                | 3        | live-editor | in-progress |
 | [true-wysiwyg](/todo-migration/2025-06-25-true-wysiwyg)                          | —        | live-editor | open (low)  |
 
