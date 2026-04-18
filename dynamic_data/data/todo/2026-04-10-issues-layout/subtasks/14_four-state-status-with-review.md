@@ -1,6 +1,6 @@
 ---
 title: "4-state status (open / review / closed / cancelled) for issues and subtasks"
-done: false
+state: closed
 ---
 
 Replace the binary subtask `done: bool` with a 4-state status that mirrors the issue-level status vocabulary, and add `review` as a first-class status everywhere.

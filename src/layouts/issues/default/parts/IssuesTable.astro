@@ -65,6 +65,7 @@ const columns = [
             class={`issues-table__row ${isOverdue(issue.meta) ? 'is-overdue' : ''}`}
             data-issue
             data-status={issue.meta.status}
+            data-has-review-subtask={issue.subtasks.some((s) => s.state === 'review') ? '1' : '0'}
             data-priority={issue.meta.priority}
             data-component={issue.meta.component}
             data-milestone={issue.meta.milestone}
@@ -89,19 +90,26 @@ const columns = [
             <td><StatusBadge field="status" value={issue.meta.status} vocabulary={vocabulary.fields} /></td>
             <td class="issues-table__muted">{issue.meta.milestone || '—'}</td>
             <td class="issues-table__subtasks-cell">
-              {issue.subtasks.length > 0 ? (
-                <div class="issues-table__progress">
-                  <div class="issues-table__progress-label">
-                    {issue.subtasks.filter((s) => s.done).length} / {issue.subtasks.length}
+              {issue.subtasks.length > 0 ? (() => {
+                const total = issue.subtasks.length;
+                const closed = issue.subtasks.filter((s) => s.state === 'closed').length;
+                const cancelled = issue.subtasks.filter((s) => s.state === 'cancelled').length;
+                const review = issue.subtasks.filter((s) => s.state === 'review').length;
+                const open = total - closed - cancelled - review;
+                const done = closed + cancelled;
+                const pct = (n: number) => `${(n / total) * 100}%`;
+                const tip = `${closed} closed · ${review} review · ${cancelled} cancelled · ${open} open`;
+                return (
+                  <div class="issues-table__progress" title={tip}>
+                    <div class="issues-table__progress-label">{done} / {total} done</div>
+                    <div class="issues-table__progress-bar">
+                      <div class="issues-table__progress-seg issues-table__progress-seg--closed" style={`width: ${pct(closed)}`}></div>
+                      <div class="issues-table__progress-seg issues-table__progress-seg--review" style={`width: ${pct(review)}`}></div>
+                      <div class="issues-table__progress-seg issues-table__progress-seg--cancelled" style={`width: ${pct(cancelled)}`}></div>
+                    </div>
                   </div>
-                  <div class="issues-table__progress-bar">
-                    <div
-                      class="issues-table__progress-fill"
-                      style={`width: ${(issue.subtasks.filter((s) => s.done).length / issue.subtasks.length) * 100}%`}
-                    ></div>
-                  </div>
-                </div>
-              ) : (
+                );
+              })() : (
                 <span class="issues-table__muted">—</span>
               )}
             </td>
@@ -241,15 +249,15 @@ const columns = [
     color: var(--color-text-muted);
   }
   .issues-table__progress-bar {
+    display: flex;
     width: 100%;
     height: 4px;
     border-radius: 4px;
     background: color-mix(in srgb, var(--color-border-default) 70%, transparent);
     overflow: hidden;
   }
-  .issues-table__progress-fill {
-    height: 100%;
-    background: var(--color-brand-primary);
-    border-radius: 4px;
-  }
+  .issues-table__progress-seg { height: 100%; }
+  .issues-table__progress-seg--closed { background: var(--color-success); }
+  .issues-table__progress-seg--review { background: var(--color-warning); }
+  .issues-table__progress-seg--cancelled { background: var(--color-error); }
 </style>

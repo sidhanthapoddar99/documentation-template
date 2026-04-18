@@ -1,6 +1,6 @@
 ---
 title: "Cache filter state in localStorage, restore on bare URL"
-done: false
+state: closed
 ---
 
 URL is currently the source of truth for filters / search / sort / state-tab. Refresh works. The gap is **navigate to a detail page → come back → URL is bare → filters lost**.

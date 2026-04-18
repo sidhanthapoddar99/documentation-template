@@ -79,12 +79,18 @@ export interface IssueAgentLog {
   html: string;
 }
 
+export type SubtaskState = 'open' | 'review' | 'closed' | 'cancelled';
+
 export interface IssueSubtask {
   /** Filename without extension, used as stable id within the issue */
   slug: string;
+  /** Numeric prefix parsed from slug (e.g. "01_foo" → 1). null when absent. */
+  sequence: number | null;
   /** Display title (from frontmatter `title`, or derived from slug) */
   title: string;
-  /** Done state from frontmatter `done: true/false` */
+  /** Canonical 4-state status. Reads `state` first, falls back to `done`. */
+  state: SubtaskState;
+  /** Legacy boolean alias — true for terminal states (closed | cancelled). */
   done: boolean;
   /** Absolute path — used by the toggle endpoint */
   filePath: string;
@@ -354,20 +360,29 @@ async function readSubtasks(subtasksDir: string, dataPath: string): Promise<Issu
   for (const name of files) {
     const abs = path.join(subtasksDir, name);
     const slug = name.replace(/\.md$/, '');
+    const prefixMatch = slug.match(/^(\d+)[-_]/);
+    const sequence = prefixMatch ? parseInt(prefixMatch[1], 10) : null;
     let title = slug.replace(/^\d+[-_]?/, '').replace(/[-_]/g, ' ');
-    let done = false;
+    let state: SubtaskState = 'open';
     try {
       const parsed = matter(fs.readFileSync(abs, 'utf-8'));
-      const fm = parsed.data as { title?: string; done?: boolean };
+      const fm = parsed.data as { title?: string; done?: boolean; state?: string };
       if (fm.title) title = fm.title;
-      done = fm.done === true;
+      if (fm.state === 'open' || fm.state === 'review' || fm.state === 'closed' || fm.state === 'cancelled') {
+        state = fm.state;
+      } else if (fm.done === true) {
+        state = 'closed';
+      }
     } catch {
       // malformed frontmatter — fall back to defaults
     }
+    const done = state === 'closed' || state === 'cancelled';
     const html = await renderMarkdown(abs, dataPath);
     out.push({
       slug,
+      sequence,
       title,
+      state,
       done,
       filePath: abs,
       relativePath: path.relative(dataPath, abs),

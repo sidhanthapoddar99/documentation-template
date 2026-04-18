@@ -44,7 +44,19 @@ function isOverdue(meta: typeof issues[number]['meta']): boolean {
   return !CLOSED_STATUSES.has(meta.status);
 }
 
-const openCount = issues.filter((i) => !CLOSED_STATUSES.has(i.meta.status)).length;
+// Review tab covers two cases:
+//   1. Issue explicitly in status=review
+//   2. Issue still open but has at least one subtask in review — surface the
+//      review debt to the human without forcing the issue status to flip.
+function issueNeedsReview(issue: typeof issues[number]): boolean {
+  if (issue.meta.status === 'review') return true;
+  if (!CLOSED_STATUSES.has(issue.meta.status)) {
+    return issue.subtasks.some((s) => s.state === 'review');
+  }
+  return false;
+}
+const reviewCount = issues.filter(issueNeedsReview).length;
+const openCount = issues.filter((i) => !CLOSED_STATUSES.has(i.meta.status) && !issueNeedsReview(i)).length;
 const closedCount = issues.filter((i) => i.meta.status === 'closed').length;
 const cancelledCount = issues.filter((i) => i.meta.status === 'cancelled').length;
 
@@ -72,7 +84,7 @@ const clientConfig = {
 
   <FilterBar filterGroups={filterGroups} />
 
-  <StateTabs openCount={openCount} closedCount={closedCount} cancelledCount={cancelledCount} totalCount={issues.length} />
+  <StateTabs openCount={openCount} reviewCount={reviewCount} closedCount={closedCount} cancelledCount={cancelledCount} totalCount={issues.length} />
 
   {issues.length > 0 ? (
     <>

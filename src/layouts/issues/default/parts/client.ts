@@ -6,7 +6,7 @@
  * View preference + per-page size live in localStorage; everything else in query params.
  */
 
-type StateTab = 'open' | 'closed' | 'cancelled' | 'all';
+type StateTab = 'open' | 'review' | 'closed' | 'cancelled' | 'all';
 
 type FilterState = {
   q: string;
@@ -19,11 +19,21 @@ type FilterState = {
 
 const CLOSED_STATUSES = new Set(['closed', 'cancelled']);
 
+function needsReview(row: HTMLElement): boolean {
+  const status = row.dataset.status || '';
+  if (status === 'review') return true;
+  if (CLOSED_STATUSES.has(status)) return false;
+  return row.dataset.hasReviewSubtask === '1';
+}
+
 function rowMatchesStateTab(row: HTMLElement, tab: StateTab): boolean {
   if (tab === 'all') return true;
   const status = row.dataset.status || '';
-  if (tab === 'open') return !CLOSED_STATUSES.has(status);
-  return status === tab; // 'closed' or 'cancelled'
+  // Review covers explicit status=review AND open issues with any subtask in review.
+  if (tab === 'review') return needsReview(row);
+  // Open = not closed/cancelled and not already surfaced under Review.
+  if (tab === 'open') return !CLOSED_STATUSES.has(status) && !needsReview(row);
+  return status === tab;
 }
 
 type ViewMode = 'cards' | 'table';
@@ -37,6 +47,48 @@ interface Config {
 const FIELDS = ['priority', 'component', 'milestone', 'labels'] as const;
 const VIEW_KEY = 'issues-view-mode';
 const PAGESIZE_KEY = 'issues-page-size';
+/** Per-tracker filter-state cache key. Scoped by pathname so separate
+ *  trackers (e.g. /todo, /bugs) keep independent filters. */
+const FILTER_CACHE_KEY = `issues-filters:${location.pathname}`;
+
+function saveFilterCache(state: FilterState) {
+  try {
+    const payload = {
+      q: state.q,
+      fields: Object.fromEntries(
+        FIELDS.map((f) => [f, Array.from(state.fields[f])]),
+      ),
+      sort: state.sort,
+      dir: state.dir,
+      state: state.state,
+    };
+    localStorage.setItem(FILTER_CACHE_KEY, JSON.stringify(payload));
+  } catch {}
+}
+
+function loadFilterCache(): URLSearchParams | null {
+  try {
+    const raw = localStorage.getItem(FILTER_CACHE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    const params = new URLSearchParams();
+    if (data.q) params.set('q', data.q);
+    if (data.fields) {
+      for (const f of FIELDS) {
+        const vals = (data.fields as Record<string, string[]>)[f];
+        if (vals && vals.length) params.set(f, vals.join(','));
+      }
+    }
+    if (data.state && data.state !== 'open') params.set('state', data.state);
+    if (data.sort && data.dir) {
+      params.set('sort', data.sort);
+      params.set('dir', data.dir);
+    }
+    return params;
+  } catch {
+    return null;
+  }
+}
 
 function readConfig(): Config {
   const el = document.getElementById('issues-config');
@@ -52,7 +104,9 @@ function readState(): FilterState {
   const params = new URLSearchParams(location.search);
   const rawTab = params.get('state');
   const tab: StateTab =
-    rawTab === 'closed' || rawTab === 'cancelled' || rawTab === 'all' ? rawTab : 'open';
+    rawTab === 'review' || rawTab === 'closed' || rawTab === 'cancelled' || rawTab === 'all'
+      ? rawTab
+      : 'open';
   const state: FilterState = {
     q: params.get('q') || '',
     fields: {},
@@ -84,6 +138,7 @@ function writeState(state: FilterState) {
   const qs = params.toString();
   const url = qs ? `${location.pathname}?${qs}` : location.pathname;
   history.replaceState(null, '', url);
+  saveFilterCache(state);
 }
 
 function activeView(): HTMLElement | null {
@@ -175,7 +230,7 @@ function renderActiveTags(state: FilterState, cfg: Config, onToggle: (f: string,
 }
 
 function renderStateTabs(state: FilterState, allRows: HTMLElement[]) {
-  const counts: Record<StateTab, number> = { open: 0, closed: 0, cancelled: 0, all: 0 };
+  const counts: Record<StateTab, number> = { open: 0, review: 0, closed: 0, cancelled: 0, all: 0 };
   // Count using all filters except the state tab itself, so counts reflect
   // what each tab would show with the current search/chip filters applied.
   const stateNeutralState = { ...state, state: 'all' as StateTab };
@@ -183,7 +238,8 @@ function renderStateTabs(state: FilterState, allRows: HTMLElement[]) {
     if (!rowMatchesExcluding(row, stateNeutralState, null)) continue;
     counts.all++;
     const status = row.dataset.status || '';
-    if (status === 'closed') counts.closed++;
+    if (needsReview(row)) counts.review++;
+    else if (status === 'closed') counts.closed++;
     else if (status === 'cancelled') counts.cancelled++;
     else counts.open++;
   }
@@ -192,7 +248,7 @@ function renderStateTabs(state: FilterState, allRows: HTMLElement[]) {
     const active = tab === state.state;
     btn.setAttribute('aria-selected', active ? 'true' : 'false');
   });
-  for (const tab of ['open', 'closed', 'cancelled', 'all'] as StateTab[]) {
+  for (const tab of ['open', 'review', 'closed', 'cancelled', 'all'] as StateTab[]) {
     const el = document.querySelector<HTMLElement>(`[data-state-count="${tab}"]`);
     if (el) el.textContent = String(counts[tab]);
   }
@@ -370,6 +426,18 @@ function closeAllAddMenus() {
 export function initIssuesIndex() {
   _cfg = readConfig();
 
+  // Subtask 10: restore cached filters when the URL has no query params.
+  // If the user arrived with params (shared link, bookmark, back-button),
+  // the URL wins — we don't overwrite it. First visit with a blank URL
+  // gets whatever the user was last looking at on this tracker.
+  if (!location.search) {
+    const cached = loadFilterCache();
+    if (cached) {
+      const qs = cached.toString();
+      if (qs) history.replaceState(null, '', `${location.pathname}?${qs}`);
+    }
+  }
+
   // "Add filter" dropdowns
   document.querySelectorAll<HTMLElement>('[data-add-toggle]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
@@ -465,6 +533,7 @@ export function initIssuesIndex() {
   const clearAll = (e?: Event) => {
     e?.preventDefault();
     history.replaceState(null, '', location.pathname);
+    try { localStorage.removeItem(FILTER_CACHE_KEY); } catch {}
     if (searchInput) searchInput.value = '';
     apply(_cfg);
   };

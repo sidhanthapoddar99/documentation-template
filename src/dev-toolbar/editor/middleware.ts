@@ -362,7 +362,7 @@ export function setupEditorMiddleware(
         }
 
         case '/__editor/subtask-toggle': {
-          const { filePath, done } = body;
+          const { filePath, done, state } = body;
           if (!filePath || typeof filePath !== 'string') {
             return sendJson(res, 400, { error: 'filePath is required' });
           }
@@ -370,22 +370,34 @@ export function setupEditorMiddleware(
             return sendJson(res, 400, { error: 'Not a subtask file' });
           }
           const resolved = path.resolve(filePath);
-          // Reuse the store's watchPaths gate by attempting an open() —
-          // the store throws if outside allowed paths. We don't actually
-          // want to keep a doc open for subtasks, so rewrite + close.
           if (!fs.existsSync(resolved)) {
             return sendJson(res, 404, { error: 'Subtask file not found' });
           }
-          // Path is gated via the same rule the EditorStore uses.
           const allowed = (store as any).config?.watchPaths as string[] | undefined;
           if (allowed && !allowed.some((wp) => resolved.startsWith(path.resolve(wp)))) {
             return sendJson(res, 403, { error: 'Path not allowed' });
           }
+          // Resolve the target 4-state value. Prefer explicit `state`; else
+          // translate legacy boolean `done` (true → closed, false → open).
+          const VALID = new Set(['open', 'review', 'closed', 'cancelled']);
+          let nextState: string;
+          if (typeof state === 'string' && VALID.has(state)) {
+            nextState = state;
+          } else if (typeof done === 'boolean') {
+            nextState = done ? 'closed' : 'open';
+          } else {
+            return sendJson(res, 400, { error: 'state or done is required' });
+          }
           const raw = fs.readFileSync(resolved, 'utf-8');
           const parsed = matter(raw);
-          parsed.data = { ...parsed.data, done: !!done };
-          fs.writeFileSync(resolved, matter.stringify(parsed.content, parsed.data));
-          return sendJson(res, 200, { ok: true, done: !!done });
+          const data = { ...parsed.data, state: nextState };
+          delete (data as any).done; // legacy field — canonicalize to `state`
+          fs.writeFileSync(resolved, matter.stringify(parsed.content, data));
+          return sendJson(res, 200, {
+            ok: true,
+            state: nextState,
+            done: nextState === 'closed' || nextState === 'cancelled',
+          });
         }
 
         case '/__editor/delete': {

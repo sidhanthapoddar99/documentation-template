@@ -1,6 +1,6 @@
 ---
 title: "Subtask page header — title + status, not checkbox + slug"
-done: false
+state: closed
 ---
 
 Sidebar list rendering is fine — leave it as-is. The bug is on the **center / content page** for a subtask.

@@ -2,9 +2,10 @@
   "label": "Todo",
   "fields": {
     "status": {
-      "values": ["open", "closed", "cancelled"],
+      "values": ["open", "review", "closed", "cancelled"],
       "colors": {
         "open": "#888888",
+        "review": "#f0c674",
         "closed": "#7ec699",
         "cancelled": "#666666"
       }
