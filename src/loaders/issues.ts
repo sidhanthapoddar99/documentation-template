@@ -128,11 +128,23 @@ export interface IssuesVocabularyField {
   colors?: Record<string, string>;
 }
 
+export interface IssuesPresetView {
+  name: string;
+  filters?: Record<string, string[]>;
+  state?: string;
+  group?: string;
+  search?: string;
+  sort?: string;
+  dir?: 'asc' | 'desc';
+}
+
 export interface IssuesVocabulary {
   label?: string;
   draft?: boolean;
   fields: Record<string, IssuesVocabularyField>;
   authors?: string[];
+  /** Preset views defined in root settings.json — subtask 13 */
+  views?: IssuesPresetView[];
 }
 
 export interface LoadedIssues {

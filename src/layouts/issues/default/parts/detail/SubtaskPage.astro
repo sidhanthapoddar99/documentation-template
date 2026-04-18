@@ -1,0 +1,36 @@
+---
+/**
+ * SubtaskPage — full-page view of one subtask (chosen from the sidebar).
+ * Title + state badge header, then the rendered markdown body.
+ */
+import type { IssueSubtask } from '@loaders/issues';
+import type { TocEntry } from '../../server/toc';
+import { pad } from '../../server/helpers';
+
+interface Props {
+  subtask: IssueSubtask & { toc: TocEntry[] };
+  statusColors: Record<string, string>;
+}
+
+const { subtask: s, statusColors } = Astro.props;
+---
+
+<section class="issue-panel" data-panel={`subtask-${s.slug}`} role="tabpanel" hidden>
+  <div class="issue-doc">
+    <div class="issue-doc__path">subtasks/{s.slug}.md</div>
+    <div class="issue-subtask-page" data-subtask-slug={s.slug} data-file={s.filePath} data-state={s.state}>
+      <div class="issue-subtask-page__header">
+        {s.sequence !== null && <span class="issue-subtask-page__num">{pad(s.sequence)}</span>}
+        <span class="issue-subtask-page__title">{s.title}</span>
+        <span class="issue-subtask-page__badge" data-state-pill style={statusColors[s.state] ? `--badge-color: ${statusColors[s.state]}` : undefined}>
+          {s.state}
+        </span>
+      </div>
+      {s.html && (
+        <div class="issue-subtask-page__body markdown-content">
+          <Fragment set:html={s.html} />
+        </div>
+      )}
+    </div>
+  </div>
+</section>

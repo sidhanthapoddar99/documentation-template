@@ -1,0 +1,100 @@
+---
+/**
+ * Comprehensive — Review/Open/Closed/Cancelled/All tabs + inline subtask
+ * bodies. Items past COMPREHENSIVE_WORD_CAP collapse behind a chevron
+ * expander (wired up in scripts/detail/client.ts).
+ */
+import type { IssueSubtask } from '@loaders/issues';
+import type { TocEntry } from '../../server/toc';
+import { stateIconSvg } from '../../server/state-icon';
+import { pad, wordCount, COMPREHENSIVE_WORD_CAP } from '../../server/helpers';
+
+type SubtaskDoc = IssueSubtask & { toc: TocEntry[] };
+
+interface Props {
+  sortedSubtaskDocs: SubtaskDoc[];
+  subtaskReview: number;
+  openCount: number;
+  closedCount: number;
+  cancelledCount: number;
+  statusColors: Record<string, string>;
+}
+
+const { sortedSubtaskDocs, subtaskReview, openCount, closedCount, cancelledCount, statusColors } = Astro.props;
+const subtaskTotal = sortedSubtaskDocs.length;
+if (subtaskTotal === 0) return null as any;
+---
+
+<section class="issue-panel" data-panel="comprehensive" role="tabpanel" hidden>
+  <div class="issue-comprehensive">
+    <div class="issue-comprehensive__tabs" role="tablist">
+      <button type="button" class="issue-comprehensive__tab is-active" data-comprehensive-tab="review">
+        Review <span class="issue-comprehensive__tab-count">{subtaskReview}</span>
+      </button>
+      <button type="button" class="issue-comprehensive__tab" data-comprehensive-tab="open">
+        Open <span class="issue-comprehensive__tab-count">{openCount}</span>
+      </button>
+      <button type="button" class="issue-comprehensive__tab" data-comprehensive-tab="closed">
+        Closed <span class="issue-comprehensive__tab-count">{closedCount}</span>
+      </button>
+      <button type="button" class="issue-comprehensive__tab" data-comprehensive-tab="cancelled">
+        Cancelled <span class="issue-comprehensive__tab-count">{cancelledCount}</span>
+      </button>
+      <button type="button" class="issue-comprehensive__tab" data-comprehensive-tab="all">
+        All <span class="issue-comprehensive__tab-count">{subtaskTotal}</span>
+      </button>
+    </div>
+
+    <ul class="issue-comprehensive__list">
+      {sortedSubtaskDocs.map((s) => {
+        const words = wordCount(s.html);
+        const clippable = words > COMPREHENSIVE_WORD_CAP;
+        return (
+          <li
+            class={`issue-comprehensive__item state-${s.state} ${clippable ? 'is-clipped' : ''}`}
+            data-subtask-slug={s.slug}
+            data-file={s.filePath}
+            data-state={s.state}
+            data-clippable={clippable ? 'true' : undefined}
+            id={`comprehensive-${s.slug}`}
+          >
+            <div class="issue-comprehensive__item-head">
+              <button
+                type="button"
+                class="issue-comprehensive__state"
+                aria-label={`Subtask state: ${s.state}. Click to cycle.`}
+                data-state={s.state}
+              >
+                <Fragment set:html={stateIconSvg(s.state)} />
+              </button>
+              {s.sequence !== null && <span class="issue-comprehensive__num">{pad(s.sequence)}</span>}
+              <span class="issue-comprehensive__title">{s.title}</span>
+              <span class="issue-comprehensive__pill" data-state-pill style={statusColors[s.state] ? `--badge-color: ${statusColors[s.state]}` : undefined}>
+                {s.state}
+              </span>
+            </div>
+            {s.html && (
+              <div class="issue-comprehensive__body markdown-content">
+                <Fragment set:html={s.html} />
+              </div>
+            )}
+            {clippable && (
+              <div class="issue-comprehensive__expand-row">
+                <span class="issue-comprehensive__word-count">{words} words</span>
+                <button
+                  type="button"
+                  class="issue-comprehensive__expand"
+                  data-comprehensive-expand
+                  aria-expanded="false"
+                  aria-label="Expand subtask"
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 10 12 6"/></svg>
+                </button>
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</section>

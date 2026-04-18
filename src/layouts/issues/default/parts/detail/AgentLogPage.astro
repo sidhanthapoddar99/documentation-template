@@ -1,0 +1,31 @@
+---
+/**
+ * AgentLogPage — full-page view of one agent-log/ iteration entry.
+ * Chip row under the header carries iteration number, agent, status, date.
+ */
+import type { IssueAgentLog } from '@loaders/issues';
+import type { TocEntry } from '../../server/toc';
+
+interface Props {
+  log: IssueAgentLog & { toc: TocEntry[] };
+}
+
+const { log } = Astro.props;
+---
+
+<section class="issue-panel" data-panel={`log-${log.name}`} role="tabpanel" hidden>
+  <div class="issue-doc">
+    <div class="issue-log__header">
+      <span class="issue-doc__path">agent-log/{log.name}.md</span>
+      <div class="issue-log__meta">
+        {log.iteration !== null && <span class="issue-log__chip">iter {log.iteration}</span>}
+        {log.agent && <span class="issue-log__chip">{log.agent}</span>}
+        {log.status && <span class={`issue-log__chip issue-log__chip--status is-${log.status.replace(/\s+/g, '-')}`}>{log.status}</span>}
+        {log.date && <span class="issue-log__chip">{log.date}</span>}
+      </div>
+    </div>
+    <div class="issue-doc__body markdown-content">
+      <Fragment set:html={log.html} />
+    </div>
+  </div>
+</section>

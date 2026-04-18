@@ -1,6 +1,6 @@
 ---
 title: "Compact mode for the search & filter box"
-done: false
+state: review
 ---
 
 Current expanded view stays as the default. Add a **compact** alternative that takes less vertical space.

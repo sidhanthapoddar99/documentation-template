@@ -1,0 +1,52 @@
+---
+/**
+ * IssueThread — GitHub-style vertical thread of the issue body + comments.
+ * Each comment gets `id="comment-<seq>"` so the right-sidebar TOC can jump.
+ */
+import type { Issue } from '@loaders/issues';
+import { avatarColor, initial } from '../../server/helpers';
+
+interface Props {
+  issue: Issue;
+}
+
+const { issue } = Astro.props;
+const { meta } = issue;
+---
+
+<div class="issue-thread">
+  <div class="issue-thread__item">
+    <div class="issue-thread__avatar" style={`background: ${avatarColor(meta.author)}`}>
+      {initial(meta.author)}
+    </div>
+    <div class="issue-thread__bubble">
+      <div class="issue-thread__bubble-header">
+        <span class="issue-thread__author">{meta.author || 'unknown'}</span>
+        <span class="issue-thread__action">opened this issue</span>
+        <span class="issue-thread__date">on {issue.created}</span>
+      </div>
+      <div class="issue-thread__bubble-body markdown-content">
+        <Fragment set:html={issue.html} />
+      </div>
+    </div>
+  </div>
+
+  {issue.comments.map((c) => (
+    <div class="issue-thread__item" id={`comment-${c.sequence}`}>
+      <div class="issue-thread__avatar" style={`background: ${avatarColor(c.author)}`}>
+        {initial(c.author)}
+      </div>
+      <div class="issue-thread__bubble">
+        <div class="issue-thread__bubble-header">
+          <span class="issue-thread__author">{c.author || 'unknown'}</span>
+          <span class="issue-thread__action">commented</span>
+          <span class="issue-thread__date">on {c.date || '—'}</span>
+          <span class="issue-thread__seq">#{String(c.sequence).padStart(3, '0')}</span>
+        </div>
+        <div class="issue-thread__bubble-body markdown-content">
+          <Fragment set:html={c.html} />
+        </div>
+      </div>
+    </div>
+  ))}
+</div>

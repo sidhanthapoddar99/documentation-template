@@ -4,7 +4,7 @@
  * data-* attributes as the table rows so client.ts can filter/sort both views
  * with one code path.
  */
-import IssueCard from '../IssueCard.astro';
+import IssueCard from '../shared/IssueCard.astro';
 import type { Issue, IssuesVocabulary } from '@loaders/issues';
 
 interface Props {
@@ -48,6 +48,50 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
   .issues-view--cards.is-active { display: flex; }
 
   /* IssueCard uses un-scoped classes (component-level) so these have to be global */
+  /* Group section headers (cards view) — colored accent bar */
+  :global(.issues-cards__group-header) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 0.9rem 0.65rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.25rem;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--group-accent, var(--color-brand-primary)) 6%, var(--color-bg-secondary));
+    border: 1px solid color-mix(in srgb, var(--group-accent, var(--color-border-default)) 25%, transparent);
+  }
+  :global(.issues-cards__group-header.is-first) { margin-top: 0; }
+  :global(.issues-cards__group-accent) {
+    width: 3px;
+    height: 16px;
+    background: var(--group-accent, var(--color-brand-primary));
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  :global(.issues-cards__group-field) {
+    font-size: var(--ui-text-micro);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+  :global(.issues-cards__group-title) {
+    font-weight: 600;
+    font-size: var(--ui-text-body);
+    color: var(--color-text-primary);
+    text-transform: capitalize;
+  }
+  :global(.issues-cards__group-count) {
+    margin-left: auto;
+    font-family: var(--font-family-mono);
+    font-size: var(--ui-text-micro);
+    color: color-mix(in srgb, var(--group-accent, var(--color-text-muted)) 85%, var(--color-text-primary));
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--group-accent, var(--color-border-default)) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--group-accent, var(--color-border-default)) 30%, transparent);
+  }
+
   :global(.issue-card) {
     border: 1px solid var(--color-border-default);
     border-radius: 6px;

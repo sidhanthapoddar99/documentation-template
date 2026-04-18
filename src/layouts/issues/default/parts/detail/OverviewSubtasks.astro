@@ -1,0 +1,56 @@
+---
+/**
+ * OverviewSubtasks — flat subtask list rendered under the Overview panel.
+ * No bodies; progress bar summarises closed / cancelled / review counts.
+ * State buttons cycle via scripts/detail/client.ts.
+ */
+import type { IssueSubtask } from '@loaders/issues';
+import { stateIconSvg } from '../../server/state-icon';
+import { pad } from '../../server/helpers';
+
+interface Props {
+  sortedSubtasks: IssueSubtask[];
+  subtaskDone: number;
+  subtaskReview: number;
+  closedCount: number;
+  cancelledCount: number;
+}
+
+const { sortedSubtasks, subtaskDone, subtaskReview, closedCount, cancelledCount } = Astro.props;
+const subtaskTotal = sortedSubtasks.length;
+if (subtaskTotal === 0) return null as any;
+const pct = (n: number) => (subtaskTotal ? (n / subtaskTotal) * 100 : 0);
+---
+
+<section class="issue-overview-subtasks" aria-label="Subtasks">
+  <div class="issue-overview-subtasks__header">
+    <span class="issue-overview-subtasks__title">Subtasks</span>
+    <span class="issue-overview-subtasks__count" id="overview-subtasks-count">{subtaskDone} / {subtaskTotal}</span>
+    <div class="issue-overview-subtasks__bar" aria-hidden="true" id="overview-subtasks-bar">
+      <div class="issue-overview-subtasks__seg issue-overview-subtasks__seg--closed" style={`width: ${pct(closedCount)}%`}></div>
+      <div class="issue-overview-subtasks__seg issue-overview-subtasks__seg--cancelled" style={`width: ${pct(cancelledCount)}%`}></div>
+      <div class="issue-overview-subtasks__seg issue-overview-subtasks__seg--review" style={`width: ${pct(subtaskReview)}%`}></div>
+    </div>
+  </div>
+  <ul class="issue-overview-subtasks__list">
+    {sortedSubtasks.map((s) => (
+      <li
+        class={`issue-overview-subtasks__item state-${s.state}`}
+        data-subtask-slug={s.slug}
+        data-file={s.filePath}
+        data-state={s.state}
+      >
+        <button
+          type="button"
+          class="issue-overview-subtasks__state"
+          aria-label={`Subtask state: ${s.state}. Click to cycle.`}
+          data-state={s.state}
+        >
+          <Fragment set:html={stateIconSvg(s.state)} />
+        </button>
+        {s.sequence !== null && <span class="issue-overview-subtasks__num">{pad(s.sequence)}</span>}
+        <a href={`#subtask-${s.slug}`} class="issue-overview-subtasks__link">{s.title}</a>
+      </li>
+    ))}
+  </ul>
+</section>

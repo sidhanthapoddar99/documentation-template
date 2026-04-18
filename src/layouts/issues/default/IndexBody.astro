@@ -1,16 +1,18 @@
 ---
 /**
  * IndexBody - Orchestrator for the issues list page.
- * Heavy lifting lives in parts/:
- *   ViewToggle, FilterBar, IssuesCards, IssuesTable, Pagination, client.ts
+ * Component-specific UI + styles live under parts/index/ and scripts/index/;
+ * page-frame styles live in styles/index.css.
  */
 import { loadIssues } from '@loaders/issues';
-import ViewToggle from './parts/ViewToggle.astro';
-import FilterBar from './parts/FilterBar.astro';
-import StateTabs from './parts/StateTabs.astro';
-import IssuesCards from './parts/IssuesCards.astro';
-import IssuesTable from './parts/IssuesTable.astro';
-import Pagination from './parts/Pagination.astro';
+import './styles/index.css';
+import ViewToggle from './parts/index/ViewToggle.astro';
+import FilterBar from './parts/index/FilterBar.astro';
+import PresetStrip from './parts/index/PresetStrip.astro';
+import StateTabs from './parts/index/StateTabs.astro';
+import IssuesCards from './parts/index/IssuesCards.astro';
+import IssuesTable from './parts/index/IssuesTable.astro';
+import Pagination from './parts/index/Pagination.astro';
 
 interface Props {
   dataPath: string;
@@ -60,11 +62,27 @@ const openCount = issues.filter((i) => !CLOSED_STATUSES.has(i.meta.status) && !i
 const closedCount = issues.filter((i) => i.meta.status === 'closed').length;
 const cancelledCount = issues.filter((i) => i.meta.status === 'cancelled').length;
 
+// Group-by only offers dimensions that actually have a vocabulary —
+// otherwise there's nothing to group under. `status` intentionally
+// excluded (state tabs already group by status).
+const GROUP_CANDIDATES = ['component', 'milestone', 'priority'] as const;
+const groupDimensions = GROUP_CANDIDATES.filter(
+  (d) => vocabulary.fields?.[d]?.values?.length,
+);
+const groupOrderByField = Object.fromEntries(
+  groupDimensions.map((d) => [d, vocabulary.fields[d].values]),
+);
+
+const presets = Array.isArray(vocabulary.views) ? vocabulary.views : [];
+
 // Server-side config passed to the client script via a JSON script tag
 const clientConfig = {
   priorityOrder: vocabulary.fields?.priority?.values ?? [],
   statusOrder: vocabulary.fields?.status?.values ?? [],
   colorsByField: Object.fromEntries(filterGroups.map((g) => [g.key, g.colors])),
+  groupDimensions,
+  groupOrderByField,
+  presets,
 };
 ---
 
@@ -82,7 +100,9 @@ const clientConfig = {
     </div>
   </header>
 
-  <FilterBar filterGroups={filterGroups} />
+  <FilterBar filterGroups={filterGroups} groupDimensions={groupDimensions} />
+
+  <PresetStrip presets={presets} />
 
   <StateTabs openCount={openCount} reviewCount={reviewCount} closedCount={closedCount} cancelledCount={cancelledCount} totalCount={issues.length} />
 
@@ -116,37 +136,10 @@ const clientConfig = {
   <Pagination />
 </div>
 
-<script type="application/json" id="issues-config" set:html={JSON.stringify(clientConfig)} />
+<script is:inline type="application/json" id="issues-config" set:html={JSON.stringify(clientConfig)} />
 
 <script>
-  import { initIssuesIndex } from './parts/client';
+  import { initIssuesIndex } from './scripts/index/client';
   initIssuesIndex();
 </script>
 
-<style>
-  .issues-index {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-  }
-  .issues-index__header { margin-bottom: 1.25rem; }
-  .issues-index__titlebar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-  .issues-index__title { margin: 0 0 0.25rem; font-size: var(--ui-text-title); font-weight: var(--font-weight-normal); }
-  .issues-index__summary {
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: var(--ui-text-body);
-  }
-  .issues-index__empty {
-    padding: 2rem;
-    text-align: center;
-    color: var(--color-text-muted);
-  }
-  .issues-index__empty a { color: var(--color-brand-primary); }
-</style>

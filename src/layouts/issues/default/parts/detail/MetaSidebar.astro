@@ -1,0 +1,133 @@
+---
+/**
+ * MetaSidebar — right-rail TOC panels. One panel per main-panel key.
+ *   - overview       → issue body link + comment index
+ *   - comprehensive  → subtasks index (for cross-nav in the long list)
+ *   - subtask-<slug> → auto-TOC of that subtask's headings
+ *   - note-<name>    → auto-TOC of that note's headings
+ *   - log-<name>     → auto-TOC of that agent-log entry's headings
+ *
+ * The active panel is toggled by scripts/detail/client.ts when a sidebar
+ * button is clicked (same data-panel key maps to this panel's data-meta-panel).
+ */
+import type { Issue, IssueSubtask, IssueNote, IssueAgentLog } from '@loaders/issues';
+import type { TocEntry } from '../../server/toc';
+import { stateIconSvg } from '../../server/state-icon';
+import { pad } from '../../server/helpers';
+
+interface Props {
+  issue: Issue;
+  sortedSubtasks: IssueSubtask[];
+  subtaskDocs: (IssueSubtask & { toc: TocEntry[] })[];
+  noteDocs: (IssueNote & { toc: TocEntry[] })[];
+  logDocs: (IssueAgentLog & { toc: TocEntry[] })[];
+}
+
+const { issue, sortedSubtasks, subtaskDocs, noteDocs, logDocs } = Astro.props;
+const subtaskTotal = sortedSubtasks.length;
+---
+
+<aside class="issue-meta">
+  <div class="issue-meta__panel is-active" data-meta-panel="overview">
+    <div class="issue-meta-index">
+      <div class="issue-meta-index__heading">On this page</div>
+      <ul class="issue-meta-toc">
+        <li><a href="#" class="issue-meta-toc__link is-top" data-toc-link="__issue_top">Issue body</a></li>
+        {issue.comments.length > 0 && (
+          <li class="issue-meta-toc__section-label">Comments ({issue.comments.length})</li>
+        )}
+        {issue.comments.map((c) => (
+          <li>
+            <a href={`#comment-${c.sequence}`} class="issue-meta-toc__link issue-meta-toc__link--comment" data-toc-link={`comment-${c.sequence}`}>
+              <span class="issue-meta-toc__seq">#{String(c.sequence).padStart(3, '0')}</span>
+              <span class="issue-meta-toc__text">{c.author || 'unknown'}<span class="issue-meta-toc__date"> · {c.date || '—'}</span></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  {subtaskTotal > 0 && (
+    <div class="issue-meta__panel" data-meta-panel="comprehensive" hidden>
+      <div class="issue-meta-index">
+        <div class="issue-meta-index__heading">Subtasks index</div>
+        <ul class="issue-meta-index__list">
+          {sortedSubtasks.map((s) => (
+            <li>
+              <a
+                href={`#comprehensive-${s.slug}`}
+                class={`issue-meta-index__link state-${s.state}`}
+                data-state={s.state}
+                data-subtask-slug={s.slug}
+              >
+                <span class="issue-meta-index__icon" data-state-icon>
+                  <Fragment set:html={stateIconSvg(s.state)} />
+                </span>
+                {s.sequence !== null && <span class="issue-meta-index__num">{pad(s.sequence)}</span>}
+                <span class="issue-meta-index__label">{s.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )}
+
+  {subtaskDocs.map((s) => (
+    <div class="issue-meta__panel" data-meta-panel={`subtask-${s.slug}`} hidden>
+      <div class="issue-meta-index">
+        <div class="issue-meta-index__heading">On this page</div>
+        {s.toc.length > 0 ? (
+          <ul class="issue-meta-toc">
+            {s.toc.map((h) => (
+              <li class={`issue-meta-toc__level-${h.level}`}>
+                <a href={`#${h.id}`} class="issue-meta-toc__link" data-toc-link={h.id}>{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div class="issue-meta-toc__empty">No sections</div>
+        )}
+      </div>
+    </div>
+  ))}
+
+  {noteDocs.map((n) => (
+    <div class="issue-meta__panel" data-meta-panel={`note-${n.name}`} hidden>
+      <div class="issue-meta-index">
+        <div class="issue-meta-index__heading">On this page</div>
+        {n.toc.length > 0 ? (
+          <ul class="issue-meta-toc">
+            {n.toc.map((h) => (
+              <li class={`issue-meta-toc__level-${h.level}`}>
+                <a href={`#${h.id}`} class="issue-meta-toc__link" data-toc-link={h.id}>{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div class="issue-meta-toc__empty">No sections</div>
+        )}
+      </div>
+    </div>
+  ))}
+
+  {logDocs.map((log) => (
+    <div class="issue-meta__panel" data-meta-panel={`log-${log.name}`} hidden>
+      <div class="issue-meta-index">
+        <div class="issue-meta-index__heading">On this page</div>
+        {log.toc.length > 0 ? (
+          <ul class="issue-meta-toc">
+            {log.toc.map((h) => (
+              <li class={`issue-meta-toc__level-${h.level}`}>
+                <a href={`#${h.id}`} class="issue-meta-toc__link" data-toc-link={h.id}>{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div class="issue-meta-toc__empty">No sections</div>
+        )}
+      </div>
+    </div>
+  ))}
+</aside>

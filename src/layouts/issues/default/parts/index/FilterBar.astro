@@ -16,12 +16,14 @@ interface FilterGroup {
 
 interface Props {
   filterGroups: FilterGroup[];
+  /** Dimensions eligible for group-by; passed from IndexBody after checking vocabulary */
+  groupDimensions?: string[];
 }
 
-const { filterGroups } = Astro.props;
+const { filterGroups, groupDimensions = [] } = Astro.props;
 ---
 
-<div class="issues-filters">
+<div class="issues-filters" id="issues-filters">
   <div class="issues-filters__search">
     <span class="issues-filters__search-icon" aria-hidden="true">
       <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
@@ -35,6 +37,38 @@ const { filterGroups } = Astro.props;
       placeholder="Search title, description, id…"
       autocomplete="off"
     />
+    {groupDimensions.length > 0 && (
+      <div class="issues-filters__groupby" id="issues-groupby-wrap">
+        <button type="button" class="issues-filters__groupby-btn" id="issues-groupby-btn" aria-haspopup="listbox" aria-expanded="false">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <line x1="2" y1="4" x2="14" y2="4"/>
+            <line x1="2" y1="8" x2="14" y2="8"/>
+            <line x1="2" y1="12" x2="10" y2="12"/>
+          </svg>
+          <span class="issues-filters__groupby-prefix">Group:</span>
+          <span class="issues-filters__groupby-value" id="issues-groupby-value">None</span>
+          <svg class="issues-filters__groupby-chev" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <polyline points="4 6 8 10 12 6"/>
+          </svg>
+        </button>
+        <div class="issues-filters__groupby-menu" id="issues-groupby-menu" role="listbox">
+          <button type="button" class="issues-filters__groupby-option" data-group-option="" role="option">
+            <span class="issues-filters__groupby-option-check" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>
+            </span>
+            <span>None</span>
+          </button>
+          {groupDimensions.map((d) => (
+            <button type="button" class="issues-filters__groupby-option" data-group-option={d} role="option">
+              <span class="issues-filters__groupby-option-check" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3 3 7-7"/></svg>
+              </span>
+              <span>{d}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
     <button type="button" id="issues-clear" class="issues-filters__clear" title="Clear all filters and search">
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
         <path d="M3 8a5 5 0 1 1 1.5 3.5L3 13"/>
@@ -42,7 +76,21 @@ const { filterGroups } = Astro.props;
       </svg>
       <span>Clear all</span>
     </button>
+    <button
+      type="button"
+      id="issues-compact-toggle"
+      class="issues-filters__compact-toggle"
+      title="Toggle compact filter bar"
+      aria-expanded="true"
+      aria-label="Toggle filter bar"
+    >
+      <svg class="issues-filters__compact-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="4 6 8 10 12 6"/>
+      </svg>
+    </button>
   </div>
+
+  <div class="issues-filters__compact-chips" id="issues-compact-chips" aria-hidden="true"></div>
 
   <div class="issues-filters__rows">
     {filterGroups.map((group) => (
@@ -346,4 +394,111 @@ const { filterGroups } = Astro.props;
     opacity: 1;
     background: color-mix(in srgb, currentColor 25%, transparent);
   }
+
+  /* Group-by: custom dropdown (button + menu), matches Add-filter visual weight */
+  .issues-filters__groupby { position: relative; display: inline-flex; }
+  .issues-filters__groupby-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    font-size: var(--ui-text-micro);
+    font-weight: 500;
+    background: var(--color-bg-primary);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border-default);
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.1s ease;
+  }
+  .issues-filters__groupby-btn:hover {
+    color: var(--color-brand-primary);
+    border-color: var(--color-brand-primary);
+    background: color-mix(in srgb, var(--color-brand-primary) 8%, transparent);
+  }
+  .issues-filters__groupby-prefix { opacity: 0.7; }
+  .issues-filters__groupby-value { text-transform: capitalize; color: var(--color-text-primary); font-weight: 500; }
+  .issues-filters__groupby-chev { opacity: 0.6; transition: transform 0.15s ease; }
+  .issues-filters__groupby.is-open .issues-filters__groupby-chev { transform: rotate(180deg); }
+  .issues-filters__groupby.is-active .issues-filters__groupby-btn {
+    color: var(--color-brand-primary);
+    border-color: var(--color-brand-primary);
+    background: color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+  }
+  .issues-filters__groupby.is-active .issues-filters__groupby-value { color: inherit; }
+  .issues-filters__groupby-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 180px;
+    padding: 0.35rem;
+    border: 1px solid var(--color-border-default);
+    border-radius: 10px;
+    background: var(--color-bg-primary);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+    z-index: 20;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .issues-filters__groupby.is-open .issues-filters__groupby-menu { display: flex; }
+  .issues-filters__groupby-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: var(--ui-text-micro);
+    cursor: pointer;
+    border-radius: 4px;
+    text-align: left;
+    text-transform: capitalize;
+    font-family: inherit;
+  }
+  .issues-filters__groupby-option:hover {
+    background: color-mix(in srgb, var(--color-border-default) 50%, transparent);
+  }
+  .issues-filters__groupby-option-check {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
+    color: var(--color-brand-primary);
+    opacity: 0;
+  }
+  .issues-filters__groupby-option.is-selected .issues-filters__groupby-option-check { opacity: 1; }
+  .issues-filters__groupby-option.is-selected { color: var(--color-brand-primary); font-weight: 600; }
+
+  /* Compact toggle */
+  .issues-filters__compact-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--color-border-default);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: color 0.1s ease, border-color 0.1s ease, background 0.1s ease;
+  }
+  .issues-filters__compact-toggle:hover {
+    color: var(--color-brand-primary);
+    border-color: var(--color-brand-primary);
+    background: color-mix(in srgb, var(--color-brand-primary) 10%, transparent);
+  }
+  .issues-filters__compact-chevron { transition: transform 0.15s ease; }
+  /* Compact: chevron points right; filter rows collapsed */
+  .issues-filters.is-compact .issues-filters__compact-chevron { transform: rotate(-90deg); }
+  .issues-filters.is-compact .issues-filters__rows { display: none; }
+  .issues-filters.is-compact .issues-filters__compact-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding-top: 0.35rem;
+  }
+  .issues-filters__compact-chips { display: none; }
 </style>

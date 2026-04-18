@@ -1,0 +1,24 @@
+---
+/**
+ * NotePage — full-page view of one supporting note from notes/.
+ * Headings are already id-prefixed server-side so the right-sidebar TOC
+ * links resolve to anchors inside this panel without colliding with others.
+ */
+import type { IssueNote } from '@loaders/issues';
+import type { TocEntry } from '../../server/toc';
+
+interface Props {
+  note: IssueNote & { toc: TocEntry[] };
+}
+
+const { note: n } = Astro.props;
+---
+
+<section class="issue-panel" data-panel={`note-${n.name}`} role="tabpanel" hidden>
+  <div class="issue-doc">
+    <div class="issue-doc__path">notes/{n.name}.md</div>
+    <div class="issue-doc__body markdown-content">
+      <Fragment set:html={n.html} />
+    </div>
+  </div>
+</section>

@@ -1,6 +1,6 @@
 ---
 title: "Group by component / milestone / priority"
-done: false
+state: review
 ---
 
 Add a **Group by** control that splits the table into sub-sections grouped by a chosen dimension.

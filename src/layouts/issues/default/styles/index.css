@@ -1,0 +1,31 @@
+/*
+ * Index-page shell styles. Component-specific styles live inside each
+ * component's <style> block (FilterBar / IssuesTable / etc.) — only the
+ * outer page frame lives here.
+ */
+
+.issues-index {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+.issues-index__header { margin-bottom: 1.25rem; }
+.issues-index__titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.issues-index__title { margin: 0 0 0.25rem; font-size: var(--ui-text-title); font-weight: var(--font-weight-normal); }
+.issues-index__summary {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--ui-text-body);
+}
+.issues-index__empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+.issues-index__empty a { color: var(--color-brand-primary); }

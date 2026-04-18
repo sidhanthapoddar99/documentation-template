@@ -1,0 +1,74 @@
+---
+/**
+ * PresetStrip - Horizontal strip of preset view buttons read from the
+ * tracker's root settings.json. Selecting a preset hands off to client.ts
+ * which writes the preset's filters / state / group / sort / search to the
+ * URL so everything remains shareable.
+ *
+ * Empty strip when no presets are defined.
+ */
+import type { IssuesPresetView } from '@loaders/issues';
+
+interface Props {
+  presets: IssuesPresetView[];
+}
+
+const { presets } = Astro.props;
+if (!presets || presets.length === 0) return null as any;
+---
+
+<div class="issues-presets" role="toolbar" aria-label="Preset views">
+  <span class="issues-presets__label">Views</span>
+  {presets.map((p, i) => (
+    <button type="button" class="issues-presets__btn" data-preset-index={i}>
+      {p.name}
+    </button>
+  ))}
+</div>
+
+<style>
+  .issues-presets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border-default);
+    border-radius: 8px;
+    background: var(--color-bg-secondary);
+  }
+  .issues-presets__label {
+    font-size: var(--ui-text-micro);
+    color: var(--color-text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 0.25rem;
+  }
+  .issues-presets__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.28rem 0.7rem;
+    font-size: var(--ui-text-micro);
+    font-weight: 500;
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    font-family: inherit;
+  }
+  .issues-presets__btn:hover {
+    color: var(--color-brand-primary);
+    border-color: var(--color-brand-primary);
+    background: color-mix(in srgb, var(--color-brand-primary) 10%, transparent);
+  }
+  .issues-presets__btn.is-active {
+    color: var(--color-brand-primary);
+    border-color: var(--color-brand-primary);
+    background: color-mix(in srgb, var(--color-brand-primary) 14%, transparent);
+  }
+</style>

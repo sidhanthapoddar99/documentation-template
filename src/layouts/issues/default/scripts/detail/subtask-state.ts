@@ -1,0 +1,166 @@
+/**
+ * Subtask state cycling. Clicking a state icon cycles
+ * open → review → closed → cancelled → open, updates every surface that
+ * shows the subtask (overview list, comprehensive list, subtask page,
+ * sidebar, subtasks index), and POSTs to /__editor/subtask-toggle so the
+ * change persists to settings.json. Failed POSTs roll back the UI.
+ */
+import { CYCLE, TERMINAL, readIcons, type SubtaskState } from './types';
+
+const ICONS = readIcons();
+
+async function postState(filePath: string, state: SubtaskState) {
+  const res = await fetch('/__editor/subtask-toggle', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ filePath, state }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+function setStateOn(el: HTMLElement | null, state: SubtaskState) {
+  if (!el) return;
+  el.dataset.state = state;
+  el.className = el.className.replace(/\bstate-(open|review|closed|cancelled)\b/g, '').trim() + ` state-${state}`;
+}
+
+function applySubtaskState(slug: string, state: SubtaskState) {
+  const isDone = TERMINAL.includes(state);
+
+  const overviewItem = document.querySelector<HTMLElement>(
+    `.issue-overview-subtasks__item[data-subtask-slug="${CSS.escape(slug)}"]`,
+  );
+  setStateOn(overviewItem, state);
+  const overviewBtn = overviewItem?.querySelector<HTMLElement>('.issue-overview-subtasks__state');
+  if (overviewBtn) {
+    overviewBtn.dataset.state = state;
+    overviewBtn.innerHTML = ICONS[state];
+  }
+
+  const compItem = document.querySelector<HTMLElement>(
+    `.issue-comprehensive__item[data-subtask-slug="${CSS.escape(slug)}"]`,
+  );
+  setStateOn(compItem, state);
+  const compBtn = compItem?.querySelector<HTMLElement>('.issue-comprehensive__state');
+  if (compBtn) {
+    compBtn.dataset.state = state;
+    compBtn.innerHTML = ICONS[state];
+  }
+  const compPill = compItem?.querySelector<HTMLElement>('.issue-comprehensive__pill');
+  if (compPill) compPill.textContent = state;
+
+  const page = document.querySelector<HTMLElement>(
+    `.issue-subtask-page[data-subtask-slug="${CSS.escape(slug)}"]`,
+  );
+  if (page) {
+    page.dataset.state = state;
+    const pill = page.querySelector<HTMLElement>('[data-state-pill]');
+    if (pill) pill.textContent = state;
+  }
+
+  const sideBtn = document.querySelector<HTMLElement>(
+    `.issue-sidebar__item[data-subtask-slug="${CSS.escape(slug)}"]`,
+  );
+  if (sideBtn) {
+    sideBtn.dataset.state = state;
+    sideBtn.classList.toggle('is-done', isDone);
+    const icon = sideBtn.querySelector<HTMLElement>('[data-state-icon]');
+    if (icon) icon.innerHTML = ICONS[state];
+  }
+
+  const indexLink = document.querySelector<HTMLElement>(
+    `.issue-meta-index__link[data-subtask-slug="${CSS.escape(slug)}"]`,
+  );
+  setStateOn(indexLink, state);
+  const indexIcon = indexLink?.querySelector<HTMLElement>('[data-state-icon]');
+  if (indexIcon) indexIcon.innerHTML = ICONS[state];
+
+  updateOverviewProgress();
+  updateSidebarSubtasksCount();
+  updateComprehensiveTabCounts();
+}
+
+function updateOverviewProgress() {
+  const items = document.querySelectorAll<HTMLElement>('.issue-overview-subtasks__item');
+  if (!items.length) return;
+  let closed = 0, cancelled = 0, review = 0;
+  items.forEach((i) => {
+    const s = i.dataset.state as SubtaskState;
+    if (s === 'closed') closed++;
+    else if (s === 'cancelled') cancelled++;
+    else if (s === 'review') review++;
+  });
+  const done = closed + cancelled;
+  const total = items.length;
+  const count = document.getElementById('overview-subtasks-count');
+  if (count) count.textContent = `${done} / ${total}`;
+  const bar = document.getElementById('overview-subtasks-bar');
+  if (bar) {
+    const pct = (n: number) => `${total ? (n / total) * 100 : 0}%`;
+    const segs = bar.querySelectorAll<HTMLElement>('.issue-overview-subtasks__seg');
+    if (segs[0]) segs[0].style.width = pct(closed);
+    if (segs[1]) segs[1].style.width = pct(cancelled);
+    if (segs[2]) segs[2].style.width = pct(review);
+  }
+}
+
+function updateComprehensiveTabCounts() {
+  const items = document.querySelectorAll<HTMLElement>('.issue-comprehensive__item');
+  const counts: Record<string, number> = { open: 0, review: 0, closed: 0, cancelled: 0 };
+  items.forEach((i) => {
+    const s = i.dataset.state || '';
+    if (s in counts) counts[s]++;
+  });
+  const total = items.length;
+  const set = (key: string, n: number) => {
+    const el = document.querySelector<HTMLElement>(`[data-comprehensive-tab="${key}"] .issue-comprehensive__tab-count`);
+    if (el) el.textContent = String(n);
+  };
+  set('open', counts.open);
+  set('review', counts.review);
+  set('closed', counts.closed);
+  set('cancelled', counts.cancelled);
+  set('all', total);
+}
+
+function updateSidebarSubtasksCount() {
+  const items = document.querySelectorAll<HTMLElement>('.issue-sidebar__item.is-subtask');
+  if (!items.length) return;
+  const done = Array.from(items).filter((i) => TERMINAL.includes(i.dataset.state as SubtaskState)).length;
+  const review = Array.from(items).filter((i) => i.dataset.state === 'review').length;
+  const heading = document.getElementById('sidebar-subtasks-count');
+  if (heading) {
+    heading.textContent = `${done}/${items.length}`;
+    if (review > 0) {
+      const dot = document.createElement('span');
+      dot.className = 'issue-sidebar__review-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      dot.title = `${review} awaiting review`;
+      heading.appendChild(dot);
+    }
+  }
+}
+
+async function handleStateChange(slug: string, filePath: string, nextState: SubtaskState, prevState: SubtaskState) {
+  applySubtaskState(slug, nextState);
+  try {
+    await postState(filePath, nextState);
+  } catch (err) {
+    console.error('[issues] subtask state change failed', err);
+    applySubtaskState(slug, prevState);
+  }
+}
+
+export function wireStateButton(selector: string, itemSelector: string) {
+  document.querySelectorAll<HTMLElement>(selector).forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const item = btn.closest<HTMLElement>(itemSelector);
+      if (!item) return;
+      const prev = (btn.dataset.state || 'open') as SubtaskState;
+      const next = CYCLE[(CYCLE.indexOf(prev) + 1) % CYCLE.length];
+      handleStateChange(item.dataset.subtaskSlug!, item.dataset.file!, next, prev);
+    });
+  });
+}

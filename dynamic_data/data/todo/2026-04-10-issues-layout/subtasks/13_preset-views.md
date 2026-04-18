@@ -1,6 +1,6 @@
 ---
 title: "Preset views defined in `settings.json`"
-done: false
+state: review
 ---
 
 Define named view presets in the tracker's root `settings.json` so common scans ("phase-2 open work", "what's blocked", "my high-priority items") become one-click switches.

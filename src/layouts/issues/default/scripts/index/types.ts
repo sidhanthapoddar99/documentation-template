@@ -1,0 +1,45 @@
+/**
+ * Shared types for the issues index client runtime.
+ * Split out so filters/groups/presets modules can import them without
+ * reaching into client.ts.
+ */
+
+export type StateTab = 'open' | 'review' | 'closed' | 'cancelled' | 'all';
+
+export type ViewMode = 'cards' | 'table';
+
+export type FilterState = {
+  q: string;
+  fields: Record<string, Set<string>>;
+  sort: string | null;
+  dir: 'asc' | 'desc' | null;
+  page: number;
+  state: StateTab;
+  /** Group-by dimension (component | milestone | priority) or null */
+  group: string | null;
+};
+
+export interface PresetView {
+  name: string;
+  filters?: Record<string, string[]>;
+  /** DEPRECATED / IGNORED — views cannot pin status tabs. Warn if present. */
+  state?: string;
+  group?: string;
+  search?: string;
+  sort?: string;
+  dir?: 'asc' | 'desc';
+}
+
+export interface Config {
+  priorityOrder: string[];
+  statusOrder: string[];
+  colorsByField: Record<string, Record<string, string>>;
+  groupDimensions: string[];
+  groupOrderByField: Record<string, string[]>;
+  presets: PresetView[];
+}
+
+export type GroupSubState = { tab: StateTab; page: number };
+
+export const FIELDS = ['priority', 'component', 'milestone', 'labels'] as const;
+export const CLOSED_STATUSES = new Set(['closed', 'cancelled']);

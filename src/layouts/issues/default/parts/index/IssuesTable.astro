@@ -7,7 +7,7 @@
  * Labels column was intentionally removed — label filter still works from
  * the filter bar, but the column adds visual noise in dense rows.
  */
-import StatusBadge from '../StatusBadge.astro';
+import StatusBadge from '../shared/StatusBadge.astro';
 import type { Issue, IssuesVocabulary } from '@loaders/issues';
 
 interface Props {
@@ -42,7 +42,7 @@ const columns = [
 
 <div class="issues-view issues-view--table is-active" id="view-table">
   <div class="issues-table-wrap">
-    <table class="issues-table">
+    <table class="issues-table" id="issues-table-main" data-issues-table>
       <thead>
         <tr>
           {columns.map((col) => (
@@ -59,7 +59,7 @@ const columns = [
           ))}
         </tr>
       </thead>
-      <tbody>
+      <tbody id="issues-table-tbody">
         {issues.map((issue) => (
           <tr
             class={`issues-table__row ${isOverdue(issue.meta) ? 'is-overdue' : ''}`}
@@ -131,13 +131,15 @@ const columns = [
   .issues-table-wrap {
     border: 1px solid var(--color-border-default);
     border-radius: 6px;
-    overflow: auto;
-    background: var(--color-bg-secondary);
+    /* No overflow container — a scrollable ancestor would trap the sticky
+       thead. Transparent bg; the <table> itself owns the solid background. */
+    background: transparent;
   }
   .issues-table {
     width: 100%;
     border-collapse: collapse;
     font-size: var(--ui-text-body);
+    background: var(--color-bg-primary);
   }
   /* Hide the Status column when on the Open / Closed tabs — the tab itself
      tells the user the status. The column reappears on the All tab. */
@@ -145,18 +147,73 @@ const columns = [
   .issues-table.is-hide-status tbody td:nth-child(3) {
     display: none;
   }
+
+  /* Group-by: hide the grouped-on column (value is in the section header) */
+  .issues-table.is-hide-col-component thead th[data-col='component'],
+  .issues-table.is-hide-col-component tbody td:nth-child(1) { display: none; }
+  .issues-table.is-hide-col-milestone thead th[data-col='milestone'],
+  .issues-table.is-hide-col-milestone tbody td:nth-child(4) { display: none; }
+  .issues-table.is-hide-col-priority thead th[data-col='priority'],
+  .issues-table.is-hide-col-priority tbody td:nth-child(99) { display: none; }
+
+  /* Grouped view: each group renders as its own standalone <table>, not a
+     row injected into the main table. Client.ts hides the main table and
+     appends these sections to .issues-table__groups when a group is active. */
+  .issues-table__groups {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  /* Each group = its own boxed table, same shell as the main one. */
+  .issues-table__group-section {
+    border: 1px solid var(--color-border-default);
+    border-radius: 6px;
+    background: transparent;
+  }
+  /* Suppress the inner table's own border (the section owns it now). */
+  .issues-table__group-section .issues-table { border-radius: 0; }
+
+  .issues-table__group-title-bar {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border-default);
+    background: var(--color-bg-secondary);
+  }
+  .issues-table__group-title {
+    font-size: var(--ui-text-body);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    text-transform: capitalize;
+  }
+  .issues-table__group-count {
+    font-family: var(--font-family-mono);
+    font-size: var(--ui-text-micro);
+    color: var(--color-text-muted);
+  }
+  /* Group-section tables have their own internal thead; sticky is disabled
+     there because there's a unique thead per section and stacking would
+     conflict. The main thead keeps page-level sticky. */
+  .issues-table__group-section .issues-table thead th {
+    position: static;
+    background: color-mix(in srgb, var(--color-bg-tertiary, var(--color-bg-secondary)) 100%, transparent);
+  }
+  .issues-table__group-section .issues-table {
+    border-radius: 0;
+  }
   .issues-table thead th {
     text-align: left;
     padding: 0.55rem 0.75rem;
     border-bottom: 1px solid var(--color-border-default);
     white-space: nowrap;
     vertical-align: middle;
+    /* Sticky relative to the viewport. Offset by the site navbar height so
+       the header sits just below the nav when scrolling the page. */
     position: sticky;
-    top: 0;
-    /* Opaque bg needed for sticky, but kept neutral — page bg, no tint.
-       Separation from the body comes from the border-bottom only. */
+    top: var(--navbar-height, 0);
     background: var(--color-bg-primary);
-    z-index: 1;
+    z-index: 2;
   }
   .issues-table__th-title { min-width: 260px; }
   .issues-table__sort {
