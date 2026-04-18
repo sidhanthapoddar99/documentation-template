@@ -19,7 +19,7 @@
       }
     },
     "component": {
-      "values": ["live-editor", "dev-toolbar", "content-pipeline", "layouts", "loaders", "themes", "components", "ai-skills", "integrations", "infra"]
+      "values": ["live-editor", "dev-toolbar", "content-pipeline", "layouts-and-themes", "loaders", "components", "ai-skills", "integrations", "infra"]
     },
     "milestone": {
       "values": ["phase-1", "phase-2", "phase-3", "phase-4", "backlog", "unassigned"]

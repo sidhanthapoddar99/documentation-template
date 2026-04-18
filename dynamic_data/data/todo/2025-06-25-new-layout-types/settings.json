@@ -1,0 +1,13 @@
+{
+  "title": "New content layout types: roadmap and releases",
+  "description": "Add roadmap and releases as first-class content types alongside docs, blogs, issues, and custom.",
+  "status": "open",
+  "priority": "medium",
+  "component": "layouts-and-themes",
+  "milestone": "phase-2",
+  "labels": ["feature"],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}
