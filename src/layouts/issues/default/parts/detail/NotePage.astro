@@ -1,20 +1,26 @@
 ---
 /**
  * NotePage — full-page view of one supporting note from notes/.
- * Headings are already id-prefixed server-side so the right-sidebar TOC
- * links resolve to anchors inside this panel without colliding with others.
+ * Renders in standalone mode (one doc owns the DOM) or as a hidden panel
+ * co-hosted under DetailBody (legacy).
  */
 import type { IssueNote } from '@loaders/issues';
 import type { TocEntry } from '../../server/toc';
 
 interface Props {
-  note: IssueNote & { toc: TocEntry[] };
+  note: IssueNote & { toc?: TocEntry[] };
+  standalone?: boolean;
 }
 
-const { note: n } = Astro.props;
+const { note: n, standalone = false } = Astro.props;
 ---
 
-<section class="issue-panel" data-panel={`note-${n.name}`} role="tabpanel" hidden>
+<section
+  class={`issue-panel ${standalone ? 'is-active' : ''}`}
+  data-panel={`note-${n.name}`}
+  role="tabpanel"
+  hidden={!standalone}
+>
   <div class="issue-doc">
     <div class="issue-doc__path">notes/{n.name}.md</div>
     <div class="issue-doc__body markdown-content">

@@ -1,21 +1,27 @@
 ---
 /**
  * AgentLogPage — full-page view of one agent-log/ iteration entry.
- * Chip row under the header carries iteration number, agent, status, date.
+ * Renders in standalone mode (its own URL) or as a hidden panel (legacy).
  */
 import type { IssueAgentLog } from '@loaders/issues';
 import type { TocEntry } from '../../server/toc';
 import { logPanelKey } from '../../server/helpers';
 
 interface Props {
-  log: IssueAgentLog & { toc: TocEntry[] };
+  log: IssueAgentLog & { toc?: TocEntry[] };
+  standalone?: boolean;
 }
 
-const { log } = Astro.props;
+const { log, standalone = false } = Astro.props;
 const pathDisplay = log.group ? `agent-log/${log.group}/${log.name}.md` : `agent-log/${log.name}.md`;
 ---
 
-<section class="issue-panel" data-panel={logPanelKey(log)} role="tabpanel" hidden>
+<section
+  class={`issue-panel ${standalone ? 'is-active' : ''}`}
+  data-panel={logPanelKey(log)}
+  role="tabpanel"
+  hidden={!standalone}
+>
   <div class="issue-doc">
     <div class="issue-log__header">
       <span class="issue-doc__path">{pathDisplay}</span>

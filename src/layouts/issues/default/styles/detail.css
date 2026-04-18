@@ -93,7 +93,13 @@
   cursor: pointer;
   text-align: left;
   font-family: inherit;
+  text-decoration: none;
   transition: background 0.08s ease, color 0.08s ease;
+}
+.issue-sidebar__item:hover,
+.issue-sidebar__item:focus,
+.issue-sidebar__item:visited {
+  text-decoration: none;
 }
 .issue-sidebar__item:hover {
   background: color-mix(in srgb, var(--color-border-default) 35%, transparent);

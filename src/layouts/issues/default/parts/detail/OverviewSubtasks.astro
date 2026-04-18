@@ -2,11 +2,12 @@
 /**
  * OverviewSubtasks — flat subtask list rendered under the Overview panel.
  * No bodies; progress bar summarises closed / cancelled / review counts.
- * State buttons cycle via scripts/detail/client.ts.
+ * State buttons cycle via scripts/detail/client.ts. Titles link to the
+ * subtask's own page.
  */
-import type { IssueSubtask } from '@loaders/issues';
+import type { Issue, IssueSubtask } from '@loaders/issues';
 import { stateIconSvg } from '../../server/state-icon';
-import { pad } from '../../server/helpers';
+import { pad, subtaskUrl } from '../../server/helpers';
 
 interface Props {
   sortedSubtasks: IssueSubtask[];
@@ -14,9 +15,14 @@ interface Props {
   subtaskReview: number;
   closedCount: number;
   cancelledCount: number;
+  baseUrl: string;
+  issue: Issue;
 }
 
-const { sortedSubtasks, subtaskDone, subtaskReview, closedCount, cancelledCount } = Astro.props;
+const {
+  sortedSubtasks, subtaskDone, subtaskReview, closedCount, cancelledCount,
+  baseUrl, issue,
+} = Astro.props;
 const subtaskTotal = sortedSubtasks.length;
 if (subtaskTotal === 0) return null as any;
 const pct = (n: number) => (subtaskTotal ? (n / subtaskTotal) * 100 : 0);
@@ -49,7 +55,7 @@ const pct = (n: number) => (subtaskTotal ? (n / subtaskTotal) * 100 : 0);
           <Fragment set:html={stateIconSvg(s.state)} />
         </button>
         {s.sequence !== null && <span class="issue-overview-subtasks__num">{pad(s.sequence)}</span>}
-        <a href={`#subtask-${s.slug}`} class="issue-overview-subtasks__link">{s.title}</a>
+        <a href={subtaskUrl(baseUrl, issue.id, s)} class="issue-overview-subtasks__link">{s.title}</a>
       </li>
     ))}
   </ul>

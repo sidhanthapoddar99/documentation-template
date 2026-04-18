@@ -1,10 +1,12 @@
 /**
- * Extract headings from rendered markdown HTML and prefix their IDs so
- * multiple sub-docs coexisting in the same DOM (subtasks / notes /
- * agent-log panels) don't clash on ids like `#setup`.
+ * Extract headings from rendered markdown HTML.
  *
- * Returns the rewritten HTML plus a flat TOC list suitable for feeding the
- * right-sidebar TOC panel.
+ * `extractAndPrefixToc` rewrites heading IDs so multiple sub-docs can share
+ * one DOM without clashing on `#setup` et al. — used for the Comprehensive
+ * panel (many subtasks inline).
+ *
+ * `extractToc` leaves IDs untouched — used for standalone sub-doc pages
+ * where each sub-doc is the only document in the DOM.
  */
 export interface TocEntry {
   id: string;
@@ -31,4 +33,19 @@ export function extractAndPrefixToc(
     },
   );
   return { html: out, toc };
+}
+
+export function extractToc(html: string): TocEntry[] {
+  const toc: TocEntry[] = [];
+  html.replace(
+    /<h([1-6])([^>]*)>([\s\S]*?)<\/h\1>/gi,
+    (_m, tag: string, attrs: string, text: string) => {
+      const idMatch = /\bid="([^"]+)"/.exec(attrs);
+      if (!idMatch) return _m;
+      const cleanText = text.replace(/<[^>]*>/g, '').trim();
+      toc.push({ id: idMatch[1], level: parseInt(tag, 10), text: cleanText });
+      return _m;
+    },
+  );
+  return toc;
 }

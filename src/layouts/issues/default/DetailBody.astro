@@ -1,29 +1,23 @@
 ---
 /**
- * DetailBody — orchestrator for the per-issue detail page.
+ * DetailBody — overview page for a single issue.
  *
- * Heavy lifting lives in parts/detail/ (Astro components) and
- * scripts/detail/ (runtime). Shared helpers come from server/.
+ * Hosts only the overview and Comprehensive panels. Individual subtasks,
+ * notes, and agent-log entries live at their own URLs (see SubDocLayout).
  *
- * Layout shell is:
- *   [ DetailSidebar ] [ main ] [ MetaSidebar ]
- * main stacks the active panel (overview / comprehensive / subtask-<slug>
- * / note-<name> / log-<name>). panels.ts switches which panel is visible.
+ * Layout shell: [ DetailSidebar ] [ main ] [ MetaSidebar ]
+ * panels.ts switches overview ↔ comprehensive; anchors in DetailSidebar
+ * navigate to sub-doc pages on click.
  */
 import MetaPanel from './parts/shared/MetaPanel.astro';
 import DetailSidebar from './parts/detail/DetailSidebar.astro';
 import IssueThread from './parts/detail/IssueThread.astro';
 import OverviewSubtasks from './parts/detail/OverviewSubtasks.astro';
 import Comprehensive from './parts/detail/Comprehensive.astro';
-import SubtaskPage from './parts/detail/SubtaskPage.astro';
-import NotePage from './parts/detail/NotePage.astro';
-import AgentLogPage from './parts/detail/AgentLogPage.astro';
 import MetaSidebar from './parts/detail/MetaSidebar.astro';
 import { allStateIcons } from './server/state-icon';
 import { extractAndPrefixToc } from './server/toc';
-import {
-  TERMINAL, sortSubtasksForSidebar, terminalStartIndex, logPanelKey,
-} from './server/helpers';
+import { TERMINAL, sortSubtasksForSidebar, terminalStartIndex } from './server/helpers';
 import type { Issue, IssuesVocabulary } from '@loaders/issues';
 import './styles/detail.css';
 
@@ -36,7 +30,6 @@ interface Props {
 const { issue, vocabulary, baseUrl } = Astro.props;
 const { meta } = issue;
 
-// Tallies for the sidebar + Comprehensive tab counts
 const subtaskTotal = issue.subtasks.length;
 const subtaskDone = issue.subtasks.filter((s) => TERMINAL.includes(s.state)).length;
 const subtaskReview = issue.subtasks.filter((s) => s.state === 'review').length;
@@ -49,23 +42,12 @@ const terminalStartIdx = terminalStartIndex(sortedSubtasks);
 
 const statusColors = vocabulary.fields?.status?.colors || {};
 
-// Pre-process sub-doc HTML: prefix heading IDs so `#<id>` anchors stay
-// unambiguous across all the subtask / note / log panels sharing one DOM.
-const subtaskDocs = issue.subtasks.map((s) => {
+// Comprehensive panel is the one place multiple subtasks share a DOM —
+// prefix heading ids so `#setup` anchors across subtasks don't collide.
+const sortedSubtaskDocs = sortedSubtasks.map((s) => {
   const { html, toc } = extractAndPrefixToc(s.html, `subtask-${s.slug}`);
   return { ...s, html, toc };
 });
-const noteDocs = issue.notes.map((n) => {
-  const { html, toc } = extractAndPrefixToc(n.html, `note-${n.name}`);
-  return { ...n, html, toc };
-});
-const logDocs = issue.agentLogs.map((log) => {
-  const { html, toc } = extractAndPrefixToc(log.html, logPanelKey(log));
-  return { ...log, html, toc };
-});
-const sortedSubtaskDocs = sortedSubtasks.map(
-  (s) => subtaskDocs.find((d) => d.slug === s.slug)!,
-);
 ---
 
 <div class="issue-layout">
@@ -76,6 +58,8 @@ const sortedSubtaskDocs = sortedSubtasks.map(
     terminalStartIdx={terminalStartIdx}
     subtaskDone={subtaskDone}
     subtaskReview={subtaskReview}
+    mode="overview"
+    activeKey="overview"
   />
 
   <main class="issue-main">
@@ -93,6 +77,8 @@ const sortedSubtaskDocs = sortedSubtasks.map(
         subtaskReview={subtaskReview}
         closedCount={closedCount}
         cancelledCount={cancelledCount}
+        baseUrl={baseUrl}
+        issue={issue}
       />
     </section>
 
@@ -104,22 +90,11 @@ const sortedSubtaskDocs = sortedSubtasks.map(
       cancelledCount={cancelledCount}
       statusColors={statusColors}
     />
-
-    {subtaskDocs.map((s) => <SubtaskPage subtask={s} statusColors={statusColors} />)}
-    {noteDocs.map((n) => <NotePage note={n} />)}
-    {logDocs.map((log) => <AgentLogPage log={log} />)}
   </main>
 
-  <MetaSidebar
-    issue={issue}
-    sortedSubtasks={sortedSubtasks}
-    subtaskDocs={subtaskDocs}
-    noteDocs={noteDocs}
-    logDocs={logDocs}
-  />
+  <MetaSidebar issue={issue} sortedSubtasks={sortedSubtasks} />
 </div>
 
-<!-- Server-rendered state icons for client reuse (state cycling updates these in place) -->
 <script is:inline type="application/json" id="subtask-state-icons" set:html={JSON.stringify(allStateIcons())} />
 
 <script>

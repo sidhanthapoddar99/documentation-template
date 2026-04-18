@@ -1,0 +1,92 @@
+---
+/**
+ * SubDocLayout — standalone page for one subtask, note, or agent-log entry.
+ *
+ * Reuses DetailSidebar (mode: 'subdoc') and renders a single sub-doc in
+ * <main>. Right rail is a simplified TOC for this doc only. Sub-doc headings
+ * keep their native IDs because this page has only one document in the DOM.
+ */
+import DetailSidebar from './parts/detail/DetailSidebar.astro';
+import SubtaskPage from './parts/detail/SubtaskPage.astro';
+import NotePage from './parts/detail/NotePage.astro';
+import AgentLogPage from './parts/detail/AgentLogPage.astro';
+import SubDocMetaSidebar from './parts/detail/SubDocMetaSidebar.astro';
+import MetaPanel from './parts/shared/MetaPanel.astro';
+import { allStateIcons } from './server/state-icon';
+import { extractToc } from './server/toc';
+import { sortSubtasksForSidebar, terminalStartIndex, TERMINAL, logPanelKey } from './server/helpers';
+import type { Issue, IssuesVocabulary, IssueSubtask, IssueNote, IssueAgentLog } from '@loaders/issues';
+import './styles/detail.css';
+
+interface Props {
+  issue: Issue;
+  vocabulary: IssuesVocabulary;
+  baseUrl: string;
+  subDoc:
+    | { kind: 'subtask'; subtask: IssueSubtask }
+    | { kind: 'note'; note: IssueNote }
+    | { kind: 'log'; log: IssueAgentLog };
+}
+
+const { issue, vocabulary, baseUrl, subDoc } = Astro.props;
+const { meta } = issue;
+
+const sortedSubtasks = sortSubtasksForSidebar(issue.subtasks);
+const terminalStartIdx = terminalStartIndex(sortedSubtasks);
+const subtaskDone = issue.subtasks.filter((s) => TERMINAL.includes(s.state)).length;
+const subtaskReview = issue.subtasks.filter((s) => s.state === 'review').length;
+const statusColors = vocabulary.fields?.status?.colors || {};
+
+let activeKey: string;
+let toc;
+if (subDoc.kind === 'subtask') {
+  activeKey = `subtask-${subDoc.subtask.slug}`;
+  toc = extractToc(subDoc.subtask.html);
+} else if (subDoc.kind === 'note') {
+  activeKey = `note-${subDoc.note.name}`;
+  toc = extractToc(subDoc.note.html);
+} else {
+  activeKey = logPanelKey(subDoc.log);
+  toc = extractToc(subDoc.log.html);
+}
+---
+
+<div class="issue-layout">
+  <DetailSidebar
+    baseUrl={baseUrl}
+    issue={issue}
+    sortedSubtasks={sortedSubtasks}
+    terminalStartIdx={terminalStartIdx}
+    subtaskDone={subtaskDone}
+    subtaskReview={subtaskReview}
+    mode="subdoc"
+    activeKey={activeKey}
+  />
+
+  <main class="issue-main">
+    <header class="issue-main__header">
+      <h1 class="issue-main__title">{meta.title}</h1>
+      {meta.description && <p class="issue-main__description">{meta.description}</p>}
+      <MetaPanel issue={issue} vocabulary={vocabulary} />
+    </header>
+
+    {subDoc.kind === 'subtask' && (
+      <SubtaskPage subtask={subDoc.subtask} statusColors={statusColors} standalone />
+    )}
+    {subDoc.kind === 'note' && (
+      <NotePage note={subDoc.note} standalone />
+    )}
+    {subDoc.kind === 'log' && (
+      <AgentLogPage log={subDoc.log} standalone />
+    )}
+  </main>
+
+  <SubDocMetaSidebar toc={toc} />
+</div>
+
+<script is:inline type="application/json" id="subtask-state-icons" set:html={JSON.stringify(allStateIcons())} />
+
+<script>
+  import { initIssuesDetail } from './scripts/detail/client';
+  initIssuesDetail();
+</script>

@@ -15,6 +15,28 @@ export function knownPanel(key: string): boolean {
   return !!document.querySelector(`.issue-panel[data-panel="${CSS.escape(key)}"]`);
 }
 
+/** Rewrite old hash-panel URLs (`#subtask-foo`, `#note-bar`, `#log-baz`,
+ *  `#log-<group>--<name>`) into the new sub-doc path. Returns the full path
+ *  + search string, or null if the hash is not a legacy sub-doc hash. */
+export function legacyHashRedirect(hash: string): string | null {
+  const base = location.pathname.replace(/\/+$/, '');
+  if (hash.startsWith('subtask-')) {
+    return `${base}/subtasks/${hash.slice('subtask-'.length)}${location.search}`;
+  }
+  if (hash.startsWith('note-')) {
+    return `${base}/notes/${hash.slice('note-'.length)}${location.search}`;
+  }
+  if (hash.startsWith('log-')) {
+    const rest = hash.slice('log-'.length);
+    const sep = rest.indexOf('--');
+    if (sep >= 0) {
+      return `${base}/agent-log/${rest.slice(0, sep)}/${rest.slice(sep + 2)}${location.search}`;
+    }
+    return `${base}/agent-log/${rest}${location.search}`;
+  }
+  return null;
+}
+
 export function expandSectionFor(panelKey: string) {
   const sidebar = document.querySelector<HTMLElement>('.issue-sidebar');
   const btn = sidebar?.querySelector<HTMLElement>(
@@ -57,14 +79,21 @@ export function activate(panelKey: string, opts: { updateHash?: boolean } = {}) 
 
 export function wirePanelSwitching() {
   const sidebar = document.querySelector<HTMLElement>('.issue-sidebar');
+  // Only buttons swap panels. Anchors navigate away on their own, even if
+  // they also carry data-panel for active-state styling.
   sidebar?.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-panel]');
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-panel]');
     if (!btn) return;
     activate(btn.dataset.panel!);
   });
 
   const rawHash = decodeURIComponent(location.hash.slice(1));
   if (rawHash) {
+    const redirect = legacyHashRedirect(rawHash);
+    if (redirect) {
+      location.replace(redirect);
+      return;
+    }
     if (rawHash.startsWith('comprehensive-')) {
       activate('comprehensive', { updateHash: false });
       requestAnimationFrame(() => {

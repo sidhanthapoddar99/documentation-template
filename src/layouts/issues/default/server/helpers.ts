@@ -56,11 +56,39 @@ export function initial(name: string | null | undefined): string {
   return (name || '?').trim().charAt(0).toUpperCase();
 }
 
-/** Panel key for an agent-log entry. Flat files use `log-<name>`, grouped
- *  files use `log-<group>--<name>` so nesting doesn't cause id clashes when
- *  the same filename (`001_spike.md`) appears in two subgroups. */
+/** Panel key for an agent-log entry. Used only on the overview detail page
+ *  where multiple sub-docs share one DOM. Sub-doc pages (their own URL) use
+ *  the URL path instead. Flat files: `log-<name>`; grouped: `log-<group>--<name>`. */
 export function logPanelKey(log: IssueAgentLog): string {
   return log.group ? `log-${log.group}--${log.name}` : `log-${log.name}`;
+}
+
+// ===== Sub-doc URL helpers (subtask 17) =====
+// Each sub-doc has its own URL so links are shareable / bookmarkable and
+// every heading anchor works natively without id-prefixing.
+
+function joinPath(base: string, ...parts: string[]): string {
+  const b = base.replace(/\/+$/, '');
+  const tail = parts.map((p) => p.replace(/^\/+|\/+$/g, '')).filter(Boolean).join('/');
+  return tail ? `${b}/${tail}` : b;
+}
+
+export function detailUrl(baseUrl: string, issueId: string): string {
+  return joinPath(baseUrl, issueId);
+}
+
+export function subtaskUrl(baseUrl: string, issueId: string, subtask: IssueSubtask): string {
+  return joinPath(baseUrl, issueId, 'subtasks', subtask.slug);
+}
+
+export function noteUrl(baseUrl: string, issueId: string, note: { name: string }): string {
+  return joinPath(baseUrl, issueId, 'notes', note.name);
+}
+
+export function logUrl(baseUrl: string, issueId: string, log: IssueAgentLog): string {
+  return log.group
+    ? joinPath(baseUrl, issueId, 'agent-log', log.group, log.name)
+    : joinPath(baseUrl, issueId, 'agent-log', log.name);
 }
 
 /** Group agent logs: { top: flat files, bySubgroup: Map<group, logs[]> } */

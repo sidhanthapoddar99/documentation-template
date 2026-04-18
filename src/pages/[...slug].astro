@@ -31,6 +31,9 @@ const extIssuesIndexLayouts = import.meta.glob('@ext-layouts/issues/*/IndexLayou
 const builtinIssuesDetailLayouts = import.meta.glob('/src/layouts/issues/*/DetailLayout.astro');
 const extIssuesDetailLayouts = import.meta.glob('@ext-layouts/issues/*/DetailLayout.astro');
 
+const builtinIssuesSubDocLayouts = import.meta.glob('/src/layouts/issues/*/SubDocLayout.astro');
+const extIssuesSubDocLayouts = import.meta.glob('@ext-layouts/issues/*/SubDocLayout.astro');
+
 const builtinCustomLayouts = import.meta.glob('/src/layouts/custom/*/Layout.astro');
 const extCustomLayouts = import.meta.glob('@ext-layouts/custom/*/Layout.astro');
 
@@ -68,6 +71,7 @@ const blogIndexLayouts = mergeLayouts(builtinBlogIndexLayouts, extBlogIndexLayou
 const blogPostLayouts = mergeLayouts(builtinBlogPostLayouts, extBlogPostLayouts, layoutNamePattern);
 const issuesIndexLayouts = mergeLayouts(builtinIssuesIndexLayouts, extIssuesIndexLayouts, layoutNamePattern);
 const issuesDetailLayouts = mergeLayouts(builtinIssuesDetailLayouts, extIssuesDetailLayouts, layoutNamePattern);
+const issuesSubDocLayouts = mergeLayouts(builtinIssuesSubDocLayouts, extIssuesSubDocLayouts, layoutNamePattern);
 const customLayouts = mergeLayouts(builtinCustomLayouts, extCustomLayouts, layoutNamePattern);
 const navbarLayouts = mergeLayouts(builtinNavbarLayouts, extNavbarLayouts, layoutNamePattern);
 const footerLayouts = mergeLayouts(builtinFooterLayouts, extFooterLayouts, layoutNamePattern);
@@ -144,6 +148,41 @@ export async function getStaticPaths() {
           params: { slug: `${baseUrl}/${issue.id}` },
           props: { pageName, pageConfig, dataPath, pageType: 'issues-detail', issue, vocabulary, layout },
         });
+
+        // Sub-doc pages — one URL per subtask / note / agent-log entry
+        for (const s of issue.subtasks) {
+          paths.push({
+            params: { slug: `${baseUrl}/${issue.id}/subtasks/${s.slug}` },
+            props: {
+              pageName, pageConfig, dataPath, pageType: 'issues-subdoc',
+              issue, vocabulary, layout,
+              subDoc: { kind: 'subtask', subtask: s },
+            },
+          });
+        }
+        for (const n of issue.notes) {
+          paths.push({
+            params: { slug: `${baseUrl}/${issue.id}/notes/${n.name}` },
+            props: {
+              pageName, pageConfig, dataPath, pageType: 'issues-subdoc',
+              issue, vocabulary, layout,
+              subDoc: { kind: 'note', note: n },
+            },
+          });
+        }
+        for (const log of issue.agentLogs) {
+          const slugPath = log.group
+            ? `${baseUrl}/${issue.id}/agent-log/${log.group}/${log.name}`
+            : `${baseUrl}/${issue.id}/agent-log/${log.name}`;
+          paths.push({
+            params: { slug: slugPath },
+            props: {
+              pageName, pageConfig, dataPath, pageType: 'issues-subdoc',
+              issue, vocabulary, layout,
+              subDoc: { kind: 'log', log },
+            },
+          });
+        }
       }
     }
   }
@@ -156,7 +195,7 @@ export async function getStaticPaths() {
 // ============================================================================
 
 // In server mode, getStaticPaths() is ignored, so we compute props from URL
-let { pageName, pageConfig, dataPath, pageType, doc, post, issue, vocabulary, issues, allContent, layout: configLayout } = Astro.props;
+let { pageName, pageConfig, dataPath, pageType, doc, post, issue, vocabulary, issues, allContent, layout: configLayout, subDoc } = Astro.props;
 
 // Server mode: compute props dynamically if not provided by getStaticPaths
 if (!pageType) {
@@ -219,11 +258,36 @@ if (!pageType) {
           vocabulary = loaded.vocabulary;
           pageType = 'issues-index';
         } else {
-          const issueId = slug.slice(baseUrl.length + 1);
+          const rest = slug.slice(baseUrl.length + 1);
+          const parts = rest.split('/');
+          const issueId = parts[0];
           const loaded = await loadIssues(dataPath);
           vocabulary = loaded.vocabulary;
           issue = await loadIssue(dataPath, issueId);
-          pageType = 'issues-detail';
+
+          if (parts.length === 1) {
+            pageType = 'issues-detail';
+          } else if (issue) {
+            // /<base>/<id>/(subtasks|notes|agent-log)/...
+            const kind = parts[1];
+            if (kind === 'subtasks' && parts.length === 3) {
+              const s = issue.subtasks.find((st) => st.slug === parts[2]);
+              if (s) { pageType = 'issues-subdoc'; subDoc = { kind: 'subtask', subtask: s }; }
+            } else if (kind === 'notes' && parts.length === 3) {
+              const n = issue.notes.find((nt) => nt.name === parts[2]);
+              if (n) { pageType = 'issues-subdoc'; subDoc = { kind: 'note', note: n }; }
+            } else if (kind === 'agent-log') {
+              let log: typeof issue.agentLogs[number] | undefined;
+              if (parts.length === 3) {
+                log = issue.agentLogs.find((l) => l.group === null && l.name === parts[2]);
+              } else if (parts.length === 4) {
+                log = issue.agentLogs.find((l) => l.group === parts[2] && l.name === parts[3]);
+              }
+              if (log) { pageType = 'issues-subdoc'; subDoc = { kind: 'log', log }; }
+            }
+          }
+
+          if (!pageType) return new Response('Not Found', { status: 404 });
         }
       }
       break;
@@ -284,7 +348,7 @@ if (pageType === 'docs-index' && allContent?.length > 0) {
 /**
  * Validate and resolve layout - throws descriptive errors if not found
  */
-function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
+function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post' | 'subdoc') {
   if (!layoutAlias) {
     throw new Error(
       `\n[CONFIG ERROR] Missing 'layout' field for page "${pageName}".\n` +
@@ -353,16 +417,19 @@ function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post') {
     available = availableIssuesStyles;
     if (variant === 'index') {
       entry = issuesIndexLayouts.byStyle.get(style);
+    } else if (variant === 'subdoc') {
+      entry = issuesSubDocLayouts.byStyle.get(style);
     } else {
       entry = issuesDetailLayouts.byStyle.get(style);
     }
 
     if (!entry) {
+      const layoutFileName = variant === 'index' ? 'Index' : variant === 'subdoc' ? 'SubDoc' : 'Detail';
       throw new Error(
         `\n[CONFIG ERROR] Issues layout "${style}" does not exist.\n` +
         `  Page: ${pageName}\n` +
         `  Config: ${layoutAlias}\n` +
-        `  Expected: src/layouts/issues/${style}/${variant === 'index' ? 'Index' : 'Detail'}Layout.astro\n` +
+        `  Expected: src/layouts/issues/${style}/${layoutFileName}Layout.astro\n` +
         `  Available: ${available.join(', ') || '(none)'}\n`
       );
     }
@@ -426,6 +493,9 @@ if (pageType === 'custom' || pageType === 'docs') {
 } else if (pageType === 'issues-detail') {
   const loader = validateAndResolve(layout, 'post');
   LayoutComponent = (await loader()).default;
+} else if (pageType === 'issues-subdoc') {
+  const loader = validateAndResolve(layout, 'subdoc');
+  LayoutComponent = (await loader()).default;
 }
 
 // Resolve navbar and footer components
@@ -439,6 +509,12 @@ else if (pageType === 'blog-post' && post) title = post.data.title;
 else if (pageType === 'blog-index') title = 'Blog';
 else if (pageType === 'issues-index') title = (vocabulary?.label as string) || 'Issues';
 else if (pageType === 'issues-detail' && issue) title = issue.meta.title;
+else if (pageType === 'issues-subdoc' && issue && subDoc) {
+  const subTitle = subDoc.kind === 'subtask' ? subDoc.subtask.title
+    : subDoc.kind === 'note' ? subDoc.note.name
+    : subDoc.log.name;
+  title = `${subTitle} · ${issue.meta.title}`;
+}
 
 // Derive content type from page type for dev toolbar
 let contentType: 'docs' | 'blog' | 'custom' | undefined;
@@ -496,6 +572,16 @@ if (pageType === 'docs' && doc) {
     issue,
     vocabulary,
     baseUrl: pageConfig.base_url,
+  };
+} else if (pageType === 'issues-subdoc') {
+  if (!issue || !subDoc) {
+    return new Response('Not Found', { status: 404 });
+  }
+  layoutProps = {
+    issue,
+    vocabulary,
+    baseUrl: pageConfig.base_url,
+    subDoc,
   };
 }
 ---
