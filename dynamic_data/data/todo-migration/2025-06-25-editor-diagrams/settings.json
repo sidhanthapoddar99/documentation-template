@@ -1,0 +1,14 @@
+{
+  "title": "Editor diagrams",
+  "description": "Diagram preview & editing inside the editor pane: Mermaid, Graphviz/DOT, and Excalidraw (inline editor for .excalidraw files).",
+  "status": "open",
+  "priority": "medium",
+  "type": "feature",
+  "component": "live-editor",
+  "milestone": "phase-2",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

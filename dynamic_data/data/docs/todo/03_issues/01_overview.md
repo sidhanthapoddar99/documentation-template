@@ -12,11 +12,12 @@ Map H2 = issue, top-level bullet under it = subtask. All `milestone: phase-2` un
 
 | Issue                                                                            | Subtasks | Component   | Status      |
 |----------------------------------------------------------------------------------|---------:|-------------|-------------|
-| [editor-core](/todo-migration/2025-06-25-editor-core)                            | 14       | live-editor | in-progress |
-| [editor-advanced](/todo-migration/2025-06-25-editor-advanced)                    | 6        | live-editor | open        |
-| [editor-navigation-and-layout](/todo-migration/2025-06-25-editor-navigation-and-layout) | 5        | live-editor | in-progress |
+| [editor-core](/todo-migration/2025-06-25-editor-core)                            | 13 (+ note) | live-editor | in-progress |
+| [editor-advanced](/todo-migration/2025-06-25-editor-advanced)                    | 7 (+ 3 notes) | live-editor | open    |
+| [editor-navigation-and-layout](/todo-migration/2025-06-25-editor-navigation-and-layout) | 6 | live-editor | in-progress |
+| [editor-diagrams](/todo-migration/2025-06-25-editor-diagrams)                    | 3 (+ note) | live-editor | open      |
+| [view-modes](/todo-migration/2025-06-25-view-modes)                              | 4 (+ note) | live-editor | in-progress |
 | [sync-and-presence](/todo-migration/2025-06-25-sync-and-presence)                | 3        | live-editor | in-progress |
-| [true-wysiwyg](/todo-migration/2025-06-25-true-wysiwyg)                          | —        | live-editor | open (low)  |
 
 Editor menu (doc switcher), menubar & view modes, chrome toggles, TOC view, asset manager, v1 cleanup, editor v2 documentation, and resolved historical bugs are subtasks under **editor-core**.
 
@@ -26,13 +27,10 @@ Preview split vertical and RAM / CPU viewer are subtasks under **editor-advanced
 
 | # | Issue                              | Subtasks | Component   | Status      | Notes                                                                                |
 |---|------------------------------------|---------:|-------------|-------------|--------------------------------------------------------------------------------------|
-| 1 | File explorer                      | 7        | live-editor | in-progress | tree ✓ — left: context menu, new file, new folder, rename, delete, form editors      |
-| 2 | Diagram preview (in editor)        | 3        | live-editor | open        | Mermaid / Graphviz / Excalidraw inside editor pane                                   |
-| 3 | Canvas rendering research          | 1        | live-editor | done        | Researched ✓; revisit when viable libs emerge                                        |
-| 4 | Issues tracker layout              | 7        | layouts     | in-progress | per your instruction — under `layouts`, phase-2                                      |
-| 5 | Global URL prefix                  | 1        | loaders     | open        | `app.com/docs/...` configurable in `site.yaml`                                       |
-| 6 | Editor security (future)           | 2        | infra       | open (low)  | password / OAuth, access codes                                                       |
-| 7 | Editor server management (future)  | 1        | infra       | open (low)  | PM2, health endpoint, graceful shutdown                                              |
+| 1 | Issues tracker layout              | 7        | layouts     | in-progress | per your instruction — under `layouts`, phase-2                                      |
+| 2 | Global URL prefix                  | 1        | loaders     | open        | `app.com/docs/...` configurable in `site.yaml`                                       |
+| 3 | Editor security (future)           | 2        | infra       | open (low)  | password / OAuth, access codes                                                       |
+| 4 | Editor server management (future)  | 1        | infra       | open (low)  | PM2, health endpoint, graceful shutdown                                              |
 
 ### Folded into existing issues (no new issue needed)
 
@@ -52,42 +50,6 @@ Preview split vertical and RAM / CPU viewer are subtasks under **editor-advanced
 > **Migrated to issues:** Editor section → [editor-core](/todo-migration/2025-06-25-editor-core),
 > [editor-advanced](/todo-migration/2025-06-25-editor-advanced),
 > [editor-sidebars](/todo-migration/2025-06-25-editor-sidebars).
-
-## Explorer
-
-- [x] File tree sidebar
-  - [x] Text chevrons, indent lines, extension badges
-  - [x] No icons, clean layout
-  - [x] Auto-open from session / referrer
-  - [x] Session persistence (survives HMR)
-- [ ] <span style="color: #e55561"> Right-click context menu</span> — <span style="color: #e55561">built, needs testing</span>
-- [ ] <span style="color: #e55561">New file creator dialog</span>
-  - [ ] <span style="color: #e55561">Auto XX_ prefix assignment</span>
-  - [ ] <span style="color: #e55561">Frontmatter template</span>
-- [ ] <span style="color: #e55561">New folder creator</span>
-- [ ] <span style="color: #e55561">Rename file / folder</span>
-- [ ] <span style="color: #e55561">Delete file / folder</span>
-- [ ] settings.json form editor per folder
-- [ ] Frontmatter form editor per file
-
-## Diagrams
-
-- [ ] Mermaid diagram preview
-  - [ ] Live render in preview pane
-  - [ ] Syntax highlighting in source
-- [ ] Graphviz / DOT rendering
-  - [ ] Live preview for ```dot code blocks
-- [ ] Excalidraw integration
-  - [ ] .excalidraw file editing
-  - [ ] Inline diagram editor
-
-## Canvas Rendering
-
-- [ ] Replace DOM with canvas rendering
-  - [x] Researched — no production-ready solution exists
-  - [x] Google Docs uses DOM as source of truth
-  - [x] Decision: stay with CM6 for now
-  - [ ] Revisit when viable libraries emerge
 
 ## Issues Layout
 

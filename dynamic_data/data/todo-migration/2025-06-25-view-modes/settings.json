@@ -1,0 +1,14 @@
+{
+  "title": "View modes",
+  "description": "How the document is rendered to the user: Source (default), Live Preview, Preview (rendered HTML), True WYSIWYG (future), View-only / edit-mode lock.",
+  "status": "in-progress",
+  "priority": "medium",
+  "type": "feature",
+  "component": "live-editor",
+  "milestone": "phase-2",
+  "labels": [],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2025-06-25",
+  "due": null
+}

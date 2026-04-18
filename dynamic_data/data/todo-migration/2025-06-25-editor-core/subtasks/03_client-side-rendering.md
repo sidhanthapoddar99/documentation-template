@@ -5,6 +5,8 @@ done: false
 
 Move markdown → HTML rendering from server to browser so preview is instant.
 
+> See [notes/01_client-side-rendering.md](../notes/01_client-side-rendering.md) for the design rationale and migration plan.
+
 ## Tasks
 
 - [ ] Move markdown → HTML rendering from server to browser
