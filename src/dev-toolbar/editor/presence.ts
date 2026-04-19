@@ -210,6 +210,15 @@ export class PresenceManager {
     return Array.from(this.users.values());
   }
 
+  /** Cache-inspector snapshot: counts + one row per user. */
+  getStats(): { userCount: number; streamCount: number; users: PresenceUser[] } {
+    return {
+      userCount: this.users.size,
+      streamCount: this.streams.size,
+      users: this.getUsers(),
+    };
+  }
+
   /**
    * Start periodic cleanup of stale users.
    * Cleanup interval runs at 1/3 of stale threshold for responsiveness.

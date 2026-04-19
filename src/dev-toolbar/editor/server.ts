@@ -176,10 +176,11 @@ export class EditorStore {
   /**
    * Return stats for all open documents (for /__editor/stats endpoint).
    */
-  getDocumentStats(): { filePath: string; dirty: boolean }[] {
+  getDocumentStats(): { filePath: string; dirty: boolean; bytes: number }[] {
     return [...this.documents.entries()].map(([filePath, doc]) => ({
       filePath,
       dirty: doc.dirty,
+      bytes: Buffer.byteLength(doc.raw, 'utf8'),
     }));
   }
 

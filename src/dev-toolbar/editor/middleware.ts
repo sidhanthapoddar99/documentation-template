@@ -22,6 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
+import { collectServerMetrics } from '../metrics';
 
 interface FileTreeNode {
   name: string;
@@ -267,6 +268,19 @@ export function setupEditorMiddleware(
       return sendJson(res, 200, {
         rooms: yjsSync.getRoomStats(),
         documents: store.getDocumentStats(),
+      });
+    }
+
+    // GET /__editor/system — metrics + cache-inspector snapshot for the
+    //   "More Dev Tools" toolbar app. Polled every ~2s when the panel is open.
+    if (url === '/__editor/system' && req.method === 'GET') {
+      return sendJson(res, 200, {
+        metrics: collectServerMetrics(),
+        caches: {
+          yjsRooms: yjsSync.getRoomStats(),
+          editorDocs: store.getDocumentStats(),
+          presence: presence.getStats(),
+        },
       });
     }
 

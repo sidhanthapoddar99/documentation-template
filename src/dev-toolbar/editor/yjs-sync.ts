@@ -225,11 +225,13 @@ export class YjsSync {
   /**
    * Return stats for all active rooms (for /__editor/stats endpoint).
    */
-  getRoomStats(): { filePath: string; connections: number; lastActivity: number }[] {
+  getRoomStats(): { filePath: string; connections: number; lastActivity: number; bytes: number; textLength: number }[] {
     return [...this.rooms.entries()].map(([filePath, room]) => ({
       filePath,
       connections: room.conns.size,
       lastActivity: room.lastActivity,
+      bytes: Y.encodeStateAsUpdate(room.doc).byteLength,
+      textLength: room.text.length,
     }));
   }
 
