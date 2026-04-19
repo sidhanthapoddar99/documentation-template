@@ -124,18 +124,6 @@ CONFIG_DIR=../data/config
 # ============================================
 PORT=3088
 HOST=true
-
-# ============================================
-# SITE SETTINGS
-# ============================================
-SITE_URL=http://localhost:3088
-BASE_PATH=
-
-# ============================================
-# FEATURE FLAGS
-# ============================================
-ENABLE_SEARCH=false
-ENABLE_DARK_MODE=true
 ```
 
 > **Path relativity:** `CONFIG_DIR` in `.env` is relative to the **project root** (where `documentation-template/` lives).

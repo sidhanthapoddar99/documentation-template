@@ -27,20 +27,3 @@ PORT=3088
 
 # Host configuration (true = allow all hosts)
 HOST=true
-
-# ============================================
-# SITE SETTINGS
-# ============================================
-
-# Production site URL
-SITE_URL=http://localhost:3088
-
-# Base path for subdirectory deployment (leave empty for root)
-BASE_PATH=
-
-# ============================================
-# FEATURE FLAGS
-# ============================================
-
-ENABLE_SEARCH=false
-ENABLE_DARK_MODE=true

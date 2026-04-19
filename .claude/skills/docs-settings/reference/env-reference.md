@@ -1,6 +1,6 @@
 # Environment Variables Reference
 
-The `.env` file provides the bootstrap path to locate `site.yaml` and configures server settings and feature flags. Directory paths for data, assets, and themes are configured in `site.yaml`'s `paths:` section, not in `.env`.
+The `.env` file provides the bootstrap path to locate `site.yaml` and configures server settings. Directory paths for data, assets, and themes are configured in `site.yaml`'s `paths:` section, not in `.env`.
 
 ## Location
 
@@ -27,26 +27,6 @@ PORT=3088
 # true = allow all hosts (for remote access/tunnels)
 # false or 127.0.0.1 = localhost only
 HOST=true
-
-# ============================================
-# SITE SETTINGS
-# ============================================
-
-# Production site URL (used for sitemap, canonical URLs)
-SITE_URL=http://localhost:3088
-
-# Base path for deployment (e.g., /docs for github.io/repo/docs)
-BASE_PATH=
-
-# ============================================
-# FEATURE FLAGS
-# ============================================
-
-# Enable search functionality
-ENABLE_SEARCH=false
-
-# Enable dark mode toggle
-ENABLE_DARK_MODE=true
 ```
 
 ## Variable Details
@@ -77,24 +57,6 @@ CONFIG_DIR=../data/config
 - `0.0.0.0` - Same as true
 - `127.0.0.1` - Same as false
 
-### Site Settings
-
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `SITE_URL` | Production URL | `https://docs.example.com` |
-| `BASE_PATH` | URL prefix for deployment | `/docs` (for subdirectory hosting) |
-
-**BASE_PATH Examples:**
-- Empty (`BASE_PATH=`) - Site at root: `https://example.com/`
-- Subdirectory (`BASE_PATH=/docs`) - Site at: `https://example.com/docs/`
-
-### Feature Flags
-
-| Variable | Purpose | Values |
-|----------|---------|--------|
-| `ENABLE_SEARCH` | Enable search functionality | `true`, `false` |
-| `ENABLE_DARK_MODE` | Enable dark mode toggle | `true`, `false` |
-
 ## Common Configurations
 
 ### Local Development
@@ -103,30 +65,14 @@ CONFIG_DIR=../data/config
 CONFIG_DIR=../data/config
 PORT=3088
 HOST=true
-SITE_URL=http://localhost:3088
-BASE_PATH=
-ENABLE_SEARCH=false
-ENABLE_DARK_MODE=true
 ```
 
 ### Production Build
 
 ```env
 CONFIG_DIR=../data/config
-SITE_URL=https://docs.yourproduct.com
-BASE_PATH=
-ENABLE_SEARCH=true
-ENABLE_DARK_MODE=true
-```
-
-### GitHub Pages (Subdirectory)
-
-```env
-CONFIG_DIR=../data/config
-SITE_URL=https://username.github.io
-BASE_PATH=/repository-name
-ENABLE_SEARCH=true
-ENABLE_DARK_MODE=true
+PORT=3088
+HOST=false
 ```
 
 ## Where Are Directory Paths?
@@ -151,4 +97,3 @@ See [site-yaml.md](./site-yaml.md) for full details on the `paths:` section.
 | Assets not loading | Wrong `paths.assets` in site.yaml | Verify path in site.yaml `paths:` section is relative to config dir |
 | "Address in use" | PORT already taken | Change PORT to different number |
 | Can't access from other devices | HOST is false | Set HOST=true |
-| Wrong URLs in production | Incorrect SITE_URL | Set correct production URL |

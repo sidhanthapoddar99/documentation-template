@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # Environment Variables
 
-Environment variables configure the bootstrap path, server settings, and feature flags. These are defined in the `.env` file at the project root.
+Environment variables configure the bootstrap path and server settings. These are defined in the `.env` file at the project root.
 
 > **Note:** Directory paths for data, assets, and themes are now configured in `site.yaml`'s `paths:` section, not in `.env`. Only `CONFIG_DIR` remains as the bootstrap to locate `site.yaml`. See [Site Configuration](./site) for details.
 
@@ -105,69 +105,6 @@ When `HOST=true`, the server binds to `0.0.0.0` allowing access from:
 
 **Security Note:** When enabling network access, consider using `server.allowedHosts` in `site.yaml` to restrict which hostnames can connect.
 
-## Site Settings
-
-```env
-SITE_URL=http://localhost:4321
-BASE_PATH=
-```
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SITE_URL` | `http://localhost:4321` | Base URL for the site |
-| `BASE_PATH` | `` (empty) | URL path prefix for deployment subdirectories |
-
-### `SITE_URL`
-
-The full URL where your site is hosted:
-
-```env
-# Development
-SITE_URL=http://localhost:4321
-
-# Production
-SITE_URL=https://docs.example.com
-```
-
-Used for:
-- Canonical link tags
-- Sitemap generation
-- Open Graph URLs
-- RSS feed links
-
-### `BASE_PATH`
-
-For deploying to a subdirectory:
-
-```env
-# Root deployment (default)
-BASE_PATH=
-
-# Subdirectory deployment
-BASE_PATH=/docs
-```
-
-If your site is hosted at `https://example.com/docs/`, set:
-
-```env
-SITE_URL=https://example.com
-BASE_PATH=/docs
-```
-
-## Feature Flags
-
-Enable or disable site features:
-
-```env
-ENABLE_SEARCH=false
-ENABLE_DARK_MODE=true
-```
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ENABLE_SEARCH` | `false` | Enable site search functionality |
-| `ENABLE_DARK_MODE` | `true` | Enable dark mode toggle |
-
 ## Complete Example
 
 ```env
@@ -187,18 +124,6 @@ CONFIG_DIR=./dynamic_data/config
 # ============================================
 PORT=3088
 HOST=true
-
-# ============================================
-# SITE SETTINGS
-# ============================================
-SITE_URL=http://localhost:4321
-BASE_PATH=
-
-# ============================================
-# FEATURE FLAGS
-# ============================================
-ENABLE_SEARCH=false
-ENABLE_DARK_MODE=true
 ```
 
 ## Best Practices

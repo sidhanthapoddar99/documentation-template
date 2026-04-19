@@ -87,9 +87,6 @@ The default `.env` works out of the box:
 ```env
 # Bootstrap: points to the config directory containing site.yaml
 CONFIG_DIR=./dynamic_data/config
-
-# Production URL (update for deployment)
-SITE_URL=http://localhost:4321
 ```
 
 Directory paths for content, assets, and themes are configured in `site.yaml`'s `paths:` section (see [Site Configuration](/docs/configuration/site/overview)).
