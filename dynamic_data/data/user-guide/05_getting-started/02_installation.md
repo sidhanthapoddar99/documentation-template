@@ -79,7 +79,7 @@ After installing, add skill permissions to `.claude/settings.local.json`:
 Create your environment file:
 
 ```bash
-cp .env.example .env
+cp .env.copy .env
 ```
 
 The default `.env` works out of the box:
@@ -87,9 +87,13 @@ The default `.env` works out of the box:
 ```env
 # Bootstrap: points to the config directory containing site.yaml
 CONFIG_DIR=./dynamic_data/config
+
+# Dev server
+PORT=3088
+HOST=true
 ```
 
-Directory paths for content, assets, and themes are configured in `site.yaml`'s `paths:` section (see [Site Configuration](/docs/configuration/site/overview)).
+Directory paths for content, assets, and themes are configured in `site.yaml`'s `paths:` section (see [Site Configuration](/user-guide/configuration/site/overview)).
 
 ## Step 4: Start Development
 
@@ -97,7 +101,7 @@ Directory paths for content, assets, and themes are configured in `site.yaml`'s 
 bun run dev
 ```
 
-Open `http://localhost:4321` in your browser.
+Open `http://localhost:3088` in your browser.
 
 ## Verifying Installation
 
@@ -133,10 +137,10 @@ bun install
 Common causes:
 1. Missing `XX_` prefix on doc files (required)
 2. Invalid YAML frontmatter
-3. Broken imports in MDX files
+3. Missing `settings.json` in a doc folder
 
 Check the error message for the specific file and line number.
 
 ## Next Steps
 
-Continue to [Configuration](/docs/configuration/overview) to customize your site.
+Continue to [Configuration](/user-guide/configuration/overview) to customize your site.

@@ -10,11 +10,11 @@ Replace `[ ]` with ✅ as each file lands. Legend + rationale live in `notes/01_
 ```
 user-guide/
 ├── 05_getting-started/
-│   ├── [ ] 01_overview.md                          ⚪
-│   ├── [ ] 02_installation.md                      ⚪
-│   ├── [ ] 03_aliases.md                           ⚪   rename 03_Alias → 03_aliases
-│   ├── [ ] 04_data-structure.md                    🟡  merge old 04_structure/01 + 04_structure/03
-│   └── [ ] 05_claude-skills.md                     ⚪
+│   ├── ✅  01_overview.md                          ⚪
+│   ├── ✅  02_installation.md                      ⚪
+│   ├── ✅  03_aliases.md                           ⚪   renamed 03_Alias → 03_aliases
+│   ├── 🟡  04_data-structure.md                    🟡  merged old 04_structure/01 + 04_structure/03 — revisit: see `comments/003_revisit-list.md`
+│   └── 🟡  05_claude-skills.md                     ⚪   revisit: see `comments/003_revisit-list.md`
 │
 │   Evicted:
 │     ✅  04_structure/02_code-structure.md         🔵 → dev-docs/01_overview/

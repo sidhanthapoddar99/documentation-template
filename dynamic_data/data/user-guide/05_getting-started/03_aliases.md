@@ -32,33 +32,69 @@ Path aliases provide a clean, consistent way to reference files and directories 
 
 ## Available Aliases
 
-### Content & Data Aliases
+Aliases fall into two camps: **system reserved** (fixed by the framework) and **user defined** (declared in `site.yaml`).
 
-| Alias | Resolves To | Configured In |
-|-------|-------------|---------------|
-| `@data/` | Data directory | `site.yaml` paths section |
-| `@assets/` | Assets directory | `site.yaml` paths section |
-| `@config/` | Config directory | `CONFIG_DIR` (.env) |
-| `@theme/` | Theme resolution | Used in `extends:` (theme.yaml) |
+```
+                            PATH ALIASES
+                            ════════════
 
-### Layout Aliases
+┌─ SYSTEM RESERVED ───────────────────────────────────────────────┐
+│ Fixed prefixes shipped with the framework.                      │
+│ Cannot be renamed or removed. Resolved at render time.          │
+│                                                                 │
+│   Layouts   @docs   @blog   @issues   @custom                   │
+│             @navbar   @footer   @ext-layouts                    │
+│                                                                 │
+│   Themes    @theme/default   @theme/<name>                      │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─ USER DEFINED ──────────────────────────────────────────────────┐
+│ Declared in site.yaml → paths: section.                         │
+│ Rename or add freely. Resolved at config load time.             │
+│                                                                 │
+│   Defaults     @data   @assets   @themes                        │
+│                                                                 │
+│   Bootstrap    @config    (set via CONFIG_DIR in .env)          │
+│                                                                 │
+│   Custom       any @key/ you declare under paths:               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Layout Aliases (system, reserved)
+
+Each content type has its own layout alias, pointing at a folder under `src/layouts/<type>/<style>/`.
 
 | Alias | Resolves To | Usage |
 |-------|-------------|-------|
-| `@docs/style_name` | `src/layouts/docs/styles/style_name/` | Doc layouts |
-| `@blog/style_name` | `src/layouts/blogs/styles/style_name/` | Blog layouts |
-| `@custom/style_name` | `src/layouts/custom/styles/style_name/` | Custom page layouts |
-| `@navbar/style_name` | `src/layouts/navbar/style_name/` | Navbar layouts |
-| `@footer/style_name` | `src/layouts/footer/style_name/` | Footer layouts |
+| `@docs/<style>` | `src/layouts/docs/<style>/` | Docs layouts |
+| `@blog/<style>` | `src/layouts/blogs/<style>/` | Blog layouts |
+| `@issues/<style>` | `src/layouts/issues/<style>/` | Issues layouts |
+| `@custom/<style>` | `src/layouts/custom/<style>/` | Custom page layouts |
+| `@navbar/<style>` | `src/layouts/navbar/<style>/` | Navbar layouts |
+| `@footer/<style>` | `src/layouts/footer/<style>/` | Footer layouts |
+| `@ext-layouts/` | External layouts directory (`LAYOUT_EXT_DIR` in `.env`) | Override built-in styles |
 
-### Theme Aliases
+### Theme Aliases (system, reserved)
 
-Used in `extends:` fields in `theme.yaml` manifests (not in site.yaml `theme:` field).
+Used in `extends:` fields in `theme.yaml` manifests (not in site.yaml `theme:` field, which takes a plain theme name).
 
 | Alias | Resolves To | Description |
 |-------|-------------|-------------|
 | `@theme/default` | `src/styles/` | Built-in default theme |
-| `@theme/theme_name` | `theme_paths/theme_name/` | Custom theme |
+| `@theme/<name>` | `<themes-root>/<name>/` | Custom theme (scanned from `theme_paths`) |
+
+### User Defined : Content & Data Aliases 
+
+Any key under `paths:` in `site.yaml` becomes a usable `@key/...` alias. The defaults:
+
+| Alias | Resolves To | Configured In |
+|-------|-------------|---------------|
+| `@data/` | Data directory | `site.yaml` → `paths.data` |
+| `@assets/` | Assets directory | `site.yaml` → `paths.assets` |
+| `@themes/` | Themes root (scanned for user themes) | `site.yaml` → `paths.themes` |
+| `@config/` | Config directory | `CONFIG_DIR` (.env) |
+
+Add more by declaring new keys — e.g. `paths: { shared_data: "../../shared" }` creates `@shared_data/`.
 
 ## Usage by Context
 
@@ -108,72 +144,30 @@ links:
 ![Logo](@assets/logo.svg)
 ```
 
-### In TypeScript/JavaScript
+## Resolution at a glance
 
-```typescript
-import { resolveAlias, resolveAliasPath } from '@loaders/alias';
-import { paths, getThemePath, getDataPath } from '@loaders/paths';
+Three things to know about how aliases resolve — the rest is just applying these rules.
 
-// Resolve an alias to full path info
-const resolved = resolveAlias('@docs/default');
-// { type: '@docs', name: 'default', fullPath: '/path/to/src/layouts/docs/default' }
+**1. Layout aliases point at folders, not files.**
 
-// Resolve just the path
-const path = resolveAliasPath('@data/docs');
-// '/path/to/dynamic_data/data/docs'
-
-// Get theme path
-const themePath = getThemePath('minimal');
-// '/path/to/dynamic_data/themes/minimal'
+```
+@docs/default   →  src/layouts/docs/default/Layout.astro
+@blog/default   →  src/layouts/blogs/default/IndexLayout.astro + PostLayout.astro
+@navbar/default →  src/layouts/navbar/default/index.astro
 ```
 
-## Alias Resolution Logic
+**2. Data aliases resolve to filesystem paths.**
 
-### Layout Aliases (@docs, @blog, @custom)
-
-```typescript
-'@docs/default'
-  → src/layouts/docs/styles/default/Layout.astro
-
-'@blog/default'
-  → src/layouts/blogs/styles/default/Layout.astro
-
-'@navbar/default'
-  → src/layouts/navbar/default/index.astro
+```
+@data/docs/overview   →  <paths.data>/docs/overview
+@data/pages/home.yaml →  <paths.data>/pages/home.yaml
 ```
 
-### Data Aliases (@data)
+**3. Asset aliases resolve to web URLs, not filesystem paths.**
 
-```typescript
-'@data/docs/overview'
-  → paths.data/docs/overview
-
-'@data/pages/home.yaml'
-  → paths.data/pages/home.yaml
 ```
-
-### Asset Aliases (@assets)
-
-Asset aliases resolve to **web URLs**, not file paths:
-
-```typescript
-'@assets/logo.svg'
-  → '/assets/logo.svg' (web URL)
-
-// The actual file is at:
-// paths.assets/logo.svg
-```
-
-### Theme Aliases (@theme)
-
-Used internally for theme inheritance (`extends:` in theme.yaml), not in site.yaml `theme:` field.
-
-```typescript
-'@theme/default'
-  → src/styles/  (built-in)
-
-'@theme/minimal'
-  → theme_paths/minimal/  (custom theme)
+@assets/logo.svg  →  /assets/logo.svg         (web URL)
+                     <paths.assets>/logo.svg  (actual file location on disk)
 ```
 
 ## Path Configuration
@@ -231,58 +225,7 @@ In error logs and the dev toolbar, absolute paths are converted back to aliases 
 
 ## Best Practices
 
-1. **Always use aliases in configuration files** - Makes config portable
-2. **Use @assets for static files** - Ensures correct URL resolution
-3. **Use @theme for styling** - Enables theme switching
-4. **Check alias resolution** - Use helper functions to verify paths
-
-## TypeScript Interfaces
-
-```typescript
-// AliasPrefix is a dynamic string type — any @key defined in
-// site.yaml paths: section or the reserved layout aliases:
-// '@docs', '@blog', '@custom', '@navbar', '@footer',
-// '@data', '@assets', '@theme', etc.
-type AliasPrefix = string;
-
-interface ResolvedAlias {
-  type: AliasPrefix;
-  name: string;
-  fullPath: string;
-}
-```
-
-## Helper Functions
-
-```typescript
-import {
-  isAliasPath,        // Check if string is an alias
-  extractPrefix,      // Get the @prefix
-  resolveAlias,       // Full resolution with type info
-  resolveAliasPath,   // Just the path string
-  resolveLayoutPath,  // Resolve to Layout.astro
-  resolveDataPath,    // Resolve @data paths
-  resolveAssetUrl,    // Resolve to web URL
-  getLayoutType,      // Extract layout type (docs/blog/custom)
-  getLayoutName,      // Extract layout name
-} from '@loaders/alias';
-
-import {
-  paths,              // All resolved paths
-  getThemePath,       // Get theme directory path
-  getDataPath,        // Get data file path
-  getConfigPath,      // Get config file path
-  getAssetsPath,      // Get assets file path
-  toAliasPath,        // Convert absolute to alias path
-} from '@loaders/paths';
-```
-
-## Code Location
-
-Alias resolution is implemented in:
-
-```
-src/loaders/
-├── alias.ts    # Alias resolution logic
-└── paths.ts    # Path resolution and toAliasPath()
-```
+1. **Always use aliases in configuration files** — makes config portable across environments.
+2. **Use `@assets/` for static files** — it resolves to a web URL so the link works in the browser.
+3. **Use `@theme/` only inside `theme.yaml` `extends:`** — not in `site.yaml`'s `theme:` field (that takes a plain theme name).
+4. **Declare user aliases in `site.yaml` `paths:`** rather than hardcoding relative paths — one place to change if content moves.
