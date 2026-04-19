@@ -18,10 +18,10 @@ import yaml from 'js-yaml';
 import cacheManager from '../loaders/cache-manager';
 import { paths, getUserPaths, getPathsByCategory } from '../loaders/paths';
 import { getThemePaths, loadSiteConfig } from '../loaders/config';
-import { EditorStore } from './editor/server';
-import { setupEditorMiddleware } from './editor/middleware';
-import { PresenceManager, type PresenceConfig } from './editor/presence';
-import { YjsSync } from './editor/yjs-sync';
+import { EditorStore } from './server/editor-store';
+import { setupEditorMiddleware } from './server/middleware';
+import { PresenceManager, type PresenceConfig } from './server/presence';
+import { YjsSync } from './server/yjs-sync';
 
 /**
  * Read editor configuration from site.yaml.
@@ -249,7 +249,7 @@ export function devToolbarIntegration(): AstroIntegration {
           id: 'layout-theme-selector',
           name: 'Layout & Theme',
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
-          entrypoint: './src/dev-toolbar/layout-selector.ts',
+          entrypoint: './src/dev-toolbar/layout-selector/index.ts',
         });
 
         // Error Logger
@@ -257,15 +257,15 @@ export function devToolbarIntegration(): AstroIntegration {
           id: 'error-logger',
           name: 'Doc Errors',
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-          entrypoint: './src/dev-toolbar/error-logger.ts',
+          entrypoint: './src/dev-toolbar/error-logger/index.ts',
         });
 
         // Live Documentation Editor (CodeMirror 6)
         addDevToolbarApp({
-          id: 'doc-editor-v2',
+          id: 'doc-editor',
           name: 'Edit Page',
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
-          entrypoint: './src/dev-toolbar/editor-v2/index.ts',
+          entrypoint: './src/dev-toolbar/editor/index.ts',
         });
 
         // System Metrics (CPU / RAM / load avg) — lands in Astro's 3-dot overflow
@@ -273,7 +273,7 @@ export function devToolbarIntegration(): AstroIntegration {
           id: 'system-metrics',
           name: 'System Metrics',
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
-          entrypoint: './src/dev-toolbar/system-metrics.ts',
+          entrypoint: './src/dev-toolbar/system-metrics/index.ts',
         });
 
         // Cache Inspector (Yjs rooms, editor docs, presence) — also in the 3-dot overflow
@@ -281,7 +281,7 @@ export function devToolbarIntegration(): AstroIntegration {
           id: 'cache-inspector',
           name: 'Cache Inspector',
           icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/></svg>`,
-          entrypoint: './src/dev-toolbar/cache-inspector.ts',
+          entrypoint: './src/dev-toolbar/cache-inspector/index.ts',
         });
       },
     },

@@ -306,9 +306,10 @@ While a file is open in the editor, hot module replacement (HMR) is suppressed f
 
 | File | Purpose |
 |------|---------|
-| `src/dev-toolbar/editor-app.ts` | Toolbar panel UI, presence table rendering, editor orchestrator with late-binding wiring |
-| `src/dev-toolbar/editor/server.ts` | In-memory document store (`EditorStore`) — render pipeline, auto-save, `ignoreSaveSet` pattern |
-| `src/dev-toolbar/editor/presence.ts` | Multi-user presence manager (`PresenceManager`) — SSE streams, user tracking, stale cleanup |
-| `src/dev-toolbar/editor/yjs-sync.ts` | Yjs room management (`YjsSync`) — WS message routing, CRDT sync, cursor relay, render broadcast |
-| `src/dev-toolbar/editor/middleware.ts` | HTTP endpoint handlers (editor API + SSE stream setup) |
-| `src/dev-toolbar/integration.ts` | Wires editor, presence, and Yjs into the dev toolbar and Vite's HMR pipeline |
+| `src/dev-toolbar/editor/` | CodeMirror 6 client UI (mounted at `/editor`): `core/`, `file-tree/`, `layout/`, `live-preview/`, `views/`, `sync/` |
+| `src/dev-toolbar/server/editor-store.ts` | In-memory document store (`EditorStore`) — render pipeline, auto-save, `ignoreSaveSet` pattern |
+| `src/dev-toolbar/server/presence.ts` | Multi-user presence manager (`PresenceManager`) — SSE streams, user tracking, stale cleanup |
+| `src/dev-toolbar/server/yjs-sync.ts` | Yjs room management (`YjsSync`) — WS message routing, CRDT sync, cursor relay, render broadcast |
+| `src/dev-toolbar/server/middleware.ts` | HTTP endpoint handlers (editor API, `/__editor/system`, SSE stream setup) |
+| `src/dev-toolbar/server/metrics.ts` | `collectServerMetrics()` — CPU / RAM / load-avg snapshot for the system-metrics toolbar app |
+| `src/dev-toolbar/integration.ts` | Wires editor, presence, Yjs, and the toolbar apps into Vite's HMR pipeline |

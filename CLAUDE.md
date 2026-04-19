@@ -48,9 +48,13 @@ src/
 │   └── api/dev/          # Dev-only API (themes, editor)
 │
 ├── styles/               # Built-in default theme (theme.yaml + CSS)
-├── dev-toolbar/          # Live editor (Yjs CRDT sync, presence, SSE)
-│   ├── editor/           # Server-side: yjs-sync.ts, server.ts, middleware.ts, presence.ts
-│   ├── editor-app.ts     # Client-side: textarea ↔ Y.Text sync
+├── dev-toolbar/          # Astro dev-toolbar apps + shared server layer
+│   ├── server/           # Shared server-side: middleware · editor-store · yjs-sync · presence · metrics
+│   ├── editor/           # CodeMirror 6 live editor (mounted at /editor)
+│   ├── layout-selector/  # Layout & theme picker toolbar app
+│   ├── error-logger/     # Doc errors toolbar app
+│   ├── system-metrics/   # CPU / RAM toolbar app (3-dot overflow)
+│   ├── cache-inspector/  # Server in-memory cache viewer (3-dot overflow)
 │   └── integration.ts    # Astro integration wiring
 │
 └── custom-tags/          # Custom markdown tags (callouts, tabs, collapsible, etc.)

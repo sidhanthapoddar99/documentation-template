@@ -15,14 +15,14 @@
  */
 
 import type { ViteDevServer } from 'vite';
-import type { EditorStore } from './server';
+import type { EditorStore } from './editor-store';
 import type { PresenceManager, PresenceAction } from './presence';
 import type { YjsSync } from './yjs-sync';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
-import { collectServerMetrics } from '../metrics';
+import { collectServerMetrics } from './metrics';
 
 interface FileTreeNode {
   name: string;

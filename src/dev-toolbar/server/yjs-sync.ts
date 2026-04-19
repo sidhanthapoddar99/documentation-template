@@ -27,7 +27,7 @@ import * as decoding from 'lib0/decoding';
 import { WebSocketServer, WebSocket } from 'ws';
 import type { Server } from 'http';
 import type { PresenceManager, PresenceConfig } from './presence';
-import type { EditorStore } from './server';
+import type { EditorStore } from './editor-store';
 
 // WS message types (first varuint in every frame)
 const MSG_SYNC       = 0; // Yjs binary sync
