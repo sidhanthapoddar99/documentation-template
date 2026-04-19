@@ -1,592 +1,91 @@
 ---
 /**
- * Dynamic Route Handler
+ * Dynamic route handler.
  *
- * Layout Resolution:
- * - Config specifies: @docs/default, @blog/default, @custom/home
- * - Resolves to: layouts/{type}/{style}/Layout.astro
+ * Delegates the heavy lifting to three helpers under `./lib/`:
+ *   - `static-paths.ts` — enumerate every URL at build time
+ *   - `route-match.ts`  — resolve the current URL (server mode) + derive
+ *                         title / contentType / layoutProps
+ *   - `layout-registry.ts` — map `@type/style` aliases to layout loaders
  *
- * Standardized structure - no manual registry needed
- * Errors thrown if layout doesn't exist (no silent fallbacks)
+ * This file just wires them together and renders into `BaseLayout`.
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
-
-import { loadSiteConfig, loadContent } from '@loaders/index';
+import { loadSiteConfig } from '@loaders/index';
 import { getNavbarLayout, getFooterLayout } from '@loaders/config';
-import { loadIssues, loadIssue } from '@loaders/issues';
-
-// Auto-discover all layouts using glob patterns (built-in + external)
-const builtinDocsLayouts = import.meta.glob('/src/layouts/docs/*/Layout.astro');
-const extDocsLayouts = import.meta.glob('@ext-layouts/docs/*/Layout.astro');
-
-const builtinBlogIndexLayouts = import.meta.glob('/src/layouts/blogs/*/IndexLayout.astro');
-const extBlogIndexLayouts = import.meta.glob('@ext-layouts/blogs/*/IndexLayout.astro');
-
-const builtinBlogPostLayouts = import.meta.glob('/src/layouts/blogs/*/PostLayout.astro');
-const extBlogPostLayouts = import.meta.glob('@ext-layouts/blogs/*/PostLayout.astro');
-
-const builtinIssuesIndexLayouts = import.meta.glob('/src/layouts/issues/*/IndexLayout.astro');
-const extIssuesIndexLayouts = import.meta.glob('@ext-layouts/issues/*/IndexLayout.astro');
-
-const builtinIssuesDetailLayouts = import.meta.glob('/src/layouts/issues/*/DetailLayout.astro');
-const extIssuesDetailLayouts = import.meta.glob('@ext-layouts/issues/*/DetailLayout.astro');
-
-const builtinIssuesSubDocLayouts = import.meta.glob('/src/layouts/issues/*/SubDocLayout.astro');
-const extIssuesSubDocLayouts = import.meta.glob('@ext-layouts/issues/*/SubDocLayout.astro');
-
-const builtinCustomLayouts = import.meta.glob('/src/layouts/custom/*/Layout.astro');
-const extCustomLayouts = import.meta.glob('@ext-layouts/custom/*/Layout.astro');
-
-const builtinNavbarLayouts = import.meta.glob('/src/layouts/navbar/*/index.astro');
-const extNavbarLayouts = import.meta.glob('@ext-layouts/navbar/*/index.astro');
-
-const builtinFooterLayouts = import.meta.glob('/src/layouts/footer/*/index.astro');
-const extFooterLayouts = import.meta.glob('@ext-layouts/footer/*/index.astro');
-
-/**
- * Merge built-in and external layout globs.
- * External entries override built-in with the same style name.
- */
-function mergeLayouts(
-  builtin: Record<string, () => Promise<any>>,
-  ext: Record<string, () => Promise<any>>,
-  stylePattern: RegExp,
-) {
-  const byStyle = new Map<string, { loader: () => Promise<any>; source: 'builtin' | 'external' }>();
-  for (const [p, loader] of Object.entries(builtin)) {
-    const m = p.match(stylePattern);
-    if (m) byStyle.set(m[1], { loader, source: 'builtin' });
-  }
-  for (const [p, loader] of Object.entries(ext)) {
-    const m = p.match(stylePattern);
-    if (m) byStyle.set(m[1], { loader, source: 'external' });
-  }
-  return { byStyle, styles: [...byStyle.keys()] };
-}
-
-// Merged layout maps — regex captures the variant folder (last dir before filename)
-const layoutNamePattern = /\/([^/]+)\/[^/]+\.astro$/;
-const docsLayouts = mergeLayouts(builtinDocsLayouts, extDocsLayouts, layoutNamePattern);
-const blogIndexLayouts = mergeLayouts(builtinBlogIndexLayouts, extBlogIndexLayouts, layoutNamePattern);
-const blogPostLayouts = mergeLayouts(builtinBlogPostLayouts, extBlogPostLayouts, layoutNamePattern);
-const issuesIndexLayouts = mergeLayouts(builtinIssuesIndexLayouts, extIssuesIndexLayouts, layoutNamePattern);
-const issuesDetailLayouts = mergeLayouts(builtinIssuesDetailLayouts, extIssuesDetailLayouts, layoutNamePattern);
-const issuesSubDocLayouts = mergeLayouts(builtinIssuesSubDocLayouts, extIssuesSubDocLayouts, layoutNamePattern);
-const customLayouts = mergeLayouts(builtinCustomLayouts, extCustomLayouts, layoutNamePattern);
-const navbarLayouts = mergeLayouts(builtinNavbarLayouts, extNavbarLayouts, layoutNamePattern);
-const footerLayouts = mergeLayouts(builtinFooterLayouts, extFooterLayouts, layoutNamePattern);
-
-// Available styles for error messages and dev toolbar validation
-const availableDocsStyles = docsLayouts.styles;
-const availableBlogStyles = blogIndexLayouts.styles;
-const availableIssuesStyles = issuesIndexLayouts.styles;
-const availableCustomStyles = customLayouts.styles;
-const availableNavbarStyles = navbarLayouts.styles;
-const availableFooterStyles = footerLayouts.styles;
+import { buildStaticPaths } from './lib/static-paths';
+import {
+  matchServerRoute, prepareRender,
+  type PageType, type RouteProps,
+} from './lib/route-match';
+import {
+  resolveLayout, resolveChrome, applyLayoutOverride, applyChromeOverride,
+  type LayoutVariant,
+} from './lib/layout-registry';
 
 export async function getStaticPaths() {
-  const siteConfig = loadSiteConfig();
-  const pages = siteConfig.pages || {};
-  const paths: any[] = [];
-
-  for (const [pageName, pageConfig] of Object.entries(pages)) {
-    const baseUrl = pageConfig.base_url.replace(/^\//, '');
-    const dataPath = pageConfig.data;
-    const layout = pageConfig.layout || '';
-
-    if (pageConfig.type === 'custom') {
-      paths.push({
-        params: { slug: baseUrl || undefined },
-        props: { pageName, pageConfig, dataPath, pageType: 'custom', layout },
-      });
-    } else if (pageConfig.type === 'docs') {
-      const content = await loadContent(dataPath, 'docs', {
-        pattern: '**/*.{md,mdx}',
-        sort: 'position',
-        requirePositionPrefix: true, // Docs require XX_ prefix for ordering
-      });
-
-      paths.push({
-        params: { slug: baseUrl || undefined },
-        props: { pageName, pageConfig, dataPath, pageType: 'docs-index', allContent: content, layout },
-      });
-
-      for (const doc of content) {
-        paths.push({
-          params: { slug: `${baseUrl}/${doc.slug}` },
-          props: { pageName, pageConfig, dataPath, pageType: 'docs', doc, allContent: content, layout },
-        });
-      }
-    } else if (pageConfig.type === 'blog') {
-      const posts = await loadContent(dataPath, 'blog', {
-        pattern: '*.{md,mdx}',
-        sort: 'date',
-        order: 'desc',
-      });
-
-      paths.push({
-        params: { slug: baseUrl || undefined },
-        props: { pageName, pageConfig, dataPath, pageType: 'blog-index', allContent: posts, layout },
-      });
-
-      for (const post of posts) {
-        paths.push({
-          params: { slug: `${baseUrl}/${post.slug}` },
-          props: { pageName, pageConfig, dataPath, pageType: 'blog-post', post, layout },
-        });
-      }
-    } else if (pageConfig.type === 'issues') {
-      const { issues, vocabulary } = await loadIssues(dataPath);
-
-      paths.push({
-        params: { slug: baseUrl || undefined },
-        props: { pageName, pageConfig, dataPath, pageType: 'issues-index', issues, vocabulary, layout },
-      });
-
-      for (const issue of issues) {
-        paths.push({
-          params: { slug: `${baseUrl}/${issue.id}` },
-          props: { pageName, pageConfig, dataPath, pageType: 'issues-detail', issue, vocabulary, layout },
-        });
-
-        // Sub-doc pages — one URL per subtask / note / agent-log entry
-        for (const s of issue.subtasks) {
-          paths.push({
-            params: { slug: `${baseUrl}/${issue.id}/subtasks/${s.slug}` },
-            props: {
-              pageName, pageConfig, dataPath, pageType: 'issues-subdoc',
-              issue, vocabulary, layout,
-              subDoc: { kind: 'subtask', subtask: s },
-            },
-          });
-        }
-        for (const n of issue.notes) {
-          paths.push({
-            params: { slug: `${baseUrl}/${issue.id}/notes/${n.name}` },
-            props: {
-              pageName, pageConfig, dataPath, pageType: 'issues-subdoc',
-              issue, vocabulary, layout,
-              subDoc: { kind: 'note', note: n },
-            },
-          });
-        }
-        for (const log of issue.agentLogs) {
-          const slugPath = log.group
-            ? `${baseUrl}/${issue.id}/agent-log/${log.group}/${log.name}`
-            : `${baseUrl}/${issue.id}/agent-log/${log.name}`;
-          paths.push({
-            params: { slug: slugPath },
-            props: {
-              pageName, pageConfig, dataPath, pageType: 'issues-subdoc',
-              issue, vocabulary, layout,
-              subDoc: { kind: 'log', log },
-            },
-          });
-        }
-      }
-    }
-  }
-
-  return paths;
+  return buildStaticPaths(loadSiteConfig());
 }
 
 // ============================================================================
-// Page Rendering (validation happens here - errors show during build)
+// Resolve route props — static mode uses Astro.props; server mode walks the
+// URL and computes the same shape.
 // ============================================================================
+let props = Astro.props as Partial<RouteProps>;
 
-// In server mode, getStaticPaths() is ignored, so we compute props from URL
-let { pageName, pageConfig, dataPath, pageType, doc, post, issue, vocabulary, issues, allContent, layout: configLayout, subDoc } = Astro.props;
+if (!props.pageType) {
+  const match = await matchServerRoute(loadSiteConfig(), Astro.params.slug || '');
+  if (match.kind === 'not-found') return new Response('Not Found', { status: 404 });
+  props = match.props;
+}
+const routeProps = props as RouteProps;
 
-// Server mode: compute props dynamically if not provided by getStaticPaths
-if (!pageType) {
-  const slug = Astro.params.slug || '';
-
-  // Skip internal routes (API endpoints)
-  if (slug.startsWith('api/') || slug === 'api' || slug.startsWith('_') || slug === 'editor') {
-    return new Response(null, { status: 404 });
-  }
-
-  const siteConfig = loadSiteConfig();
-  const pages = siteConfig.pages || {};
-
-  // Find matching page config based on URL
-  for (const [name, config] of Object.entries(pages)) {
-    const baseUrl = config.base_url.replace(/^\//, '');
-
-    if (slug === baseUrl || slug.startsWith(baseUrl + '/')) {
-      pageName = name;
-      pageConfig = config;
-      dataPath = config.data;
-      configLayout = config.layout || '';
-
-      if (config.type === 'custom') {
-        pageType = 'custom';
-      } else if (config.type === 'docs') {
-        const content = await loadContent(dataPath, 'docs', {
-          pattern: '**/*.{md,mdx}',
-          sort: 'position',
-          requirePositionPrefix: true,
-        });
-        allContent = content;
-
-        if (slug === baseUrl) {
-          pageType = 'docs-index';
-        } else {
-          const docSlug = slug.slice(baseUrl.length + 1);
-          doc = content.find(d => d.slug === docSlug);
-          pageType = 'docs';
-        }
-      } else if (config.type === 'blog') {
-        const posts = await loadContent(dataPath, 'blog', {
-          pattern: '*.{md,mdx}',
-          sort: 'date',
-          order: 'desc',
-        });
-        allContent = posts;
-
-        if (slug === baseUrl) {
-          pageType = 'blog-index';
-        } else {
-          const postSlug = slug.slice(baseUrl.length + 1);
-          post = posts.find(p => p.slug === postSlug);
-          pageType = 'blog-post';
-        }
-      } else if (config.type === 'issues') {
-        if (slug === baseUrl) {
-          const loaded = await loadIssues(dataPath);
-          issues = loaded.issues;
-          vocabulary = loaded.vocabulary;
-          pageType = 'issues-index';
-        } else {
-          const rest = slug.slice(baseUrl.length + 1);
-          const parts = rest.split('/');
-          const issueId = parts[0];
-          const loaded = await loadIssues(dataPath);
-          vocabulary = loaded.vocabulary;
-          issue = await loadIssue(dataPath, issueId);
-
-          if (parts.length === 1) {
-            pageType = 'issues-detail';
-          } else if (issue) {
-            // /<base>/<id>/(subtasks|notes|agent-log)/...
-            const kind = parts[1];
-            if (kind === 'subtasks' && parts.length === 3) {
-              const s = issue.subtasks.find((st) => st.slug === parts[2]);
-              if (s) { pageType = 'issues-subdoc'; subDoc = { kind: 'subtask', subtask: s }; }
-            } else if (kind === 'notes' && parts.length === 3) {
-              const n = issue.notes.find((nt) => nt.name === parts[2]);
-              if (n) { pageType = 'issues-subdoc'; subDoc = { kind: 'note', note: n }; }
-            } else if (kind === 'agent-log') {
-              let log: typeof issue.agentLogs[number] | undefined;
-              if (parts.length === 3) {
-                log = issue.agentLogs.find((l) => l.group === null && l.name === parts[2]);
-              } else if (parts.length === 4) {
-                log = issue.agentLogs.find((l) => l.group === parts[2] && l.name === parts[3]);
-              }
-              if (log) { pageType = 'issues-subdoc'; subDoc = { kind: 'log', log }; }
-            }
-          }
-
-          if (!pageType) return new Response('Not Found', { status: 404 });
-        }
-      }
-      break;
-    }
-  }
-
-  // No matching page config found — return 404
-  if (!pageType) {
-    return new Response('Not Found', { status: 404 });
-  }
+// docs-index: redirect to the first doc (it has no layout of its own).
+if (routeProps.pageType === 'docs-index' && routeProps.allContent?.length) {
+  return Astro.redirect(`${routeProps.pageConfig.base_url}/${routeProps.allContent[0].slug}`);
 }
 
-// Dev mode: Allow layout override via cookie (set by dev toolbar)
-// Any variant folder under the layout type directory is valid for that page type
+// ============================================================================
+// Dev-toolbar overrides — cookies can swap the page layout / navbar / footer
+// without editing `site.yaml`.
+// ============================================================================
 const isDev = import.meta.env.DEV;
-let layoutOverride: string | null = null;
+const cookieValue = (name: string): string | null => {
+  if (!isDev) return null;
+  const v = Astro.cookies.get(name)?.value;
+  return v && v !== '__reset__' ? v : null;
+};
 
-if (isDev) {
-  const layoutCookie = Astro.cookies.get('dev-layout');
-  if (layoutCookie && layoutCookie.value && layoutCookie.value !== '__reset__') {
-    layoutOverride = layoutCookie.value;
-  }
-}
+const effectiveLayout = applyLayoutOverride(routeProps.layout, routeProps.pageType, cookieValue('dev-layout'));
+const effectiveNavbar = applyChromeOverride(getNavbarLayout(), 'navbar', cookieValue('dev-navbar'));
+const effectiveFooter = applyChromeOverride(getFooterLayout(), 'footer', cookieValue('dev-footer'));
 
-// Determine effective layout - apply override only if it exists
-let layout = configLayout;
-if (layoutOverride && isDev) {
-  if ((pageType === 'docs' || pageType === 'docs-index') && availableDocsStyles.includes(layoutOverride)) {
-    layout = `@docs/${layoutOverride}`;
-  } else if ((pageType === 'blog-index' || pageType === 'blog-post') && availableBlogStyles.includes(layoutOverride)) {
-    layout = `@blog/${layoutOverride}`;
-  }
-  // Stale or invalid cookie values are silently ignored (use config)
-}
+// ============================================================================
+// Pick the layout component for this pageType, then build render-time props.
+// ============================================================================
+const LAYOUT_VARIANT: Partial<Record<PageType, LayoutVariant>> = {
+  custom: 'custom',
+  docs: 'docs',
+  'blog-index': 'blog-index',
+  'blog-post': 'blog-post',
+  'issues-index': 'issues-index',
+  'issues-detail': 'issues-detail',
+  'issues-subdoc': 'issues-subdoc',
+};
 
-// Get navbar/footer layouts from config
-let navbarLayoutRef = getNavbarLayout();
-let footerLayoutRef = getFooterLayout();
-
-// Dev mode: Allow navbar/footer override via cookies (validate first)
-if (isDev) {
-  const navbarCookie = Astro.cookies.get('dev-navbar');
-  if (navbarCookie?.value && navbarCookie.value !== '__reset__' && availableNavbarStyles.includes(navbarCookie.value)) {
-    navbarLayoutRef = `@navbar/${navbarCookie.value}`;
-  }
-
-  const footerCookie = Astro.cookies.get('dev-footer');
-  if (footerCookie?.value && footerCookie.value !== '__reset__' && availableFooterStyles.includes(footerCookie.value)) {
-    footerLayoutRef = `@footer/${footerCookie.value}`;
-  }
-}
-
-// Handle docs index redirect
-if (pageType === 'docs-index' && allContent?.length > 0) {
-  return Astro.redirect(`${pageConfig.base_url}/${allContent[0].slug}`);
-}
-
-/**
- * Validate and resolve layout - throws descriptive errors if not found
- */
-function validateAndResolve(layoutAlias: string, variant?: 'index' | 'post' | 'subdoc') {
-  if (!layoutAlias) {
-    throw new Error(
-      `\n[CONFIG ERROR] Missing 'layout' field for page "${pageName}".\n` +
-      `  Add a layout field like: layout: "@docs/default"\n`
-    );
-  }
-
-  const match = layoutAlias.match(/^@(\w+)\/(.+)$/);
-  if (!match) {
-    throw new Error(
-      `\n[CONFIG ERROR] Invalid layout format: "${layoutAlias}"\n` +
-      `  Expected format: @{type}/{style}\n` +
-      `  Examples: @docs/default, @blog/default, @custom/home\n`
-    );
-  }
-
-  const [, type, style] = match;
-  let entry: { loader: () => Promise<any>; source: string } | undefined;
-  let available: string[];
-
-  if (type === 'docs') {
-    entry = docsLayouts.byStyle.get(style);
-    available = availableDocsStyles;
-
-    if (!entry) {
-      throw new Error(
-        `\n[CONFIG ERROR] Docs layout "${style}" does not exist.\n` +
-        `  Page: ${pageName}\n` +
-        `  Config: ${layoutAlias}\n` +
-        `  Expected: src/layouts/docs/${style}/Layout.astro\n` +
-        `  Available: ${available.join(', ') || '(none)'}\n`
-      );
-    }
-  } else if (type === 'blog') {
-    available = availableBlogStyles;
-
-    if (variant === 'index') {
-      entry = blogIndexLayouts.byStyle.get(style);
-    } else {
-      entry = blogPostLayouts.byStyle.get(style);
-    }
-
-    if (!entry) {
-      throw new Error(
-        `\n[CONFIG ERROR] Blog layout "${style}" does not exist.\n` +
-        `  Page: ${pageName}\n` +
-        `  Config: ${layoutAlias}\n` +
-        `  Expected: src/layouts/blogs/${style}/${variant === 'index' ? 'Index' : 'Post'}Layout.astro\n` +
-        `  Available: ${available.join(', ') || '(none)'}\n`
-      );
-    }
-  } else if (type === 'custom') {
-    entry = customLayouts.byStyle.get(style);
-    available = availableCustomStyles;
-
-    if (!entry) {
-      throw new Error(
-        `\n[CONFIG ERROR] Custom layout "${style}" does not exist.\n` +
-        `  Page: ${pageName}\n` +
-        `  Config: ${layoutAlias}\n` +
-        `  Expected: src/layouts/custom/${style}/Layout.astro\n` +
-        `  Available: ${available.join(', ') || '(none)'}\n`
-      );
-    }
-  } else if (type === 'issues') {
-    available = availableIssuesStyles;
-    if (variant === 'index') {
-      entry = issuesIndexLayouts.byStyle.get(style);
-    } else if (variant === 'subdoc') {
-      entry = issuesSubDocLayouts.byStyle.get(style);
-    } else {
-      entry = issuesDetailLayouts.byStyle.get(style);
-    }
-
-    if (!entry) {
-      const layoutFileName = variant === 'index' ? 'Index' : variant === 'subdoc' ? 'SubDoc' : 'Detail';
-      throw new Error(
-        `\n[CONFIG ERROR] Issues layout "${style}" does not exist.\n` +
-        `  Page: ${pageName}\n` +
-        `  Config: ${layoutAlias}\n` +
-        `  Expected: src/layouts/issues/${style}/${layoutFileName}Layout.astro\n` +
-        `  Available: ${available.join(', ') || '(none)'}\n`
-      );
-    }
-  } else {
-    throw new Error(
-      `\n[CONFIG ERROR] Unknown layout type: "${type}"\n` +
-      `  Page: ${pageName}\n` +
-      `  Config: ${layoutAlias}\n` +
-      `  Valid types: docs, blog, custom, issues\n`
-    );
-  }
-
-  return entry.loader;
-}
-
-/**
- * Validate and resolve navbar/footer layout
- */
-function resolveNavbarFooter(layoutAlias: string, type: 'navbar' | 'footer') {
-  const match = layoutAlias.match(/^@(navbar|footer)\/(.+)$/);
-  if (!match) {
-    throw new Error(
-      `\n[CONFIG ERROR] Invalid ${type} layout format: "${layoutAlias}"\n` +
-      `  Expected format: @${type}/{style}\n` +
-      `  Examples: @navbar/default, @footer/default\n`
-    );
-  }
-
-  const [, , style] = match;
-  const merged = type === 'navbar' ? navbarLayouts : footerLayouts;
-  const available = type === 'navbar' ? availableNavbarStyles : availableFooterStyles;
-  const entry = merged.byStyle.get(style);
-
-  if (!entry) {
-    throw new Error(
-      `\n[CONFIG ERROR] ${type.charAt(0).toUpperCase() + type.slice(1)} layout "${style}" does not exist.\n` +
-      `  Config: ${layoutAlias}\n` +
-      `  Expected: src/layouts/${type}/${style}/index.astro\n` +
-      `  Available: ${available.join(', ') || '(none)'}\n`
-    );
-  }
-
-  return entry.loader;
-}
-
-// Resolve layout component
 let LayoutComponent: any;
-
-if (pageType === 'custom' || pageType === 'docs') {
-  const loader = validateAndResolve(layout);
-  LayoutComponent = (await loader()).default;
-} else if (pageType === 'blog-index') {
-  const loader = validateAndResolve(layout, 'index');
-  LayoutComponent = (await loader()).default;
-} else if (pageType === 'blog-post') {
-  const loader = validateAndResolve(layout, 'post');
-  LayoutComponent = (await loader()).default;
-} else if (pageType === 'issues-index') {
-  const loader = validateAndResolve(layout, 'index');
-  LayoutComponent = (await loader()).default;
-} else if (pageType === 'issues-detail') {
-  const loader = validateAndResolve(layout, 'post');
-  LayoutComponent = (await loader()).default;
-} else if (pageType === 'issues-subdoc') {
-  const loader = validateAndResolve(layout, 'subdoc');
-  LayoutComponent = (await loader()).default;
+const variant = LAYOUT_VARIANT[routeProps.pageType];
+if (variant) {
+  LayoutComponent = (await resolveLayout(effectiveLayout, variant, routeProps.pageName)()).default;
 }
 
-// Resolve navbar and footer components
-const NavbarComponent = (await resolveNavbarFooter(navbarLayoutRef, 'navbar')()).default;
-const FooterComponent = (await resolveNavbarFooter(footerLayoutRef, 'footer')()).default;
+const NavbarComponent = (await resolveChrome(effectiveNavbar, 'navbar')()).default;
+const FooterComponent = (await resolveChrome(effectiveFooter, 'footer')()).default;
 
-// Page title
-let title = 'Page';
-if (pageType === 'docs' && doc) title = doc.data.title;
-else if (pageType === 'blog-post' && post) title = post.data.title;
-else if (pageType === 'blog-index') title = 'Blog';
-else if (pageType === 'issues-index') title = (vocabulary?.label as string) || 'Issues';
-else if (pageType === 'issues-detail' && issue) title = issue.meta.title;
-else if (pageType === 'issues-subdoc' && issue && subDoc) {
-  const subTitle = subDoc.kind === 'subtask' ? subDoc.subtask.title
-    : subDoc.kind === 'note' ? subDoc.note.name
-    : subDoc.log.name;
-  title = `${subTitle} · ${issue.meta.title}`;
-}
-
-// Derive content type from page type for dev toolbar
-let contentType: 'docs' | 'blog' | 'custom' | undefined;
-if (pageType === 'docs' || pageType === 'docs-index') {
-  contentType = 'docs';
-} else if (pageType === 'blog-index' || pageType === 'blog-post') {
-  contentType = 'blog';
-} else if (pageType === 'custom') {
-  contentType = 'custom';
-}
-
-// Layout props - always include baseUrl so sidebar builds correctly
-let layoutProps: Record<string, any> = { dataPath, baseUrl: pageConfig?.base_url };
-
-if (pageType === 'docs' && doc) {
-  layoutProps = {
-    title: doc.data.title,
-    description: doc.data.description,
-    dataPath,
-    baseUrl: pageConfig.base_url,
-    currentSlug: doc.slug,
-    content: doc.content,
-    headings: doc.headings, // Headings extracted during parsing
-  };
-} else if (pageType === 'docs' && !doc && pageConfig) {
-  // Doc not found (possibly deleted) - still provide baseUrl for sidebar
-  layoutProps = {
-    title: 'Page Not Found',
-    description: '',
-    dataPath,
-    baseUrl: pageConfig.base_url,
-    currentSlug: '',
-    content: '<p>This page does not exist or has been deleted.</p>',
-    headings: [],
-  };
-} else if (pageType === 'blog-post' && post) {
-  layoutProps = {
-    title: post.data.title,
-    description: post.data.description,
-    date: post.data.date as string,
-    author: post.data.author as string,
-    tags: post.data.tags as string[],
-    content: post.content,
-  };
-} else if (pageType === 'issues-index') {
-  layoutProps = {
-    dataPath,
-    baseUrl: pageConfig.base_url,
-  };
-} else if (pageType === 'issues-detail') {
-  if (!issue) {
-    return new Response('Not Found', { status: 404 });
-  }
-  layoutProps = {
-    issue,
-    vocabulary,
-    baseUrl: pageConfig.base_url,
-  };
-} else if (pageType === 'issues-subdoc') {
-  if (!issue || !subDoc) {
-    return new Response('Not Found', { status: 404 });
-  }
-  layoutProps = {
-    issue,
-    vocabulary,
-    baseUrl: pageConfig.base_url,
-    subDoc,
-  };
-}
+const { title, contentType, layoutProps, editorPath } = prepareRender(routeProps);
 ---
 
-<BaseLayout title={title} contentType={contentType} editorPath={doc?.filePath || post?.filePath}>
+<BaseLayout title={title} contentType={contentType} editorPath={editorPath}>
   <NavbarComponent slot="navbar" />
   <LayoutComponent {...layoutProps} />
   <FooterComponent slot="footer" />
