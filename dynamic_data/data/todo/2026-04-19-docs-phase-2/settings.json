@@ -1,0 +1,17 @@
+{
+  "title": "Documentation update — phase 2",
+  "description": "Bring user-guide and dev-docs up to date with phase-2 work: dev-tools rename, issues layout, Editor V2 (Yjs CRDT), system-metrics + cache-inspector toolbar apps, presence manager, two-tier theme token model.",
+  "status": "open",
+  "priority": "high",
+  "component": "docs",
+  "milestone": "phase-2",
+  "labels": [
+    "docs",
+    "task",
+    "wip"
+  ],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2026-04-19",
+  "due": "2026-04-30"
+}
