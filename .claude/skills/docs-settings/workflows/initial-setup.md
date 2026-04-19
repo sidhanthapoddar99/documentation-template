@@ -106,7 +106,7 @@ cp -r documentation-template/dynamic_data/data/pages/* data/data/pages/
 
 ```bash
 # Copy from template and edit
-cp documentation-template/.env.copy .env
+cp documentation-template/.env.example .env
 ```
 
 Edit `.env` — only `CONFIG_DIR` is needed to locate `site.yaml`. All other directory paths are configured in `site.yaml`'s `paths:` section:

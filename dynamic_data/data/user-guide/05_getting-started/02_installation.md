@@ -79,7 +79,7 @@ After installing, add skill permissions to `.claude/settings.local.json`:
 Create your environment file:
 
 ```bash
-cp .env.copy .env
+cp .env.example .env
 ```
 
 The default `.env` works out of the box:

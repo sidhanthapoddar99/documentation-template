@@ -12,7 +12,7 @@ The documentation setup separates the template (framework code) from user conten
     ├── documentation-template/     # Git clone - DO NOT MODIFY
     │   ├── src/                    # Framework source code
     │   ├── package.json
-    │   └── .env.copy               # Template for .env
+    │   └── .env.example               # Template for .env
     └── data/                       # YOUR CONTENT - EDIT THIS
         ├── assets/                 # Static assets
         ├── config/                 # YAML configuration
