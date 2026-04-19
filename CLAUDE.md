@@ -48,7 +48,7 @@ src/
 │   └── api/dev/          # Dev-only API (themes, editor)
 │
 ├── styles/               # Built-in default theme (theme.yaml + CSS)
-├── dev-toolbar/          # Astro dev-toolbar apps + shared server layer
+├── dev-tools/            # Astro dev-toolbar apps + shared server layer
 │   ├── server/           # Shared server-side: middleware · editor-store · yjs-sync · presence · metrics
 │   ├── editor/           # CodeMirror 6 live editor (mounted at /editor)
 │   ├── layout-selector/  # Layout & theme picker toolbar app

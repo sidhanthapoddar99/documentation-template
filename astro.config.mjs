@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import { loadEnv } from 'vite';
 import yaml from 'js-yaml';
-import { devToolbarIntegration } from './src/dev-toolbar/integration.ts';
+import { devToolbarIntegration } from './src/dev-tools/integration.ts';
 import { initPaths } from './src/loaders/paths.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
