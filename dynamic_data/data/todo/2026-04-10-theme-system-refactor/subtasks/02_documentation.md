@@ -1,7 +1,11 @@
 ---
 title: "Documentation for the refactored theme system"
 done: false
+state: review
 ---
+
+> **⏸ Under review — absorbed by `2026-04-19-docs-phase-2`**
+> This subtask has been consolidated into the phase-2 docs-update issue. See `2026-04-19-docs-phase-2/subtasks/02_theme-system-docs.md`. No action needed here — all work items below are tracked in that subtask.
 
 `CLAUDE.md` now covers the refactor for AI collaborators. Human-facing docs are still missing.
 

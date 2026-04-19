@@ -8,4 +8,4 @@ done: false
 - [ ] Add "Corporate" theme (professional, muted colors)
 - [ ] Add "Playful" theme (colorful, rounded)
 - [ ] Add "Terminal" theme (green on black, monospace)
-- [ ] Document theme creation process
+- [x] Document theme creation process — absorbed by `2026-04-19-docs-phase-2/subtasks/05_theme-creation-docs.md`

@@ -1,7 +1,11 @@
 ---
 title: "Documentation & skills"
 done: false
+state: review
 ---
+
+> **⏸ Under review — absorbed by `2026-04-19-docs-phase-2`**
+> The documentation portion of this subtask (user-guide + dev-docs coverage for the issues content type and the typography contract) has been consolidated into the phase-2 docs-update issue. See `2026-04-19-docs-phase-2/subtasks/01_issues-layout-docs.md` and `02_theme-system-docs.md`. The Claude skill + helper-scripts portion below remains in scope here.
 
 Two recent architectural changes landed without end-user documentation: the **typography token contract** and the **issues content type**. `CLAUDE.md` covers both for AI collaborators; humans don't have a guide yet. Plus a Claude skill to teach the assistant how to navigate the issue tracker.
 
