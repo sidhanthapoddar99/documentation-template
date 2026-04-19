@@ -63,7 +63,7 @@ The layout alias resolves to the component file:
 
 ### Dev Toolbar Switching
 
-In development mode, you can switch footer styles without editing config files using the dev toolbar. See [Layout & Theme Switcher](../03_development/02_layout-switcher.md) for details.
+In development mode, you can switch footer styles without editing config files using the dev toolbar's layout-switcher app.
 
 ## Copyright
 

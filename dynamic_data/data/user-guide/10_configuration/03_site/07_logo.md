@@ -45,13 +45,7 @@ paths:
   # assets: "/var/www/assets"      # Or use an absolute path
 ```
 
-You can also use absolute paths:
-
-```yaml
-logo:
-  src: "/logo.svg"      # Served from public/logo.svg
-  favicon: "/icon.png"  # Served from public/icon.png
-```
+Always use the `@assets/` alias for logo and favicon paths — the framework resolves them to the correct web URL based on `paths.assets`.
 
 ## Theme Variants
 

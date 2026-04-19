@@ -56,11 +56,11 @@ The layout alias resolves to the component file:
 
 ### Dev Toolbar Switching
 
-In development mode, you can switch navbar styles without editing config files using the dev toolbar. See [Layout & Theme Switcher](../03_development/02_layout-switcher.md) for details.
+In development mode, you can switch navbar styles without editing config files using the dev toolbar's layout-switcher app.
 
 ## Logo Configuration
 
-Logo and favicon configuration has moved to `site.yaml`. See [Site Configuration](./03_site.md) for details.
+Logo and favicon configuration has moved to `site.yaml`. See [Logo Configuration](./site/logo) for details.
 
 ```yaml
 # In site.yaml (not navbar.yaml)

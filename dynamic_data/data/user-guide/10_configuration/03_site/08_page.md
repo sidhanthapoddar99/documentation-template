@@ -45,7 +45,7 @@ pages:
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
 | `base_url` | `string` | Yes | URL path for this section |
-| `type` | `string` | Yes | Content type: `docs`, `blog`, or `custom` |
+| `type` | `string` | Yes | Content type: `docs`, `blog`, `issues`, or `custom` |
 | `layout` | `string` | Yes | Layout alias to use |
 | `data` | `string` | Yes | Path to content directory or file |
 
@@ -83,6 +83,22 @@ blog:
 - Automatic chronological sorting
 - Generates blog index page
 
+### `type: issues`
+
+Issue tracker — folder-per-item content with supporting sub-docs:
+
+```yaml
+todo:
+  base_url: "/todo"
+  type: issues
+  layout: "@issues/default"
+  data: "@data/issues"
+```
+
+- Each issue is its own folder (`YYYY-MM-DD-<slug>/`)
+- Supports subtasks, notes, comments, and agent-log sub-documents
+- Tracker-wide vocabulary declared in the data folder's root `settings.json`
+
 ### `type: custom`
 
 Custom pages with YAML data:
@@ -102,9 +118,10 @@ home:
 
 | Alias Pattern | Resolves To |
 |---------------|-------------|
-| `@docs/style_name` | `src/layouts/docs/styles/style_name/Layout.astro` |
-| `@blog/style_name` | `src/layouts/blog/styles/style_name/Layout.astro` |
-| `@custom/style_name` | `src/layouts/custom/styles/style_name/Layout.astro` |
+| `@docs/<style>` | `src/layouts/docs/<style>/` |
+| `@blog/<style>` | `src/layouts/blogs/<style>/` |
+| `@issues/<style>` | `src/layouts/issues/<style>/` |
+| `@custom/<style>` | `src/layouts/custom/<style>/` |
 
 ## Data Aliases
 
@@ -160,7 +177,7 @@ links:
 ## TypeScript Interface
 
 ```typescript
-type PageType = 'docs' | 'blog' | 'custom';
+type PageType = 'docs' | 'blog' | 'issues' | 'custom';
 
 interface PageConfig {
   base_url: string;

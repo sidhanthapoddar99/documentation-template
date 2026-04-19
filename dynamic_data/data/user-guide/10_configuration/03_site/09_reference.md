@@ -131,6 +131,18 @@ pages:
     type: blog
     layout: "@blog/default"
     data: "@data/blog"
+
+  issues:
+    base_url: "/issues"
+    type: issues
+    layout: "@issues/default"
+    data: "@data/issues"
+
+  home:
+    base_url: "/"
+    type: custom
+    layout: "@custom/home"
+    data: "@data/pages/home.yaml"
 ```
 
 ## Default Values

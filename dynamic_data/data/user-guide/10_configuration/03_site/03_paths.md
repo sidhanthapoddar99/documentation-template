@@ -45,7 +45,7 @@ Additional directories are automatically categorized:
 
 ## Reserved Keys
 
-The following keys cannot be used in `paths:` because they conflict with built-in layout aliases: `docs`, `blog`, `custom`, `navbar`, `footer`, `mdx`.
+The following keys cannot be used in `paths:` because they conflict with built-in layout / system aliases: `docs`, `blog`, `issues`, `custom`, `navbar`, `footer`, `theme`, `config`.
 
 ## Default Behavior
 

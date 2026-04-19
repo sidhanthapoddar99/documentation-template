@@ -34,4 +34,19 @@ The catalogue table is accurate today but will drift:
 - [ ] Keep the `Skill(...)` permissions block in sync with any new skills.
 - [ ] Verify the `/issues/2026-04-19-docs-phase-2` link in the body resolves against the real issues base URL (currently `/todo/` in this project, not `/issues/`).
 
+## `10_configuration/03_site/04_theme.md`
+
+Kept intentionally thin — covers `theme` / `theme_paths` fields in `site.yaml` only, defers everything else to the full Themes section. Two dead pointers to clean up once that section lands:
+
+- [ ] `/user-guide/themes/overview` (intro sentence) — verify the URL once the renumbered `45_themes/` section exists.
+- [ ] Same pointer at the bottom of the page ("See Themes section for complete details…").
+
+## `10_configuration/04_navbar.md` and `05_footer.md`
+
+Both reference the dev-toolbar layout-switcher app. The prose-level reference is accurate today, but there's no stable destination URL yet. Things to add once those pages exist:
+
+- [ ] `04_navbar.md` — link "Dev Toolbar Switching" paragraph to the dev-tools layout-switcher doc once it lands (per the plan: `/dev-docs/dev-toolkits/layout-switcher`).
+- [ ] `05_footer.md` — same link, same target.
+- [ ] Both: consider cross-linking from the navbar/footer authoring sections (whenever those get written in the user-guide) back to these config pages so authors can find the toggle from either direction.
+
 

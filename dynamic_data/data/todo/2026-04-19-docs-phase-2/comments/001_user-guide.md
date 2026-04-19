@@ -21,20 +21,20 @@ user-guide/
 │     [ ] 04_structure/ folder                      🔴  flattened
 │
 ├── 10_configuration/
-│   ├── [ ] 01_overview.md                          ⚪
-│   ├── [ ] 02_env.md                               ⚪
+│   ├── ✅  01_overview.md                          ⚪
+│   ├── ✅  02_env.md                               ⚪
 │   ├── 03_site/
-│   │   ├── [ ] 01_overview.md                      ⚪
-│   │   ├── [ ] 02_metadata.md                      ⚪
-│   │   ├── [ ] 03_paths.md                         ⚪   update: any new aliases
-│   │   ├── [ ] 04_theme.md                         ⚪   update: new token contract, theme_paths
-│   │   ├── [ ] 05_server.md                        ⚪
-│   │   ├── [ ] 06_editor.md                        ⚪   update: editor.presence.* knobs
-│   │   ├── [ ] 07_logo.md                          ⚪
-│   │   ├── [ ] 08_page.md                          ⚪
-│   │   └── [ ] 09_reference.md                     ⚪
-│   ├── [ ] 04_navbar.md                            ⚪
-│   └── [ ] 05_footer.md                            ⚪
+│   │   ├── ✅  01_overview.md                      ⚪
+│   │   ├── ✅  02_metadata.md                      ⚪
+│   │   ├── ✅  03_paths.md                         ⚪   reserved-keys list aligned with code
+│   │   ├── 🟡  04_theme.md                         ⚪   revisit: theme-section URL pending (see `comments/003_revisit-list.md`)
+│   │   ├── ✅  05_server.md                        ⚪
+│   │   ├── ✅  06_editor.md                        ⚪
+│   │   ├── ✅  07_logo.md                          ⚪
+│   │   ├── ✅  08_page.md                          ⚪
+│   │   └── ✅  09_reference.md                     ⚪
+│   ├── 🟡  04_navbar.md                            ⚪   revisit: future file refs (see `comments/003_revisit-list.md`)
+│   └── 🟡  05_footer.md                            ⚪   revisit: future file refs (see `comments/003_revisit-list.md`)
 │
 ├── 15_writing-content/                             🟡  renamed from 15_content
 │   ├── [ ] 01_overview.md                          ⚪   update: trim layout references

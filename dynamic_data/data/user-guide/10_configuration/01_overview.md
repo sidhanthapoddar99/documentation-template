@@ -24,10 +24,11 @@ dynamic_data/
 ├── data/             # Content (paths.data in site.yaml)
 │   ├── docs/
 │   ├── blog/
+│   ├── issues/
 │   └── pages/
 ├── themes/           # Custom themes (paths.themes in site.yaml)
 └── layouts/          # External layouts (LAYOUT_EXT_DIR from .env, optional)
-    └── docs/styles/  # Custom doc layouts, etc.
+    └── docs/default/ # Custom doc layouts, etc.
 ```
 
 ## Configuration Files
@@ -77,6 +78,12 @@ pages:
     type: blog
     layout: "@blog/default"
     data: "@data/blog"
+
+  issues:
+    base_url: "/issues"
+    type: issues
+    layout: "@issues/default"
+    data: "@data/issues"
 ```
 
 ### navbar.yaml
@@ -114,13 +121,17 @@ Configuration supports path aliases for cleaner references:
 
 | Alias | Resolves To | Used For |
 |-------|-------------|----------|
-| `@docs/style_name` | `src/layouts/docs/style_name/` | Doc layouts |
-| `@blog/style_name` | `src/layouts/blogs/style_name/` | Blog layouts |
-| `@custom/style_name` | `src/layouts/custom/style_name/` | Custom page layouts |
-| `@footer/style_name` | `src/layouts/footer/style_name/` | Footer layouts |
+| `@docs/<style>` | `src/layouts/docs/<style>/` | Doc layouts |
+| `@blog/<style>` | `src/layouts/blogs/<style>/` | Blog layouts |
+| `@issues/<style>` | `src/layouts/issues/<style>/` | Issues layouts |
+| `@custom/<style>` | `src/layouts/custom/<style>/` | Custom page layouts |
+| `@navbar/<style>` | `src/layouts/navbar/<style>/` | Navbar layouts |
+| `@footer/<style>` | `src/layouts/footer/<style>/` | Footer layouts |
 | `@data/path` | `paths.data/path` | Content data |
 | `@assets/file` | `paths.assets/file` → `/assets/file` | Static assets |
 | `@themes/name` | `paths.themes/name` | Custom themes |
+
+See [Path Aliases](../getting-started/aliases) for the full reference.
 
 ### Assets Alias
 
