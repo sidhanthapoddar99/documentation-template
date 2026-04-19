@@ -6,6 +6,8 @@
  * while the panel is open.
  */
 
+import { devToolsSharedCss } from '../_shared/styles';
+
 interface MemoryStats { rss: number; heapUsed: number; heapTotal: number; external: number; arrayBuffers: number }
 interface CpuStats { percent: number; user: number; system: number }
 interface SystemStats { loadAvg: [number, number, number]; freeMem: number; totalMem: number; cpuCount: number; uptimeSec: number; platform: string; nodeVersion: string }
@@ -39,30 +41,25 @@ export default {
 
   async init(canvas: ShadowRoot, app: any, _server: any) {
     const style = document.createElement('style');
-    style.textContent = `
-      astro-dev-toolbar-window { max-height: 80vh !important; overflow-y: auto; }
-      .sm-root { font: 12px/1.4 system-ui, sans-serif; color: #e4e4e7; min-width: 460px; padding: 12px; }
-      .sm-card { background: #18181b; border: 1px solid #27272a; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
-      .sm-head { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #a1a1aa; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    style.textContent = devToolsSharedCss + `
+      .sm-root { min-width: 460px; }
       .sm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
       .sm-stat { display: flex; justify-content: space-between; }
-      .sm-label { color: #a1a1aa; }
-      .sm-value { color: #e4e4e7; font-variant-numeric: tabular-nums; }
-      .sm-bar { height: 4px; background: #27272a; border-radius: 2px; margin-top: 4px; overflow: hidden; }
-      .sm-bar-fill { height: 100%; background: #60a5fa; transition: width 0.2s ease; }
-      .sm-bar-fill.is-hot { background: #f87171; }
-      .sm-bar-fill.is-warm { background: #fbbf24; }
-      .sm-status { color: #71717a; font-size: 10px; margin-top: 4px; }
-      .sm-warn { color: #fbbf24; font-size: 10px; }
-      .sm-empty { color: #71717a; font-style: italic; padding: 10px; text-align: center; }
+      .sm-label { color: var(--dt-text-muted); }
+      .sm-value { color: var(--dt-text); font-variant-numeric: tabular-nums; }
+      .sm-bar { height: 4px; background: var(--dt-bg-hover); border-radius: var(--dt-radius-sm); margin-top: 4px; overflow: hidden; }
+      .sm-bar-fill { height: 100%; background: var(--dt-accent); transition: width 0.2s ease; }
+      .sm-bar-fill.is-hot  { background: var(--dt-danger); }
+      .sm-bar-fill.is-warm { background: var(--dt-warn); }
+      .sm-warn { color: var(--dt-warn); font-size: var(--dt-text-micro); }
     `;
     canvas.appendChild(style);
 
     const win = document.createElement('astro-dev-toolbar-window');
     win.innerHTML = `
-      <div class="sm-root">
-        <div class="sm-body"><div class="sm-empty">Loading…</div></div>
-        <div class="sm-status" data-status></div>
+      <div class="dt-root sm-root">
+        <div class="sm-body"><div class="dt-empty">Loading…</div></div>
+        <div class="dt-status" data-status></div>
       </div>
     `;
     canvas.appendChild(win);
@@ -104,8 +101,8 @@ export default {
       const ch = clientHeap();
       const clientSection = ch
         ? `
-          <div class="sm-card">
-            <div class="sm-head"><span>Client (JS heap)</span><span>Chrome/Edge only</span></div>
+          <div class="dt-card">
+            <div class="dt-head"><span>Client (JS heap)</span><span>Chrome/Edge only</span></div>
             <div class="sm-grid">
               <div class="sm-stat"><span class="sm-label">Used</span><span class="sm-value">${fmtBytes(ch.used)}</span></div>
               <div class="sm-stat"><span class="sm-label">Total</span><span class="sm-value">${fmtBytes(ch.total)}</span></div>
@@ -113,11 +110,11 @@ export default {
             </div>
             <div class="sm-bar"><div class="sm-bar-fill" style="width: ${Math.min(100, (ch.used / ch.limit) * 100).toFixed(1)}%"></div></div>
           </div>`
-        : `<div class="sm-card"><div class="sm-head">Client (JS heap)</div><div class="sm-warn">performance.memory unavailable in this browser.</div></div>`;
+        : `<div class="dt-card"><div class="dt-head">Client (JS heap)</div><div class="sm-warn">performance.memory unavailable in this browser.</div></div>`;
 
       body.innerHTML = `
-        <div class="sm-card">
-          <div class="sm-head"><span>Server memory</span><span>process.memoryUsage()</span></div>
+        <div class="dt-card">
+          <div class="dt-head"><span>Server memory</span><span>process.memoryUsage()</span></div>
           <div class="sm-grid">
             <div class="sm-stat"><span class="sm-label">RSS</span><span class="sm-value">${fmtBytes(m.memory.rss)}</span></div>
             <div class="sm-stat"><span class="sm-label">Heap used</span><span class="sm-value">${fmtBytes(m.memory.heapUsed)}</span></div>
@@ -129,8 +126,8 @@ export default {
           <div class="sm-bar"><div class="sm-bar-fill" style="width: ${heapPct.toFixed(1)}%"></div></div>
         </div>
 
-        <div class="sm-card">
-          <div class="sm-head"><span>Server CPU</span><span>${m.system.cpuCount} cores</span></div>
+        <div class="dt-card">
+          <div class="dt-head"><span>Server CPU</span><span>${m.system.cpuCount} cores</span></div>
           <div class="sm-grid">
             <div class="sm-stat"><span class="sm-label">Process CPU</span><span class="sm-value">${m.cpu.percent.toFixed(1)}%</span></div>
             <div class="sm-stat"><span class="sm-label">Per-core avg</span><span class="sm-value">${cpuPerCore.toFixed(1)}%</span></div>
@@ -140,8 +137,8 @@ export default {
           <div class="sm-bar"><div class="sm-bar-fill ${cpuClass}" style="width: ${Math.min(100, cpuPerCore).toFixed(1)}%"></div></div>
         </div>
 
-        <div class="sm-card">
-          <div class="sm-head"><span>System</span><span>${m.system.platform} · node ${m.system.nodeVersion}</span></div>
+        <div class="dt-card">
+          <div class="dt-head"><span>System</span><span>${m.system.platform} · node ${m.system.nodeVersion}</span></div>
           <div class="sm-grid">
             <div class="sm-stat"><span class="sm-label">Uptime</span><span class="sm-value">${fmtDuration(m.system.uptimeSec)}</span></div>
             <div class="sm-stat"><span class="sm-label">Free RAM</span><span class="sm-value">${fmtBytes(m.system.freeMem)}</span></div>

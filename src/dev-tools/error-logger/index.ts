@@ -5,6 +5,8 @@
  * Groups errors by file for easy navigation.
  */
 
+import { devToolsSharedCss } from '../_shared/styles';
+
 interface ContentError {
   file: string;
   line?: number;
@@ -42,8 +44,9 @@ export default {
 
   async init(canvas: ShadowRoot, _app: any, _server: any) {
     // Create styles
+    // Shared tokens first, then app-specific rules (so app overrides win).
     const styles = document.createElement('style');
-    styles.textContent = `
+    styles.textContent = devToolsSharedCss + `
       .error-panel {
         padding: 12px;
         font-family: system-ui, -apple-system, sans-serif;

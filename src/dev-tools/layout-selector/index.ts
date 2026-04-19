@@ -8,6 +8,8 @@
  * - Toggling display mode (light/dark/system) globally
  */
 
+import { devToolsSharedCss } from '../_shared/styles';
+
 interface LayoutInfo {
   name: string;
   source: 'builtin' | 'external';
@@ -113,9 +115,10 @@ export default {
     // Create the window using Astro's built-in component
     const windowEl = document.createElement('astro-dev-toolbar-window');
 
-    // Create styles
+    // Create styles. Shared tokens come first; the app's own rules follow so
+    // anything that needs to override the shared defaults wins on cascade.
     const styles = document.createElement('style');
-    styles.textContent = `
+    styles.textContent = devToolsSharedCss + `
       astro-dev-toolbar-window {
         max-height: 80vh !important;
         overflow: hidden !important;
