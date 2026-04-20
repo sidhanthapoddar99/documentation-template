@@ -34,6 +34,13 @@ The catalogue table is accurate today but will drift:
 - [ ] Keep the `Skill(...)` permissions block in sync with any new skills.
 - [ ] Verify the `/issues/2026-04-19-docs-phase-2` link in the body resolves against the real issues base URL (currently `/todo/` in this project, not `/issues/`).
 
+## `15_writing-content/03_asset-embedding.md`
+
+Issues-section describes intended behaviour; the preprocessor wiring for issues doesn't exist yet. Marked with a "not implemented yet" note pointing to `2026-04-19-knowledge-graph-and-wiki-links/subtasks/01_unified-pipeline-and-graph.md`.
+
+- [ ] When phase-3 subtask 01 wires asset-embed into `IssuesParser`, remove the "Not implemented yet" admonition.
+- [ ] Also revisit at that point whether the `[[...]]` / `[[[...]]]` split (phase-3 syntax decision) changes the examples on this page — may need to split "wiki link" vs "embed" behaviours across the writing-content section.
+
 ## `10_configuration/03_site/04_theme.md`
 
 Kept intentionally thin — covers `theme` / `theme_paths` fields in `site.yaml` only, defers everything else to the full Themes section. Two dead pointers to clean up once that section lands:

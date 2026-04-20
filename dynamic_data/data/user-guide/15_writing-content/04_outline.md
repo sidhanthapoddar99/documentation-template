@@ -1,7 +1,7 @@
 ---
 title: Page Outline
 description: Auto-generated table of contents from headings
-sidebar_position: 5
+sidebar_position: 4
 ---
 
 # Page Outline

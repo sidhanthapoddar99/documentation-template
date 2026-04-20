@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # Markdown Basics
 
-Every content type in the system is authored in plain markdown. Only `.md` files are supported — no MDX, no JSX, no React components. If you need richer formatting, use [custom tags](./custom-tags) instead.
+Every content type in the system is authored in plain markdown. Only `.md` files are supported — no MDX, no JSX, no React components.
 
 ## Basic Syntax
 
@@ -129,7 +129,6 @@ Beyond standard markdown, the system provides:
 | Feature | Description | Section |
 |---------|-------------|---------|
 | Asset Embedding | `[[path]]` syntax for file inclusion | [Asset Embedding](./asset-embedding) |
-| Custom Tags | HTML-like components | [Custom Tags](./custom-tags) |
 | Page Outline | Auto-generated table of contents | [Outline](./outline) |
 
 ## Best Practices

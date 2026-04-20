@@ -1,7 +1,18 @@
 ---
-title: Custom Tags
-description: HTML-like tags that expand into semantic components
-sidebar_position: 4
+author: claude
+date: 2026-04-20
+---
+
+# Original user-guide doc — `15_writing-content/04_custom-tags.md`
+
+Preserved verbatim from the user-guide on 2026-04-20, then removed from the user-guide because the transformers described here are **not currently wired into any parser pipeline** (see `issue.md` → Concerns #1). Kept here as the starting point for the restored doc once wiring lands.
+
+**Known inaccuracies to fix on restore** (see `issue.md` → Concerns #2):
+
+- Callout types list 4 — code has 5 (missing `note`).
+- Missing `title` attribute on callout (overrides default heading).
+- Missing `collapsible="true"` attribute on callout (renders as `<details>`).
+
 ---
 
 # Custom Tags
