@@ -36,48 +36,39 @@ user-guide/
 │   ├── 🟡  04_navbar.md                            ⚪   revisit: future file refs (see `comments/003_revisit-list.md`)
 │   └── 🟡  05_footer.md                            ⚪   revisit: future file refs (see `comments/003_revisit-list.md`)
 │
-├── 15_writing-content/                             🟡  renamed from 15_content
+├── 15_writing-content/                             ✅  renamed from 15_content (docs/blogs hoisted out)
 │   ├── [ ] 01_overview.md                          ⚪   update: trim layout references
 │   ├── [ ] 02_markdown-basics.md                   🟡  = old 02_markdown-editing/01
 │   ├── [ ] 03_asset-embedding.md                   🟡  = old 02_markdown-editing/02
 │   ├── [ ] 04_custom-tags.md                       🟡  = old 02_markdown-editing/03
 │   └── [ ] 05_outline.md                           🟡  = old 02_markdown-editing/04
 │
-│   Evicted:
-│     [ ] 15_content/03_docs/*                      🟡 → 25_docs/
-│     [ ] 15_content/04_blogs/*                     🟡 → 30_blogs/
-│     [ ] 15_content/ folder                        🔴
-│
-├── 20_layout-system/                               🟡  promoted from 25_layouts
+├── 16_layout-system/                               ✅  renamed from 25_layouts
 │   └── [ ] 01_overview.md                          ⚪   update: 4 content types, @ext-layouts
 │
-├── 25_docs/                                        🟡  hoisted from 15_content/03_docs
+├── 17_docs/                                        ✅  hoisted from 15_content/03_docs
 │   ├── [ ] 01_overview.md                          ⚪
 │   ├── [ ] 02_structure.md                         ⚪
 │   ├── [ ] 03_folder-settings.md                   ⚪
 │   ├── [ ] 04_frontmatter.md                       ⚪
 │   └── [ ] 05_asset-embedding.md                   ⚪
 │
-├── 30_blogs/                                       🟡  hoisted from 15_content/04_blogs
+├── 18_blogs/                                       ✅  hoisted from 15_content/04_blogs
 │   ├── [ ] 01_overview.md                          ⚪
 │   ├── [ ] 02_blogs-index.md                       ⚪
 │   ├── [ ] 03_structure.md                         ⚪
 │   ├── [ ] 04_frontmatter.md                       ⚪
 │   └── [ ] 05_asset-embedding.md                   ⚪
 │
-├── 35_issues/                                      🟢  entire section new
-│   ├── [ ] 01_overview.md                          🟢   purpose + why AI-native
+├── 19_issues/                                      🟢  entire section new (folder + settings.json + placeholder overview created)
+│   ├── [ ] 01_overview.md                          🟢   purpose + why AI-native (placeholder exists)
 │   ├── [ ] 02_structure.md                         🟢   folder-per-item layout
 │   ├── [ ] 03_settings-json.md                     🟢   per-issue metadata schema
 │   ├── [ ] 04_vocabulary.md                        🟢   tracker-wide settings.json
 │   ├── [ ] 05_subtasks-notes-agent-log.md          🟢   sub-docs + sub-doc URLs
 │   └── [ ] 06_views-and-filters.md                 🟢
 │
-├── 40_custom/                                      🟢  new top-level
-│   ├── [ ] 01_overview.md                          🟢
-│   └── [ ] 02_creating-custom-pages.md             🟢
-│
-├── 45_themes/                                      🟡  renumbered from 20_themes
+├── 20_themes/                                      ⚪  kept at 20 (not renumbered per revised plan)
 │   ├── [ ] 01_overview.md                          ⚪   update: two-tier contract, required_variables
 │   ├── [ ] 02_theme-structure.md                   ⚪   update: theme.yaml + extends
 │   ├── [ ] 03_creating-themes.md                   ⚪   update: inherit-and-override
@@ -103,9 +94,11 @@ user-guide/
 │   ├── [ ] 06_validation.md                        ⚪   update: required_variables contract
 │   └── [ ] 07_rules.md                             ⚪   update: no invented names, no hardcoded fallbacks
 │
-├── 50_deployment/                                  🟡  renumbered from 30_deployment
+├── 30_deployment/                                  ⚪  kept at 30
 │   └── [ ] 01_to_be_written.md                     ⚪
 │
-└── 55_plugins/                                     🟡  renumbered from 35_plugins
+└── 35_plugins/                                     ⚪  kept at 35
     └── [ ] 01_to_be_written.md                     ⚪
 ```
+
+> **Custom pages section** — deferred from the original phase-2 plan (was `40_custom/`). To revisit after 17/18/19 ship.
