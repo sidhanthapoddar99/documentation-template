@@ -50,8 +50,10 @@ user-guide/
 │   Evicted:
 │     🔴  old 04_custom-tags.md                     → moved to `2026-04-20-custom-tags/notes/01_original-user-doc.md` (transformers not wired; see `comments/004_custom-tags-removed.md`)
 │
-├── 16_layout-system/                               ✅  renamed from 25_layouts
-│   └── [ ] 01_overview.md                          ⚪   update: 4 content types, @ext-layouts
+├── 16_layout-system/                               ✅  3-page rewrite — rewrote 01, added 02+03
+│   ├── ✅  01_overview.md                          ⚪   rewrite (was 317 lines · now concise) — 4 content types, @<type>/<style> alias, layout vs theme, when to write
+│   ├── ✅  02_switching-styles.md                  🟢   NEW — site.yaml layout fields · what ships · dev-toolbar switcher
+│   └── ✅  03_custom-layout-styles.md              🟢   NEW — LAYOUT_EXT_DIR · @ext-layouts · import rules · override-by-name · restart requirement
 │
 ├── 17_docs/                                        ✅  hoisted from 15_content/03_docs
 │   ├── ✅  01_overview.md                          ⚪   dropped MDX, fixed DATA_DIR, added issues/blogs cross-refs, removed dead parser link
@@ -91,7 +93,12 @@ user-guide/
 │   ├── ✅  09_using-with-ai.md                     🟢   `/issues` skill (planned) · mental model · 4 rules · helper scripts (planned)
 │   └── ✅  10_setup-new-tracker.md                 🟢   new tracker · vocabulary design · site.yaml mount · multiple trackers
 │
-├── 20_themes/                                      ✅  restructured — tokens vs component-styles split, contract-first, 46-var discipline
+├── 20_custom-pages/                                ✅  NEW section — inserted between 19_issues and themes (themes renumbered 20→25)
+│   ├── ✅  01_overview.md                          🟢   what custom pages are · when vs docs/blogs/issues · YAML-driven · 6-type comparison table
+│   ├── ✅  02_using-built-in-layouts.md            🟢   @custom/home · @custom/info · @custom/countdown · full schemas + examples
+│   └── ✅  03_creating-custom-layouts.md           🟢   minimum viable layout · loadFile pattern · schema discipline · token consumption · LAYOUT_EXT_DIR workflow
+│
+├── 25_themes/                                      ✅  RENUMBERED (was 20_themes) — restructured tokens vs component-styles split, contract-first, 46-var discipline
 │   ├── ✅  01_overview.md                          🟢   rewrite — no-hardcoded-values rule front and centre · 46-var contract · two-tier typography
 │   ├── ✅  02_the-theme-contract.md                🟢   NEW — the 46 required variables · why contract · inventing-vars anti-pattern
 │   ├── ✅  03_theme-structure.md                   🟢   rewrite — theme.yaml schema · file order · CSS merge order · override_mode documented

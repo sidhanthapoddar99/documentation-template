@@ -1,105 +1,85 @@
 ---
-title: Layouts Overview
-description: Understanding the layout system and how to use different layouts
+title: Layout System Overview
+description: What layouts are, the 4 content types, how a layout gets picked, and when to write your own
+sidebar_position: 1
 ---
 
-# Layouts Overview
+# Layout System
 
-Layouts define how your content is displayed. The framework provides layouts for documentation, blogs, and custom pages — each with different visual structures while using the same underlying data pipeline.
+A **layout** is an Astro component that renders a specific type of page. The framework ships with layouts for every content type (docs, blogs, issues, custom pages) plus navbar and footer variants. Layouts are **pluggable** — the framework picks one at route time based on `site.yaml` configuration.
 
-## What is a Layout?
+This section covers the user-facing side of layouts: what's available, how to switch between them, and how to ship your own. For the deep internals (`parts/` splitting, client-side JS patterns, routing additions), see the dev-docs.
 
-A layout is an Astro component that receives processed content and renders it with a specific structure. For example:
+## Layout vs theme
 
-- **default**: Shows sidebar navigation + content body + table of contents
-- **compact**: Shows content body + table of contents (no sidebar)
-- **default** (blog): Shows post cards on index, full post content on detail pages
+| | **Layout** | **Theme** |
+|---|---|---|
+| What | Astro components (structure) | CSS files (styling) |
+| Defines | HTML structure, page regions, component tree | Colours, fonts, spacing, chrome styles |
+| Swappable? | Yes — pick different layouts per page in `site.yaml` | Yes — one active theme per site |
+| Analogy | The skeleton | The skin |
+
+A single layout can render radically differently under different themes (light/dark, minimal/full-width). A single theme can apply across many layouts. They're orthogonal.
+
+See [Themes](/user-guide/themes/overview) for the styling side.
+
+## The four content types
+
+Every page in the site belongs to one of four content types. Each has its own layout conventions:
+
+| Type | Data shape | Routing | Example layouts |
+|---|---|---|---|
+| **docs** | Folder of markdown + `settings.json` | `/<base>/<slug>` | `@docs/default` (sidebar + outline), `@docs/compact` (no sidebar) |
+| **blog** | Flat markdown files (`YYYY-MM-DD-<slug>.md`) | `/<base>` index + `/<base>/<slug>` detail | `@blog/default` (cards + posts) |
+| **issues** | Folder-per-item (`YYYY-MM-DD-<slug>/`) with `settings.json` + sub-docs | `/<base>` index + `/<base>/<id>` detail | `@issues/default` (filter bar + three-column detail) |
+| **custom** | Single YAML file per page, schema defined by layout | `/<base>` | `@custom/home`, `@custom/info`, `@custom/countdown` |
+
+Plus two chrome layouts applied to every page:
+
+| Type | Purpose | Example variants |
+|---|---|---|
+| **navbar** | Site-wide top bar | `@navbar/default`, `@navbar/minimal` |
+| **footer** | Site-wide bottom block | `@footer/default`, `@footer/minimal` |
+
+## Layout resolution — the `@<type>/<style>` alias
+
+Layouts are referenced with a two-segment alias:
 
 ```
-Content (Markdown)  →  Parser Pipeline  →  Layout  →  Final HTML
-                                              │
-                                    ┌─────────┴─────────┐
-                                    │                   │
-                              default             compact
-                              (3 columns)         (2 columns)
+@<type>/<style>
 ```
 
-## Layout Types
+- **`<type>`** — the content type: `docs`, `blog`, `issues`, `custom`, `navbar`, `footer`
+- **`<style>`** — the style name: `default`, `compact`, `minimal`, `home`, `info`, `countdown`, etc.
 
-The framework organizes layouts by content type:
+The alias resolves through `src/loaders/alias.ts`:
 
-| Type | Location | Used For |
-|------|----------|----------|
-| **Docs** | `src/layouts/docs/` | Documentation pages |
-| **Blogs** | `src/layouts/blogs/` | Blog posts and listings |
-| **Custom** | `src/layouts/custom/` | Landing pages, info pages |
+| Alias | Resolves to |
+|---|---|
+| `@docs/default` | `src/layouts/docs/default/` |
+| `@docs/compact` | `src/layouts/docs/compact/` |
+| `@blog/default` | `src/layouts/blogs/default/` |
+| `@issues/default` | `src/layouts/issues/default/` |
+| `@custom/home` | `src/layouts/custom/home/` |
+| `@navbar/minimal` | `src/layouts/navbar/minimal/` |
 
-## Directory Structure
+## How layouts get picked
 
-Each layout variant is a folder that owns its own components. Layouts contain only Astro components — no CSS files. All styling is provided by the theme (`src/styles/`).
-
-```
-src/layouts/
-├── BaseLayout.astro          # Root HTML wrapper (all pages)
-│                             # Injects theme CSS via <style id="theme-styles">
-│
-├── docs/
-│   ├── default/              # Full layout (sidebar + body + outline)
-│   │   ├── Layout.astro
-│   │   ├── Sidebar.astro
-│   │   ├── Body.astro
-│   │   ├── Outline.astro
-│   │   └── Pagination.astro
-│   └── compact/              # Compact layout (body + outline, no sidebar)
-│       └── Layout.astro      # imports Body/Outline/Pagination from ../default/
-│
-├── blogs/
-│   └── default/              # Index + Post layouts + all blog components
-│       ├── IndexLayout.astro
-│       ├── PostLayout.astro
-│       ├── IndexBody.astro
-│       ├── PostBody.astro
-│       └── PostCard.astro
-│
-├── custom/
-│   ├── home/                 # Landing page (hero + features)
-│   │   ├── Layout.astro
-│   │   ├── Hero.astro
-│   │   └── Features.astro
-│   ├── info/                 # Simple content page
-│   │   ├── Layout.astro
-│   │   └── Content.astro
-│   └── countdown/            # Countdown timer page
-│       └── Layout.astro
-│
-├── navbar/                   # Navigation variants
-│   ├── default/index.astro
-│   └── minimal/index.astro
-│
-└── footer/                   # Footer variants
-    ├── default/index.astro
-    └── minimal/index.astro
-```
-
-The theme provides visual styling for navbar, footer, docs, and blog layouts through CSS files like `docs.css`, `navbar.css`, `footer.css`, and `blogs.css` in `src/styles/`. Custom page layouts (`home`, `info`, `countdown`) define their own styles using scoped `<style>` blocks within each component.
-
-## Setting Layouts in Configuration
-
-Layouts are configured in `site.yaml` using the `layout` field:
+In `site.yaml`, each page entry declares which layout(s) to use:
 
 ```yaml
-# dynamic_data/config/site.yaml
 pages:
   docs:
     base_url: "/docs"
     type: docs
-    layout: "@docs/default"      # ← Layout reference
+    layout: "@docs/default"      # ← here
     data: "@data/docs"
 
   blog:
     base_url: "/blog"
     type: blog
-    layout: "@blog/default"
+    layout_index: "@blog/default"   # index view (list of posts)
+    layout_detail: "@blog/default"  # detail view (single post)
     data: "@data/blog"
 
   home:
@@ -109,208 +89,72 @@ pages:
     data: "@data/pages/home.yaml"
 ```
 
-### Layout Reference Format
+Index+detail types (blog, issues) accept `layout_index` + `layout_detail` separately. Single-surface types (docs, custom) accept one `layout:`.
+
+At route time, `src/pages/[...slug].astro` reads the page config, resolves the alias, and invokes the matching Astro component. Full detail: [Switching Layout Styles](./switching-styles).
+
+## The flow, end to end
 
 ```
-@{type}/{style_name}
+Request to /docs/getting-started/overview
+       │
+       ▼
+Route handler (src/pages/[...slug].astro)
+       │
+       ▼
+Match URL → find page config in site.yaml
+       │
+       ├── type:   docs
+       ├── layout: "@docs/default"
+       └── data:   "@data/docs"
+       │
+       ▼
+Resolve alias @docs/default → src/layouts/docs/default/
+       │
+       ▼
+Load Layout.astro from that folder
+       │
+       ▼
+Layout receives props (content, headings, dataPath, etc.)
+       │
+       ▼
+Layout renders HTML (with theme CSS injected by BaseLayout)
+       │
+       ▼
+Response
 ```
 
-| Reference | Resolves To |
-|-----------|-------------|
-| `@docs/default` | `src/layouts/docs/default/Layout.astro` |
-| `@blog/default` | `src/layouts/blogs/default/*.astro` |
-| `@custom/home` | `src/layouts/custom/home/Layout.astro` |
+`BaseLayout.astro` wraps every page — it injects the active theme's CSS into `<head>` and provides the root HTML shell. It's **not swappable** (every layout renders inside it).
 
-## Dev Toolbar: Layout Switcher
+## User-shippable layouts — `@ext-layouts`
 
-During development, you can switch layouts without modifying configuration files.
+You can ship your own layout style without editing `src/layouts/`. Drop it in a user-configured directory (typically `dynamic_data/layouts/<type>/<style>/`), set `LAYOUT_EXT_DIR` in `.env`, and the new layout is immediately available via the same `@<type>/<style>` alias — with **override-by-name** semantics against built-ins.
 
-### Using the Dev Toolbar
+Full walkthrough: [Custom Layout Styles](./custom-layout-styles).
 
-1. Start the dev server: `bun run start`
-2. Navigate to any docs or blog page
-3. Click the **grid icon** in Astro's dev toolbar (bottom of screen)
-4. Select a different layout
+## When you need a new layout
 
-The page reloads with the new layout instantly.
+Common customisation paths, in order of how often you'll reach for each:
 
-## Data Interface Layer
+| Want to change | Use |
+|---|---|
+| Colours, fonts, spacing | [Theme](/user-guide/themes/overview) override — no layout work |
+| Component styling (navbar look, footer feel) | Theme override of `navbar.css` / `footer.css` |
+| Switch to a simpler docs chrome (no sidebar) | `layout: "@docs/compact"` in `site.yaml` |
+| Swap navbar / footer style | `layout_navbar: "@navbar/minimal"` etc. in `site.yaml` |
+| Render a completely different page structure (Kanban view, card grid) | **New layout** — ship via `@ext-layouts` |
 
-The route handler (`[...slug].astro`) assembles a **different set of props** for each layout type. The pattern is:
+Most projects never write a custom layout. **If theme overrides + style switching can cover the need, they should.** Writing a layout is the last resort, not the first.
 
-- **Content that's already known** (the current page being viewed) is passed pre-processed as props — the layout just renders it.
-- **Content that needs to be discovered** (sidebar tree, post grid, YAML data) is passed as a path — the layout loads it itself.
+## What's in this section
 
-### Docs layout props
+| Page | Covers |
+|---|---|
+| [Switching Layout Styles](./switching-styles) | Picking built-in styles · `site.yaml` fields · what ships · dev-toolbar switcher |
+| [Custom Layout Styles](./custom-layout-styles) | `LAYOUT_EXT_DIR` setup · `@ext-layouts` alias · import rules · override behaviour |
 
-```typescript
-// Route handler passes current page pre-rendered + path for sidebar
-{
-  title: string;          // from frontmatter
-  description?: string;
-  content: string;        // rendered HTML — layout uses set:html
-  headings: Heading[];    // extracted during parsing — layout builds outline
-  dataPath: string;       // folder path — layout calls loadContentWithSettings()
-  baseUrl: string;        // "/docs"
-  currentSlug: string;    // "getting-started/overview"
-}
-```
+## See also
 
-The layout receives the current page fully rendered but must load the entire docs folder itself to build the sidebar and pagination.
-
-### Blog index layout props
-
-```typescript
-// Route handler passes only the path — IndexLayout fetches all posts itself
-{
-  dataPath: string;       // folder path — layout calls loadContent() for post cards
-  baseUrl: string;        // "/blog"
-}
-```
-
-### Blog post layout props
-
-```typescript
-// Route handler passes all post data directly — no path needed
-{
-  title: string;
-  description?: string;
-  content: string;        // rendered HTML
-  date: string;
-  author?: string;
-  tags?: string[];
-  // no dataPath — blog posts have no sidebar
-}
-```
-
-### Custom layout props
-
-```typescript
-// Route handler passes only the file path — layout calls loadFile() itself
-{
-  dataPath: string;       // file path e.g. "/abs/path/pages/home.yaml"
-  baseUrl: string;        // "/"
-}
-```
-
-The layout calls `loadFile(dataPath)` and reads whatever keys are in the YAML. No fixed schema.
-
-### Comparison
-
-| | Docs | Blog index | Blog post | Custom |
-|--|------|------------|-----------|--------|
-| Pre-rendered content | Yes | No | Yes | No |
-| Path passed | Folder | Folder | — | File |
-| Layout loads sidebar | Yes (from path) | — | — | — |
-| Layout loads posts | — | Yes (from path) | — | — |
-| Layout loads YAML | — | — | — | Yes (from path) |
-| `settings.json` used | Yes | No | No | No |
-
-## Available Layouts
-
-### Documentation Layouts
-
-| Layout | Description |
-|--------|-------------|
-| `default` | Full layout: sidebar + body + outline |
-| `compact` | Minimal layout: body + outline (no sidebar) |
-
-### Blog Layouts
-
-| Layout | Description |
-|--------|-------------|
-| `default` | Standard blog with post cards and full post pages |
-
-### Custom Layouts
-
-| Layout | Description |
-|--------|-------------|
-| `home` | Landing page with hero section and features grid |
-| `info` | Simple content page for about/contact pages |
-| `countdown` | Countdown timer to a target date |
-
-## External Layouts
-
-You can add custom layouts **without modifying the framework's `src/` directory** by setting the `LAYOUT_EXT_DIR` environment variable.
-
-### Setup
-
-1. Create a layouts directory (e.g., `dynamic_data/layouts/`)
-2. Set `LAYOUT_EXT_DIR` in `.env`:
-
-```env
-LAYOUT_EXT_DIR=./dynamic_data/layouts
-```
-
-3. Mirror the `src/layouts/` structure for the layouts you want to add:
-
-```
-dynamic_data/layouts/
-├── docs/my-layout/
-│   └── Layout.astro
-├── blogs/my-blog-style/
-│   ├── IndexLayout.astro
-│   └── PostLayout.astro
-├── custom/my-page/
-│   └── Layout.astro
-├── navbar/my-navbar/
-│   └── index.astro
-└── footer/my-footer/
-    └── index.astro
-```
-
-### Import Rules
-
-External `.astro` files live outside `src/`, so **relative imports won't work**. Use Vite aliases instead:
-
-```astro
----
-// Use @layouts/ to import built-in components from another variant
-import Body from '@layouts/docs/default/Body.astro';
-import Outline from '@layouts/docs/default/Outline.astro';
-import Pagination from '@layouts/docs/default/Pagination.astro';
-
-// Use @loaders/ for data loading
-import { loadContentWithSettings } from '@loaders/data';
----
-```
-
-Available aliases: `@layouts/`, `@loaders/`, `@parsers/`, `@styles/`, `@modules/`, `@hooks/`, `@custom-tags/`.
-
-### Merge Behavior
-
-| Scenario | Result |
-|----------|--------|
-| New style name | Added alongside built-in layouts |
-| Same style name as built-in | External layout **overrides** built-in |
-| `LAYOUT_EXT_DIR` not set | Only built-in layouts (zero overhead) |
-| Directory doesn't exist | Startup error with clear message |
-
-### Limitations
-
-- `BaseLayout.astro` cannot be overridden (it's the root HTML wrapper)
-- Adding or removing layout directories requires a dev server restart (Vite glob limitation)
-- Modifying existing external `.astro` files triggers normal HMR/full-reload
-
-## Creating New Layouts
-
-### Built-in Layout (in `src/`)
-
-1. **Create the folder**: `src/layouts/docs/my_layout/`
-2. **Add Layout.astro**: Implement the required props interface
-3. **Import components**: Use `./` for same-folder, `../default/` for shared components
-4. **Use theme CSS classes**: Apply the correct CSS class names so the theme can style the layout
-5. **Reference in config**: `layout: "@docs/my_layout"`
-
-### External Layout (outside `src/`)
-
-1. **Set `LAYOUT_EXT_DIR`** in `.env` (if not already set)
-2. **Create the folder**: `<LAYOUT_EXT_DIR>/docs/my_layout/`
-3. **Add Layout.astro**: Implement the required props interface
-4. **Use Vite aliases for imports**: `@layouts/`, `@loaders/`, etc. (no relative imports)
-5. **Restart dev server** to pick up the new directory
-6. **Reference in config**: `layout: "@docs/my_layout"`
-
-Both are automatically discovered — no registration needed.
-
-See the [Docs Layouts](./docs-layouts/overview), [Blog Layouts](./blog-layouts/overview), and [Custom Layouts](./custom-layouts/overview) sections for detailed guides.
+- [Themes](/user-guide/themes/overview) — styling layer (where most customisation happens)
+- [Docs content type](/user-guide/docs/overview) · [Blogs](/user-guide/blogs/overview) · [Issues](/user-guide/issues/overview) · [Custom pages](/user-guide/custom-pages/overview)
+- [Page Configuration](/user-guide/configuration/site/page) — full `pages:` entry schema in `site.yaml`
