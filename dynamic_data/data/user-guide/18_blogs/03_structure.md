@@ -10,7 +10,7 @@ Blog posts use date-based naming for organization and automatic sorting.
 
 ## Naming Convention
 
-**Format:** `YYYY-MM-DD-slug.md` or `YYYY-MM-DD-slug.mdx`
+**Format:** `YYYY-MM-DD-slug.md`
 
 ```
 blog/
@@ -28,7 +28,7 @@ blog/
 | Month | `MM` | `01`, `12` |
 | Day | `DD` | `05`, `31` |
 | Slug | lowercase, hyphens | `hello-world` |
-| Extension | `.md` or `.mdx` | `.md` |
+| Extension | `.md` | `.md` |
 
 ## URL Generation
 

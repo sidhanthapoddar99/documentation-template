@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Docs Frontmatter
 
-Every documentation file (`.md` or `.mdx`) should include frontmatter at the top. Frontmatter is YAML metadata enclosed in triple dashes.
+Every documentation `.md` file should include frontmatter at the top. Frontmatter is YAML metadata enclosed in triple dashes.
 
 ## Basic Structure
 

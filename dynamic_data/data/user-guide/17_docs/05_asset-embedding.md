@@ -8,7 +8,7 @@ sidebar_position: 5
 
 The `assets` folder stores external files like code snippets and images. This page covers asset management specific to documentation.
 
-For the general `[[path]]` syntax, see [Markdown Asset Embedding](/docs/content/markdown-editing/asset-embedding).
+For the general `[[path]]` syntax (shared across content types), see [Asset Embedding](/user-guide/writing-content/asset-embedding).
 
 ## Assets Folder Structure
 
@@ -18,8 +18,8 @@ Each documentation folder can have its own `assets` folder:
 docs/
 ├── 01_getting-started/
 │   ├── settings.json
-│   ├── 01_overview.mdx
-│   ├── 02_installation.mdx
+│   ├── 01_overview.md
+│   ├── 02_installation.md
 │   └── assets/
 │       ├── code/
 │       │   ├── example.py
@@ -37,7 +37,7 @@ In docs, all asset paths are **relative to the current file**:
 ```
 docs/
 ├── 01_getting-started/
-│   ├── 01_overview.mdx      ← You are here
+│   ├── 01_overview.md      ← You are here
 │   └── assets/
 │       └── example.py       ← \[[./assets/example.py]]
 ```
@@ -62,12 +62,12 @@ docs/
 │   ├── assets/
 │   │   └── intro.py
 │   └── 01_basics/
-│       ├── 01_overview.mdx
+│       ├── 01_overview.md
 │       └── assets/
 │           └── basics.py    ← \[[./assets/basics.py]]
 ```
 
-From `01_basics/01_overview.mdx`:
+From `01_basics/01_overview.md`:
 
 ~~~markdown
 <!-- Access local assets -->
@@ -93,16 +93,6 @@ The most common usage - embedding code inside fenced blocks:
 ~~~
 
 The content of `example.py` replaces `\[[./assets/example.py]]`.
-
-## Code in Components
-
-Use with custom components for enhanced display:
-
-```markdown
-<CollapsibleCodeBlock language="python" title="example.py">
-\[[./assets/example.py]]
-</CollapsibleCodeBlock>
-```
 
 ## Images
 
@@ -142,21 +132,9 @@ assets/
     └── erd.png
 ```
 
-## MDX Requirement
-
-**Important:** Custom components like `<CollapsibleCodeBlock>` require `.mdx` files.
-
-| Feature | `.md` | `.mdx` |
-|---------|-------|--------|
-| Standard markdown | Yes | Yes |
-| `[[path]]` file embedding | Yes | Yes |
-| Fenced code blocks | Yes | Yes |
-| Custom JSX components | No | Yes |
-
 ## Best Practices
 
-1. **Use `.mdx`** when you need custom components
-2. **Organize assets** in subfolders (`code/`, `images/`)
-3. **Keep assets close** to the docs that use them
-4. **Use descriptive names** - `auth-flow.png` not `img1.png`
-5. **Use relative paths** - Always start with `./` for clarity
+1. **Organize assets** in subfolders (`code/`, `images/`)
+2. **Keep assets close** to the docs that use them
+3. **Use descriptive names** — `auth-flow.png` not `img1.png`
+4. **Use relative paths** — always start with `./` for clarity

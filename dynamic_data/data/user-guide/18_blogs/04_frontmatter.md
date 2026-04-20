@@ -63,7 +63,6 @@ date: 2024-02-15
 
 - Used for sorting (newest first)
 - Displayed on the post
-- Used in RSS feeds
 
 ### `description`
 
@@ -120,7 +119,7 @@ image: /images/blog/typescript-cover.jpg
 
 **Image guidelines:**
 - Recommended size: 1200x630px (social sharing)
-- Place in `DATA_DIR/assets/images/blog/`
+- Place in `dynamic_data/assets/` (served at `/assets/…` — see [Path Aliases](/user-guide/getting-started/aliases))
 - Use descriptive filenames
 
 ### `draft`
@@ -135,7 +134,7 @@ draft: true
 
 - Visible in development
 - Hidden in production
-- Won't appear in blog index or RSS
+- Won't appear in the blog index
 
 ## Complete Example
 

@@ -6,7 +6,9 @@ sidebar_position: 1
 
 # Writing Blog Posts
 
-Blog posts are MD or MDX files stored in `DATA_DIR/data/blog/`. This section covers everything you need to know to create and manage blog content.
+Blog posts are `.md` files stored under `data/<blog-name>/` (convention: `data/blog/`, but the path is whatever you register via `site.yaml pages:` + the `@data` alias). This section covers everything you need to know to create and manage blog content.
+
+Sibling content types: [Docs](/user-guide/docs/overview) for hierarchical documentation, [Issues](/user-guide/issues/overview) for the folder-per-item tracker.
 
 ## Quick Reference
 
@@ -55,8 +57,6 @@ Blogs are processed using the `BlogParser` which:
 - Parses date from filename
 - Resolves assets to central `assets/<slug>/` folder
 - Generates clean URLs (date stripped)
-
-See [Content Type Parser](/docs/architecture/parser/content-type-parser) for details.
 
 ## Best Practices
 

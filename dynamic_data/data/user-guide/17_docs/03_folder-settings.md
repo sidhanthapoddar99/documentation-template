@@ -112,17 +112,17 @@ The most common configuration:
 docs/
 ├── 01_getting-started/
 │   ├── settings.json    ← { "label": "Getting Started", ... }
-│   ├── 01_overview.mdx
-│   └── 02_install.mdx
+│   ├── 01_overview.md
+│   └── 02_install.md
 │
 ├── 02_guides/
 │   ├── settings.json    ← { "label": "Guides", ... }
-│   ├── 01_basics.mdx
-│   └── 02_advanced.mdx
+│   ├── 01_basics.md
+│   └── 02_advanced.md
 │
 └── 03_api/
     ├── settings.json    ← { "label": "API Reference", ... }
-    └── 01_endpoints.mdx
+    └── 01_endpoints.md
 ```
 
 ## Common Mistakes

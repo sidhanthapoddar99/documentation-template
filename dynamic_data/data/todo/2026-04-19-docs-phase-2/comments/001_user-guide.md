@@ -49,18 +49,18 @@ user-guide/
 │   └── [ ] 01_overview.md                          ⚪   update: 4 content types, @ext-layouts
 │
 ├── 17_docs/                                        ✅  hoisted from 15_content/03_docs
-│   ├── [ ] 01_overview.md                          ⚪
-│   ├── [ ] 02_structure.md                         ⚪
-│   ├── [ ] 03_folder-settings.md                   ⚪
-│   ├── [ ] 04_frontmatter.md                       ⚪
-│   └── [ ] 05_asset-embedding.md                   ⚪
+│   ├── ✅  01_overview.md                          ⚪   dropped MDX, fixed DATA_DIR, added issues/blogs cross-refs, removed dead parser link
+│   ├── ✅  02_structure.md                         ⚪   .mdx → .md across examples + tables
+│   ├── ✅  03_folder-settings.md                   ⚪   .mdx → .md across examples
+│   ├── ✅  04_frontmatter.md                       ⚪   dropped .mdx from header
+│   └── ✅  05_asset-embedding.md                   ⚪   fixed cross-link, removed CollapsibleCodeBlock + MDX Requirement, .mdx → .md
 │
 ├── 18_blogs/                                       ✅  hoisted from 15_content/04_blogs
-│   ├── [ ] 01_overview.md                          ⚪
-│   ├── [ ] 02_blogs-index.md                       ⚪
-│   ├── [ ] 03_structure.md                         ⚪
-│   ├── [ ] 04_frontmatter.md                       ⚪
-│   └── [ ] 05_asset-embedding.md                   ⚪
+│   ├── ✅  01_overview.md                          ⚪   dropped MDX, fixed DATA_DIR, added docs/issues cross-refs, removed dead parser link
+│   ├── ✅  02_blogs-index.md                       ⚪   fixed src/layouts/blog/ → blogs/, removed RSS section (not implemented)
+│   ├── ✅  03_structure.md                         ⚪   dropped .mdx from format spec + table
+│   ├── ✅  04_frontmatter.md                       ⚪   fixed DATA_DIR path, removed RSS references
+│   └── ✅  05_asset-embedding.md                   ⚪   fixed cross-link to /user-guide/writing-content/asset-embedding
 │
 ├── 19_issues/                                      🟢  entire section new (folder + settings.json + placeholder overview created)
 │   ├── [ ] 01_overview.md                          🟢   purpose + why AI-native (placeholder exists)

@@ -97,13 +97,5 @@ image: /images/blog/rest-api-cover.jpg
 ## Customizing the Index
 
 The blog index layout can be customized in:
-- `src/layouts/blog/` - Layout components
-- `site.yaml` - Configuration options
-
-## RSS Feed
-
-If enabled, an RSS feed is generated at `/blog/rss.xml` containing:
-- Post title and description
-- Publication date
-- Full content or excerpt
-- Author information
+- `src/layouts/blogs/` — layout components (default style lives under `blogs/default/`)
+- `site.yaml` — configuration options (which layout style to use, base URL, etc.)
