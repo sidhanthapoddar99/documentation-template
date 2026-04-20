@@ -1,16 +1,14 @@
 ---
 title: Custom Tags
-description: Using and defining custom HTML-like tags in markdown
-sidebar_position: 3
+description: HTML-like tags that expand into semantic components
+sidebar_position: 4
 ---
 
 # Custom Tags
 
-Custom tags are HTML-like elements that transform into semantic HTML during processing. They provide reusable components for common patterns.
+Custom tags are HTML-like elements that expand into styled components during preprocessing. They give you reusable patterns (callouts, tabs, collapsibles) without hand-authoring the HTML.
 
 ## How It Works
-
-Custom tags are processed by the [Transformer system](/docs/architecture/parser/transformers) during post-processing:
 
 ```
 <callout type="warning">Be careful!</callout>
@@ -18,6 +16,8 @@ Custom tags are processed by the [Transformer system](/docs/architecture/parser/
         ▼
 <div class="callout callout--warning">Be careful!</div>
 ```
+
+Registered tags are recognised and rewritten before markdown rendering. Unknown tags are left alone (markdown treats them as raw HTML).
 
 ## Using Custom Tags
 
@@ -91,7 +91,7 @@ Hidden content that can be revealed.
 
 ## Defining Custom Tags
 
-You can create your own custom tags by registering them with the transformer registry.
+You can register your own custom tags on the transformer registry:
 
 ### Basic Definition
 
@@ -122,14 +122,12 @@ interface TagTransformer {
 }
 ```
 
-- `content` - Text between opening and closing tags
-- `attrs` - Parsed HTML attributes as key-value pairs
-
-For detailed documentation on creating custom transformers, see the [Transformers](/docs/architecture/parser/transformers) section.
+- `content` — text between opening and closing tags
+- `attrs` — parsed HTML attributes as key-value pairs
 
 ## Best Practices
 
-1. **Use semantic names** - `<callout>` not `<box>`
-2. **Keep attributes simple** - Use predefined types when possible
-3. **Document your tags** - List available options
-4. **Test rendering** - Verify output in both themes
+1. **Use semantic names** — `<callout>` not `<box>`
+2. **Keep attributes simple** — use predefined types when possible
+3. **Document your tags** — list available options
+4. **Test rendering** — verify output in both light and dark themes

@@ -1,140 +1,53 @@
 ---
-title: Content Overview
-description: Understanding the three types of content in the documentation system
+title: Writing Content Overview
+description: Common markdown conventions for every content type in the system
 sidebar_position: 1
 ---
 
-# Content Overview
+# Writing Content
 
-The documentation system supports three types of content, each with its own structure, processing, and use case.
+This section covers the markdown conventions that apply to **every** content type in the system — docs, blogs, issues, and custom pages alike. Each content type has its own folder structure, frontmatter, and routing rules (covered in their own sections); what you'll find here is the writing layer that sits on top of all of them.
 
-## Content Types
+## The four content types
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           CONTENT TYPES                                 │
-├─────────────────────┬─────────────────────┬─────────────────────────────┤
-│        DOCS         │        BLOGS        │       CUSTOM PAGES          │
-├─────────────────────┼─────────────────────┼─────────────────────────────┤
-│ • XX_ prefix naming │ • Date prefix naming│ • YAML data files           │
-│ • Nested folders    │ • Flat structure    │ • Custom Astro layouts      │
-│ • Sidebar navigation│ • Chronological list│ • Flexible structure        │
-│ • Position ordering │ • Date ordering     │ • No sidebar                │
-└─────────────────────┴─────────────────────┴─────────────────────────────┘
-```
+| Type | Authoring guide | Folder | URL shape |
+|------|-----------------|--------|-----------|
+| **Docs** | [/user-guide/docs/overview](/user-guide/docs/overview) | `data/<doc-name>/` | `/<base>/<slug>` |
+| **Blogs** | [/user-guide/blogs/overview](/user-guide/blogs/overview) | `data/<blog-name>/` | `/<base>` + `/<base>/<slug>` |
+| **Issues** | [/user-guide/issues/overview](/user-guide/issues/overview) | `data/<issues-name>/` | `/<base>` + `/<base>/<id>` |
+| **Custom pages** | via `site.yaml pages:` | `data/pages/` | configurable |
 
-## Comparison
+Folder names (`docs`, `blog`, `issues`, `pages`) are convention — the actual paths come from `site.yaml paths:` aliases. See [Data Structure](/user-guide/getting-started/data-structure) for the full picture.
 
-| Feature | Docs | Blogs | Custom Pages |
-|---------|------|-------|--------------|
-| **Location** | `data/docs/` | `data/blog/` | `data/pages/` |
-| **Format** | `.md` / `.mdx` | `.md` / `.mdx` | `.yaml` |
-| **Naming** | `XX_name.md` | `YYYY-MM-DD-slug.md` | `name.yaml` |
-| **Structure** | Nested folders | Flat | Single file |
-| **Ordering** | By position (01-99) | By date | Manual |
-| **Sidebar** | Yes | No | No |
-| **URL** | `/docs/path/slug` | `/blog/slug` | Configurable |
+## What this section covers
 
-## Docs
+| Page | Purpose |
+|------|---------|
+| [Markdown Basics](./markdown-basics) | Standard markdown syntax plus fenced-block rules |
+| [Asset Embedding](./asset-embedding) | The `[[path]]` syntax for inlining file contents |
+| [Custom Tags](./custom-tags) | HTML-like tags (`<callout>`, `<tabs>`, `<collapsible>`) |
+| [Page Outline](./outline) | How the auto-generated table of contents works |
 
-Documentation pages with hierarchical organization and sidebar navigation.
+## What this section does **not** cover
 
-**Best for:**
-- Technical documentation
-- Guides and tutorials
-- API references
-- Product documentation
+- **Frontmatter fields** — each content type defines its own (title, description, date, status, etc.). See the relevant authoring guide.
+- **Folder structure and `settings.json`** — covered under [Docs](/user-guide/docs/overview) and [Issues](/user-guide/issues/overview) respectively. Blogs are flat and need neither.
+- **Layouts** — [Layout System](/user-guide/layout-system/overview) explains how content renders.
 
-**Key features:**
-- Position-based ordering with `XX_` prefix
-- Nested folder support
-- Automatic sidebar generation
-- `settings.json` for folder configuration
+## Common processing pipeline
+
+All markdown — regardless of content type — flows through the same parser:
 
 ```
-data/docs/
-├── 01_getting-started/
-│   ├── settings.json
-│   ├── 01_overview.md
-│   └── 02_installation.md
-└── 02_guides/
-    ├── settings.json
-    └── 01_basics.md
+Raw markdown
+   ↓
+Preprocessors     ← frontmatter extraction, [[asset]] embedding, custom-tag expansion
+   ↓
+Renderer          ← unified / remark / rehype
+   ↓
+Transformers      ← heading IDs, link rewriting
+   ↓
+Postprocessors    ← final HTML
 ```
 
-## Blogs
-
-Date-ordered posts for news, updates, and articles.
-
-**Best for:**
-- Company news
-- Release announcements
-- Technical articles
-- Tutorials and how-tos
-
-**Key features:**
-- Date-based naming (`YYYY-MM-DD-slug.md`)
-- Automatic chronological sorting
-- Tags for categorization
-- Author information
-- Draft support
-
-```
-data/blog/
-├── 2024-01-15-hello-world.md
-├── 2024-02-01-new-feature.md
-└── 2024-02-15-tips-and-tricks.md
-```
-
-## Custom Pages
-
-Unique pages with custom layouts using YAML data.
-
-**Best for:**
-- Landing pages
-- About pages
-- Team pages
-- Marketing pages
-
-**Key features:**
-- YAML data format
-- Custom Astro layouts
-- Complete design flexibility
-- Component composition
-
-```
-data/pages/
-├── home.yaml
-├── about.yaml
-└── pricing.yaml
-```
-
-## Choosing the Right Type
-
-| Use Case | Recommended Type |
-|----------|------------------|
-| Technical docs, guides | **Docs** |
-| News, announcements | **Blogs** |
-| Landing page, marketing | **Custom Pages** |
-| API reference | **Docs** |
-| Release notes | **Blogs** |
-| Team/About page | **Custom Pages** |
-
-## Common Features
-
-All content types share:
-
-- **Markdown support** - Standard markdown syntax
-- **Asset embedding** - `[[path]]` syntax for file inclusion
-- **Custom tags** - Semantic HTML components
-- **Frontmatter** - YAML metadata at the top
-
-## Processing Pipeline
-
-All markdown content goes through the same processing pipeline:
-
-```
-Raw Content → Preprocessors → Renderer → Postprocessors → Final HTML
-```
-
-See the [Parser System](/docs/architecture/parser/overview) for details on how content is processed.
+The same source file behaves the same way in every content type. The only things that differ are: where frontmatter fields are interpreted, how paths inside `[[...]]` resolve, and what the surrounding layout renders around the HTML.

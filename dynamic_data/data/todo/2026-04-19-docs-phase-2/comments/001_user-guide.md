@@ -37,11 +37,11 @@ user-guide/
 │   └── 🟡  05_footer.md                            ⚪   revisit: future file refs (see `comments/003_revisit-list.md`)
 │
 ├── 15_writing-content/                             ✅  renamed from 15_content (docs/blogs hoisted out)
-│   ├── [ ] 01_overview.md                          ⚪   update: trim layout references
-│   ├── [ ] 02_markdown-basics.md                   🟡  = old 02_markdown-editing/01
-│   ├── [ ] 03_asset-embedding.md                   🟡  = old 02_markdown-editing/02
-│   ├── [ ] 04_custom-tags.md                       🟡  = old 02_markdown-editing/03
-│   └── [ ] 05_outline.md                           🟡  = old 02_markdown-editing/04
+│   ├── ✅  01_overview.md                          ⚪   rewritten for 4 content types, removed MDX + dead parser links
+│   ├── ✅  02_markdown-basics.md                   🟡  = old 02_markdown-editing/01, dropped MDX row + MDX-components section
+│   ├── ✅  03_asset-embedding.md                   🟡  = old 02_markdown-editing/02, added issues section, fixed escaping examples
+│   ├── ✅  04_custom-tags.md                       🟡  = old 02_markdown-editing/03, removed dead parser-transformers link
+│   └── ✅  05_outline.md                           🟡  = old 02_markdown-editing/04, renumbered sidebar_position only
 │
 ├── 16_layout-system/                               ✅  renamed from 25_layouts
 │   └── [ ] 01_overview.md                          ⚪   update: 4 content types, @ext-layouts
