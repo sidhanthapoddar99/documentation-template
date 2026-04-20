@@ -67,13 +67,29 @@ user-guide/
 │   ├── ✅  04_frontmatter.md                       ⚪   fixed DATA_DIR path, removed RSS references
 │   └── ✅  05_asset-embedding.md                   ⚪   fixed cross-link to /user-guide/writing-content/asset-embedding
 │
-├── 19_issues/                                      🟢  entire section new (folder + settings.json + placeholder overview created)
-│   ├── [ ] 01_overview.md                          🟢   purpose + why AI-native (placeholder exists)
-│   ├── [ ] 02_structure.md                         🟢   folder-per-item layout
-│   ├── [ ] 03_settings-json.md                     🟢   per-issue metadata schema
-│   ├── [ ] 04_vocabulary.md                        🟢   tracker-wide settings.json
-│   ├── [ ] 05_subtasks-notes-agent-log.md          🟢   sub-docs + sub-doc URLs
-│   └── [ ] 06_views-and-filters.md                 🟢
+├── 19_issues/                                      ✅  entire section new — restructured from flat 6-file plan to 10-entry with subfolders
+│   ├── ✅  01_overview.md                          🟢   what it is · 4 content types table · folder-per-issue · 6 file types
+│   ├── ✅  02_design-philosophy.md                 🟢   NEW — 1–4 person AI-augmented team · no sprints · why `review` · pros/cons
+│   ├── ✅  03_folder-structure.md                  🟢   folder naming regex · per-issue contents · URL shapes · draft at two levels
+│   ├── 04_settings/                                🟢   NEW subfolder
+│   │   ├── ✅  01_per-issue.md                     🟢   full settings.json schema · field semantics · validation
+│   │   └── ✅  02_vocabulary.md                    🟢   tracker-root settings.json · fields · colors · preset views · tracker-wide draft
+│   ├── 05_sub-docs/                                🟢   NEW subfolder (was one file "05_subtasks-notes-agent-log")
+│   │   ├── ✅  01_issue-md.md                      🟢   main body conventions · length · anchors · assets status
+│   │   ├── ✅  02_comments.md                      🟢   NNN_YYYY-MM-DD_author naming · frontmatter · rationale
+│   │   ├── ✅  03_subtasks.md                      🟢   4-state · frontmatter · state transitions · rendering
+│   │   ├── ✅  04_notes.md                         🟢   supporting design docs · when to use vs others
+│   │   └── ✅  05_agent-log.md                     🟢   iteration discipline · 4-section body · subgroups · keep-failed-iterations
+│   ├── ✅  06_lifecycle-and-review.md              🟢   4-state model · review handoff · subtask-debt promotion · never-autonomous-closed
+│   ├── 07_ui/                                      🟢   NEW subfolder (was "06_views-and-filters" flat)
+│   │   ├── ✅  01_list-view.md                     🟢   state tabs · preset strip · filter bar · grouping · sort · URL state
+│   │   └── ✅  02_detail-view.md                   🟢   3-column layout · Overview/Comprehensive tabs · meta sidebar · keyboard
+│   ├── 08_workflows/                               🟢   NEW subfolder — narrative walkthroughs
+│   │   ├── ✅  01_create-an-issue.md               🟢   step-by-step from empty to well-formed
+│   │   ├── ✅  02_work-an-issue.md                 🟢   pickup · advance subtask · comment · agent-log · hand off
+│   │   └── ✅  03_review-and-close.md              🟢   human's side · accept/reject/partial · close-out log
+│   ├── ✅  09_using-with-ai.md                     🟢   `/issues` skill (planned) · mental model · 4 rules · helper scripts (planned)
+│   └── ✅  10_setup-new-tracker.md                 🟢   new tracker · vocabulary design · site.yaml mount · multiple trackers
 │
 ├── 20_themes/                                      ⚪  kept at 20 (not renumbered per revised plan)
 │   ├── [ ] 01_overview.md                          ⚪   update: two-tier contract, required_variables

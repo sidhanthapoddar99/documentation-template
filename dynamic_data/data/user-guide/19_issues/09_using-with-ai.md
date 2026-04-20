@@ -1,0 +1,159 @@
+---
+title: Using with AI
+description: The agent operating manual — the /issues skill, helper scripts, the mental model agents need
+sidebar_position: 9
+---
+
+# Using with AI
+
+The tracker is designed to be AI-native — every file is plain markdown in a predictable folder, so an agent can traverse and update it without APIs or auth. But **raw traversal is wasteful**: reading every file into context to find one piece of state burns tokens and leads to errors. The solution is a dedicated skill that teaches the agent how to navigate the tracker efficiently and — most importantly — how to respect the review handoff.
+
+## The `/issues` skill (planned)
+
+> **⏸ Not implemented yet.** Tracked in `2026-04-10-issues-layout/subtasks/06_documentation-and-skills.md`. When it ships, this page will point to the live skill and the helper scripts. Until then, the content below is the *expected* workflow — use it to coach an agent manually or as an interim skill prompt.
+
+**Always invoke `/issues` before working with the tracker.** The skill tells the agent:
+
+1. **How to traverse** — list issues, filter by state / label / component, follow cross-references
+2. **How to read** — orientation order (`issue.md` → recent `agent-log/` → relevant subtasks → comments)
+3. **How to write** — where comments go, how to add subtasks, how to write agent-log entries
+4. **The review handoff** — when to mark `review`, when never to mark `closed` directly
+5. **Agent-log discipline** — one file per iteration, keep failed attempts, 4-section body
+
+The skill lives at `.claude/skills/issues/SKILL.md` (exact path set when the skill ships).
+
+## Why a skill is worth the context cost
+
+Without the skill, every agent interaction re-discovers:
+- What the folder layout is
+- Which file holds metadata vs body
+- How state transitions work
+- Whether to close directly or hand off to review
+
+That's 500+ tokens of re-orientation *per conversation*. The skill loads once, correctly, every time.
+
+## The mental model every agent needs
+
+This is the compressed version — enough to brief an agent manually if the skill isn't loaded yet.
+
+### 1. Folder layout
+
+```
+<tracker>/
+├── settings.json                    vocabulary
+└── YYYY-MM-DD-<slug>/              one issue
+    ├── settings.json                metadata (read first for state/priority)
+    ├── issue.md                     goal/context (read first for orientation)
+    ├── comments/NNN_date_author.md  thread (read if recent activity)
+    ├── subtasks/NN_<slug>.md        work units, each with own state
+    ├── notes/<slug>.md              design docs
+    └── agent-log/NNN_<slug>.md      iteration audit trail
+```
+
+### 2. Orientation order
+
+When picking up an issue, read in this order. Stop as soon as you have enough:
+
+1. **`issue.md`** — the goal. Skip nothing here.
+2. **Last 3 `agent-log/` entries** — avoid repeating failed approaches.
+3. **Subtask list + states** — know what's done, in review, open.
+4. **Recent comments** — pivots, pushback, questions.
+5. **Notes** — only when a subtask or comment points to one.
+
+### 3. The four rules that matter most
+
+1. **Never close (`*→closed`) directly in autonomous mode.** Always go through `review`. Closed is human.
+2. **Write an agent-log entry every iteration.** Goal / Approach / Result / Next. Keep failed iterations.
+3. **Bump `updated: YYYY-MM-DD` on any file you change.** Drives sort order.
+4. **Read before writing.** Don't overwrite; append / edit precisely.
+
+### 4. State transitions you ARE allowed
+
+| From | To | When |
+|---|---|---|
+| `open` | `review` | Work done, evidence in place, ready for human |
+| `open` | `cancelled` | With a comment explaining why (scope change, duplicate, obsolete) |
+| `review` | `open` | Got pushback in a comment; resuming work |
+
+### 5. State transitions you are NEVER allowed autonomously
+
+| From | To | Who does it |
+|---|---|---|
+| `open` | `closed` | Human only |
+| `review` | `closed` | Human only |
+| Any | `closed` | Human only |
+
+Exception: if the human explicitly pre-authorises direct closure in the issue prompt (typo fixes, comment-only edits), that's fine — but it must be explicit.
+
+## Helper scripts (planned)
+
+The skill is paired with a set of Node CLI scripts under `scripts/issues/` that let agents filter and read without dumping every file into context:
+
+| Script | Purpose |
+|---|---|
+| `list.mjs [--status open\|review\|...] [--label X] [--component Y]` | List issues matching filters as `id\tstatus\ttitle` |
+| `show.mjs <issue-id> [--full]` | Print one issue's metadata + subtask state summary + agent-log heads |
+| `subtasks.mjs <issue-id> [--state X]` | List subtasks for an issue with state + 1-line title |
+| `agent-logs.mjs <issue-id> [--last N]` | Print the last N agent-log entries |
+| `set-state.mjs <issue-or-subtask-path> <state>` | Update `status` / `state` frontmatter safely |
+| `add-comment.mjs <issue-id> --author X --body md` | Append `comments/NNN_date_author.md` with next sequence |
+| `add-agent-log.mjs <issue-id> --status X --body md` | Append `agent-log/NNN_slug.md` with next sequence |
+| `review-queue.mjs` | List everything awaiting human review (issues + subtask-debt promotions) |
+
+> **⏸ Not implemented yet.** Shipped with the `/issues` skill.
+
+These scripts read the filesystem directly — no HTTP, no auth. They're a thin layer over the same loader logic, optimised for CLI output.
+
+## Worked example
+
+Suppose an agent is given: *"work on issue `2026-04-21-editor-perf`"*.
+
+With the skill + scripts:
+
+```bash
+# 1. Orient
+node scripts/issues/show.mjs 2026-04-21-editor-perf
+# → metadata + subtask state summary + log heads
+
+node scripts/issues/agent-logs.mjs 2026-04-21-editor-perf --last 5
+# → last 5 iterations, to avoid repeating failed approaches
+
+# 2. Pick the next open subtask, do the work
+# (standard coding loop — edit files, run tests)
+
+# 3. Log the iteration
+node scripts/issues/add-agent-log.mjs 2026-04-21-editor-perf \
+  --status success \
+  --body "$(cat next-iteration.md)"
+
+# 4. Flip the subtask
+node scripts/issues/set-state.mjs subtasks/02_presence-batching.md review
+
+# 5. If all subtasks are now review/closed, hand off the issue
+node scripts/issues/set-state.mjs 2026-04-21-editor-perf review
+```
+
+Human reviews. Either flips `review → closed` or comments asking for revision.
+
+## Without the skill
+
+If the skill isn't loaded (today, while the skill is being built), provide the agent with this page's content in the initial prompt — or at minimum, a compressed version of *the four rules that matter most* above. Enough to respect the review boundary.
+
+The worst outcome is an agent that silently closes its own work. The skill + rules exist specifically to prevent that.
+
+## For humans: how to delegate to an agent
+
+When kicking off an autonomous run on an issue:
+
+1. **Load the `/issues` skill** (or brief it manually).
+2. **Point at the specific issue**: *"work on `2026-04-21-editor-perf` — pick up from wherever the agent-log left off."*
+3. **Set explicit stop criteria**: *"stop when all open subtasks are in review OR when you've tried 3 approaches without progress — flip the issue to review and summarise."*
+4. **Specify authorisation**: *"you may close trivial subtasks (typos, comment-only edits) directly. Everything else goes to review."*
+
+A well-briefed agent, equipped with the skill and helper scripts, can run for hours autonomously and produce a reviewable batch at the end.
+
+## See also
+
+- [Lifecycle and Review](./lifecycle-and-review) — the 4-state model the skill enforces
+- [Agent Log](./sub-docs/agent-log) — iteration-file conventions the skill writes
+- [Review and Close](./workflows/review-and-close) — the human's counterpart to the agent's workflow
