@@ -13,8 +13,8 @@ user-guide/
 │   ├── ✅  01_overview.md                          ⚪
 │   ├── ✅  02_installation.md                      ⚪
 │   ├── ✅  03_aliases.md                           ⚪   renamed 03_Alias → 03_aliases
-│   ├── 🟡  04_data-structure.md                    🟡  merged old 04_structure/01 + 04_structure/03 — revisit: see `comments/003_revisit-list.md`
-│   └── 🟡  05_claude-skills.md                     ⚪   revisit: see `comments/003_revisit-list.md`
+│   ├── ✅  04_data-structure.md                    ⚪   cleared 2026-04-21 — all cross-links resolve; `/custom/` → `/custom-pages/` fixed
+│   └── 🟡  05_claude-skills.md                     ⚪   tracker URL fixed 2026-04-21; still waits on /issues skill · see `comments/003_revisit-list.md`
 │
 │   Evicted:
 │     ✅  04_structure/02_code-structure.md         🔵 → dev-docs/01_overview/
@@ -27,7 +27,7 @@ user-guide/
 │   │   ├── ✅  01_overview.md                      ⚪
 │   │   ├── ✅  02_metadata.md                      ⚪
 │   │   ├── ✅  03_paths.md                         ⚪   reserved-keys list aligned with code
-│   │   ├── 🟡  04_theme.md                         ⚪   revisit: theme-section URL pending (see `comments/003_revisit-list.md`)
+│   │   ├── ✅  04_theme.md                         ⚪   cleared 2026-04-21 — both /user-guide/themes/overview pointers resolve now (25_themes/ shipped)
 │   │   ├── ✅  05_server.md                        ⚪
 │   │   ├── ✅  06_editor.md                        ⚪
 │   │   ├── ✅  07_logo.md                          ⚪

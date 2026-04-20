@@ -16,7 +16,7 @@ A skill is invoked with its slash-command (e.g. `/docs-guide`) or automatically 
 | `docs-guide` | `/docs-guide` | Writing documentation content | Creating / editing markdown files, frontmatter, `settings.json`, custom tags, asset embedding |
 | `docs-settings` | `/docs-settings` | Configuring the site itself | Editing `site.yaml` / `navbar.yaml` / `footer.yaml` / `.env`, adding new pages or sections, path aliases, initial setup |
 
-That's the full set today. This page is kept **in sync** with the installed skills — if it looks out of date, see the [phase-2 docs-update issue](/issues/2026-04-19-docs-phase-2) which tracks skill additions.
+That's the full set today. This page is kept **in sync** with the installed skills — if it looks out of date, see the [phase-2 docs-update issue](/todo/2026-04-19-docs-phase-2) which tracks skill additions.
 
 ## When to reach for which
 

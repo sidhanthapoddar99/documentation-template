@@ -13,42 +13,40 @@ Each file flips to ✅ once its full checklist above is cleared. Individual item
 
 # List of revisit items
 
-## `05_getting-started/04_data-structure.md`
+## `05_getting-started/04_data-structure.md` — ✅ cleared 2026-04-21
 
-Cross-links into sections that don't exist yet in the restructured user-guide:
+All target sections have shipped. Final pass resolved the stale `/user-guide/custom/overview` link (section actually shipped as `20_custom-pages/`, URL `/user-guide/custom-pages/overview`).
 
-- [ ] `/user-guide/docs/overview` — lives in the new `25_docs/` section (not built yet).
-- [ ] `/user-guide/blogs/overview` — new `30_blogs/` section.
-- [ ] `/user-guide/issues/overview` — new `35_issues/` section.
-- [ ] `/user-guide/custom/overview` — new `40_custom/` section.
-- [ ] `/user-guide/themes/overview` — renumbered `45_themes/` section.
-- [ ] `/user-guide/configuration/overview` — verify still resolves after the config-paths audit (`subtasks/04_config-paths-docs.md`).
+- [x] `/user-guide/docs/overview` → shipped at `17_docs/`
+- [x] `/user-guide/blogs/overview` → shipped at `18_blogs/`
+- [x] `/user-guide/issues/overview` → shipped at `19_issues/`
+- [x] `/user-guide/custom-pages/overview` → shipped at `20_custom-pages/` (link updated on this page)
+- [x] `/user-guide/themes/overview` → shipped at `25_themes/`
+- [x] `/user-guide/configuration/overview` → still resolves at `10_configuration/`
 
-Revisit once those sections land to confirm every link resolves.
+## `05_getting-started/05_claude-skills.md` — still 🟡
 
-## `05_getting-started/05_claude-skills.md`
-
-The catalogue table is accurate today but will drift:
-
+- [x] ~~Verify the tracker link resolves against the project's actual base URL~~ — fixed 2026-04-21: `/issues/2026-04-19-docs-phase-2` → `/todo/2026-04-19-docs-phase-2` (project mounts its tracker at `/todo/`).
 - [ ] Add a row for the planned `issues` skill once `.claude/skills/issues.md` ships (tracked via `subtasks/06_claude-skills-maintenance.md`).
 - [ ] Keep the `Skill(...)` permissions block in sync with any new skills.
-- [ ] Verify the `/issues/2026-04-19-docs-phase-2` link in the body resolves against the real issues base URL (currently `/todo/` in this project, not `/issues/`).
 
-## `15_writing-content/03_asset-embedding.md`
+Stays 🟡 until `.claude/skills/issues.md` ships.
+
+## `15_writing-content/03_asset-embedding.md` — still 🟡
 
 Issues-section describes intended behaviour; the preprocessor wiring for issues doesn't exist yet. Marked with a "not implemented yet" note pointing to `2026-04-19-knowledge-graph-and-wiki-links/subtasks/01_unified-pipeline-and-graph.md`.
 
 - [ ] When phase-3 subtask 01 wires asset-embed into `IssuesParser`, remove the "Not implemented yet" admonition.
 - [ ] Also revisit at that point whether the `[[...]]` / `[[[...]]]` split (phase-3 syntax decision) changes the examples on this page — may need to split "wiki link" vs "embed" behaviours across the writing-content section.
 
-## `10_configuration/03_site/04_theme.md`
+## `10_configuration/03_site/04_theme.md` — ✅ cleared 2026-04-21
 
-Kept intentionally thin — covers `theme` / `theme_paths` fields in `site.yaml` only, defers everything else to the full Themes section. Two dead pointers to clean up once that section lands:
+Both cross-links to `/user-guide/themes/overview` resolve now that `25_themes/` has shipped. No content change needed — just verified.
 
-- [ ] `/user-guide/themes/overview` (intro sentence) — verify the URL once the renumbered `45_themes/` section exists.
-- [ ] Same pointer at the bottom of the page ("See Themes section for complete details…").
+- [x] Intro sentence pointer to `/user-guide/themes/overview`
+- [x] Closing "See Themes section for complete details…" pointer
 
-## `10_configuration/04_navbar.md` and `05_footer.md`
+## `10_configuration/04_navbar.md` and `05_footer.md` — still 🟡
 
 Both reference the dev-toolbar layout-switcher app. The prose-level reference is accurate today, but there's no stable destination URL yet. Things to add once those pages exist:
 
@@ -56,4 +54,13 @@ Both reference the dev-toolbar layout-switcher app. The prose-level reference is
 - [ ] `05_footer.md` — same link, same target.
 - [ ] Both: consider cross-linking from the navbar/footer authoring sections (whenever those get written in the user-guide) back to these config pages so authors can find the toggle from either direction.
 
+# Summary — 2026-04-21 pass
 
+| File | Before | After | Notes |
+|---|---|---|---|
+| `05_getting-started/04_data-structure.md` | 🟡 | ✅ | All target sections landed; `/custom/` → `/custom-pages/` link fixed |
+| `05_getting-started/05_claude-skills.md` | 🟡 | 🟡 | Tracker URL fixed; skill-row addition still pending |
+| `15_writing-content/03_asset-embedding.md` | 🟡 | 🟡 | Phase-3 dependency unresolved |
+| `10_configuration/03_site/04_theme.md` | 🟡 | ✅ | Both theme pointers confirmed resolving |
+| `10_configuration/04_navbar.md` | 🟡 | 🟡 | Dev-docs layout-switcher page still pending |
+| `10_configuration/05_footer.md` | 🟡 | 🟡 | Same |
