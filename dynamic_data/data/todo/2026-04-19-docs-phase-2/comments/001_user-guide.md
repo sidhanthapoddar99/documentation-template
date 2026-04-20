@@ -91,31 +91,43 @@ user-guide/
 │   ├── ✅  09_using-with-ai.md                     🟢   `/issues` skill (planned) · mental model · 4 rules · helper scripts (planned)
 │   └── ✅  10_setup-new-tracker.md                 🟢   new tracker · vocabulary design · site.yaml mount · multiple trackers
 │
-├── 20_themes/                                      ⚪  kept at 20 (not renumbered per revised plan)
-│   ├── [ ] 01_overview.md                          ⚪   update: two-tier contract, required_variables
-│   ├── [ ] 02_theme-structure.md                   ⚪   update: theme.yaml + extends
-│   ├── [ ] 03_creating-themes.md                   ⚪   update: inherit-and-override
-│   ├── 04_tokens/                                  🟡  renamed from 04_css-variables
-│   │   ├── [ ] 01_overview.md                      ⚪   rewrite for primitive/semantic split
-│   │   ├── [ ] 02_primitive-tokens.md              🟢
-│   │   ├── [ ] 03_semantic-ui-tokens.md            🟢
-│   │   ├── [ ] 04_semantic-content-tokens.md       🟢
-│   │   ├── [ ] 05_display-tokens.md                🟢
-│   │   ├── [ ] 06_element-reference.md             🟡  merge old 04_element-variables
-│   │   ├── [ ] 07_markdown-styles.md               ⚪
-│   │   ├── [ ] 08_navbar-styles.md                 ⚪
-│   │   ├── [ ] 09_footer-styles.md                 ⚪
-│   │   ├── [ ] 10_docs-styles.md                   ⚪
-│   │   ├── [ ] 11_blog-styles.md                   ⚪
-│   │   └── [ ] 12_custom-page-styles.md            ⚪
+├── 20_themes/                                      ✅  restructured — tokens vs component-styles split, contract-first, 46-var discipline
+│   ├── ✅  01_overview.md                          🟢   rewrite — no-hardcoded-values rule front and centre · 46-var contract · two-tier typography
+│   ├── ✅  02_the-theme-contract.md                🟢   NEW — the 46 required variables · why contract · inventing-vars anti-pattern
+│   ├── ✅  03_theme-structure.md                   🟢   rewrite — theme.yaml schema · file order · CSS merge order · override_mode documented
+│   │
+│   ├── 04_tokens/                                  🟡  VARIABLES layer only (component styles moved to 05)
+│   │   ├── ✅  01_overview.md                      🟢   token tier model — two-tier typography only, everything else one-tier
+│   │   ├── ✅  02_colors.md                        🟢   14 semantic colours · light/dark split · no primitive palette
+│   │   ├── ✅  03_typography.md                    🟢   primitive scale + UI/content/display semantic tokens · 3-tier chrome rule
+│   │   ├── ✅  04_spacing-radius-shadow.md         🟢   13 element tokens · z-index · opacity · border-width
+│   │   └── ✅  05_layout-dimensions.md             🟢   max-widths · navbar/sidebar/outline · why breakpoints are hardcoded
+│   │
+│   ├── 05_component-styles/                        🟢  NEW subfolder — CSS that CONSUMES tokens
+│   │   ├── ✅  01_overview.md                      🟢   scoping rules · dark mode pattern · override strategy
+│   │   ├── ✅  02_markdown-styles.md               🟢   .markdown-content prose surface · heading rhythm · dual-theme Shiki
+│   │   ├── ✅  03_navbar-styles.md                 🟢   site navbar · dropdowns · theme toggle
+│   │   ├── ✅  04_footer-styles.md                 🟢   columns · bottom row · compact variants
+│   │   ├── ✅  05_docs-styles.md                   🟢   three-column layout · sticky sidebars · outline indentation
+│   │   ├── ✅  06_blogs-styles.md                  🟢   index cards · post detail · tag chips
+│   │   └── ✅  07_issues-styles.md                 🟢   NEW — state tabs · filter chips · metadata sidebar · vocab-driven badge colours
+│   │
+│   ├── 06_creating-themes/                         🟢  NEW subfolder — three walkthroughs
+│   │   ├── ✅  01_quick-start.md                   🟢   color-only extend · 5 lines of YAML · minimal viable theme
+│   │   ├── ✅  02_extending-default.md             🟢   typical multi-file theme · cherry-pick overrides · Nordic example
+│   │   └── ✅  03_standalone-theme.md              🟢   extends: null · all 46 vars from scratch · when NOT to
+│   │
+│   ├── ✅  07_inheritance-and-override.md          🟢   extends chain · merge/override/replace modes · cascade gotchas
+│   ├── ✅  08_dark-mode.md                         🟢   NEW — [data-theme="dark"] pattern · what to redeclare · auto-detect
+│   ├── ✅  09_validation.md                        🟢   error vs warning · failure modes · debug workflow
+│   └── ✅  10_rules-for-layout-authors.md          🟢   THE discipline — no hardcoded values · no invented names · emphasis via weight+colour
 │   │
 │   │   Evicted:
-│   │     [ ] old 02_color-variables.md             🔴  absorbed into primitive + semantic-ui
-│   │     [ ] old 03_font-variables.md              🔴  absorbed into primitive
-│   │
-│   ├── [ ] 05_theme-inheritance.md                 ⚪
-│   ├── [ ] 06_validation.md                        ⚪   update: required_variables contract
-│   └── [ ] 07_rules.md                             ⚪   update: no invented names, no hardcoded fallbacks
+│   │     ✅  old 04_css-variables/ (10 files)      🔴  fully replaced by 04_tokens/ + 05_component-styles/
+│   │     ✅  old 03_creating-themes.md             🔴  split into 06_creating-themes/ subfolder (3 walkthroughs)
+│   │     ✅  old 05_theme-inheritance.md           🔴  merged into 07_inheritance-and-override.md (+ override_mode coverage)
+│   │     ✅  old 06_validation.md                  🔴  rewritten as new 09_validation.md
+│   │     ✅  old 07_rules.md                       🔴  rewritten as new 10_rules-for-layout-authors.md
 │
 ├── 30_deployment/                                  ⚪  kept at 30
 │   └── [ ] 01_to_be_written.md                     ⚪

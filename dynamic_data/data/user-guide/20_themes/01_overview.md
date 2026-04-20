@@ -1,232 +1,128 @@
 ---
 title: Themes Overview
-description: Introduction to the theming system and how it works
+description: What a theme is, what the contract guarantees, and the "no hardcoded values" rule the whole system rests on
 sidebar_position: 1
 ---
 
-# Themes Overview
+# Themes
 
-The theming system provides a modular, customizable way to style your documentation site. Themes control colors, typography, spacing, and other visual elements.
+A theme is a set of CSS files that define every visual decision in the site: colors, typography, spacing, shadows, layout dimensions. The framework's layouts don't make any of those decisions themselves — they consume CSS custom properties that a theme provides. Switch the theme and the site re-skins entirely, no layout edits needed.
 
-## How Themes Work
+## The rule that makes it work
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         THEME LOADING FLOW                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   site.yaml                                                                 │
-│   theme: "minimal"                                                          │
-│   theme_paths: ["@themes"]                                                  │
-│        │                                                                    │
-│        ▼                                                                    │
-│   ┌──────────────────────────────────────┐                                  │
-│   │   Config Loader (loadSiteConfig)     │                                  │
-│   │   1. Resolve theme_paths to dirs     │                                  │
-│   │   2. Scan dirs for theme name        │                                  │
-│   │   3. Resolve to absolute path        │                                  │
-│   └──────────────────────────────────────┘                                  │
-│        │                                                                    │
-│        ▼                                                                    │
-│   ┌──────────────────────────────────────┐                                  │
-│   │   Theme Loader                       │                                  │
-│   │   1. Load theme.yaml manifest        │                                  │
-│   │   2. Check extends (inheritance)     │                                  │
-│   │   3. Load CSS files                  │                                  │
-│   │   4. Validate theme                  │                                  │
-│   └──────────────────────────────────────┘                                  │
-│        │                                                                    │
-│        ▼                                                                    │
-│   ┌──────────────────────────────────────┐                                  │
-│   │   BaseLayout.astro                   │                                  │
-│   │   Injects theme CSS in <head>        │                                  │
-│   └──────────────────────────────────────┘                                  │
-│        │                                                                    │
-│        ▼                                                                    │
-│   ┌──────────────────────────────────────┐                                  │
-│   │   Page renders with theme styles     │                                  │
-│   └──────────────────────────────────────┘                                  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+**Layouts MUST NOT hardcode colors, font sizes, spacing, radii, shadows, or any other visual values.** Every visual decision goes through a theme variable.
+
+```css
+/* ❌ NEVER */
+color: #1a1a1a;
+font-size: 14px;
+padding: 8px 16px;
+
+/* ✅ ALWAYS */
+color: var(--color-text-primary);
+font-size: var(--ui-text-body);
+padding: var(--spacing-sm) var(--spacing-md);
 ```
 
-## Default vs Custom Themes
+This isn't a style preference — it's the **contract** that makes every other feature work: theme switching, dark mode, user themes that extend the default, enforced typography standards. Break the rule in one place and switching themes leaks weird artifacts.
 
-| Type | Location | `theme:` value |
-|------|----------|----------------|
-| Default (built-in) | `src/styles/` | `"default"` |
-| Custom | `themes/<name>/` | `"<name>"` |
+**Today's audit:** grep across `src/layouts/` found 457 `var(--…)` uses and **zero** hardcoded colors, font sizes, or spacing values. The system is clean. See [Rules for Layout Authors](./rules-for-layout-authors) for the full contract.
 
-### Default Theme
+## The 46-variable contract
 
-The built-in theme located in `src/styles/`. Always available and serves as the base for custom themes.
+Every theme must define **46 CSS variables** across three categories:
 
-### Custom Themes
+| Category | Count | What they carry |
+|---|---:|---|
+| Colors | 14 | Backgrounds, text, borders, brand, status |
+| Fonts | 19 | Font families, primitive size scale, semantic UI + content + display tokens |
+| Elements | 13 | Spacing, radii, shadows, transitions |
 
-User-created themes in the themes directory (configured via `paths.themes` in `site.yaml`). Can extend the default theme or be standalone.
+That's the fixed set. A theme missing any of them warns at load time (or errors, depending on inheritance mode). The full list + what each variable means is on the next page: [The Theme Contract](./the-theme-contract).
 
-## Quick Start
+## Text size standardisation — the two-tier typography model
 
-### Using the Default Theme
+Font sizes are the **one part of the system that's two-tier**, because they're the easiest thing for layouts to get sloppy with. Instead of reaching for `--font-size-sm` or `--font-size-lg` directly, layouts consume **semantic tokens** that carry intent:
 
-```yaml
-# site.yaml
-site:
-  name: "My Docs"
+| Tier | Example tokens | Role |
+|---|---|---|
+| **Primitive scale** | `--font-size-xs / sm / base / lg / xl / 2xl / …` | The palette. Themes define. **Layouts don't use directly.** |
+| **UI semantic** | `--ui-text-micro / body / title` | Chrome — buttons, cards, nav, forms. Three tiers, no more. |
+| **Content semantic** | `--content-body / h1 / h2 / …` | Rendered markdown. Consumed by `markdown.css`. |
+| **Display** | `--display-sm / md / lg` | Marketing / landing only. |
 
-theme: "default"  # Required — explicitly specify the theme
+For card titles, primary buttons, anything needing emphasis: use `--ui-text-body` + `font-weight: 600`. Don't add a fourth UI size tier — weight and color carry hierarchy better than size once you're past three tiers.
+
+Colors, spacing, radii, shadows, transitions are **one-tier** — semantic names used directly. There's no "primitive color palette" to pick from; colors are already named by role (`--color-text-primary`, `--color-brand-primary`).
+
+Full story: [Typography](./tokens/typography), [Colors](./tokens/colors).
+
+## How a theme gets loaded
+
+```
+site.yaml
+  theme: "minimal"
+  theme_paths: ["@themes"]
+        │
+        ▼
+  Config loader
+    1. Scan theme_paths directories
+    2. Find "minimal/theme.yaml"
+    3. Resolve to absolute path
+        │
+        ▼
+  Theme loader
+    1. Load theme.yaml manifest
+    2. If extends: recursively load parent chain
+    3. Concatenate CSS files in manifest order
+    4. Validate against required_variables
+        │
+        ▼
+  BaseLayout.astro
+    Injects concatenated CSS into <head>
 ```
 
-> **Note:** The `theme` field is required in `site.yaml`. An error will be thrown if it is missing.
+No runtime switching — the active theme is baked in at build/dev-start time. Switch themes by changing `site.yaml theme:` and re-running.
 
-### Using a Custom Theme
+## Default vs custom themes
 
-```yaml
-# site.yaml
-site:
-  name: "My Docs"
+| Kind | Where | How to activate |
+|---|---|---|
+| **Built-in default** | `src/styles/` | `theme: "default"` |
+| **Custom** | `dynamic_data/themes/<name>/` | `theme: "<name>"` with `theme_paths: ["@themes"]` |
 
-theme: "minimal"  # Use the "minimal" theme from theme_paths directories
-```
+Custom themes almost always `extend: "@theme/default"` — you get all 46 variables for free and only override what you actually want to change. A color-only custom theme can be **two files and 30 lines**. See [Creating Themes / Quick Start](./creating-themes/quick-start).
 
-### Creating a Simple Theme
+Standalone themes (`extends: null`) are possible too — for those, you define all 46 variables from scratch. [Standalone Theme walkthrough](./creating-themes/standalone-theme).
 
-1. Create theme directory:
-```
-dynamic_data/themes/my-theme/
-├── theme.yaml
-├── color.css
-└── index.css
-```
+## Dark mode
 
-2. Create manifest (`theme.yaml`):
-```yaml
-name: "My Theme"
-version: "1.0.0"
-extends: "@theme/default"
-supports_dark_mode: true
-files:
-  - color.css
-  - index.css
-```
+Not a separate theme — a **mode switch inside the same theme**. Both sets of color values live in the same CSS file:
 
-3. Override colors (`color.css`):
 ```css
 :root {
-  --color-brand-primary: #8b5cf6;
-  --color-brand-secondary: #7c3aed;
+  --color-bg-primary: #fafafa;
+  --color-text-primary: #1a1a1a;
 }
 
 [data-theme="dark"] {
-  --color-brand-primary: #a78bfa;
-  --color-brand-secondary: #8b5cf6;
+  --color-bg-primary: #0a0a0a;
+  --color-text-primary: #fafafa;
 }
 ```
 
-4. Import in `index.css`:
-```css
-@import './color.css';
-```
+Non-color variables (fonts, spacing) stay the same across modes. See [Dark Mode](./dark-mode).
 
-5. Use in site.yaml:
-```yaml
-theme: "my-theme"
-theme_paths:
-  - "@themes"
-```
+## What's in this section
 
-## Theme Structure
-
-Every theme consists of:
-
-```
-theme-name/
-├── theme.yaml     # Required: Theme manifest
-├── color.css      # Colors (light/dark mode)
-├── font.css       # Typography
-├── element.css    # Spacing, borders, shadows
-├── markdown.css   # Content rendering
-└── index.css      # Main entry point
-```
-
-See [Theme Structure](/docs/themes/theme-structure) for details.
-
-## Theme Inheritance
-
-Themes can extend other themes, only overriding specific values:
-
-```yaml
-# theme.yaml
-name: "Corporate Blue"
-extends: "@theme/default"  # Inherit from default
-files:
-  - color.css  # Only override colors
-```
-
-This loads default theme CSS first, then applies your overrides.
-
-See [Theme Inheritance](/docs/themes/theme-inheritance) for details.
-
-## Dark Mode Support
-
-Themes can support both light and dark modes:
-
-```css
-/* Light mode (default) */
-:root {
-  --color-bg-primary: #ffffff;
-  --color-text-primary: #212529;
-}
-
-/* Dark mode */
-[data-theme="dark"] {
-  --color-bg-primary: #1a1a2e;
-  --color-text-primary: #eaeaea;
-}
-```
-
-The `[data-theme="dark"]` selector is applied to `<html>` when dark mode is active.
-
-## CSS Variables
-
-Themes work by defining CSS custom properties (variables). **All layouts, components, and custom tags MUST use these variables instead of hardcoded values.** This is a strict requirement - see [Theme Compliance Rules](/docs/themes/rules) for details.
-
-### Color Variables
-```css
---color-bg-primary      /* Main background */
---color-text-primary    /* Main text */
---color-brand-primary   /* Links, buttons */
-```
-
-### Font Variables
-```css
---font-family-base      /* Body text */
---font-family-mono      /* Code */
---font-size-base        /* Default size */
-```
-
-### Element Variables
-```css
---spacing-md            /* Standard spacing */
---border-radius-md      /* Rounded corners */
---shadow-md             /* Box shadows */
-```
-
-See [CSS Variables Reference](/docs/themes/css-variables/overview) for the complete list.
-
-## Validation
-
-Themes are validated at load time. The dev toolbar shows any errors:
-
-- Missing required files
-- Missing CSS variables
-- Invalid manifest format
-
-See [Theme Validation](/docs/themes/validation) for details.
-
-## Next Steps
-
-- [Theme Structure](/docs/themes/theme-structure) - Detailed file organization
-- [Creating Themes](/docs/themes/creating-themes) - Step-by-step guide
-- [CSS Variables](/docs/themes/css-variables/overview) - Complete variable reference
-- [Theme Compliance Rules](/docs/themes/rules) - Required rules for layouts and components
+| Page | For |
+|---|---|
+| [The Theme Contract](./the-theme-contract) | The 46 required variables, grouped, with meanings |
+| [Theme Structure](./theme-structure) | `theme.yaml` schema · directory layout · file loading · CSS merge order |
+| [Tokens](./tokens/overview) | Per-category variable reference — colors, typography, spacing, etc. |
+| [Component Styles](./component-styles/overview) | The non-variable CSS that consumes tokens — markdown, navbar, docs, etc. |
+| [Creating Themes](./creating-themes/quick-start) | Three walkthroughs — color-only, extending default, standalone |
+| [Inheritance and Override](./inheritance-and-override) | `extends` · `merge` / `override` / `replace` modes · cascade order |
+| [Dark Mode](./dark-mode) | The `[data-theme="dark"]` pattern · testing · gotchas |
+| [Validation](./validation) | What the loader checks · error vs warning behaviour |
+| [Rules for Layout Authors](./rules-for-layout-authors) | The no-hardcoded-values contract, enforced |
