@@ -136,6 +136,8 @@ draft: true
 - Hidden in production
 - Won't appear in the blog index
 
+See [Drafts](/user-guide/writing-content/drafts) for full details on how drafts behave across all content types.
+
 ## Complete Example
 
 ```yaml

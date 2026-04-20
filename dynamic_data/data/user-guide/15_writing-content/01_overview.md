@@ -26,6 +26,9 @@ Folder names (`docs`, `blog`, `issues`, `pages`) are convention — the actual p
 | [Markdown Basics](./markdown-basics) | Standard markdown syntax plus fenced-block rules |
 | [Asset Embedding](./asset-embedding) | The `[[path]]` syntax for inlining file contents |
 | [Page Outline](./outline) | How the auto-generated table of contents works |
+| [Drafts](./drafts) | `draft: true` — visible in dev, hidden in production |
+
+For the broader dev vs prod runtime story (what differs when you run `bun run dev` vs `bun run build`, and how to hide whole sections / navbar items), see [Dev Mode](/user-guide/configuration/dev-mode) in the Configuration section.
 
 > **Custom tags** (`<callout>`, `<tabs>`, `<collapsible>`) are defined in code but not yet wired into the parser pipeline, so the doc page for them has been removed pending the wiring work. Tracked in issue `2026-04-20-custom-tags`.
 

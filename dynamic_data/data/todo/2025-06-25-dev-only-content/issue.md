@@ -5,8 +5,8 @@ Certain pages, docs, and navbar items should be visible only during development.
 ## Page-level hiding
 
 - [ ] `hideInProd: true` option in page config (`site.yaml`)
-- [ ] `draft: true` or `devOnly: true` frontmatter for individual docs
-- [ ] Filter dev-only pages during production build
+- [x] `draft: true` frontmatter for individual docs — shipped independently (`src/loaders/data.ts:115,137,246`); `devOnly: true` as a distinct alternative is still open (naming TBD)
+- [ ] Filter dev-only pages during production build (section-level, beyond per-file draft)
 - [ ] Visual indicator in dev mode for hidden pages
 
 ```yaml
@@ -41,3 +41,5 @@ items:
 ```
 
 - [ ] Document the feature with examples
+
+See subtasks for concrete workstreams.

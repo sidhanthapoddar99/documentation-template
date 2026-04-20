@@ -34,13 +34,18 @@ user-guide/
 │   │   ├── ✅  08_page.md                          ⚪
 │   │   └── ✅  09_reference.md                     ⚪
 │   ├── 🟡  04_navbar.md                            ⚪   revisit: future file refs (see `comments/003_revisit-list.md`)
-│   └── 🟡  05_footer.md                            ⚪   revisit: future file refs (see `comments/003_revisit-list.md`)
+│   ├── 🟡  05_footer.md                            ⚪   revisit: future file refs (see `comments/003_revisit-list.md`)
+│   └── ✅  06_dev-mode.md                          🟢  new — dev vs prod runtime + planned `hideInProd` (section/navbar) feature; merged from evicted `15_writing-content/06_dev-mode.md`; links to issue `2025-06-25-dev-only-content`
 │
 ├── 15_writing-content/                             ✅  renamed from 15_content (docs/blogs hoisted out)
 │   ├── ✅  01_overview.md                          ⚪   rewritten for 4 content types, removed MDX + dead parser links
 │   ├── ✅  02_markdown-basics.md                   🟡  = old 02_markdown-editing/01, dropped MDX row + MDX-components section
 │   ├── 🟡  03_asset-embedding.md                   🟡  = old 02_markdown-editing/02, issues section marked not-implemented pending phase-3 wiring; see `comments/003_revisit-list.md`
-│   └── ✅  04_outline.md                           🟡  = old 02_markdown-editing/04, renumbered (was 05_outline)
+│   ├── ✅  04_outline.md                           🟡  = old 02_markdown-editing/04, renumbered (was 05_outline)
+│   └── ✅  05_drafts.md                            🟢  new — cross-content-type draft feature, per-type + tracker-wide behaviour
+│
+│   Evicted:
+│     🔵  06_dev-mode.md                            → merged into `10_configuration/06_dev-mode.md` (runtime + dev-only-content are config concerns, not writing-content)
 │
 │   Evicted:
 │     🔴  old 04_custom-tags.md                     → moved to `2026-04-20-custom-tags/notes/01_original-user-doc.md` (transformers not wired; see `comments/004_custom-tags-removed.md`)
