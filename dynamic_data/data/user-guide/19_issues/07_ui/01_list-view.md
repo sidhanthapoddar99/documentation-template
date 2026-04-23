@@ -97,6 +97,8 @@ Multi-select per field. Chip colors come from the vocabulary's color declaration
 
 Pick one of `component`, `milestone`, `priority` (or *none*). Applies a visual grouping — results split into sections with a header per value. Empty groups are hidden.
 
+For multi-valued fields (`component`), an issue with multiple values appears under **each** of its groups. Per-group counts reflect membership, so the sum across groups can exceed the unique-issue total — that's intentional ("how many issues touch live-editor?" should include cross-cutting work).
+
 ### Sort
 
 Default is `updated desc` — recently-touched first. Options:
@@ -140,7 +142,7 @@ Each row / card shows:
 | Description | Subtitle |
 | Status badge | Colored chip |
 | Priority badge | Colored chip |
-| Component | Text |
+| Component | Chip group (one chip per value) |
 | Labels | Chip group |
 | Assignees | Avatar(s) |
 | Updated date | Right side |

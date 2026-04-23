@@ -3,7 +3,7 @@
   "description": "Audit loaders, standardize error handling, improve TS types, split large files, and align docs with the refactored code.",
   "status": "open",
   "priority": "medium",
-  "component": "infra",
+  "component": ["infra"],
   "milestone": "phase-1",
   "labels": ["refactor"],
   "author": "sidhantha",

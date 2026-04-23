@@ -3,7 +3,7 @@
   "description": "Spatial chrome around the editing surface: tabs, menubar / view modes, primary & secondary sidebars (VSCode-style), split-screen / diff layouts, preview split orientation.",
   "status": "open",
   "priority": "medium",
-  "component": "live-editor",
+  "component": ["live-editor"],
   "milestone": "phase-2",
   "labels": [
     "wip",

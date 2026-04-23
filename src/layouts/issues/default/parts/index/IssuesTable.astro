@@ -67,7 +67,7 @@ const columns = [
             data-status={issue.meta.status}
             data-has-review-subtask={issue.subtasks.some((s) => s.state === 'review') ? '1' : '0'}
             data-priority={issue.meta.priority}
-            data-component={issue.meta.component}
+            data-component={issue.meta.component.join(' ')}
             data-milestone={issue.meta.milestone}
             data-labels={issue.meta.labels.join(' ')}
             data-updated={issue.meta.updated || ''}
@@ -78,7 +78,11 @@ const columns = [
             data-search={searchBlob(issue)}
             data-href={`${baseUrl}/${issue.id}`}
           >
-            <td class="issues-table__muted">{issue.meta.component || '—'}</td>
+            <td class="issues-table__muted issues-table__component-cell">
+              {issue.meta.component.length > 0
+                ? issue.meta.component.map((c) => <StatusBadge field="component" value={c} vocabulary={vocabulary.fields} />)
+                : '—'}
+            </td>
             <td class="issues-table__title-cell">
               <a href={`${baseUrl}/${issue.id}`} class="issues-table__title-link">{issue.meta.title}</a>
               <div class="issues-table__sub">
@@ -241,6 +245,12 @@ const columns = [
   .issues-table__muted {
     color: var(--color-text-muted);
     text-transform: capitalize;
+  }
+  .issues-table__component-cell {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    gap: 0.25rem;
+    justify-content: start;
   }
   .issues-table__date {
     font-family: var(--font-family-mono);

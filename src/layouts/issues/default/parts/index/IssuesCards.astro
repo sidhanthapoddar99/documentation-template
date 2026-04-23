@@ -26,7 +26,7 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
       data-status={issue.meta.status}
       data-has-review-subtask={issue.subtasks.some((s) => s.state === 'review') ? '1' : '0'}
       data-priority={issue.meta.priority}
-      data-component={issue.meta.component}
+      data-component={issue.meta.component.join(' ')}
       data-milestone={issue.meta.milestone}
       data-labels={issue.meta.labels.join(' ')}
       data-updated={issue.meta.updated || ''}

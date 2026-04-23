@@ -27,7 +27,10 @@ export interface IssueMetadata {
   description?: string;
   status: string;
   priority: string;
-  component: string;
+  /** Multi-select. Stored as `string[]` in memory; settings.json may write
+   *  either `"component": "x"` (legacy single) or `"component": ["x", "y"]`
+   *  — the loader normalises both shapes. */
+  component: string[];
   milestone: string;
   labels: string[];
   author: string;
@@ -234,6 +237,12 @@ export function invalidateIssuesCache(dataPath?: string): void {
   else cache.clear();
 }
 
+function normalizeComponent(raw: unknown): string[] {
+  if (Array.isArray(raw)) return raw.filter((v): v is string => typeof v === 'string' && v.length > 0);
+  if (typeof raw === 'string' && raw.length > 0) return [raw];
+  return [];
+}
+
 function readJson<T>(filePath: string): T | null {
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as T;
@@ -344,6 +353,7 @@ async function loadIssueFolder(folderPath: string, dataPath: string): Promise<Is
       ...meta,
       labels: Array.isArray(meta.labels) ? meta.labels : [],
       assignees: Array.isArray(meta.assignees) ? meta.assignees : [],
+      component: normalizeComponent((meta as { component?: unknown }).component),
     },
     html,
     comments,

@@ -3,7 +3,7 @@
   "description": "Plugin architecture, search, AI-powered features, and a graph view of content links.",
   "status": "open",
   "priority": "low",
-  "component": "infra",
+  "component": ["infra"],
   "milestone": "phase-3",
   "labels": ["feature"],
   "author": "sidhantha",

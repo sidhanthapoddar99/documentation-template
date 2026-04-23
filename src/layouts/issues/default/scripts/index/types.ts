@@ -42,4 +42,7 @@ export interface Config {
 export type GroupSubState = { tab: StateTab; page: number };
 
 export const FIELDS = ['priority', 'component', 'milestone', 'labels'] as const;
+/** Fields that hold multiple values per row — encoded in the dataset as
+ *  space-joined strings and split back to arrays in filter / group code. */
+export const MULTI_FIELDS = new Set<string>(['labels', 'component']);
 export const CLOSED_STATUSES = new Set(['closed', 'cancelled']);

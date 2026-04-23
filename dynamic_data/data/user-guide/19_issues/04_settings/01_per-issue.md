@@ -16,7 +16,7 @@ Every issue folder has a `settings.json` at its root. It holds all the metadata 
   "description": "Outstanding performance wins in the live editor.",
   "status": "open",
   "priority": "medium",
-  "component": "live-editor",
+  "component": ["live-editor"],
   "milestone": "phase-2",
   "labels": ["performance"],
   "author": "sidhantha",
@@ -34,7 +34,7 @@ Every issue folder has a `settings.json` at its root. It holds all the metadata 
 | `description` | string | — | Shown under the title on list + detail |
 | `status` | enum | ✅ | Single value from `fields.status.values` in the tracker root |
 | `priority` | enum | ✅ | Single value from `fields.priority.values` |
-| `component` | enum | ✅ | Single value from `fields.component.values` |
+| `component` | string[] | ✅ | Multi-select from `fields.component.values`. A bare string (`"x"`) is accepted and normalised to `["x"]` for backward compatibility |
 | `milestone` | enum | ✅ | Single value from `fields.milestone.values` |
 | `labels` | string[] | ✅ | Multi-select from `fields.labels.values` — any subset |
 | `author` | string | ✅ | The person who filed it. From `authors[]` in the tracker root |
@@ -58,9 +58,21 @@ One source of truth per fact. The folder carries identity and creation date; not
 
 ## Field semantics
 
-### `status` · `priority` · `component` · `milestone`
+### `status` · `priority` · `milestone`
 
 Single-select. Each picks exactly one value from the corresponding enum. Colors (optional) come from the tracker root — the UI uses them to render badges.
+
+### `component`
+
+Multi-select. An issue often touches more than one component (editor work that bleeds into the content pipeline, theme work that needs a layout change). Forcing a single primary value loses information and breaks the "Group by component" view, where the issue would only appear under the first component.
+
+```json
+"component": ["live-editor", "content-pipeline"]
+```
+
+Backward-compatible: `"component": "live-editor"` is still accepted and normalised to `["live-editor"]` at load time. Empty array (`[]`) is fine — the issue just won't appear in any component group.
+
+When an issue lists multiple components, it appears under **each** group in "Group by component" — the per-group counts reflect membership, not unique issues.
 
 ### `labels`
 
@@ -93,7 +105,7 @@ Same flag used by docs and blogs (see [Drafts](/user-guide/writing-content/draft
   "description": "Rewrite user-guide around 4 content types; add issues / dev-mode / drafts coverage.",
   "status": "open",
   "priority": "high",
-  "component": "docs",
+  "component": ["docs"],
   "milestone": "phase-2",
   "labels": ["docs", "task", "wip"],
   "author": "sidhantha",
@@ -108,7 +120,7 @@ Same flag used by docs and blogs (see [Drafts](/user-guide/writing-content/draft
 Load-time validation covers:
 
 - **Required fields present** — missing `title`, `status`, etc. produces a warning; the issue is skipped (won't appear in the index).
-- **Enum values known** — unknown `status`, `priority`, `component`, `milestone`, or `labels[i]` produces a warning but doesn't block the load.
+- **Enum values known** — unknown `status`, `priority`, `component[i]`, `milestone`, or `labels[i]` produces a warning but doesn't block the load.
 - **Date format** — `updated` and `due` must match `YYYY-MM-DD` (or `null` for `due`).
 - **`authors[]` membership** — `author` and each entry in `assignees` should be in the tracker-root `authors[]`. Extensible — new people can be added to the root list at any time.
 

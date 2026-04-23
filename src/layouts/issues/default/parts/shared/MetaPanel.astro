@@ -29,8 +29,8 @@ function formatDate(value: string | null | undefined): string {
 <aside class="issue-meta-panel">
   <div class="issue-meta-panel__line">
     <div class="issue-meta-panel__cell"><dt>ID</dt><dd><code class="issue-meta-panel__id">{issue.id}</code></dd></div>
-    <div class="issue-meta-panel__cell"><dt>Component</dt><dd>{meta.component
-      ? <StatusBadge field="component" value={meta.component} vocabulary={vocabulary.fields} />
+    <div class="issue-meta-panel__cell"><dt>Component</dt><dd>{meta.component.length > 0
+      ? meta.component.map((c) => <StatusBadge field="component" value={c} vocabulary={vocabulary.fields} />)
       : <span class="issue-meta-panel__empty">—</span>}</dd></div>
   </div>
   <div class="issue-meta-panel__line">

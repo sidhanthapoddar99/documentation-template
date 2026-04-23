@@ -2,7 +2,7 @@
  * Pure row-matching + sort helpers. No DOM state outside row data
  * attributes; all context flows in via arguments.
  */
-import { CLOSED_STATUSES, FIELDS } from './types';
+import { CLOSED_STATUSES, FIELDS, MULTI_FIELDS } from './types';
 import type { Config, FilterState, StateTab } from './types';
 
 export function needsReview(row: HTMLElement): boolean {
@@ -22,6 +22,17 @@ export function rowMatchesStateTab(row: HTMLElement, tab: StateTab): boolean {
   return status === tab;
 }
 
+/** Read a row's values for a field. Multi-valued fields (labels, component)
+ * are space-joined in the dataset and split here. Single-valued fields
+ * return a one-element array (or empty). */
+export function rowValues(row: HTMLElement, field: string): string[] {
+  if (MULTI_FIELDS.has(field)) {
+    return (row.dataset[field as keyof DOMStringMap] as string || '').split(' ').filter(Boolean);
+  }
+  const v = row.dataset[field as keyof DOMStringMap] as string | undefined;
+  return v ? [v] : [];
+}
+
 /** Global filters only — search + field chips. Used by the grouped view
  * where each group has its own independent state tab. */
 export function rowMatchesGlobal(row: HTMLElement, state: FilterState): boolean {
@@ -32,13 +43,8 @@ export function rowMatchesGlobal(row: HTMLElement, state: FilterState): boolean 
   for (const f of FIELDS) {
     const selected = state.fields[f];
     if (selected.size === 0) continue;
-    if (f === 'labels') {
-      const labels = (row.dataset.labels || '').split(' ').filter(Boolean);
-      if (!labels.some((l) => selected.has(l))) return false;
-    } else {
-      const val = row.dataset[f as keyof DOMStringMap] || '';
-      if (!selected.has(val as string)) return false;
-    }
+    const vals = rowValues(row, f);
+    if (!vals.some((v) => selected.has(v))) return false;
   }
   return true;
 }
@@ -59,13 +65,8 @@ export function rowMatchesExcluding(
     if (f === excludeField) continue;
     const selected = state.fields[f];
     if (selected.size === 0) continue;
-    if (f === 'labels') {
-      const labels = (row.dataset.labels || '').split(' ').filter(Boolean);
-      if (!labels.some((l) => selected.has(l))) return false;
-    } else {
-      const val = row.dataset[f as keyof DOMStringMap] || '';
-      if (!selected.has(val as string)) return false;
-    }
+    const vals = rowValues(row, f);
+    if (!vals.some((v) => selected.has(v))) return false;
   }
   return true;
 }
@@ -82,7 +83,10 @@ export function sortValue(row: HTMLElement, field: string, cfg: Config): number 
       return idx === -1 ? 999 : idx;
     }
     case 'title':     return (ds.title || '').toLowerCase();
-    case 'component': return ds.component || '';
+    // For multi-valued component, sort by the first value alphabetically —
+    // good enough for column-sort ordering; group-by remains the proper view
+    // when an issue spans several components.
+    case 'component': return (ds.component || '').split(' ').filter(Boolean)[0] || '';
     case 'milestone': return ds.milestone || '';
     case 'due':       return ds.due || '9999-99-99';
     case 'created':   return ds.created || '';

@@ -3,7 +3,7 @@
   "description": "One-command deployment story: static export, Docker, platform guides (Vercel/Netlify/GH Pages/Cloudflare), and CI/CD templates.",
   "status": "open",
   "priority": "medium",
-  "component": "infra",
+  "component": ["infra"],
   "milestone": "phase-1",
   "labels": ["feature"],
   "author": "sidhantha",

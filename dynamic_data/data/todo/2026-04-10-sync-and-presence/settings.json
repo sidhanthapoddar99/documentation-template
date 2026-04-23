@@ -3,7 +3,7 @@
   "description": "Yjs CRDT sync, live user display, presence cursors in CM6, and the test matrix for multi-client editing.",
   "status": "open",
   "priority": "medium",
-  "component": "live-editor",
+  "component": ["live-editor"],
   "milestone": "phase-2",
   "labels": [
     "wip",

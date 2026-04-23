@@ -3,7 +3,7 @@
   "description": "Long-tail feature backlog — content, navigation, visuals, social, performance, analytics, dev tooling. Not scheduled.",
   "status": "open",
   "priority": "low",
-  "component": "infra",
+  "component": ["infra"],
   "milestone": "backlog",
   "labels": ["feature", "idea"],
   "author": "sidhantha",

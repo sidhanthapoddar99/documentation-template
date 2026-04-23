@@ -3,7 +3,7 @@
   "description": "How the document is rendered to the user: Source (default), Live Preview, Preview (rendered HTML), True WYSIWYG (future), View-only / edit-mode lock.",
   "status": "open",
   "priority": "medium",
-  "component": "live-editor",
+  "component": ["live-editor"],
   "milestone": "phase-2",
   "labels": [
     "wip",

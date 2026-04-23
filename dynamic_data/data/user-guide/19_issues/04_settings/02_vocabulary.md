@@ -83,9 +83,11 @@ The loader expects these five fields at minimum. Adding more is possible but the
 |---|:---:|---|
 | `status` | — | Lifecycle state (the 4-state review model) |
 | `priority` | — | Urgency (low / medium / high / urgent) |
-| `component` | — | Which part of the codebase / product |
+| `component` | ✅ | Which part of the codebase / product — issues that span multiple |
 | `milestone` | — | Long-horizon grouping (phase, release, roadmap) |
 | `labels` | ✅ | Everything orthogonal — `wip`, `blocked`, `bug`, `feature`, `docs`, `idea`, … |
+
+The vocabulary shape is the same for single- and multi-select fields — just `values: string[]` (and optional `colors`). Whether issues consume each value singly or as a list is up to per-issue `settings.json`.
 
 ### Status — the 4-state contract
 

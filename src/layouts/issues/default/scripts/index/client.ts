@@ -18,6 +18,7 @@ import {
 import {
   needsReview,
   rowMatchesExcluding,
+  rowValues,
   sortValue,
   rowMatchesGlobal,
 } from './filters';
@@ -230,12 +231,7 @@ function renderAddMenus(state: FilterState, allRows: HTMLElement[]) {
       let count = 0;
       for (const row of allRows) {
         if (!rowMatchesExcluding(row, state, field)) continue;
-        if (field === 'labels') {
-          const labels = (row.dataset.labels || '').split(' ').filter(Boolean);
-          if (labels.includes(value)) count++;
-        } else {
-          if (row.dataset[field as keyof DOMStringMap] === value) count++;
-        }
+        if (rowValues(row, field).includes(value)) count++;
       }
       const countEl = opt.querySelector<HTMLElement>('[data-add-count]');
       if (countEl) countEl.textContent = String(count);
@@ -312,6 +308,12 @@ function apply(cfg: Config) {
   if (!groupField) {
     // -------- Flat (non-grouped) table or cards --------
     if (groupsContainer) groupsContainer.remove();
+    // Cards view: sweep any leftover group-headers / clones from a prior
+    // grouped render, otherwise they'd stack with the flat list.
+    if (!isTable) {
+      view.querySelectorAll('[data-group-header]').forEach((el) => el.remove());
+      view.querySelectorAll('[data-group-clone]').forEach((el) => el.remove());
+    }
     if (mainWrap) mainWrap.style.display = '';
     if (mainTable) (mainTable as HTMLElement).style.display = '';
 
@@ -375,9 +377,21 @@ function apply(cfg: Config) {
     const unknown: HTMLElement[] = [];
     for (const r of rows) {
       if (!rowMatchesGlobal(r, state)) continue;
-      const v = (r.dataset[groupField as keyof DOMStringMap] as string) || '';
-      if (buckets.has(v)) buckets.get(v)!.push(r);
-      else unknown.push(r);
+      // Multi-valued fields (e.g. component) put the row into EVERY matching
+      // bucket. Unknown values fall through to a trailing "—" bucket.
+      const vals = rowValues(r, groupField);
+      if (vals.length === 0) {
+        unknown.push(r);
+        continue;
+      }
+      let placed = false;
+      for (const v of vals) {
+        if (buckets.has(v)) {
+          buckets.get(v)!.push(r);
+          placed = true;
+        }
+      }
+      if (!placed) unknown.push(r);
     }
     const sections: Array<[string, HTMLElement[]]> = [];
     for (const v of order) {
@@ -409,7 +423,11 @@ function apply(cfg: Config) {
       if (countEl) countEl.textContent = String(totalShown);
     } else {
       // Cards view — simple section banners over each group's rows.
+      // Originals stay hidden (display:none from above); each placement is a
+      // clone marked with data-group-clone so a row can appear in multiple
+      // groups (multi-valued component) without DOM-move conflicts.
       parent.querySelectorAll('[data-group-header]').forEach((el) => el.remove());
+      parent.querySelectorAll('[data-group-clone]').forEach((el) => el.remove());
       sections.forEach(([label, groupRows], idx) => {
         const firstClass = idx === 0 ? ' is-first' : '';
         const header = document.createElement('div');
@@ -420,8 +438,11 @@ function apply(cfg: Config) {
           <span class="issues-cards__group-count">${groupRows.length}</span>`;
         parent.appendChild(header);
         groupRows.forEach((r) => {
-          r.style.display = '';
-          parent.appendChild(r);
+          const clone = r.cloneNode(true) as HTMLElement;
+          clone.removeAttribute('id');
+          clone.style.display = '';
+          clone.setAttribute('data-group-clone', '');
+          parent.appendChild(clone);
         });
       });
     }

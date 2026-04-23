@@ -3,7 +3,7 @@
   "description": "Theme preview panel, config generator UI, performance metrics, and cache status viewer.",
   "status": "open",
   "priority": "medium",
-  "component": "dev-toolbar",
+  "component": ["dev-toolbar"],
   "milestone": "phase-1",
   "labels": ["wip", "feature"],
   "author": "sidhantha",

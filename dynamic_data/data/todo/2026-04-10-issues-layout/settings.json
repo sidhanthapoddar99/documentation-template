@@ -3,7 +3,7 @@
   "description": "GitHub-style issues tracker as a first-class layout type — folder-per-item data model, vocabulary-driven metadata, index + detail pages, subtask interactivity.",
   "status": "open",
   "priority": "high",
-  "component": "layouts-and-themes",
+  "component": ["layouts-and-themes"],
   "milestone": "phase-2",
   "labels": [
     "wip",

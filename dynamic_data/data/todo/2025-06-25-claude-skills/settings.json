@@ -3,7 +3,7 @@
   "description": "Author Claude skills that accelerate working in the framework — themes, layouts, components, configs, content.",
   "status": "open",
   "priority": "medium",
-  "component": "ai-skills",
+  "component": ["ai-skills"],
   "milestone": "phase-1",
   "labels": ["wip", "feature"],
   "author": "sidhantha",

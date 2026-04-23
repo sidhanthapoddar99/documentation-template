@@ -3,7 +3,7 @@
   "description": "Power-user features for Editor V2: slash commands, wiki links, embedding, spell check, drag-drop upload, split-screen / diff layouts.",
   "status": "open",
   "priority": "medium",
-  "component": "live-editor",
+  "component": ["live-editor"],
   "milestone": "phase-2",
   "labels": [
     "feature"

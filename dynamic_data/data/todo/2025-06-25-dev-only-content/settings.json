@@ -3,7 +3,7 @@
   "description": "Allow pages, docs, and navbar items to be marked dev-only and filtered out of production builds.",
   "status": "open",
   "priority": "medium",
-  "component": "loaders",
+  "component": ["loaders"],
   "milestone": "phase-1",
   "labels": ["feature"],
   "author": "sidhantha",

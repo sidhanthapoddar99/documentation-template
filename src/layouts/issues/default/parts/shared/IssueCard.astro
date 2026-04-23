@@ -20,7 +20,7 @@ const { meta } = issue;
       <div class="issue-card__badges">
         <StatusBadge field="status" value={meta.status} vocabulary={vocabulary.fields} />
         <StatusBadge field="priority" value={meta.priority} vocabulary={vocabulary.fields} />
-        {meta.component && <StatusBadge field="component" value={meta.component} vocabulary={vocabulary.fields} />}
+        {meta.component.map((c) => <StatusBadge field="component" value={c} vocabulary={vocabulary.fields} />)}
         {meta.milestone && <StatusBadge field="milestone" value={meta.milestone} vocabulary={vocabulary.fields} />}
         {meta.labels.map((l) => <StatusBadge field="labels" value={l} vocabulary={vocabulary.fields} />)}
       </div>
