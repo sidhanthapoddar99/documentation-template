@@ -1,6 +1,6 @@
 ---
 title: "Code block enhancements"
-done: false
+done: true
 ---
 
 ## Tasks
@@ -10,6 +10,6 @@ done: false
 - [x] Fix light mode syntax highlighting (removed incorrect CSS override)
 - [x] Grey background for code blocks in light mode (`--color-bg-secondary`)
 - [ ] Line numbers option
-- [ ] Copy button functionality
-- [ ] Language labels display
+- [x] Copy button functionality
+- [x] Language labels display
 - [ ] Diff highlighting support

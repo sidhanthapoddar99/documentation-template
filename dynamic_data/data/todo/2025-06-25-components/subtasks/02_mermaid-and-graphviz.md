@@ -1,6 +1,6 @@
 ---
 title: "Mermaid & GraphViz support"
-done: false
+done: true
 ---
 
 ## Tasks

@@ -11,6 +11,7 @@ Claude skills accelerate the most common authoring and configuration tasks in th
 - [x] Skill to write documentation pages → `docs-guide`
 - [ ] Skill to write blog posts
 - [ ] Skill to create custom pages
+- [ ] Skill to operate the issue tracker (`issues`) → see `subtasks/02_issues-skill.md`
 
 ## Completed
 

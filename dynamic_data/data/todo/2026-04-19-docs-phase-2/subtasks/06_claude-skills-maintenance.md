@@ -9,7 +9,7 @@ Keep the user-guide Claude-skills page in sync with the actually-installed skill
 
 Rewrite / extend the table whenever **any** of these happen:
 
-- [ ] A new skill is added to `.claude/skills/` (e.g. the planned `issues` skill — see `2026-04-10-issues-layout/subtasks/06_documentation-and-skills.md`).
+- [ ] A new skill is added to `.claude/skills/` (e.g. the planned `issues` skill — see `2025-06-25-claude-skills/subtasks/02_issues-skill.md`).
 - [ ] An existing skill's trigger vocabulary changes (the "Triggers on" column drifts if we don't update).
 - [ ] A skill is renamed or removed.
 - [ ] The install one-liner changes (new script URL, different flags).
@@ -28,7 +28,7 @@ For every skill added, update:
 
 These are already in the tracker and will need rows when they land:
 
-- [ ] `issues` — Claude skill for navigating the issue tracker (scope lives in `2026-04-10-issues-layout/subtasks/06_documentation-and-skills.md`).
+- [ ] `issues` — Claude skill for navigating the issue tracker (scope lives in `2025-06-25-claude-skills/subtasks/02_issues-skill.md`).
 
 ## Cross-reference
 
