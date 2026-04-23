@@ -1,6 +1,6 @@
 {
-  "title": "Inline diagram editing in editor",
-  "description": "Diagram preview & editing inside the editor pane: Mermaid, Graphviz/DOT, and Excalidraw (inline editor for .excalidraw files).",
+  "title": "Diagrams as native content (editor + first-class pages)",
+  "description": "Two halves: (1) editor-pane preview & inline editing for Mermaid/Graphviz/Excalidraw; (2) .mmd/.dot/.excalidraw files with XX_ prefix render as first-class pages in docs sections, with optional meta.json sidecar for sidebar metadata.",
   "status": "open",
   "priority": "medium",
   "component": "live-editor",
