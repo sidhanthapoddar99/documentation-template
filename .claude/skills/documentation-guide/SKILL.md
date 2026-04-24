@@ -60,17 +60,17 @@ These apply across all domains. Reference files don't repeat them — they assum
 
 ## Helper scripts
 
-The `scripts/issues/` directory at the project root ships 8 CLI helpers for the issue tracker (`list`, `show`, `subtasks`, `agent-logs`, `set-state`, `add-comment`, `add-agent-log`, `review-queue`) plus a shared `_lib.mjs`. They're documented in `references/issue-layout.md`.
+The `.claude/skills/documentation-guide/scripts/issues/` directory at the project root ships 8 CLI helpers for the issue tracker (`list`, `show`, `subtasks`, `agent-logs`, `set-state`, `add-comment`, `add-agent-log`, `review-queue`) plus a shared `_lib.mjs`. They're documented in `references/issue-layout.md`.
 
 **Run convention** — prefer `bun`, fall back to `node`:
 
 ```bash
-bun scripts/issues/list.mjs --help     # preferred (faster startup)
-node scripts/issues/list.mjs --help    # fallback
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs --help     # preferred (faster startup)
+node .claude/skills/documentation-guide/scripts/issues/list.mjs --help    # fallback
 
 # One-liner with auto-fallback
-command -v bun >/dev/null && bun scripts/issues/list.mjs --help \
-  || node scripts/issues/list.mjs --help
+command -v bun >/dev/null && bun .claude/skills/documentation-guide/scripts/issues/list.mjs --help \
+  || node .claude/skills/documentation-guide/scripts/issues/list.mjs --help
 ```
 
 For installing script dependencies: `bun install` first, `npm install` as fallback.

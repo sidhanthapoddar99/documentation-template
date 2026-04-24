@@ -1,0 +1,87 @@
+#!/usr/bin/env bun
+/**
+ * blog/check.mjs — validate blog folder structure.
+ *
+ * Checks every .md file in the blog folder follows the project conventions
+ * documented in `references/blog-layout.md`:
+ *
+ *   • Filename matches YYYY-MM-DD-<kebab-case-slug>.md
+ *   • Frontmatter `title:` present
+ *   • No subfolders (blog is flat — `assets/` is the only allowed subfolder)
+ *
+ * Exit code 0 = clean, 1 = errors found.
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+
+const DEFAULT = path.join(process.cwd(), 'dynamic_data', 'data', 'blog');
+const ROOT = process.argv[2] && process.argv[2] !== '--help' && process.argv[2] !== '-h'
+  ? process.argv[2]
+  : DEFAULT;
+
+if (process.argv[2] === '--help' || process.argv[2] === '-h') {
+  console.error('Usage: bun .claude/skills/documentation-guide/scripts/blog/check.mjs [blog-folder]\n');
+  console.error(`  Default: ${DEFAULT}\n`);
+  console.error('  Validates: YYYY-MM-DD-<slug>.md naming · frontmatter title · no nested folders');
+  process.exit(0);
+}
+
+if (!fs.existsSync(ROOT)) {
+  console.error(`Not found: ${ROOT}`);
+  process.exit(1);
+}
+
+const errors = [];
+const warnings = [];
+const BLOG_RE = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(-[a-z0-9]+)*\.md$/;
+const FRONTMATTER_TITLE_RE = /^---\r?\n[\s\S]*?^title:\s*\S+/m;
+
+const entries = fs.readdirSync(ROOT, { withFileTypes: true });
+for (const entry of entries) {
+  const rel = entry.name;
+  if (entry.isDirectory()) {
+    if (entry.name === 'assets') continue;
+    if (entry.name.startsWith('.')) continue;
+    errors.push(`${rel}/: subfolders not allowed in blog/ (only YYYY-MM-DD-<slug>.md files + assets/)`);
+    continue;
+  }
+  if (!entry.isFile()) continue;
+  if (entry.name === 'README.md' || entry.name.startsWith('.')) continue;
+
+  if (!entry.name.endsWith('.md')) {
+    warnings.push(`${rel}: non-md file in blog/ (move to blog/assets/?)`);
+    continue;
+  }
+
+  if (!BLOG_RE.test(entry.name)) {
+    errors.push(`${rel}: doesn't match YYYY-MM-DD-<kebab-slug>.md`);
+    continue;
+  }
+
+  try {
+    const content = fs.readFileSync(path.join(ROOT, entry.name), 'utf-8');
+    if (!FRONTMATTER_TITLE_RE.test(content)) {
+      errors.push(`${rel}: missing frontmatter \`title:\``);
+    }
+  } catch (e) {
+    errors.push(`${rel}: read error — ${e.message}`);
+  }
+}
+
+console.log(`# blog check: ${ROOT}`);
+console.log('');
+if (errors.length === 0 && warnings.length === 0) {
+  console.log('✓ all checks passed');
+  process.exit(0);
+}
+if (errors.length) {
+  console.log(`## ${errors.length} error(s)`);
+  for (const e of errors) console.log(`  ✗ ${e}`);
+}
+if (warnings.length) {
+  if (errors.length) console.log('');
+  console.log(`## ${warnings.length} warning(s)`);
+  for (const w of warnings) console.log(`  ⚠ ${w}`);
+}
+process.exit(errors.length ? 1 : 0);

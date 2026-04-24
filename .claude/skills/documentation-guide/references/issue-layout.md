@@ -234,7 +234,7 @@ This keeps the main context lean and uses cheap tokens for bulk summarisation.
 
 ### Helper scripts — use these, they're the fastest path
 
-The `scripts/issues/` directory has 8 CLI helpers. **Prefer them over hand-rolled grep** — they understand the schema (state vs legacy `done`, component-as-array, agent-log subgroups) and emit terse output by default. All run with `bun` (preferred) or `node`.
+The `.claude/skills/documentation-guide/scripts/issues/` directory has 8 CLI helpers. **Prefer them over hand-rolled grep** — they understand the schema (state vs legacy `done`, component-as-array, agent-log subgroups) and emit terse output by default. All run with `bun` (preferred) or `node`.
 
 | Script | What it does |
 |---|---|
@@ -251,29 +251,29 @@ Common usage:
 
 ```bash
 # Open issues with high/urgent priority
-bun scripts/issues/list.mjs --priority high,urgent
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs --priority high,urgent
 
 # Every review-state subtask across the tracker (cross-issue)
-bun scripts/issues/subtasks.mjs --all --state review
+bun .claude/skills/documentation-guide/scripts/issues/subtasks.mjs --all --state review
 
 # One issue end-to-end (metadata + subtask state + log heads)
-bun scripts/issues/show.mjs 2026-04-19-docs-phase-2
+bun .claude/skills/documentation-guide/scripts/issues/show.mjs 2026-04-19-docs-phase-2
 
 # Catch up on prior iterations before resuming work
-bun scripts/issues/agent-logs.mjs 2026-04-19-docs-phase-2 --last 5
+bun .claude/skills/documentation-guide/scripts/issues/agent-logs.mjs 2026-04-19-docs-phase-2 --last 5
 
 # Mark a subtask done
-bun scripts/issues/set-state.mjs 2026-04-19-foo/subtasks/02_bar.md closed
+bun .claude/skills/documentation-guide/scripts/issues/set-state.mjs 2026-04-19-foo/subtasks/02_bar.md closed
 
 # Mark an issue ready for human review
-bun scripts/issues/set-state.mjs 2026-04-19-foo review
+bun .claude/skills/documentation-guide/scripts/issues/set-state.mjs 2026-04-19-foo review
 
 # Append an agent-log entry
-bun scripts/issues/add-agent-log.mjs 2026-04-19-foo \
+bun .claude/skills/documentation-guide/scripts/issues/add-agent-log.mjs 2026-04-19-foo \
   --status success --body "Goal: …  Approach: …  Result: …  Next: —"
 
 # What's awaiting human review?
-bun scripts/issues/review-queue.mjs
+bun .claude/skills/documentation-guide/scripts/issues/review-queue.mjs
 ```
 
 Each script supports `--help` (full options), `--json` (machine-readable), and `--tracker <path>` (operate on a non-default tracker).

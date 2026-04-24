@@ -1,0 +1,177 @@
+#!/usr/bin/env bun
+/**
+ * issues/check.mjs — validate the structure of an issue tracker.
+ *
+ * Joins the existing 8 read/write helpers with a domain validator. Checks
+ * everything documented in `references/issue-layout.md`:
+ *
+ *   • Tracker root has settings.json with a `fields:` block (vocabulary)
+ *   • Every issue folder matches YYYY-MM-DD-<slug>/
+ *   • Every issue has settings.json + issue.md
+ *   • Issue settings.json carries required fields and uses vocabulary values
+ *   • Subtasks have valid `state` (open|review|closed|cancelled), or legacy `done: true`
+ *   • Comments / agent-logs follow naming conventions (warned, not errored)
+ *   • Stray .md at folder root (other than issue.md) → warning
+ *
+ * Exit code 0 = clean, 1 = errors found.
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+import matter from 'gray-matter';
+import { DEFAULT_TRACKER, listIssueFolders, readVocabulary, parseArgs, printHelp } from './_lib.mjs';
+
+const args = parseArgs(process.argv.slice(2));
+if (args.flags.help) {
+  printHelp('check', [
+    '[--tracker <path>]',
+    '',
+    'Validate the structure of an issue tracker. Default: dynamic_data/data/todo.',
+    'Reports errors (will fail loaders) and warnings (lint-only).',
+  ]);
+  process.exit(0);
+}
+
+const tracker = args.flags.tracker || DEFAULT_TRACKER;
+if (!fs.existsSync(tracker)) {
+  console.error(`Not found: ${tracker}`);
+  process.exit(1);
+}
+
+const errors = [];
+const warnings = [];
+
+// 1. Tracker root vocabulary
+const vocab = readVocabulary(tracker);
+if (!vocab || !vocab.fields) {
+  errors.push(`<root>/settings.json: missing or no \`fields\` block (vocabulary)`);
+}
+const validStatuses = vocab?.fields?.status?.values || ['open', 'review', 'closed', 'cancelled'];
+const validPriorities = vocab?.fields?.priority?.values || [];
+const validComponents = vocab?.fields?.component?.values || [];
+const validMilestones = vocab?.fields?.milestone?.values || [];
+const validLabels = vocab?.fields?.labels?.values || [];
+
+const FOLDER_PATTERN = /^(\d{4}-\d{2}-\d{2})-([a-z0-9][a-z0-9-]*)$/;
+const VALID_SUBTASK_STATES = ['open', 'review', 'closed', 'cancelled'];
+
+// 2. Walk each issue folder
+const allEntries = fs.readdirSync(tracker, { withFileTypes: true });
+const issueFolders = allEntries.filter((e) => e.isDirectory());
+
+for (const entry of issueFolders) {
+  const id = entry.name;
+  const folder = path.join(tracker, id);
+
+  if (!FOLDER_PATTERN.test(id)) {
+    errors.push(`${id}/: doesn't match YYYY-MM-DD-<kebab-slug>/`);
+    continue;
+  }
+
+  const settingsPath = path.join(folder, 'settings.json');
+  if (!fs.existsSync(settingsPath)) {
+    errors.push(`${id}/settings.json: missing`);
+    continue;
+  }
+
+  let meta;
+  try {
+    meta = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+  } catch (e) {
+    errors.push(`${id}/settings.json: invalid JSON (${e.message})`);
+    continue;
+  }
+
+  if (!meta.title) errors.push(`${id}/settings.json: missing \`title\``);
+  if (!meta.status) errors.push(`${id}/settings.json: missing \`status\``);
+  else if (!validStatuses.includes(meta.status)) {
+    errors.push(`${id}/settings.json: status \`${meta.status}\` not in vocabulary (${validStatuses.join('|')})`);
+  }
+  if (meta.priority && validPriorities.length && !validPriorities.includes(meta.priority)) {
+    errors.push(`${id}/settings.json: priority \`${meta.priority}\` not in vocabulary`);
+  }
+  if (meta.milestone && validMilestones.length && !validMilestones.includes(meta.milestone)) {
+    warnings.push(`${id}/settings.json: milestone \`${meta.milestone}\` not in vocabulary`);
+  }
+  const components = Array.isArray(meta.component)
+    ? meta.component
+    : (typeof meta.component === 'string' && meta.component ? [meta.component] : []);
+  if (components.length === 0 && validComponents.length > 0) {
+    warnings.push(`${id}/settings.json: \`component\` is empty`);
+  }
+  for (const c of components) {
+    if (validComponents.length && !validComponents.includes(c)) {
+      warnings.push(`${id}/settings.json: component \`${c}\` not in vocabulary`);
+    }
+  }
+  for (const l of (Array.isArray(meta.labels) ? meta.labels : [])) {
+    if (validLabels.length && !validLabels.includes(l)) {
+      warnings.push(`${id}/settings.json: label \`${l}\` not in vocabulary`);
+    }
+  }
+
+  // issue.md required
+  if (!fs.existsSync(path.join(folder, 'issue.md'))) {
+    errors.push(`${id}/issue.md: missing`);
+  }
+
+  // Stray *.md at folder root
+  const stray = fs
+    .readdirSync(folder, { withFileTypes: true })
+    .filter((e) => e.isFile() && e.name.endsWith('.md') && e.name !== 'issue.md')
+    .map((e) => e.name);
+  if (stray.length) {
+    warnings.push(`${id}/: stray .md at folder root (move to notes/?): ${stray.join(', ')}`);
+  }
+
+  // Subtasks
+  const subDir = path.join(folder, 'subtasks');
+  if (fs.existsSync(subDir)) {
+    for (const name of fs.readdirSync(subDir).filter((n) => n.endsWith('.md'))) {
+      const abs = path.join(subDir, name);
+      try {
+        const fm = matter(fs.readFileSync(abs, 'utf-8')).data || {};
+        if (fm.state !== undefined && !VALID_SUBTASK_STATES.includes(fm.state)) {
+          errors.push(`${id}/subtasks/${name}: invalid state \`${fm.state}\``);
+        }
+        if (fm.state === undefined && fm.done === undefined) {
+          warnings.push(`${id}/subtasks/${name}: no \`state:\` or \`done:\` — defaults to open`);
+        }
+      } catch (e) {
+        errors.push(`${id}/subtasks/${name}: malformed frontmatter (${e.message})`);
+      }
+    }
+  }
+
+  // Agent-log subgroup depth (max 1)
+  const logDir = path.join(folder, 'agent-log');
+  if (fs.existsSync(logDir)) {
+    const logEntries = fs.readdirSync(logDir, { withFileTypes: true });
+    for (const e of logEntries) {
+      if (!e.isDirectory()) continue;
+      const subEntries = fs.readdirSync(path.join(logDir, e.name), { withFileTypes: true });
+      const deeper = subEntries.filter((s) => s.isDirectory());
+      if (deeper.length) {
+        warnings.push(`${id}/agent-log/${e.name}/: nested subdirs ignored by loader (${deeper.map(d => d.name).join(', ')})`);
+      }
+    }
+  }
+}
+
+console.log(`# issues check: ${tracker}`);
+console.log(`(${listIssueFolders(tracker).length} issue folders scanned)`);
+console.log('');
+if (errors.length === 0 && warnings.length === 0) {
+  console.log('✓ all checks passed');
+  process.exit(0);
+}
+if (errors.length) {
+  console.log(`## ${errors.length} error(s)`);
+  for (const e of errors) console.log(`  ✗ ${e}`);
+}
+if (warnings.length) {
+  if (errors.length) console.log('');
+  console.log(`## ${warnings.length} warning(s)`);
+  for (const w of warnings) console.log(`  ⚠ ${w}`);
+}
+process.exit(errors.length ? 1 : 0);

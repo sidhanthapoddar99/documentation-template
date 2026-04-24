@@ -16,7 +16,24 @@ import matter from 'gray-matter';
 // ---------- Paths & validation ----------------------------------------------
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-export const PROJECT_ROOT = path.resolve(SCRIPT_DIR, '..', '..');
+
+/**
+ * Walk up from SCRIPT_DIR looking for the project root marker (`dynamic_data/`).
+ * Works whether the skill is installed project-local (`<repo>/.claude/skills/…`)
+ * or user-level (`~/.claude/skills/…` with cwd inside the project). Override
+ * with the DOCS_PROJECT_ROOT env var if auto-detect ever guesses wrong.
+ */
+function findProjectRoot(startDir) {
+  let dir = startDir;
+  while (dir !== path.dirname(dir)) {
+    if (fs.existsSync(path.join(dir, 'dynamic_data'))) return dir;
+    dir = path.dirname(dir);
+  }
+  if (fs.existsSync(path.join(process.cwd(), 'dynamic_data'))) return process.cwd();
+  return process.cwd();
+}
+
+export const PROJECT_ROOT = process.env.DOCS_PROJECT_ROOT || findProjectRoot(SCRIPT_DIR);
 export const DEFAULT_TRACKER = path.join(PROJECT_ROOT, 'dynamic_data', 'data', 'todo');
 
 const FOLDER_PATTERN = /^(\d{4}-\d{2}-\d{2})-([a-z0-9][a-z0-9-]*)$/;
@@ -272,7 +289,7 @@ function formatJsonScalar(v) {
 // ---------- CLI helpers ----------------------------------------------------
 
 export function printHelp(name, lines) {
-  console.error(`Usage: bun scripts/issues/${name}.mjs ${lines[0]}\n`);
+  console.error(`Usage: bun .claude/skills/documentation-guide/scripts/issues/${name}.mjs ${lines[0]}\n`);
   for (const line of lines.slice(1)) console.error('  ' + line);
 }
 
