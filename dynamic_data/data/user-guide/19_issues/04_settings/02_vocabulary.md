@@ -107,6 +107,41 @@ The vocabulary shape is the same for single- and multi-select fields — just `v
 
 If you need finer-grained intermediate states (`in-progress`, `blocked`, `needs-design`), use **labels**, not statuses. See [Design Philosophy](../design-philosophy).
 
+#### Why it's a contract, not a vocabulary
+
+`status` looks like every other enum in `fields` — `values` array, optional `colors` map — but it isn't truly vocabulary-driven. The other enums (`priority`, `component`, `milestone`, `labels`) are read at runtime: add a new value to `settings.json` and it shows up in filters, groupings, and chips with no code change. `status` is **special-cased** end-to-end.
+
+Here's what *is* vs. *isn't* driven by the vocabulary:
+
+| Concern | Source |
+|---|---|
+| State **names** (`open` / `review` / `closed` / `cancelled`) | Hardcoded in TS + Astro |
+| State **colors** | ✅ Vocabulary (`fields.status.colors`) |
+| State **tabs** in the index view | Hardcoded as a static array |
+| State **icons** + cycle order on subtasks | Hardcoded |
+| **Subtask** states | Same hardcoded set — issue and subtask share one literal union |
+| Filter / progress-bar segments | Hardcoded (4 segments) |
+| Subtask-debt promotion (open issue → Review tab if any subtask is `review`) | Keyed off the literal string `'review'` |
+
+**Bottom line:** the colors are tweakable from `settings.json`. The names, the count, and the order are not.
+
+#### Adding a 5th state (`blocked`, `deferred`, …)
+
+Possible, but it's a code change in **7 files**, not a config change. Edit:
+
+| File | What to change |
+|---|---|
+| `src/loaders/issues.ts` | State validation in the frontmatter parse — extend the literal `===` check |
+| `src/layouts/issues/default/scripts/detail/types.ts` | `SubtaskState` union and `CYCLE` array |
+| `src/layouts/issues/default/scripts/index/types.ts` | `StateTab` union and `CLOSED_STATUSES` if the new state is terminal |
+| `src/layouts/issues/default/parts/index/StateTabs.astro` | Add a 5th `<button>` for the new tab |
+| `src/layouts/issues/default/parts/detail/Comprehensive.astro` | Add a 5th `data-comprehensive-tab` button |
+| `src/layouts/issues/default/server/state-icon.ts` | Add a `case` in the switch (icon SVG + `aria-label`) |
+| `src/dev-tools/server/middleware.ts` | Add the new value to the `VALID` set in the subtask-toggle handler |
+| `src/layouts/issues/default/scripts/detail/subtask-state.ts` | Update the regex that strips state class names from DOM |
+
+The changes are mechanical (no algorithmic shift), but they touch enough surfaces that a future "make `status` truly vocabulary-driven" refactor would be a worthwhile cleanup. Until then, treat the 4 states as a **schema constraint** — and use **labels** for any extra dimensions you'd otherwise reach for a new state to express.
+
 ### Colors
 
 Purely cosmetic — drive badge fills on the list view and anywhere status chips render. Omit `colors` for a field entirely, and the UI falls back to neutral text. Per-value — only provide colors for values that need them.
