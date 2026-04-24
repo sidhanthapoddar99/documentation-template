@@ -1,5 +1,5 @@
 ---
-title: "Author the `issues` Claude skill (+ helper Node scripts)"
+title: "`docs:issues_layout` Author the `issues` Claude skill (+ helper Node scripts)"
 done: false
 state: open
 ---
@@ -7,6 +7,56 @@ state: open
 The `issues` skill is the operating manual that lets an AI agent treat this tracker as its own queue. It must cover *traversal, reading, writing, the review handoff,* and *agent-log discipline* — and ship with helper Node scripts so the agent can filter / scan without dumping every file into context.
 
 > **History:** the spec for this skill originally lived in `2026-04-10-issues-layout/subtasks/06_documentation-and-skills.md` alongside the issues-layout user/dev docs. The docs portion was absorbed into `2026-04-19-docs-phase-2`; the skill + scripts portion was moved here so all skill work lives under `2025-06-25-claude-skills`.
+
+## Reference docs — read before authoring
+
+Every documentation-template install ships with a user-guide under `dynamic_data/data/user-guide/`. The skill spec must align with what the user-guide says — **read the relevant pages first** so the skill stays in sync with the docs (and update both together if anything is missing).
+
+For this skill, the canonical user-guide section is:
+
+- `dynamic_data/data/user-guide/19_issues/` — full content-type coverage:
+    - `01_overview.md`, `02_design-philosophy.md`, `03_folder-structure.md`
+    - `04_settings/` — per-issue + tracker-vocabulary
+    - `05_sub-docs/` — `issue.md`, comments, subtasks, notes, agent-log
+    - `06_lifecycle-and-review.md` — the 4-state model + review handoff
+    - `07_ui/` — list view + detail view
+    - `08_workflows/` — create / work / review-and-close narratives
+    - `09_using-with-ai.md` — agent rules
+    - `10_setup-new-tracker.md` — vocab + mounting
+- `dynamic_data/data/user-guide/05_getting-started/05_claude-skills.md` — skill catalogue page (must add an `issues` row when this skill ships)
+
+## Content checklist
+
+Mini todo list of what the skill must cover. The detailed sections below flesh each item out.
+
+### Properties of an issue
+
+- [ ] All `settings.json` fields — `title`, `status`, `priority`, `component`, `milestone`, `labels`, `assignees`, `updated`, `due`, `draft`
+- [ ] Type + required-vs-optional for each field
+- [ ] What `null` / missing means
+
+### Structure
+
+- [ ] Folder-per-issue layout (`YYYY-MM-DD-<slug>/`) — naming regex + what each file means
+- [ ] Task / subtask file format — frontmatter (`title`, `done`, `state`), body structure, `NNN_<slug>.md` numbering
+- [ ] Supporting files — `notes/`, `agent-log/`, assets; when to use which
+- [ ] Vocabulary layers —
+    - [ ] Tracker-wide vocabulary (root `settings.json` → `fields`: status, priority, component, milestone, labels)
+    - [ ] Per-issue values drawn from that vocabulary
+    - [ ] Per-subtask `state` (same 4-state model, tracked independently per subtask)
+
+### Rules for creating / updating
+
+- [ ] The 4 lifecycle states and allowed transitions (open → review → closed | cancelled)
+- [ ] **AI rule** — always mark `review`, never `closed` directly. `closed` is a human-only transition in autonomous mode.
+- [ ] **AI rule** — default search scope is `open` + `review`. Skip `closed` / `cancelled` unless the prompt explicitly asks for them, to avoid noisy re-reads of shipped work.
+- [ ] Subtask review-debt promotion — an `open` issue with any `review` subtask surfaces on the Review tab and should be treated as review-gated
+
+### Searching and indexing
+
+- [ ] `grep` / `find` recipes for common queries — keyword hits, `status:` scans in `settings.json`, subtask `state:` scans, comments by author
+- [ ] Guidance to spawn a **Haiku subagent** for bulk scanning — summarise across many files instead of loading each into the main context
+- [ ] Helper JS filter scripts — multi-filter (status + priority + component + labels + milestone), AND across fields / OR within, terse `id\tstatus\ttitle` output by default, `--json` for full records
 
 ## Skill content — what the agent needs to know
 
@@ -93,8 +143,9 @@ The skill should walk through a worked example:
 
 ## Done when
 
-- `.claude/skills/issues.md` exists and covers all six skill-content sections above
-- `scripts/issues/*.mjs` helper CLI is in place and the skill links to it
+- `.claude/skills/issues/SKILL.md` exists and covers every item in the **Content checklist** above
+- `scripts/issues/*.mjs` helper CLI is in place — includes the multi-filter scripts called out in the checklist, and the skill links to it
+- Search / indexing section of the skill documents the Haiku-subagent bulk-scan pattern + the `grep` / `find` recipes
 - The user-guide skill catalogue (`2026-04-19-docs-phase-2/subtasks/06_claude-skills-maintenance.md`) is updated to include a row for `issues`
 
 ## Out of scope
