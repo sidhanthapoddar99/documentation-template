@@ -1,7 +1,7 @@
 ---
 title: "`docs:settings_layout` skill"
 done: true
-state: review
+state: closed
 ---
 
 Site-level configuration skill. Supersedes / expands the existing `docs-settings`. Covers everything *above* the per-content-type layer — the site chrome, routing, theming, aliases.

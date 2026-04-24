@@ -271,14 +271,38 @@ function readComments(commentsDir: string): IssueComment[] {
     .map((e) => e.name)
     .sort();
   return files.map((name) => {
-    const match = name.match(COMMENT_PATTERN);
+    const abs = path.join(commentsDir, name);
+    const strict = name.match(COMMENT_PATTERN);
+    let sequence = strict ? parseInt(strict[1], 10) : 0;
+    let date: string | null = strict ? strict[2] : null;
+    let author: string | null = strict ? strict[3] : null;
+
+    // Comments often use the looser `NNN_<slug>.md` shape (especially when
+    // authored by an agent — slugs read better than dates+authors). When
+    // the strict NNN_YYYY-MM-DD_AUTHOR pattern doesn't apply, recover the
+    // sequence from the leading prefix and fall back to frontmatter for
+    // author + date so avatars and dates render regardless of filename style.
+    if (!strict) {
+      const seq = name.match(/^(\d+)/);
+      if (seq) sequence = parseInt(seq[1], 10);
+    }
+    if (!author || !date) {
+      try {
+        const fm = matter(fs.readFileSync(abs, 'utf-8')).data as { author?: string; date?: string };
+        if (!author && typeof fm.author === 'string') author = fm.author;
+        if (!date && typeof fm.date === 'string') date = fm.date;
+      } catch {
+        /* malformed frontmatter — keep nulls */
+      }
+    }
+
     return {
       name: name.replace(/\.md$/, ''),
-      sequence: match ? parseInt(match[1], 10) : 0,
-      date: match ? match[2] : null,
-      author: match ? match[3] : null,
+      sequence,
+      date,
+      author,
       html: '',
-      filePath: path.join(commentsDir, name),
+      filePath: abs,
     };
   });
 }

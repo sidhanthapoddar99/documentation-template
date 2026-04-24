@@ -1,7 +1,7 @@
 ---
 title: "`docs:docs_layout` skill"
-done: false
-state: open
+done: true
+state: closed
 ---
 
 New skill covering the `docs` content type's file / folder / settings shape (not the markdown content itself — that's `docs:writing`).

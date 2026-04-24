@@ -1,6 +1,7 @@
 ---
 title: "Improve existing skills + add common-workflow skills"
-done: false
+done: true
+state: closed
 ---
 
 The existing skills cover the basics; this is the polish + expansion pass.

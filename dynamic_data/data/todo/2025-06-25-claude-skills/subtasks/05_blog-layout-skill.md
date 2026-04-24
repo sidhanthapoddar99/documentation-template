@@ -1,7 +1,7 @@
 ---
 title: "`docs:blog_layout` skill"
-done: false
-state: open
+done: true
+state: closed
 ---
 
 New skill covering the `blog` content type's file / folder / frontmatter shape. Blog-specific (not shared markdown basics — those are `docs:writing`).
