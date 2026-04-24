@@ -1,41 +1,52 @@
 ---
 title: Claude Skills
-description: AI-powered skills for writing and configuring documentation with Claude Code.
+description: AI-powered skill for writing, configuring, and operating documentation projects with Claude Code.
 ---
 
 # Claude Skills
 
-This template ships with a set of **Claude Code skills** — packaged prompts that teach Claude how to work inside this project without you having to explain the conventions every time.
+This template ships with a **Claude Code skill** — a packaged prompt that teaches Claude how to work inside this project without you having to explain the conventions every time.
 
-A skill is invoked with its slash-command (e.g. `/docs-guide`) or automatically triggered when you describe matching work.
+A skill is invoked with its slash-command (e.g. `/documentation-guide`) or automatically triggered when you describe matching work.
 
 ## Skill catalogue
 
 | Skill | Command | Use for | Triggers on |
 |---|---|---|---|
-| `docs-guide` | `/docs-guide` | Writing documentation content | Creating / editing markdown files, frontmatter, `settings.json`, custom tags, asset embedding |
-| `docs-settings` | `/docs-settings` | Configuring the site itself | Editing `site.yaml` / `navbar.yaml` / `footer.yaml` / `.env`, adding new pages or sections, path aliases, initial setup |
+| `documentation-guide` | `/documentation-guide` | Everything in this project — writing content, configuring the site, running the issue tracker | Editing markdown / frontmatter / `settings.json`, writing blog posts, configuring `site.yaml` / `navbar.yaml` / `footer.yaml` / `.env`, creating or updating issues, adding pages or sections |
 
-That's the full set today. This page is kept **in sync** with the installed skills — if it looks out of date, see the [phase-2 docs-update issue](/todo/2026-04-19-docs-phase-2) which tracks skill additions.
+That's it — one skill covers the whole framework. It loads the right reference internally based on the task, so you don't have to choose between sub-skills.
 
-## When to reach for which
+### What's inside
 
-A rough decision tree:
+The skill is organised by **domain references** that Claude pulls in on demand:
 
-- **"I want to write, edit, or organise markdown"** → `/docs-guide`
-- **"I want to change how the site is configured"** → `/docs-settings`
-- If both apply (e.g. adding a new section and writing its first page), start with `/docs-settings` to register the section, then `/docs-guide` for the content.
-
-| Task | Skill |
+| Reference | Covers |
 |---|---|
-| Write a new doc page | `docs-guide` |
-| Add / change frontmatter | `docs-guide` |
-| Configure sidebar labels (`settings.json`) | `docs-guide` |
-| Add a custom tag / callout | `docs-guide` |
-| Edit `site.yaml` | `docs-settings` |
-| Add a new navbar item | `docs-settings` |
-| Set up `.env` | `docs-settings` |
-| Create a project from scratch | `docs-settings` |
+| `references/writing.md` | Markdown basics, frontmatter, custom tags, asset embedding |
+| `references/docs-layout.md` | Docs folder structure, `XX_` prefixes, per-folder `settings.json`, sidebar generation |
+| `references/blog-layout.md` | Blog file naming (`YYYY-MM-DD-<slug>.md`), tags, index behaviour |
+| `references/issue-layout.md` | Issue tracker — folder-per-item, vocabulary, 4-state lifecycle, AI rules |
+| `references/settings-layout.md` | `site.yaml`, `navbar.yaml`, `footer.yaml`, `.env`, path aliases, themes |
+
+It also bundles **helper scripts** under `scripts/{issues,docs,blog,config}/` for listing issues, querying subtasks, validating frontmatter, and linting config files. Claude runs them with `bun` (preferred) or falls back to `node`.
+
+## When to reach for it
+
+You almost always just type `/documentation-guide` or describe the task in natural language. The skill internally chooses which reference to load.
+
+| Task | Reference loaded |
+|---|---|
+| Write a new doc page | `writing` + `docs-layout` |
+| Add / change frontmatter | `writing` |
+| Configure sidebar labels (`settings.json`) | `docs-layout` |
+| Add a custom tag / callout | `writing` |
+| Write or edit a blog post | `writing` + `blog-layout` |
+| Create or update an issue / subtask | `issue-layout` |
+| Edit `site.yaml` | `settings-layout` |
+| Add a new navbar item | `settings-layout` |
+| Set up `.env` | `settings-layout` |
+| Create a project from scratch | `settings-layout` (then `writing` for the first page) |
 
 ## Installation
 
@@ -59,14 +70,13 @@ wget -qO- https://raw.githubusercontent.com/sidhanthapoddar99/documentation-temp
 curl -fsSL https://raw.githubusercontent.com/sidhanthapoddar99/documentation-template/main/download-skills.mjs -o /tmp/download-skills.mjs && node /tmp/download-skills.mjs --dest ./.claude
 ```
 
-Then add skill permissions to `.claude/settings.local.json` so Claude Code can invoke them without prompting:
+Then add skill permissions to `.claude/settings.local.json` so Claude Code can invoke the skill without prompting:
 
 ```json
 {
   "permissions": {
     "allow": [
-      "Skill(docs-guide)",
-      "Skill(docs-settings)"
+      "Skill(documentation-guide)"
     ]
   }
 }
@@ -74,20 +84,34 @@ Then add skill permissions to `.claude/settings.local.json` so Claude Code can i
 
 ## Example prompts
 
-### `docs-guide`
+### Writing & docs
 
 - "Create a new getting-started guide for the deployment feature."
 - "What frontmatter fields are available on a doc page?"
 - "How do I add a collapsible section?"
 - "Embed this Python file into the installation doc."
 
-### `docs-settings`
+### Blog
+
+- "Draft a release-notes post for v0.4."
+- "What's the file naming convention for blog posts?"
+
+### Issue tracker
+
+- "List all open issues with priority high."
+- "Add a comment to the claude-skills issue summarising today's testing."
+- "Move issue 2025-06-25-claude-skills to review and add an agent log."
+- "Show me the open subtasks for the editor-v2 issue."
+
+### Site configuration
 
 - "Set up a new docs site for my project."
 - "Add a new documentation section called API Reference."
 - "Configure the navbar with a dropdown menu."
 - "Add a second data directory for shared content."
 
-## When new skills ship
+## Why one skill, not five?
 
-The catalogue above is authoritative. If additional skills land in a release (e.g. an `issues` skill for the issue tracker), they're added here with the same four columns — **Skill / Command / Use for / Triggers on**. The phase-2 docs-update issue owns that sweep.
+Earlier drafts split this into separate skills (`docs-guide`, `docs-settings`, `blog`, `issues`, `writing`). Validation testing across 22 agent runs showed the umbrella skill is **30% faster** in real-world multi-task usage with **100% correctness**, because the per-task loading cost amortises across the conversation. The single-skill design also removes the cognitive overhead of picking which slash-command to type.
+
+If a future release adds something genuinely orthogonal (custom themes, custom Astro components), it may ship as its own skill — the catalogue above is kept in sync with whatever is actually installed.
