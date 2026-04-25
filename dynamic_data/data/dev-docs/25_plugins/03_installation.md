@@ -22,17 +22,18 @@ This is the standard flow. Two commands per plugin, one one-time setup per marke
 /plugin marketplace add <source>
 ```
 
-Where `<source>` is one of:
+The `Add Marketplace` UI accepts five source formats:
 
 | Source | Example | Notes |
 |---|---|---|
-| Local absolute path | `/home/you/repos/my-framework` | For developing against an in-flight plugin |
-| Local relative path | `./my-framework` | Same as above |
-| GitHub repo (HTTPS) | `https://github.com/user/repo` | Most common for public marketplaces |
-| GitHub shorthand | `user/repo` | Equivalent to the HTTPS form |
+| GitHub shorthand | `owner/repo` | Resolves to `https://github.com/owner/repo`; the most concise public form |
+| SSH Git URL | `git@github.com:owner/repo.git` | For private repos or any host you have SSH access to. Uses your local Git credentials. |
+| HTTPS URL pointing at the manifest | `https://example.com/marketplace.json` | Direct link to a hosted `marketplace.json` — useful for self-hosted catalogues that aren't backed by a Git repo |
+| Local absolute path | `/home/you/repos/my-framework` | For developing against an in-flight plugin or marketplace |
+| Local relative path | `./my-framework` | Same as above, relative to your current working directory |
 
 > [!warning]
-> `file://` URLs are **not** accepted, despite seeming obvious. The interactive UI returns `"Invalid marketplace source format"`. Use a plain absolute or relative path instead.
+> `file://` URLs are **not** accepted, despite seeming obvious. The interactive UI returns `"Invalid marketplace source format. Try: owner/repo, https://..., or ./path"`. Use a plain absolute or relative path instead.
 
 ### Per plugin
 
@@ -43,7 +44,7 @@ Where `<source>` is one of:
 Example:
 
 ```
-/plugin marketplace add https://github.com/sidhantha/documentation-template
+/plugin marketplace add https://github.com/sidhanthapoddar99/documentation-template
 /plugin install documentation-guide@documentation-template
 /reload-plugins
 ```

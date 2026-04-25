@@ -50,6 +50,7 @@ If you want to ship one skill to one machine, you don't need a plugin — drop t
 ## What's in this section
 
 - **[Storage and Scope](./02_storage-and-scope.md)** — where plugin files live, the boolean-per-scope model, why multi-scope enables don't duplicate
-- **[Installation](./03_installation.md)** — installing via marketplace vs hand-authoring capabilities directly
+- **[Installation](./03_installation.md)** — installing via marketplace vs hand-authoring capabilities directly; the five accepted marketplace source formats
 - **[Marketplaces](./04_marketplaces.md)** — what a marketplace is, how to host one
 - **[Creating Plugins](./05_creating-plugins/01_ecosystem-mental-model.md)** — deep dive on building your own
+- **[Uninstalling](./06_uninstalling.md)** — removing plugins and marketplaces, and why the cache survives (matters for clean-install testing)

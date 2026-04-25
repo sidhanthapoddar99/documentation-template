@@ -69,13 +69,13 @@ Fields:
 Push the marketplace to GitHub. Consumers add it with the GitHub URL:
 
 ```
-/plugin marketplace add https://github.com/sidhantha/documentation-template
+/plugin marketplace add https://github.com/sidhanthapoddar99/documentation-template
 ```
 
 Or the GitHub shorthand:
 
 ```
-/plugin marketplace add sidhantha/documentation-template
+/plugin marketplace add sidhanthapoddar99/documentation-template
 ```
 
 Updates flow naturally — `/plugin update` re-fetches from `main` (or whichever branch the marketplace tracks).
@@ -95,6 +95,22 @@ For developing against an in-flight marketplace:
 ### Private / self-hosted Git
 
 Any Git URL works — GitLab, Bitbucket, internal Gerrit, anything Claude Code can `git clone` from. The CLI uses your local Git auth.
+
+For private GitHub or SSH-only hosts, use the SSH URL form:
+
+```
+/plugin marketplace add git@github.com:your-org/your-marketplace.git
+```
+
+### Direct URL to marketplace.json
+
+If your marketplace isn't backed by a Git repo (e.g. a static file hosted on a CDN or internal server), point at the manifest directly:
+
+```
+/plugin marketplace add https://example.com/marketplace.json
+```
+
+Claude Code fetches the manifest and resolves plugin sources from the URLs listed inside. The plugins themselves can still be in any backend the manifest references.
 
 ## The dogfood pattern
 

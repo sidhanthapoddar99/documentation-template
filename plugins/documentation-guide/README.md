@@ -1,6 +1,6 @@
 # documentation-guide
 
-Claude Code plugin for the [documentation-template](https://github.com/sidhantha/documentation-template) framework. Ships:
+Claude Code plugin for the [documentation-template](https://github.com/sidhanthapoddar99/documentation-template) framework. Ships:
 
 - **1 skill** — `documentation-guide` — operating manual that triages docs/issue/blog/config tasks to domain-specific reference files
 - **11 CLI wrappers** — 8 for the issue tracker (`docs-list`, `docs-show`, `docs-subtasks`, `docs-agent-logs`, `docs-set-state`, `docs-add-comment`, `docs-add-agent-log`, `docs-review-queue`) plus 3 validators (`docs-check-blog`, `docs-check-config`, `docs-check-section`)
@@ -11,7 +11,7 @@ The skill teaches Claude Code how to navigate this Astro-based docs framework: t
 ## Install
 
 ```
-/plugin marketplace add https://github.com/sidhantha/documentation-template
+/plugin marketplace add https://github.com/sidhanthapoddar99/documentation-template
 /plugin install documentation-guide@documentation-template
 /reload-plugins
 ```

@@ -107,6 +107,28 @@ For interactive tests of a slash command, just type `/<command>` directly — th
 
 For skill triggering tests, pose a prompt that matches the description and observe whether the skill activates. If it doesn't trigger when expected, the description needs sharpening.
 
+## Clean-install testing — wiping the cache
+
+For most iteration `/reload-plugins` is enough, but when you want to verify a release works **as a new consumer would experience it**, the cache from a previous install can mask bugs (stale skill bodies, orphaned wrappers, scripts the new code path doesn't reference).
+
+Truly clean test:
+
+```bash
+# Inside Claude Code
+/plugin uninstall <plugin>@<marketplace>
+/plugin marketplace remove <marketplace>
+
+# In your shell
+rm -rf ~/.claude/plugins/cache/<marketplace>/
+
+# Back in Claude Code
+/plugin marketplace add <source>
+/plugin install <plugin>@<marketplace>
+/reload-plugins
+```
+
+The `rm -rf` is the step most people skip. Without it, you're testing whatever's left over from your last iteration. Full uninstall + cache wipe + reinstall flow is documented in [Uninstalling](../06_uninstalling.md).
+
 ## Dogfood pattern recap
 
 If your plugin's repo is the same repo as your marketplace (and the same repo the plugin's content is *about*), you can have the project enable its own plugin. Add to the project's committed `.claude/settings.json`:

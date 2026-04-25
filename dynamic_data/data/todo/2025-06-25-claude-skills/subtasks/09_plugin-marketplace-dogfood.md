@@ -1,7 +1,7 @@
 ---
 title: "Plugin marketplace · dogfood install · init slash commands · retire download-script"
-done: false
-state: open
+done: true
+state: closed
 ---
 
 Switch the skill distribution model from "curl-down a `download-skills.sh`" to a **Claude Code plugin marketplace hosted in this same repo**. Dogfood it (this repo installs its own plugin), ship slash commands inside the plugin to bootstrap new projects, then update the docs and README to match.
@@ -111,22 +111,27 @@ The order below is intentional. Parts 1-3 build the architecture; Parts 4-5 upda
   4. Create starter `data/<XX>_<name>/01_overview.md` with frontmatter
   5. Optionally prompt to add a corresponding `pages:` entry to `config/site.yaml`
 
-- [ ] **Part 4 — Update the user-guide docs (AFTER Parts 1-3 ship)**
+- [x] **Part 6 — Dev-docs `25_plugins/` section (added on user ask, ~1300 lines)** — top-level + 6-page deep-dive subfolder explaining the plugin architecture from the maintainer's POV. Sources distilled from `notes/claude-code-extensions-reference.md` and `notes/plugin-build-guide.md`. Validator clean. Out-of-band relative to the original Parts 1-5 plan but lands ahead of Parts 4-5 because it's the architecture-explanation surface that the user-guide and README will both link into.
 
-  These edits depend on the architecture being live — write them with the plugin install flow as the canonical path.
-  - `dynamic_data/data/user-guide/05_getting-started/05_claude-skills.md` (the skill-catalogue page) — replace any install-via-curl-script section with the `/plugin marketplace add` + `/plugin install` flow
-  - Add a new section / page documenting the `/docs-init` and `/docs-add-section` slash commands (under `05_getting-started/` if appropriate, or its own page)
-  - Add a short "How updates work" subsection — `/plugin update` pulls the latest from the marketplace; mention version pinning if/when it becomes a thing
-  - Search the user-guide for any other mentions of the download-script approach (`download-skills`, `curl … | bash`, etc.) and reconcile each
-  - Cross-link to the new `notes/claude-code-extensions-reference.md` if useful (or copy the most relevant portion if the notes file ends up not visible to consumers)
+  ```
+  dev-docs/25_plugins/
+  ├── 01_overview.md · 02_storage-and-scope.md · 03_installation.md · 04_marketplaces.md
+  └── 05_creating-plugins/
+      ├── 01_ecosystem-mental-model.md · 02_plugin-structure.md · 03_capabilities.md
+      └── 04_bin-wrappers.md · 05_testing-locally.md · 06_versioning-and-publishing.md
+  ```
 
-- [ ] **Part 5 — Update the README (AFTER Parts 1-3 ship)**
+- [x] **Part 4 — Update the user-guide docs**
+  - Rewrote `05_getting-started/05_claude-skills.md` end-to-end — full plugin-install flow, slash commands documented (`/docs-init`, `/docs-add-section`), 11-wrapper inventory, `/plugin update` cycle, on-disk cache layout. Cross-links to dev-docs `25_plugins/` for the architecture deep-dive.
+  - Replaced the "Claude Code Skills (Optional)" block in `05_getting-started/02_installation.md` with the marketplace flow + a pointer at `/docs-init` for fresh-project setup. Trimmed redundancy — the catalogue page is now the canonical surface.
+  - Swept the user-guide for `download-skills` / `curl … | bash` mentions: only the two install touchpoints above carried them. The "skill" mentions in `19_issues/*` are generic (skill triggers, AI workflow) and don't reference the install flow.
 
-  Same dependency on the architecture being live.
-  - Replace the current install / clone block with: (a) `/plugin marketplace add <this-repo-url>` (b) `/plugin install documentation-guide@<marketplace-name>` (c) `/docs-init` to scaffold a new project
-  - Cross-reference: "all setup and configuration is documented in the `documentation-guide` skill — install it and ask Claude" (the framework setup commands already live in the user-guide skill content, so the README doesn't have to repeat them)
-  - Make sure the plugin install is the very first thing a new user sees after the project description
-  - Note the framework engine still ships via git-clone today; mention the npm package issue (`2026-04-25-framework-as-npm-package`) as the next chapter
+- [x] **Part 5 — Update the README** (created at repo root — there was no README before)
+  - Project description, then the 4-command quick start (`/plugin marketplace add` → `/plugin install` → `/reload-plugins` → `/docs-init`) as the very first thing a new user sees
+  - Surface table for the plugin (skill, slash commands, 8 tracker wrappers, 3 validators)
+  - Manual-setup fallback for users who don't want the plugin
+  - Build commands, repo layout map, dogfood note (this repo IS the marketplace)
+  - "What's coming" pointer at `2026-04-25-framework-as-npm-package` as the next chapter for engine packaging
 
 ## Out of scope
 

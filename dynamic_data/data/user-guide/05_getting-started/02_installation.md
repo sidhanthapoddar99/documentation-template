@@ -34,45 +34,25 @@ Or using npm:
 npm install
 ```
 
-### Claude Code Skills (Optional)
+### Claude Code Plugin (Recommended)
 
-Install AI-powered documentation skills for Claude Code to help you write and configure documentation.
+Install the `documentation-guide` plugin so Claude Code can help you write content, configure the site, and run the issue tracker. Three commands:
 
-**Using curl (Linux/macOS):**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/sidhanthapoddar99/documentation-template/main/download-skills.sh | bash -s -- --dest ./.claude
+```
+/plugin marketplace add https://github.com/sidhanthapoddar99/documentation-template
+/plugin install documentation-guide@documentation-template
+/reload-plugins
 ```
 
-**Using wget:**
+This installs:
 
-```bash
-wget -qO- https://raw.githubusercontent.com/sidhanthapoddar99/documentation-template/main/download-skills.sh | bash -s -- --dest ./.claude
-```
+- A skill that triggers automatically on docs work
+- 11 CLI wrappers on `$PATH` (`docs-list`, `docs-show`, `docs-check-section`, …)
+- 2 slash commands — `/docs-init` to bootstrap a new project from zero, `/docs-add-section` to add a top-level section to an existing one
 
-**Using Node.js (cross-platform):**
+For a fresh project that hasn't been scaffolded yet, the easiest entry point is to run `/docs-init` after installing — it walks you through site name + first section and writes everything for you. Skip the rest of this Installation page if you go that route.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/sidhanthapoddar99/documentation-template/main/download-skills.mjs -o /tmp/download-skills.mjs && node /tmp/download-skills.mjs --dest ./.claude
-```
-
-| Skill | Purpose |
-|-------|---------|
-| `docs-guide` | Writing documentation content (markdown, frontmatter, folder settings) |
-| `docs-settings` | Configuring documentation sites (YAML files, .env, project structure) |
-
-After installing, add skill permissions to `.claude/settings.local.json`:
-
-```json
-{
-  "permissions": {
-    "allow": [
-      "Skill(docs-guide)",
-      "Skill(docs-settings)"
-    ]
-  }
-}
-```
+For full details (skill internals, wrapper inventory, update flow, scope behaviour), see [Claude Code Plugin](./05_claude-skills.md).
 
 ## Step 3: Environment Setup
 

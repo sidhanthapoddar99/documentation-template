@@ -121,7 +121,7 @@ Next steps:
 
 1. Clone the framework engine:
      cd <chosen_root>
-     git clone https://github.com/sidhantha/documentation-template.git
+     git clone https://github.com/sidhanthapoddar99/documentation-template.git
      cd documentation-template
      bun install
      echo "CONFIG_DIR=../config" > .env
@@ -327,7 +327,7 @@ This project uses the `documentation-guide` Claude Code plugin. It ships:
 Install (per repo):
 
 ```
-/plugin marketplace add https://github.com/sidhantha/documentation-template
+/plugin marketplace add https://github.com/sidhanthapoddar99/documentation-template
 /plugin install documentation-guide@documentation-template
 /reload-plugins
 ```
