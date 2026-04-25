@@ -1,7 +1,0 @@
-User's component (highest priority) like the `src/components/<ComponentName>/codeblock.js/.css`
-    ↓
-Theme overrides (src/theme/)
-    ↓
-Theme components (@theme/)
-    ↓
-Core components (@docusaurus/)
