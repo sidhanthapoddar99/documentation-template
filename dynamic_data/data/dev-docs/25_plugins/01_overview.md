@@ -47,6 +47,30 @@ PLUGIN  ─── packages any subset of ───►  Skill · Command · Hook 
 
 If you want to ship one skill to one machine, you don't need a plugin — drop the SKILL.md into `~/.claude/skills/` and you're done. If you want to ship that skill plus three commands plus a hook to twenty teammates, that's what a plugin is for.
 
+## Building plugins and skills
+
+For development iteration, the `--plugin-dir` flag loads any plugin folder directly from disk for the session — no marketplace registration, no install, no cache copy:
+
+```
+claude --plugin-dir ./path/to/your-plugin
+```
+
+If a plugin with the same name is already installed, this shadows it for the session. See [Testing and Benchmarking](./05_creating-plugins/05_testing-and-benchmarking.md) for the full iteration flow.
+
+### Two official plugins worth installing once
+
+Anthropic ships two plugins on the official marketplace (`claude-plugins-official`) that anyone authoring extensions should treat as must-haves. They're independent — install whichever match what you're building, once, and they're available across every project on this machine.
+
+| Plugin | What it covers | Install |
+|---|---|---|
+| `plugin-dev` | Building plugins end-to-end — 7 expert skills covering hooks, MCP integration, commands, agents (subagents), best practices, AI-assisted creation and validation | `/plugin install plugin-dev@claude-plugins-official` |
+| `skill-creator` | Building, improving, and benchmarking skills — includes an eval framework with variance analysis (the same skill the [Testing and Benchmarking](./05_creating-plugins/05_testing-and-benchmarking.md) page points at) | `/plugin install skill-creator@claude-plugins-official` |
+
+> [!note]
+> Need to scaffold a single subagent without going through `plugin-dev`? Claude Code's built-in `/agents` command opens a guided creation flow — no install required.
+
+Both plugins are optional — you can hand-author every capability without them. They just shorten the loop.
+
 ## What's in this section
 
 - **[Storage and Scope](./02_storage-and-scope.md)** — where plugin files live, the boolean-per-scope model, why multi-scope enables don't duplicate

@@ -148,4 +148,4 @@ If the wrapper isn't on PATH after `/reload-plugins`:
 
 - **[Capabilities](./03_capabilities.md)** — the five "real" capability types (skills, commands, agents, hooks, MCP)
 - **[Plugin Structure](./02_plugin-structure.md)** — where `bin/` fits in the plugin folder layout
-- **[Testing Locally](./05_testing-locally.md)** — iterating on wrappers during development
+- **[Testing and Benchmarking](./05_testing-and-benchmarking.md)** — iterating on wrappers during development

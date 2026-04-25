@@ -115,4 +115,4 @@ Or update everything:
 
 - **[Marketplaces](../04_marketplaces.md)** — what the marketplace is doing on the consumer side
 - **[Storage and Scope](../02_storage-and-scope.md)** — how versioned cache folders coexist
-- **[Testing Locally](./05_testing-locally.md)** — the iteration loop before publishing
+- **[Testing and Benchmarking](./05_testing-and-benchmarking.md)** — the iteration loop before publishing

@@ -115,4 +115,4 @@ Notice that project-scope folders have **no `plugins/` directory** — there's n
 
 - **[Installation](./03_installation.md)** — picking the right scope for an install
 - **[Marketplaces](./04_marketplaces.md)** — where the plugin files come from
-- **[Testing Locally](./05_creating-plugins/05_testing-locally.md)** — the cache during plugin development
+- **[Testing and Benchmarking](./05_creating-plugins/05_testing-and-benchmarking.md)** — bypassing the cache entirely with `--plugin-dir` during development

@@ -125,4 +125,4 @@ The `/reload-plugins` output also reports aggregate counts — for example, `Rel
 ## See also
 
 - **[Marketplaces](./04_marketplaces.md)** — what a marketplace is and how to set one up
-- **[Testing Locally](./05_creating-plugins/05_testing-locally.md)** — iterating on a plugin during development
+- **[Testing and Benchmarking](./05_creating-plugins/05_testing-and-benchmarking.md)** — iterating on a plugin during development

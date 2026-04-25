@@ -69,6 +69,18 @@ Any subset of these:
 
 A plugin can ship one of these, all of them, or any combination. There's no requirement.
 
+## Building one yourself
+
+The packaging-vs-capabilities split shows up in the dev loop too. While iterating, `claude --plugin-dir <path-to-plugin>` loads a plugin folder directly from disk for the session — no marketplace, no install. The model still sees only the capabilities; the runtime treats the on-disk folder as if it were cached. See [Testing and Benchmarking](./05_testing-and-benchmarking.md) for the full flow.
+
+If you'd rather not hand-author the manifest and folder layout, install the `plugin-dev` skill from the official marketplace:
+
+```
+/plugin install plugin-dev@claude-plugins-official
+```
+
+It's a guided scaffolder for plugin structure. Optional, but a faster start than writing `.claude-plugin/plugin.json` from scratch.
+
 ## A note on naming and collision
 
 When the same name appears in multiple sources (a hand-authored project skill plus a plugin-shipped skill of the same name), the runtime de-duplicates and the user sees one — but it's not always obvious *which* one. Best practice: prefix everything in your plugin with the plugin's namespace (`docs-list`, `docs-show`, ... rather than `list`, `show`, ...). Same for skill names, command names, and subagent names.

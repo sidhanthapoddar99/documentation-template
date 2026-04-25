@@ -230,4 +230,4 @@ Skills and commands often pair: a skill teaches the *concepts* (what, why, when)
 
 - **[Bin Wrappers](./04_bin-wrappers.md)** — the sixth surface (technically capability-adjacent, mechanically a PATH trick)
 - **[Plugin Structure](./02_plugin-structure.md)** — folder layout for each capability type
-- **[Testing Locally](./05_testing-locally.md)** — iterating on capabilities during development
+- **[Testing and Benchmarking](./05_testing-and-benchmarking.md)** — iterating on capabilities during development

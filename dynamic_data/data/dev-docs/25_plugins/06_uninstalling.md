@@ -136,4 +136,4 @@ Combine the last two for a guaranteed clean state.
 
 - **[Storage and Scope](./02_storage-and-scope.md)** — what the cache and the per-scope booleans actually mean
 - **[Installation](./03_installation.md)** — the inverse — adding marketplaces and installing plugins
-- **[Testing Locally](./05_creating-plugins/05_testing-locally.md)** — iterating on a plugin without going through full uninstall/reinstall every time
+- **[Testing and Benchmarking](./05_creating-plugins/05_testing-and-benchmarking.md)** — iterating on a plugin without going through full uninstall/reinstall every time
