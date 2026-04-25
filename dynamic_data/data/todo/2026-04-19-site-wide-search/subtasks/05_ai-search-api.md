@@ -12,6 +12,7 @@ Claude Code (and any other agent) should be able to query the search index witho
 Request:
 ```
 GET /api/search?q=foo&section=docs&type=subtask&filter=status:open&limit=20&fuzzy=true
+GET /api/search?q=indexer&type=subtask&filter=state:review        # subtasks have their own `state:` field — filter on that, not the parent issue's `status:`
 ```
 
 Response:
