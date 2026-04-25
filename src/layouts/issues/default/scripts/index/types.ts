@@ -41,8 +41,18 @@ export interface Config {
 
 export type GroupSubState = { tab: StateTab; page: number };
 
-export const FIELDS = ['priority', 'component', 'milestone', 'labels'] as const;
+export const FIELDS = ['priority', 'component', 'milestone', 'labels', 'assignees'] as const;
 /** Fields that hold multiple values per row — encoded in the dataset as
  *  space-joined strings and split back to arrays in filter / group code. */
-export const MULTI_FIELDS = new Set<string>(['labels', 'component']);
+export const MULTI_FIELDS = new Set<string>(['labels', 'component', 'assignees']);
 export const CLOSED_STATUSES = new Set(['closed', 'cancelled']);
+
+/** Per-field pseudo-values that don't appear in the row's dataset but stand
+ *  for a derived condition. Currently only `assignees` uses these:
+ *    `assigned`   → match when the row's assignees list is non-empty
+ *    `unassigned` → match when the row's assignees list is empty
+ *  Any other selected value still falls through to literal-name matching.
+ *  Used by `rowMatchesExcluding` / `rowMatchesGlobal`. */
+export const PSEUDO_VALUES: Record<string, Set<string>> = {
+  assignees: new Set(['assigned', 'unassigned']),
+};

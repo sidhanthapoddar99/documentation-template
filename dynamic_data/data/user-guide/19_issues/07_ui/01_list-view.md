@@ -86,12 +86,23 @@ One dropdown per enum field in the tracker vocabulary:
 - `component` — whichever components are declared
 - `milestone` — phase-1 / phase-2 / …
 - `labels` — any label values
+- `assignee` — coarse pseudo-values (`assigned` / `unassigned`) plus per-person values from the tracker root's `authors[]`
+- `due` — date-range bounds (after / before)
 
 Multi-select per field. Chip colors come from the vocabulary's color declarations.
 
 **Filter logic:**
 - **Within a field** — OR (`priority=high,urgent` matches either)
 - **Across fields** — AND (`priority=high AND component=docs`)
+
+#### Assignee — the in-progress shortcut
+
+The `assignee` row exposes two layers in the same dropdown:
+
+- Top — `assigned` / `unassigned`: coarse "is anybody on this?" Use these to scan for idle work or in-flight work without picking a specific person.
+- Below the divider — per-person names from `authors[]`: fine "what is X working on?"
+
+There's no separate `in_progress` field — `assignees.length > 0` is the in-progress signal. See [`author` vs `assignees`](../settings/per-issue#author-vs-assignees) for the rationale.
 
 ### Group-by
 
@@ -144,7 +155,7 @@ Each row / card shows:
 | Priority badge | Colored chip |
 | Component | Chip group (one chip per value) |
 | Labels | Chip group |
-| Assignees | Avatar(s) |
+| Assignees | Avatar circles (initials) — first 3 then `+N`; `—` if unassigned |
 | Updated date | Right side |
 | Subtask summary | Small indicator (e.g. `2/6 review`) |
 

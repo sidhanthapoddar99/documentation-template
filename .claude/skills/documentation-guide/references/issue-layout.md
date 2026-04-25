@@ -67,6 +67,15 @@ Every tracker has the same skeleton:
 
 **`null` / missing handling:** `due: null` means "no deadline." Missing `labels` / `assignees` → treat as `[]`. Missing `component` → treat as `[]` and surface as a validation issue (it's required).
 
+**Assignees double as the "in-progress" signal.** An issue with `assignees.length > 0` is actively being worked on; `assignees: []` is unassigned and idle. **Do not propose adding a separate `in_progress` boolean** — two sources of truth for the same fact will drift. Anything that needs the in-progress signal should derive it from `assignees`.
+
+The tracker exposes this as a two-tier filter:
+
+- **Coarse** — pseudo-values `assigned` / `unassigned` ("is anybody on it?")
+- **Fine** — specific names from the tracker root's `authors[]` ("what is X working on?")
+
+Both compose AND across fields, OR within a field — same as every other filter dimension.
+
 ---
 
 ## 3. Tracker vocabulary (`<tracker-base>/settings.json`)
@@ -239,6 +248,27 @@ Output as a markdown table. Under 300 words.
 
 This is the canonical "search → gather → synthesise" pipeline: `list.mjs` does the filtered structural lookup (one tool call), Haiku does the bulk file reads + summarisation (cheap tokens, isolated context), and only the synthesised report flows back into the main conversation.
 
+**Pattern C — pre-stage commands, hand to Haiku for execution.** When you (the main agent) already have the skill loaded and know exactly which scripts/paths solve the user's question, don't run the commands yourself — write them out, hand them to a Haiku subagent to execute and synthesise. The subagent never loads the skill, never explores the project, just runs what you gave it. Validated against the multi-task benchmark: ~17% faster than a Sonnet subagent that loaded the skill itself, ~25% fewer tool uses, and Haiku tokens are ~4-5× cheaper than Sonnet so the cost gap is much larger than the token gap. Useful any time you can write the exact commands without exploration — duplicate-checks, audits, "summarise these 5 specific issues," running pre-known scripts.
+
+```
+**Do NOT load any skill.** Run the staged commands below, read targeted files,
+synthesise. Read-only.
+
+### TaskA — <name>
+```
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+  --status open,review --search "indexer" --quiet-tips
+```
+Output format: <what the user expects>.
+
+### TaskB — <name>
+… (one section per task, with the exact bash you want it to run)
+```
+
+Limits: only works when *you* know the commands — open-ended exploration ("what's interesting in the tracker?") still wants Pattern A or just a normal subagent. Watch out for: Haiku may not dedupe multi-line script output by issue id (T2 of the benchmark hit this), and any path you stage must actually exist or Haiku will burn tokens on guessing.
+
+**When to reach for Pattern C by default.** Default to Pattern C any time you can write the exact `list.mjs` / `subtasks.mjs` / `show.mjs` invocation upfront and the user wants a synthesised answer rather than the raw output. Open-ended exploration and small one-off lookups stay in the main context — Pattern C has a small fixed handoff cost so a single `list.mjs --priority high` is faster done inline. The breakeven is roughly: more than ~3 reads or more than ~10 hits → Pattern C wins. It's not the only path (A and B each have their niche) — just the default whenever the commands are knowable upfront and the output is bulky.
+
 ### Helper scripts — use these, they're the fastest path
 
 The `.claude/skills/documentation-guide/scripts/issues/` directory has 8 CLI helpers. **Prefer them over hand-rolled grep** — they understand the schema (state vs legacy `done`, component-as-array, agent-log subgroups) and emit terse output by default. All run with `bun` (preferred) or `node`.
@@ -270,6 +300,20 @@ bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
 # Issues created since April 1st with at least one review-state subtask
 bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
   --created-after 2026-04-01 --has-review-subtasks
+
+# High-priority work nobody's picked up (coarse "unassigned" pseudo-value)
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+  --assignee unassigned --priority high,urgent
+
+# In-flight work with open subtasks left ("assigned" mirrors "unassigned")
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+  --assignee assigned --has-open-subtasks
+
+# What is sid working on right now (per-person fine filter)
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs --assignee sid
+
+# Anything overdue this week
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs --due-before 2026-05-02
 
 # Just the matching paths (pipe into Read or another tool)
 bun .claude/skills/documentation-guide/scripts/issues/list.mjs --search "TODO" --paths-only
@@ -303,11 +347,71 @@ Each script supports `--help` (full options), `--json` (machine-readable), and `
 
 ## 7. Writing — how to update the tracker
 
+### Before creating any new issue or subtask — check for duplicates when context is thin
+
+Judgment call up front: **if you have warm context on the area, skip the check; if you don't, run it.** When you've been working in `2026-04-19-docs-phase-2` for several turns and the user asks for "a subtask to fix the X bug," you already know nothing else covers it — creating without a search is fine. Fresh conversation, an unfamiliar component, or a topic that's plausibly been touched before — run the check. The cost of a duplicate is high (split comments, split agent-logs, the next agent picks up the wrong folder, hours of reconciliation); the cost of a `list.mjs --search` is one tool call. When uncertain, default to checking.
+
+The check has three modes depending on how the user phrased the request:
+
+1. **Search by topic / keyword.** Pull two or three salient terms from the user's request — feature names, identifiers, file paths, jargon. Stem to the regex root (e.g. `index|indexer|indexing`).
+   ```
+   bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+     --search "<root>" --quiet-tips
+   ```
+2. **Structural check.** When the user names a milestone, component, or person, also filter on it:
+   ```
+   bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+     --component live-editor --milestone phase-2 --quiet-tips
+   ```
+3. **Subtask check before adding to a known issue.** When adding into an issue you don't have warm context on:
+   ```
+   bun .claude/skills/documentation-guide/scripts/issues/subtasks.mjs <issue-id> --quiet-tips
+   ```
+   Skim titles + states. If the work overlaps an existing subtask, surface that to the user instead of duplicating.
+
+#### Decision tree after the search
+
+- **No hits** → proceed with creation. Move on.
+- **Strong match (same scope, similar title, open or review state)** → **don't create**. Tell the user: "This looks like it overlaps with `<id>` — want me to (a) extend that issue with a new subtask, (b) add a comment there, or (c) create the new one anyway?" Wait for the call.
+- **Partial match (related but distinct)** → create the new item but **link to the related ones** in the body (e.g. "Related: `2026-04-19-site-wide-search/subtasks/05_ai-search-api.md` — covers the upstream HTTP API; this is the offline fallback"). Surface the relationship to the user in your reply.
+- **Closed / cancelled match** → usually fine to proceed; mention the prior closed issue in the body if it's load-bearing context.
+
+The goal isn't to block you — it's to make sure the create is *informed*. Three paths after the search (proceed clean / proceed with link / hand back to user) keep the loop short.
+
+#### Run the check itself via Pattern C
+
+When the duplicate-check fires, don't burn main-context tokens reading raw script output and hit-list files. Stage the `list.mjs` (and `subtasks.mjs` if relevant) commands plus the user's request, hand the bundle to a Haiku subagent, and let it return a 2-4 sentence verdict. This is the same Pattern C from §6 — just specialised for the "is anything related already there?" question.
+
+Handoff template:
+
+```
+The user wants to create a subtask: "<one-line summary>". Run these checks
+and report whether anything related already exists. ≤4 sentences.
+
+1. bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+     --search "<keyword-roots>" --quiet-tips
+2. bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+     --component <c> --milestone <m> --quiet-tips
+3. bun .claude/skills/documentation-guide/scripts/issues/subtasks.mjs \
+     <issue-id> --quiet-tips   (if a target issue is named)
+
+For any hit that looks related, read the file and quote the most relevant
+2-3 lines so the calling agent can see the overlap without re-reading.
+Report shape:
+  STATUS: <none | strong | partial | closed-only>
+  RELATED:
+    - <id>/<file>:<line> — <quoted snippet>
+  NOTES: <1-2 sentences if needed>
+```
+
+The verdict drops into the four-branch decision tree above without you ever loading the hits into main context.
+
 ### Create a new subtask
 
-1. Find the next prefix: `ls <issue>/subtasks/` → use `NN+1`
-2. Write `<issue>/subtasks/NN_<slug>.md` with the standard frontmatter (`title`, `done: false`, `state: open`)
-3. Body: enough detail to pick up cold
+1. **If your context on this area is thin, run the duplicate check above.** If the search returns an existing subtask covering the same work, tell the user instead of creating.
+2. Find the next prefix: `ls <issue>/subtasks/` → use `NN+1`
+3. Write `<issue>/subtasks/NN_<slug>.md` with the standard frontmatter (`title`, `done: false`, `state: open`)
+4. Body: enough detail to pick up cold; if a related issue/subtask turned up in the duplicate check, link to it in a "Related:" line
 
 ### Update a subtask state
 

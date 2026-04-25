@@ -10,6 +10,7 @@
  */
 import {
   FIELDS,
+  PSEUDO_VALUES,
   type Config,
   type FilterState,
   type StateTab,
@@ -222,6 +223,7 @@ function renderAddMenus(state: FilterState, allRows: HTMLElement[]) {
   for (const field of FIELDS) {
     const menu = document.querySelector(`[data-add-menu="${field}"]`);
     if (!menu) continue;
+    const pseudos = PSEUDO_VALUES[field];
     menu.querySelectorAll<HTMLButtonElement>('[data-add-value]').forEach((opt) => {
       const value = opt.dataset.addValue!;
       const already = state.fields[field].has(value);
@@ -231,7 +233,15 @@ function renderAddMenus(state: FilterState, allRows: HTMLElement[]) {
       let count = 0;
       for (const row of allRows) {
         if (!rowMatchesExcluding(row, state, field)) continue;
-        if (rowValues(row, field).includes(value)) count++;
+        const vals = rowValues(row, field);
+        // Pseudo-values match a derived condition rather than a literal entry
+        // in the row's value list — see types.ts → PSEUDO_VALUES.
+        if (pseudos?.has(value)) {
+          if (value === 'unassigned' && vals.length === 0) count++;
+          else if (value === 'assigned' && vals.length > 0) count++;
+        } else if (vals.includes(value)) {
+          count++;
+        }
       }
       const countEl = opt.querySelector<HTMLElement>('[data-add-count]');
       if (countEl) countEl.textContent = String(count);

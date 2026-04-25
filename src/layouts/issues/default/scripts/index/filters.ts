@@ -2,8 +2,31 @@
  * Pure row-matching + sort helpers. No DOM state outside row data
  * attributes; all context flows in via arguments.
  */
-import { CLOSED_STATUSES, FIELDS, MULTI_FIELDS } from './types';
+import { CLOSED_STATUSES, FIELDS, MULTI_FIELDS, PSEUDO_VALUES } from './types';
 import type { Config, FilterState, StateTab } from './types';
+
+/**
+ * OR-match a row's values for one field against the user's selected set,
+ * with per-field pseudo-value support. Pseudo + literal values OR together
+ * so e.g. `assignees=assigned,sid` reads as "anything in flight, plus
+ * anything sid touches even if it would also match unassigned." Mirrors
+ * the script-side logic in `list.mjs --assignee`.
+ */
+function rowFieldMatches(row: HTMLElement, field: string, selected: Set<string>): boolean {
+  if (selected.size === 0) return true;
+  const vals = rowValues(row, field);
+  const pseudos = PSEUDO_VALUES[field];
+  if (pseudos) {
+    if (selected.has('unassigned') && vals.length === 0) return true;
+    if (selected.has('assigned') && vals.length > 0) return true;
+    // Strip pseudos from the literal-match set so "unassigned" never matches a
+    // real author named "unassigned" (unlikely, but the asymmetry would surprise).
+    const literalMatch = vals.some((v) => selected.has(v) && !pseudos.has(v));
+    if (literalMatch) return true;
+    return false;
+  }
+  return vals.some((v) => selected.has(v));
+}
 
 export function needsReview(row: HTMLElement): boolean {
   const status = row.dataset.status || '';
@@ -41,10 +64,7 @@ export function rowMatchesGlobal(row: HTMLElement, state: FilterState): boolean 
     if (!blob.includes(state.q.toLowerCase())) return false;
   }
   for (const f of FIELDS) {
-    const selected = state.fields[f];
-    if (selected.size === 0) continue;
-    const vals = rowValues(row, f);
-    if (!vals.some((v) => selected.has(v))) return false;
+    if (!rowFieldMatches(row, f, state.fields[f])) return false;
   }
   return true;
 }
@@ -63,10 +83,7 @@ export function rowMatchesExcluding(
   }
   for (const f of FIELDS) {
     if (f === excludeField) continue;
-    const selected = state.fields[f];
-    if (selected.size === 0) continue;
-    const vals = rowValues(row, f);
-    if (!vals.some((v) => selected.has(v))) return false;
+    if (!rowFieldMatches(row, f, state.fields[f])) return false;
   }
   return true;
 }
@@ -88,6 +105,13 @@ export function sortValue(row: HTMLElement, field: string, cfg: Config): number 
     // when an issue spans several components.
     case 'component': return (ds.component || '').split(' ').filter(Boolean)[0] || '';
     case 'milestone': return ds.milestone || '';
+    // Sort by first assignee alphabetically; unassigned issues sink to the
+    // bottom in ascending order (and rise to the top in descending) — the
+    // "~" suffix exploits ASCII ordering without needing a special-case.
+    case 'assignees': {
+      const first = (ds.assignees || '').split(' ').filter(Boolean)[0];
+      return first ? first.toLowerCase() : '~';
+    }
     case 'due':       return ds.due || '9999-99-99';
     case 'created':   return ds.created || '';
     case 'updated':   return ds.updated || '';

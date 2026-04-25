@@ -85,6 +85,17 @@ Labels are where `type`-like concepts live. There's deliberately **no `type` fie
 - **`author`** — who filed the issue. One person. Doesn't change.
 - **`assignees`** — who's currently working on it. Zero or more. Can change as responsibility moves. Often same as `author` in solo projects.
 
+#### `assignees` doubles as the "in-progress" signal
+
+There's no separate `in_progress` boolean — and there shouldn't be. An issue with `assignees.length > 0` is being worked on; an empty `assignees` array means nobody has picked it up yet. Two sources of truth for the same fact would inevitably drift, so the framework derives the in-progress state from the array.
+
+The filter bar exposes this as a two-tier picker:
+
+- **Coarse** — pseudo-values `assigned` / `unassigned`. "Is anybody on this?" Use this for the broad "what's actively being worked on" view, or its inverse "what's idle, waiting for an owner."
+- **Fine** — the specific names from the tracker root's `authors[]`. "What is X working on?"
+
+Both modes compose the same way as every other filter — AND across fields, OR within a field. The same model holds at the CLI: `list.mjs --assignee unassigned` is the coarse filter; `list.mjs --assignee sid` is the fine filter; `list.mjs --assignee assigned,sid` ORs them.
+
 ### `updated`
 
 The editor auto-bumps `updated` to today's date on any change to either `settings.json` or `issue.md`. Manual edits outside the editor should also update this field — it drives default sort order on the index.

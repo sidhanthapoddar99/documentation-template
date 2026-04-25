@@ -34,7 +34,8 @@ if (args.flags.help || args.flags.h) {
     '  --milestone <vals>',
     '  --label <vals>',
     '  --type <vals>                            (if `type` field present)',
-    '  --assignee <names,unassigned>            (if `assignee`/`assignees` field present)',
+    '  --assignee <names,assigned,unassigned>   per-name match; `assigned`/`unassigned`',
+    '                                           are coarse "is anyone on it?" pseudo-values',
     '  --created-after YYYY-MM-DD               from issue folder date prefix',
     '  --created-before YYYY-MM-DD',
     '  --due-after YYYY-MM-DD                   from `due:` field',
@@ -130,11 +131,22 @@ for (const id of listIssueFolders(tracker)) {
     if (!types.some((v) => filterType.includes(v))) continue;
   }
   if (filterAssignee.length) {
+    // Two pseudo-values express the coarse "in-progress" filter:
+    //   `unassigned` — assignees array is empty (nobody is on it)
+    //   `assigned`   — assignees array has at least one entry (work is in flight)
+    // Any other value is matched against the actual assignee names. Pseudo +
+    // named values OR together so `--assignee assigned,sid` reads as
+    // "anything in-flight, plus anything sid touches even if also unassigned".
     const assignees = arrify(meta.assignee).concat(arrify(meta.assignees));
     const wantUnassigned = filterAssignee.includes('unassigned');
+    const wantAssigned   = filterAssignee.includes('assigned');
     const isUnassigned = assignees.length === 0;
     const matchesNamed = assignees.some((v) => filterAssignee.includes(v));
-    if (!((wantUnassigned && isUnassigned) || matchesNamed)) continue;
+    if (!(
+      (wantUnassigned && isUnassigned) ||
+      (wantAssigned && !isUnassigned) ||
+      matchesNamed
+    )) continue;
   }
 
   if (createdAfter  && (issueDateFromId(id) ?? '') < createdAfter)  continue;

@@ -24,7 +24,15 @@ const { dataPath, baseUrl } = Astro.props;
 const { vocabulary, rootDraft, issues } = await loadIssues(dataPath);
 
 const FILTER_FIELDS = ['priority', 'component', 'milestone', 'labels'] as const;
-const filterGroups = FILTER_FIELDS
+const filterGroups: Array<{
+  key: string;
+  label: string;
+  values: string[];
+  colors: Record<string, string>;
+  /** Optional pseudo-values rendered above a divider in the dropdown.
+   *  Used by `assignees` for the coarse `assigned` / `unassigned` filter. */
+  pseudoValues?: string[];
+}> = FILTER_FIELDS
   .filter((f) => vocabulary.fields?.[f]?.values?.length)
   .map((f) => ({
     key: f,
@@ -32,6 +40,19 @@ const filterGroups = FILTER_FIELDS
     values: vocabulary.fields[f].values,
     colors: vocabulary.fields[f].colors || {},
   }));
+
+// Assignees row — synthesised because the per-person values come from
+// `vocabulary.authors`, not `vocabulary.fields`. Pseudo-values `assigned` /
+// `unassigned` give the coarse "is anybody on it?" filter; per-person values
+// narrow further. See user-guide/19_issues/04_settings/01_per-issue.md.
+const authors = Array.isArray(vocabulary.authors) ? vocabulary.authors : [];
+filterGroups.push({
+  key: 'assignees',
+  label: 'assignee',
+  values: authors,
+  colors: {},
+  pseudoValues: ['assigned', 'unassigned'],
+});
 
 function searchBlob(issue: typeof issues[number]): string {
   return [issue.id, issue.meta.title, issue.meta.description || '']

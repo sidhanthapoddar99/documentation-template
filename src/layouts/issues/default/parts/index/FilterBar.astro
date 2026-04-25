@@ -12,6 +12,12 @@ interface FilterGroup {
   label: string;
   values: string[];
   colors: Record<string, string>;
+  /** Optional pseudo-values rendered above a divider in the dropdown.
+   *  Pseudo-values match a derived condition (e.g. `unassigned` ↔ empty
+   *  array) rather than a literal field value — see scripts/index/types.ts
+   *  → PSEUDO_VALUES. The dropdown shows them at the top of the list with
+   *  a horizontal divider separating them from the literal values below. */
+  pseudoValues?: string[];
 }
 
 interface Props {
@@ -103,6 +109,21 @@ const { filterGroups, groupDimensions = [] } = Astro.props;
               <span>Add filter</span>
             </button>
             <div class="issues-filters__add-menu" data-add-menu={group.key}>
+              {group.pseudoValues && group.pseudoValues.map((v) => (
+                <button
+                  type="button"
+                  class="issues-filters__add-option issues-filters__add-option--pseudo"
+                  data-add-field={group.key}
+                  data-add-value={v}
+                >
+                  <span class="issues-filters__add-dot issues-filters__add-dot--pseudo"></span>
+                  <span class="issues-filters__add-label">{v}</span>
+                  <span class="issues-filters__add-count" data-add-count={`${group.key}:${v}`}>0</span>
+                </button>
+              ))}
+              {group.pseudoValues && group.pseudoValues.length > 0 && group.values.length > 0 && (
+                <div class="issues-filters__add-divider" aria-hidden="true"></div>
+              )}
               {group.values.map((v) => (
                 <button
                   type="button"
@@ -307,6 +328,17 @@ const { filterGroups, groupDimensions = [] } = Astro.props;
     border-radius: 50%;
     background: var(--chip-color, var(--color-text-muted));
     flex-shrink: 0;
+  }
+  /* Pseudo-value rows (e.g. assigned / unassigned) get a hollow ring marker
+     so they read visually as "category" rather than "vocabulary value". */
+  .issues-filters__add-dot--pseudo {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--color-text-muted);
+  }
+  .issues-filters__add-divider {
+    height: 1px;
+    margin: 0.25rem 0.4rem;
+    background: var(--color-border-default);
   }
   .issues-filters__add-label { flex: 1; }
   .issues-filters__add-count {

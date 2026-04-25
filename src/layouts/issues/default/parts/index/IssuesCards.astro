@@ -29,6 +29,7 @@ const { issues, vocabulary, baseUrl, searchBlob, isOverdue } = Astro.props;
       data-component={issue.meta.component.join(' ')}
       data-milestone={issue.meta.milestone}
       data-labels={issue.meta.labels.join(' ')}
+      data-assignees={issue.meta.assignees.join(' ')}
       data-updated={issue.meta.updated || ''}
       data-created={issue.created}
       data-due={issue.meta.due || ''}

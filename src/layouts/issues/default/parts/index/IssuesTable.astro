@@ -8,6 +8,7 @@
  * the filter bar, but the column adds visual noise in dense rows.
  */
 import StatusBadge from '../shared/StatusBadge.astro';
+import { avatarColor, initial } from '../../server/helpers';
 import type { Issue, IssuesVocabulary } from '@loaders/issues';
 
 interface Props {
@@ -34,10 +35,13 @@ const columns = [
   { key: 'title', label: 'Title', sortable: true, className: 'issues-table__th-title' },
   { key: 'status', label: 'Status', sortable: true },
   { key: 'milestone', label: 'Milestone', sortable: true },
+  { key: 'assignees', label: 'Assignees', sortable: true },
   { key: 'subtasks', label: 'Subtasks', sortable: false },
   { key: 'created', label: 'Created', sortable: true },
   { key: 'due', label: 'Due', sortable: true },
 ];
+
+const VISIBLE_AVATARS = 3;
 ---
 
 <div class="issues-view issues-view--table is-active" id="view-table">
@@ -70,6 +74,7 @@ const columns = [
             data-component={issue.meta.component.join(' ')}
             data-milestone={issue.meta.milestone}
             data-labels={issue.meta.labels.join(' ')}
+            data-assignees={issue.meta.assignees.join(' ')}
             data-updated={issue.meta.updated || ''}
             data-created={issue.created}
             data-due={issue.meta.due || ''}
@@ -93,6 +98,22 @@ const columns = [
             </td>
             <td><StatusBadge field="status" value={issue.meta.status} vocabulary={vocabulary.fields} /></td>
             <td class="issues-table__muted">{issue.meta.milestone || '—'}</td>
+            <td class="issues-table__assignees-cell">
+              {issue.meta.assignees.length > 0 ? (
+                <div class="issues-table__avatars" title={issue.meta.assignees.join(', ')}>
+                  {issue.meta.assignees.slice(0, VISIBLE_AVATARS).map((a) => (
+                    <span class="issues-table__avatar" style={`background: ${avatarColor(a)}`} aria-label={a}>{initial(a)}</span>
+                  ))}
+                  {issue.meta.assignees.length > VISIBLE_AVATARS && (
+                    <span class="issues-table__avatar issues-table__avatar--more" aria-label={`${issue.meta.assignees.length - VISIBLE_AVATARS} more`}>
+                      +{issue.meta.assignees.length - VISIBLE_AVATARS}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <span class="issues-table__muted">—</span>
+              )}
+            </td>
             <td class="issues-table__subtasks-cell">
               {issue.subtasks.length > 0 ? (() => {
                 const total = issue.subtasks.length;
@@ -157,6 +178,8 @@ const columns = [
   .issues-table.is-hide-col-component tbody td:nth-child(1) { display: none; }
   .issues-table.is-hide-col-milestone thead th[data-col='milestone'],
   .issues-table.is-hide-col-milestone tbody td:nth-child(4) { display: none; }
+  .issues-table.is-hide-col-assignees thead th[data-col='assignees'],
+  .issues-table.is-hide-col-assignees tbody td:nth-child(5) { display: none; }
   .issues-table.is-hide-col-priority thead th[data-col='priority'],
   .issues-table.is-hide-col-priority tbody td:nth-child(99) { display: none; }
 
@@ -258,6 +281,34 @@ const columns = [
     white-space: nowrap;
   }
   .is-overdue-cell { color: var(--color-error) !important; font-weight: 600; }
+
+  /* Assignee avatar stack — overlapping circles, deterministic colour from the
+     name. Falls back to em-dash when nobody is on the issue. */
+  .issues-table__assignees-cell { white-space: nowrap; }
+  .issues-table__avatars {
+    display: inline-flex;
+    align-items: center;
+  }
+  .issues-table__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: var(--ui-text-micro);
+    font-weight: 600;
+    margin-left: -6px;
+    border: 2px solid var(--color-bg-primary);
+    box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  }
+  .issues-table__avatar:first-child { margin-left: 0; }
+  .issues-table__avatar--more {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-mono);
+  }
 
   /* Two-line subtasks cell */
   .issues-table__subtasks-cell {
