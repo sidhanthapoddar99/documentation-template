@@ -1,7 +1,17 @@
 ---
 title: "Update user-guide skill catalogue + download-skills.{mjs,sh}"
-done: false
-state: open
+done: true
+state: cancelled
+---
+
+> [!cancelled] Cancelled — superseded by subtask 09 (`09_plugin-marketplace-dogfood.md`)
+>
+> The download-script approach (`download-skills.sh` / `download-skills.mjs` curl-pulling files into `.claude/skills/`) is being abandoned in favour of a **Claude Code plugin marketplace** hosted in this same repo. The plugin path wins on every axis: standard `/plugin install` UX, automatic `/plugin update`, no path-decoupling cliffs, scope handling built in.
+>
+> The stub scripts at the repo root (`download-skills.sh`, `download-skills.mjs`) have been deleted as part of subtask 09 Part 1. The user-guide catalogue update originally planned here is now folded into subtask 09 Part 4 (it has to wait until the marketplace architecture is live so the docs describe the actual install flow, not a hypothetical one).
+>
+> See `subtasks/09_plugin-marketplace-dogfood.md` for the new direction. The historical context for the original direction is preserved in `comments/002_architecture-pivot-and-status.md`.
+
 ---
 
 After the architecture pivot to a single `documentation-guide` skill (see `comments/002_architecture-pivot-and-status.md`), two things need updating in lockstep so a fresh install via the public one-liner produces a working skill.

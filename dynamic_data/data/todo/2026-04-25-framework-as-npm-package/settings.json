@@ -1,0 +1,13 @@
+{
+  "title": "Framework as a published npm/bun package — extract engine from project shell",
+  "description": "Refactor so each consumer project becomes a thin shell (dynamic_data/, .env, package.json with one dep) instead of a full clone. One source of truth for the engine; updates flow via `bun update`.",
+  "status": "open",
+  "priority": "medium",
+  "component": ["infra", "loaders", "integrations"],
+  "milestone": "backlog",
+  "labels": ["refactor", "feature"],
+  "author": "sidhantha",
+  "assignees": [],
+  "updated": "2026-04-25",
+  "due": null
+}

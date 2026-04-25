@@ -33,5 +33,5 @@ These are already in the tracker and will need rows when they land:
 ## Cross-reference
 
 - Source of truth for the catalogue: `.claude/skills/` directory.
-- Installation + download scripts: `download-skills.sh`, `download-skills.mjs` at repo root.
+- Installation: Claude Code plugin marketplace (this repo's root has `.claude-plugin/marketplace.json`; consumers run `/plugin marketplace add <repo-url>` then `/plugin install documentation-guide@<marketplace>`). The earlier `download-skills.{sh,mjs}` approach was abandoned — see `2025-06-25-claude-skills/subtasks/09_plugin-marketplace-dogfood.md`.
 - Skill permissions: `.claude/settings.local.json`.

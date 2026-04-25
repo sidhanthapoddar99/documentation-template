@@ -15,7 +15,7 @@ The originally-planned 5 separate skills were consolidated into **one umbrella s
 - [ ] Skill to create / validate custom layouts — out of scope for now
 - [ ] Skill to create / validate custom Astro components — out of scope for now
 - [ ] Skill to scaffold custom pages (home, info, countdown, etc.) — out of scope for now
-- [ ] User-guide skill catalogue + `download-skills.{mjs,sh}` updated to match the single-skill architecture (see `subtasks/07_update-readme-and-download-scripts.md`)
+- [ ] Plugin marketplace + dogfood install + init slash commands + docs/README updates (see `subtasks/09_plugin-marketplace-dogfood.md` — supersedes the original `download-skills.{mjs,sh}` plan in cancelled subtask 07)
 
 ## Completed
 
