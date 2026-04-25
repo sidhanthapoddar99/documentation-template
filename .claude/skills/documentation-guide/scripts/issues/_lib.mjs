@@ -10,6 +10,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 
@@ -199,6 +200,215 @@ export function readIssueAgentLogs(trackerPath, issueId) {
   }
 
   return out;
+}
+
+export function readIssueNotes(trackerPath, issueId) {
+  const dir = path.join(trackerPath, issueId, 'notes');
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter((n) => n.endsWith('.md'))
+    .sort()
+    .map((name) => ({ name: name.replace(/\.md$/, ''), filePath: path.join(dir, name) }));
+}
+
+/**
+ * Extract the YYYY-MM-DD prefix from an issue folder id. Returns null if
+ * the id doesn't match the canonical pattern.
+ */
+export function issueDateFromId(issueId) {
+  const m = issueId.match(FOLDER_PATTERN);
+  return m ? m[1] : null;
+}
+
+/**
+ * Build the list of files searchable for one issue. `fields` is an array
+ * of subset names; `null` means all. Recognised: body, settings, comments,
+ * subtasks, notes, agent-log.
+ */
+export function listSearchableFiles(trackerPath, issueId, fields = null) {
+  const include = (name) => !fields || fields.includes(name);
+  const issueDir = path.join(trackerPath, issueId);
+  const files = [];
+
+  if (include('body') || include('issue')) {
+    const p = path.join(issueDir, 'issue.md');
+    if (fs.existsSync(p)) files.push(p);
+  }
+  if (include('settings') || include('title')) {
+    const p = path.join(issueDir, 'settings.json');
+    if (fs.existsSync(p)) files.push(p);
+  }
+  for (const sub of ['comments', 'subtasks', 'notes']) {
+    if (!include(sub)) continue;
+    const dir = path.join(issueDir, sub);
+    if (!fs.existsSync(dir)) continue;
+    for (const n of fs.readdirSync(dir).sort()) {
+      if (n.endsWith('.md')) files.push(path.join(dir, n));
+    }
+  }
+  if (include('agent-log') || include('agent-logs')) {
+    const dir = path.join(issueDir, 'agent-log');
+    if (fs.existsSync(dir)) {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const e of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+        if (e.isFile() && e.name.endsWith('.md')) {
+          files.push(path.join(dir, e.name));
+        } else if (e.isDirectory()) {
+          const subDir = path.join(dir, e.name);
+          for (const n of fs.readdirSync(subDir).sort()) {
+            if (n.endsWith('.md')) files.push(path.join(subDir, n));
+          }
+        }
+      }
+    }
+  }
+  return files;
+}
+
+// ---------- Search backend (rg → grep → js) --------------------------------
+
+let cachedBackend = null;
+let installHintShown = false;
+
+function binaryAvailable(name) {
+  try {
+    const r = spawnSync(name, ['--version'], { stdio: 'ignore' });
+    return r.status === 0;
+  } catch { return false; }
+}
+
+/**
+ * Pick the fastest search backend on PATH:
+ *   tier 1 — `rg`   (parallel, rust regex)
+ *   tier 2 — `grep` (POSIX, single-threaded native)
+ *   tier 3 — `js`   (pure async fallback)
+ * Cached per process.
+ */
+export function detectSearchBackend() {
+  if (cachedBackend) return cachedBackend;
+  if (binaryAvailable('rg'))   return (cachedBackend = { tier: 1, name: 'rg' });
+  if (binaryAvailable('grep')) return (cachedBackend = { tier: 2, name: 'grep' });
+  return (cachedBackend = { tier: 3, name: 'js' });
+}
+
+/**
+ * Print a one-time stderr hint when running on tier 2 or 3, with platform-
+ * appropriate install commands. Suppress with --quiet-tips or
+ * DOCS_SKILL_QUIET_TIPS=1. Hint goes silent automatically once `rg` lands
+ * on PATH (no caching beyond process lifetime).
+ */
+export function maybePrintInstallHint(backend, opts = {}) {
+  if (installHintShown) return;
+  if (opts.quietTips) return;
+  if (process.env.DOCS_SKILL_QUIET_TIPS === '1') return;
+  if (backend.tier === 1) return;
+  installHintShown = true;
+
+  const lines = [];
+  if (backend.tier === 2) {
+    lines.push('tip: ripgrep is not installed — using grep fallback (works, but ~10× slower on large corpora).');
+    lines.push('     install for the fast path:\n');
+  } else {
+    lines.push('tip: neither ripgrep nor grep is on PATH — using pure-JS fallback (slowest of the three).');
+    lines.push('     install ripgrep for the fast path:\n');
+  }
+  const cmds = installCommandsForPlatform();
+  for (const [label, cmd] of cmds) {
+    lines.push('  ' + label.padEnd(14) + cmd);
+  }
+  lines.push('');
+  lines.push('  suppress this hint: pass --quiet-tips or set DOCS_SKILL_QUIET_TIPS=1');
+  console.error(lines.join('\n'));
+}
+
+function installCommandsForPlatform() {
+  switch (process.platform) {
+    case 'darwin':
+      return [
+        ['macOS',         'brew install ripgrep'],
+        ['MacPorts',      'sudo port install ripgrep'],
+        ['other',         'https://github.com/BurntSushi/ripgrep#installation'],
+      ];
+    case 'win32':
+      return [
+        ['Windows',       'winget install BurntSushi.ripgrep.MSVC'],
+        ['Chocolatey',    'choco install ripgrep'],
+        ['Scoop',         'scoop install ripgrep'],
+        ['other',         'https://github.com/BurntSushi/ripgrep#installation'],
+      ];
+    default:
+      // Assume Linux / Unix-like.
+      return [
+        ['Ubuntu/Debian', 'sudo apt install ripgrep'],
+        ['Fedora',        'sudo dnf install ripgrep'],
+        ['Arch',          'sudo pacman -S ripgrep'],
+        ['Alpine',        'apk add ripgrep'],
+        ['other',         'https://github.com/BurntSushi/ripgrep#installation'],
+      ];
+  }
+}
+
+/**
+ * Run a regex search across `paths`, returning `[{path, line, snippet}]`.
+ * Caller passes the already-detected backend to avoid re-probing PATH.
+ *
+ * Snippet is the matching line, trimmed and capped at 200 chars.
+ */
+export function runSearch(backend, paths, pattern, opts = {}) {
+  if (paths.length === 0) return [];
+  const { caseSensitive = false, invert = false } = opts;
+
+  if (backend.name === 'rg') {
+    const args = ['-n', '--no-heading', '--with-filename', '--color=never'];
+    if (!caseSensitive) args.push('-i');
+    if (invert) args.push('-v');
+    args.push('-e', pattern, '--', ...paths);
+    const r = spawnSync('rg', args, { encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 });
+    if (r.status === 2) throw new Error(`ripgrep error: ${r.stderr || 'unknown'}`);
+    return parseGrepLikeOutput(r.stdout || '');
+  }
+
+  if (backend.name === 'grep') {
+    const args = ['-E', '-n', '-H'];
+    if (!caseSensitive) args.push('-i');
+    if (invert) args.push('-v');
+    args.push('-e', pattern, '--', ...paths);
+    const r = spawnSync('grep', args, { encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 });
+    if (r.status === 2) throw new Error(`grep error: ${r.stderr || 'unknown'}`);
+    return parseGrepLikeOutput(r.stdout || '');
+  }
+
+  // Pure-JS fallback. Read all files in parallel via Promise.all is overkill
+  // for our scale (10s of files); sync is simpler and still fast.
+  let re;
+  try { re = new RegExp(pattern, caseSensitive ? '' : 'i'); }
+  catch (e) { throw new Error(`invalid regex: ${e.message}`); }
+  const matches = [];
+  for (const p of paths) {
+    let text;
+    try { text = fs.readFileSync(p, 'utf-8'); } catch { continue; }
+    const lines = text.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      const hit = re.test(lines[i]);
+      if (invert ? !hit : hit) {
+        matches.push({ path: p, line: i + 1, snippet: lines[i].trim().slice(0, 200) });
+      }
+    }
+  }
+  return matches;
+}
+
+function parseGrepLikeOutput(output) {
+  if (!output) return [];
+  const matches = [];
+  for (const line of output.split('\n')) {
+    if (!line) continue;
+    // Format: <path>:<line>:<content>. Lazy-match path to first :NNN: pair.
+    const m = line.match(/^(.+?):(\d+):(.*)$/);
+    if (!m) continue;
+    matches.push({ path: m[1], line: parseInt(m[2], 10), snippet: m[3].trim().slice(0, 200) });
+  }
+  return matches;
 }
 
 // ---------- Filename helpers ------------------------------------------------

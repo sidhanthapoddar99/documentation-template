@@ -1,36 +1,104 @@
 #!/usr/bin/env bun
 /**
- * list.mjs — list issues matching multi-field filters.
+ * list.mjs — multi-field filter + free-text regex search over the tracker.
+ *
+ * Replaces `grep` / `find` for the issue tracker: knows the schema
+ * (vocabulary, subtask states, frontmatter, agent-log subgroups) and emits
+ * issue ids + exact file paths + line numbers + excerpts in one call.
  *
  * Default scope: open + review (skips closed/cancelled). Override with
  * --status, or --include-cancelled to see everything. AND across fields,
  * OR within a field.
+ *
+ * Search backend (auto-picked, fastest first): ripgrep → grep → pure JS.
+ * See _lib.mjs detectSearchBackend() / runSearch().
  */
 
+import path from 'node:path';
 import {
   DEFAULT_TRACKER, listIssueFolders, readIssueMeta, readIssueSubtasks,
   parseArgs, csv, printHelp,
+  detectSearchBackend, maybePrintInstallHint, runSearch, listSearchableFiles,
+  issueDateFromId,
 } from './_lib.mjs';
 
 const args = parseArgs(process.argv.slice(2));
 if (args.flags.help || args.flags.h) {
   printHelp('list', [
-    '[--status open,review,...] [--priority X,Y] [--component X,Y] [--milestone X,Y] [--label X,Y]',
-    '[--has-review-subtasks] [--include-cancelled] [--json] [--tracker <path>]',
+    '[filters] [--search <regex>] [output] [--quiet-tips]',
     '',
-    'AND across fields, OR within a field. Default scope: open + review.',
-    'Output (default): id<TAB>status<TAB>title.  --json prints full records.',
+    'Filters (AND across fields, OR within):',
+    '  --status open,review,closed,cancelled    default: open,review',
+    '  --priority low,medium,high,urgent',
+    '  --component <vals>',
+    '  --milestone <vals>',
+    '  --label <vals>',
+    '  --type <vals>                            (if `type` field present)',
+    '  --assignee <names,unassigned>            (if `assignee`/`assignees` field present)',
+    '  --created-after YYYY-MM-DD               from issue folder date prefix',
+    '  --created-before YYYY-MM-DD',
+    '  --due-after YYYY-MM-DD                   from `due:` field',
+    '  --due-before YYYY-MM-DD',
+    '  --subtasks-min N        --subtasks-max N',
+    '  --has-open-subtasks     --has-review-subtasks     --has-closed-subtasks',
+    '  --include-cancelled                      shorthand for adding cancelled to default scope',
+    '',
+    'Search (free-text regex over issue files):',
+    '  --search <regex>                         POSIX ERE / JS-regex syntax',
+    '  --search-fields body,settings,comments,subtasks,notes,agent-log',
+    '                                           default: all',
+    '  --case-sensitive                         default: case-insensitive',
+    '  --invert-match                           include lines that do NOT match',
+    '  --scope <subpath>                        restrict to a subfolder of the tracker',
+    '',
+    'Output:',
+    '  default                                  id<TAB>status<TAB>title  (no --search)',
+    '                                           id<TAB>status<TAB>title<TAB>path:line<TAB>excerpt  (with --search)',
+    '  --json                                   structured records, with `matches: [...]` if --search',
+    '  --paths-only                             bare list of unique match paths (escape hatch)',
+    '  --limit N                                cap to first N matching issues',
+    '  --tracker <path>                         operate on a non-default tracker',
+    '',
+    'Exit codes: 0 = matches found, 1 = no matches, 2 = usage error.',
+    '',
+    'Examples:',
+    '  list.mjs --priority high,urgent',
+    '  list.mjs --search "indexer" --status review',
+    '  list.mjs --search "TODO\\\\(.*\\\\)" --search-fields body,subtasks --json',
+    '  list.mjs --created-after 2026-04-01 --has-review-subtasks',
   ]);
-  process.exit(0);
+  process.exit(args.flags.help || args.flags.h ? 0 : 2);
 }
 
+// ---------- Resolve options ------------------------------------------------
+
 const tracker = args.flags.tracker || DEFAULT_TRACKER;
-const filterStatus = csv(args.flags.status);
-const filterPriority = csv(args.flags.priority);
-const filterComponent = csv(args.flags.component);
-const filterMilestone = csv(args.flags.milestone);
-const filterLabel = csv(args.flags.label);
+const filterStatus     = csv(args.flags.status);
+const filterPriority   = csv(args.flags.priority);
+const filterComponent  = csv(args.flags.component);
+const filterMilestone  = csv(args.flags.milestone);
+const filterLabel      = csv(args.flags.label);
+const filterType       = csv(args.flags.type);
+const filterAssignee   = csv(args.flags.assignee);
 const requireReviewSub = !!args.flags['has-review-subtasks'];
+const requireOpenSub   = !!args.flags['has-open-subtasks'];
+const requireClosedSub = !!args.flags['has-closed-subtasks'];
+const subtasksMin      = numOrNull(args.flags['subtasks-min']);
+const subtasksMax      = numOrNull(args.flags['subtasks-max']);
+const createdAfter     = strOrNull(args.flags['created-after']);
+const createdBefore    = strOrNull(args.flags['created-before']);
+const dueAfter         = strOrNull(args.flags['due-after']);
+const dueBefore        = strOrNull(args.flags['due-before']);
+
+const searchPattern    = strOrNull(args.flags.search);
+const searchFields     = csv(args.flags['search-fields']); // empty = all
+const caseSensitive    = !!args.flags['case-sensitive'];
+const invertMatch      = !!args.flags['invert-match'];
+const scopeSub         = strOrNull(args.flags.scope); // subpath restriction
+const limit            = numOrNull(args.flags.limit);
+const wantJson         = !!args.flags.json;
+const wantPathsOnly    = !!args.flags['paths-only'];
+const quietTips        = !!args.flags['quiet-tips'];
 
 const scope = filterStatus.length
   ? filterStatus
@@ -38,40 +106,148 @@ const scope = filterStatus.length
       ? ['open', 'review', 'closed', 'cancelled']
       : ['open', 'review']);
 
-const matches = [];
+// ---------- Phase 1: structural filter -------------------------------------
+
+const structural = [];
 for (const id of listIssueFolders(tracker)) {
   const meta = readIssueMeta(tracker, id);
   if (!meta) continue;
+
   if (!scope.includes(meta.status)) continue;
-  if (filterPriority.length && !filterPriority.includes(meta.priority)) continue;
+  if (filterPriority.length  && !filterPriority.includes(meta.priority))   continue;
   if (filterMilestone.length && !filterMilestone.includes(meta.milestone)) continue;
+
   if (filterComponent.length) {
-    const comps = Array.isArray(meta.component)
-      ? meta.component
-      : (typeof meta.component === 'string' && meta.component ? [meta.component] : []);
+    const comps = arrify(meta.component);
     if (!comps.some((v) => filterComponent.includes(v))) continue;
   }
   if (filterLabel.length) {
     const labels = Array.isArray(meta.labels) ? meta.labels : [];
     if (!labels.some((v) => filterLabel.includes(v))) continue;
   }
-  if (requireReviewSub) {
-    const subs = readIssueSubtasks(tracker, id);
-    if (!subs.some((s) => s.state === 'review')) continue;
+  if (filterType.length) {
+    const types = arrify(meta.type);
+    if (!types.some((v) => filterType.includes(v))) continue;
   }
-  matches.push({
+  if (filterAssignee.length) {
+    const assignees = arrify(meta.assignee).concat(arrify(meta.assignees));
+    const wantUnassigned = filterAssignee.includes('unassigned');
+    const isUnassigned = assignees.length === 0;
+    const matchesNamed = assignees.some((v) => filterAssignee.includes(v));
+    if (!((wantUnassigned && isUnassigned) || matchesNamed)) continue;
+  }
+
+  if (createdAfter  && (issueDateFromId(id) ?? '') < createdAfter)  continue;
+  if (createdBefore && (issueDateFromId(id) ?? '') > createdBefore) continue;
+  if (dueAfter  && (str(meta.due) === '' || meta.due < dueAfter))  continue;
+  if (dueBefore && (str(meta.due) === '' || meta.due > dueBefore)) continue;
+
+  // Subtask-related filters require reading subtasks (slightly more I/O).
+  let subs = null;
+  const needSubs = requireReviewSub || requireOpenSub || requireClosedSub
+                   || subtasksMin != null || subtasksMax != null;
+  if (needSubs) subs = readIssueSubtasks(tracker, id);
+  if (requireReviewSub && !subs.some((s) => s.state === 'review'))   continue;
+  if (requireOpenSub   && !subs.some((s) => s.state === 'open'))     continue;
+  if (requireClosedSub && !subs.some((s) => s.state === 'closed'))   continue;
+  if (subtasksMin != null && (subs ?? []).length < subtasksMin)      continue;
+  if (subtasksMax != null && (subs ?? []).length > subtasksMax)      continue;
+
+  structural.push({
     id,
     status: meta.status,
     priority: meta.priority,
     milestone: meta.milestone,
-    component: Array.isArray(meta.component) ? meta.component : [],
+    component: arrify(meta.component),
     labels: Array.isArray(meta.labels) ? meta.labels : [],
+    type: arrify(meta.type),
+    assignees: arrify(meta.assignee).concat(arrify(meta.assignees)),
+    due: meta.due ?? null,
     title: meta.title,
   });
 }
 
-if (args.flags.json) {
-  console.log(JSON.stringify(matches, null, 2));
-} else {
-  for (const m of matches) console.log(`${m.id}\t${m.status}\t${m.title}`);
+// ---------- Phase 2: regex search (optional) -------------------------------
+
+let results = structural.map((m) => ({ ...m, matches: [] }));
+
+if (searchPattern) {
+  const backend = detectSearchBackend();
+  maybePrintInstallHint(backend, { quietTips });
+
+  const fields = searchFields.length ? searchFields : null;
+  const filtered = [];
+  try {
+    for (const issue of results) {
+      let files = listSearchableFiles(tracker, issue.id, fields);
+      if (scopeSub) {
+        const scopeAbs = path.resolve(tracker, issue.id, scopeSub);
+        files = files.filter((f) => f === scopeAbs || f.startsWith(scopeAbs + path.sep));
+      }
+      const matches = runSearch(backend, files, searchPattern,
+                                { caseSensitive, invert: invertMatch });
+      if (matches.length === 0) continue;
+      filtered.push({ ...issue, matches });
+    }
+  } catch (e) {
+    console.error(`error: ${e.message}`);
+    process.exit(2);
+  }
+  results = filtered;
 }
+
+if (limit != null) results = results.slice(0, limit);
+
+// ---------- Output ---------------------------------------------------------
+
+if (wantPathsOnly) {
+  const seen = new Set();
+  for (const issue of results) {
+    for (const m of issue.matches) {
+      if (!seen.has(m.path)) { seen.add(m.path); console.log(m.path); }
+    }
+  }
+  process.exit(seen.size === 0 ? 1 : 0);
+}
+
+if (wantJson) {
+  // Strip empty `matches` arrays when there's no search to keep output clean.
+  const out = results.map((r) => searchPattern ? r : (({ matches, ...rest }) => rest)(r));
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(out.length === 0 ? 1 : 0);
+}
+
+// Default tabular output.
+let printedAny = false;
+for (const issue of results) {
+  if (searchPattern) {
+    for (const m of issue.matches) {
+      const rel = path.relative(process.cwd(), m.path);
+      console.log(`${issue.id}\t${issue.status}\t${issue.title}\t${rel}:${m.line}\t${m.snippet}`);
+      printedAny = true;
+    }
+  } else {
+    console.log(`${issue.id}\t${issue.status}\t${issue.title}`);
+    printedAny = true;
+  }
+}
+process.exit(printedAny ? 0 : 1);
+
+// ---------- Tiny helpers ---------------------------------------------------
+
+function arrify(v) {
+  if (Array.isArray(v)) return v;
+  if (typeof v === 'string' && v) return [v];
+  return [];
+}
+function numOrNull(v) {
+  if (v === undefined || v === true) return null;
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? n : null;
+}
+function strOrNull(v) {
+  if (typeof v !== 'string') return null;
+  const t = v.trim();
+  return t || null;
+}
+function str(v) { return v == null ? '' : String(v); }

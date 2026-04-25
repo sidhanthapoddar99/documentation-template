@@ -75,6 +75,8 @@ command -v bun >/dev/null && bun .claude/skills/documentation-guide/scripts/issu
 
 For installing script dependencies: `bun install` first, `npm install` as fallback.
 
+**Searching the tracker — use `list.mjs --search`, not the `Grep` tool.** Any "find / locate / grep / search" verb against `dynamic_data/data/todo/` should route to `list.mjs`, which understands the schema (vocabulary, subtask states, frontmatter), composes structural filters with regex search in one call, and returns exact paths + line numbers. `Grep` only sees text. See `references/issue-layout.md` for the synonym list and examples.
+
 ## When to spawn a subagent
 
 For bulk file reads (10+ files), spawn a Haiku subagent via the Task/Agent tool to summarise rather than loading every file into the main context. Pattern: give the subagent the file list + the question, ask for a tight report (under 200 words).

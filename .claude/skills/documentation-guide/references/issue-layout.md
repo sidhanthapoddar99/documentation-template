@@ -198,31 +198,27 @@ Body structure:
 
 Per AI rule #2: search `open` + `review` only unless told otherwise.
 
-### Grep / find recipes
+### Do not use `Grep` or `find` on the tracker — use `list.mjs`
 
-```bash
-# All issues with status:open
-grep -l '"status": "open"' dynamic_data/data/todo/*/settings.json
+`list.mjs` is the tuned drop-in replacement. It understands the schema (vocabulary, subtask states, frontmatter, agent-log subgroups), combines structural filters with free-text regex search **in one call**, and returns exact file paths + line numbers + excerpts so you can `Read` precisely. `Grep` only sees text; `list.mjs` sees the schema.
 
-# All issues with status:open OR review
-grep -lE '"status": "(open|review)"' dynamic_data/data/todo/*/settings.json
+Use `Grep` only for content **outside** the tracker (source code, docs, blog).
 
-# All subtasks currently in review
-grep -lE '^state:\s*review' dynamic_data/data/todo/*/subtasks/*.md
+This routing rule applies to every natural-language phrase the user might use to ask for tracker content. Recognise these as triggers for `list.mjs`, not `Grep` / `find`:
 
-# All issues containing keyword X (in body or any sub-doc)
-grep -rli "keyword" dynamic_data/data/todo/
+- search · find · look up · locate · grep · scan · query · lookup
+- filter · narrow · restrict · scope · slice · subset
+- "issues mentioning X" · "issues about X" · "issues touching X" · "issues that talk about X"
+- "show me X-priority Y-status issues" · "list bugs assigned to Z" · "what's in review"
+- "where is X discussed in the tracker"
 
-# All comments by a specific author
-grep -lE '^author:\s*claude' dynamic_data/data/todo/*/comments/*.md
-
-# All issues with a specific component
-grep -l '"live-editor"' dynamic_data/data/todo/*/settings.json
-```
+`list.mjs` covers all of these — both pure structural filtering (`--priority high`) and free-text regex (`--search "pattern"`), composable in any combination.
 
 ### When to spawn a Haiku subagent
 
-When the task requires reading **>10 issue files** to summarise / classify, spawn a Haiku subagent via the Task / Agent tool rather than loading every file into the main context. Pattern:
+Two patterns, both about keeping the main context lean and pushing bulk reading onto cheap tokens.
+
+**Pattern A — bulk classification across many issues.** When the task requires reading **>10 issue files** to summarise / classify:
 
 ```
 Read all issues under dynamic_data/data/todo/ with status:open.
@@ -230,7 +226,18 @@ For each, return: id, title, priority, top blocker (1 sentence).
 Output as a markdown table. Under 300 words.
 ```
 
-This keeps the main context lean and uses cheap tokens for bulk summarisation.
+**Pattern B — chain `list.mjs --search` into a subagent for synthesis.** When `list.mjs --search` returns more than ~10 matches (especially across multiple issues), don't `Read` each file in the main context. Hand the path list straight to a Haiku subagent with the question:
+
+```
+1. Run: bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+        --search "indexer" --paths-only --quiet-tips
+2. Read each path returned. For each, extract: file, surrounding context
+   (3-5 lines around the match), and why it's relevant to <user's question>.
+3. Group findings by issue. Synthesise into <≤300 words> answering
+   <user's question>.
+```
+
+This is the canonical "search → gather → synthesise" pipeline: `list.mjs` does the filtered structural lookup (one tool call), Haiku does the bulk file reads + summarisation (cheap tokens, isolated context), and only the synthesised report flows back into the main conversation.
 
 ### Helper scripts — use these, they're the fastest path
 
@@ -238,7 +245,7 @@ The `.claude/skills/documentation-guide/scripts/issues/` directory has 8 CLI hel
 
 | Script | What it does |
 |---|---|
-| `list.mjs` | List issues matching multi-field filters. Default scope: open + review. |
+| `list.mjs` | Multi-field filter **+ free-text regex search** over the tracker. Returns file paths + line numbers + excerpts. Drop-in replacement for `grep` / `find` over `dynamic_data/data/todo/`. Default scope: open + review. |
 | `show.mjs` | Print one issue's metadata + subtask state summary + comment & agent-log heads. `--full` for bodies. |
 | `subtasks.mjs` | List subtasks for one issue, or across all issues with `--all`. Default state: open + review. |
 | `agent-logs.mjs` | Print the last N agent-log entries (default 3) — for catching up before resuming work. |
@@ -252,6 +259,20 @@ Common usage:
 ```bash
 # Open issues with high/urgent priority
 bun .claude/skills/documentation-guide/scripts/issues/list.mjs --priority high,urgent
+
+# Find all issues mentioning "indexer" (regex search across body, subtasks, comments, notes, agent-logs)
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs --search "indexer"
+
+# Combine structural filter + free-text search in one call
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+  --priority high --search "yjs|crdt" --search-fields body,subtasks
+
+# Issues created since April 1st with at least one review-state subtask
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+  --created-after 2026-04-01 --has-review-subtasks
+
+# Just the matching paths (pipe into Read or another tool)
+bun .claude/skills/documentation-guide/scripts/issues/list.mjs --search "TODO" --paths-only
 
 # Every review-state subtask across the tracker (cross-issue)
 bun .claude/skills/documentation-guide/scripts/issues/subtasks.mjs --all --state review
@@ -276,9 +297,7 @@ bun .claude/skills/documentation-guide/scripts/issues/add-agent-log.mjs 2026-04-
 bun .claude/skills/documentation-guide/scripts/issues/review-queue.mjs
 ```
 
-Each script supports `--help` (full options), `--json` (machine-readable), and `--tracker <path>` (operate on a non-default tracker).
-
-**Falling back to grep/find:** still useful for free-text body search, since none of the scripts grep markdown content. See the recipe block below.
+Each script supports `--help` (full options), `--json` (machine-readable), and `--tracker <path>` (operate on a non-default tracker). `list.mjs --search` auto-picks the fastest backend (rg → grep → pure JS); pass `--quiet-tips` if the install hint becomes noise.
 
 ---
 
