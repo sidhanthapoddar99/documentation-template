@@ -499,7 +499,7 @@ function formatJsonScalar(v) {
 // ---------- CLI helpers ----------------------------------------------------
 
 export function printHelp(name, lines) {
-  console.error(`Usage: bun .claude/skills/documentation-guide/scripts/issues/${name}.mjs ${lines[0]}\n`);
+  console.error(`Usage: docs-${name} ${lines[0]}\n`);
   for (const line of lines.slice(1)) console.error('  ' + line);
 }
 

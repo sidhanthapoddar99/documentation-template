@@ -25,7 +25,7 @@ const ROOT = process.argv[2] && process.argv[2] !== '--help' && process.argv[2] 
   : DEFAULT;
 
 if (process.argv[2] === '--help' || process.argv[2] === '-h') {
-  console.error('Usage: bun .claude/skills/documentation-guide/scripts/config/check.mjs [config-dir]\n');
+  console.error('Usage: docs-check-config [config-dir]\n');
   console.error(`  Default: ${DEFAULT}\n`);
   console.error('  Validates: required keys · pages structure · data: path resolution · footer page: refs');
   process.exit(0);

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Wrapper for the issue-tracker `list` script. Resolves to the bundled .mjs
+# under skills/documentation-guide/scripts/issues/. Bun preferred, node fallback.
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT="$DIR/../skills/documentation-guide/scripts/issues/list.mjs"
+if command -v bun >/dev/null 2>&1; then
+  exec bun "$SCRIPT" "$@"
+else
+  exec node "$SCRIPT" "$@"
+fi

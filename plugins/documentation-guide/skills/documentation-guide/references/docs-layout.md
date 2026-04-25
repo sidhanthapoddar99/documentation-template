@@ -84,6 +84,24 @@ See [installation](../getting-started/installation) for setup.
 See [installation](/user-guide/getting-started/installation) — also works.
 ```
 
+## Validate
+
+The plugin ships **`docs-check-section`** (on your `PATH` after install) — runs structural checks against a docs section so you don't have to eyeball it.
+
+```bash
+# Section-folder is required (no default — there can be many sections)
+docs-check-section dynamic_data/data/user-guide
+docs-check-section dynamic_data/data/dev-docs
+```
+
+What it checks:
+- `XX_` numeric prefix on every folder (except `assets/`) and `.md` file (except `README.md`)
+- `settings.json` present in every folder
+- Frontmatter `title:` present on every `.md` file
+- No `XX_` prefix collisions within a folder (e.g. two `05_` siblings)
+
+Exit code `0` = clean, `1` = errors found. Run after restructuring a section or before committing a batch of new pages.
+
 ## Cross-references
 
 - `dynamic_data/data/user-guide/17_docs/` — full user-guide section

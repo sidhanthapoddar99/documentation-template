@@ -238,7 +238,7 @@ Output as a markdown table. Under 300 words.
 **Pattern B — chain `list.mjs --search` into a subagent for synthesis.** When `list.mjs --search` returns more than ~10 matches (especially across multiple issues), don't `Read` each file in the main context. Hand the path list straight to a Haiku subagent with the question:
 
 ```
-1. Run: bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+1. Run: docs-list \
         --search "indexer" --paths-only --quiet-tips
 2. Read each path returned. For each, extract: file, surrounding context
    (3-5 lines around the match), and why it's relevant to <user's question>.
@@ -256,7 +256,7 @@ synthesise. Read-only.
 
 ### TaskA — <name>
 ```
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+docs-list \
   --status open,review --search "indexer" --quiet-tips
 ```
 Output format: <what the user expects>.
@@ -271,7 +271,7 @@ Limits: only works when *you* know the commands — open-ended exploration ("wha
 
 ### Helper scripts — use these, they're the fastest path
 
-The `.claude/skills/documentation-guide/scripts/issues/` directory has 8 CLI helpers. **Prefer them over hand-rolled grep** — they understand the schema (state vs legacy `done`, component-as-array, agent-log subgroups) and emit terse output by default. All run with `bun` (preferred) or `node`.
+The plugin ships 8 CLI wrappers (`docs-list`, `docs-show`, `docs-subtasks`, `docs-agent-logs`, `docs-set-state`, `docs-add-comment`, `docs-add-agent-log`, `docs-review-queue`) on your `PATH`. **Prefer them over hand-rolled grep** — they understand the schema (state vs legacy `done`, component-as-array, agent-log subgroups) and emit terse output by default. Each wrapper internally uses `bun` (preferred) with `node` as fallback.
 
 | Script | What it does |
 |---|---|
@@ -288,57 +288,57 @@ Common usage:
 
 ```bash
 # Open issues with high/urgent priority
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs --priority high,urgent
+docs-list --priority high,urgent
 
 # Find all issues mentioning "indexer" (regex search across body, subtasks, comments, notes, agent-logs)
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs --search "indexer"
+docs-list --search "indexer"
 
 # Combine structural filter + free-text search in one call
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+docs-list \
   --priority high --search "yjs|crdt" --search-fields body,subtasks
 
 # Issues created since April 1st with at least one review-state subtask
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+docs-list \
   --created-after 2026-04-01 --has-review-subtasks
 
 # High-priority work nobody's picked up (coarse "unassigned" pseudo-value)
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+docs-list \
   --assignee unassigned --priority high,urgent
 
 # In-flight work with open subtasks left ("assigned" mirrors "unassigned")
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+docs-list \
   --assignee assigned --has-open-subtasks
 
 # What is sid working on right now (per-person fine filter)
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs --assignee sid
+docs-list --assignee sid
 
 # Anything overdue this week
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs --due-before 2026-05-02
+docs-list --due-before 2026-05-02
 
 # Just the matching paths (pipe into Read or another tool)
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs --search "TODO" --paths-only
+docs-list --search "TODO" --paths-only
 
 # Every review-state subtask across the tracker (cross-issue)
-bun .claude/skills/documentation-guide/scripts/issues/subtasks.mjs --all --state review
+docs-subtasks --all --state review
 
 # One issue end-to-end (metadata + subtask state + log heads)
-bun .claude/skills/documentation-guide/scripts/issues/show.mjs 2026-04-19-docs-phase-2
+docs-show 2026-04-19-docs-phase-2
 
 # Catch up on prior iterations before resuming work
-bun .claude/skills/documentation-guide/scripts/issues/agent-logs.mjs 2026-04-19-docs-phase-2 --last 5
+docs-agent-logs 2026-04-19-docs-phase-2 --last 5
 
 # Mark a subtask done
-bun .claude/skills/documentation-guide/scripts/issues/set-state.mjs 2026-04-19-foo/subtasks/02_bar.md closed
+docs-set-state 2026-04-19-foo/subtasks/02_bar.md closed
 
 # Mark an issue ready for human review
-bun .claude/skills/documentation-guide/scripts/issues/set-state.mjs 2026-04-19-foo review
+docs-set-state 2026-04-19-foo review
 
 # Append an agent-log entry
-bun .claude/skills/documentation-guide/scripts/issues/add-agent-log.mjs 2026-04-19-foo \
+docs-add-agent-log 2026-04-19-foo \
   --status success --body "Goal: …  Approach: …  Result: …  Next: —"
 
 # What's awaiting human review?
-bun .claude/skills/documentation-guide/scripts/issues/review-queue.mjs
+docs-review-queue
 ```
 
 Each script supports `--help` (full options), `--json` (machine-readable), and `--tracker <path>` (operate on a non-default tracker). `list.mjs --search` auto-picks the fastest backend (rg → grep → pure JS); pass `--quiet-tips` if the install hint becomes noise.
@@ -355,17 +355,17 @@ The check has three modes depending on how the user phrased the request:
 
 1. **Search by topic / keyword.** Pull two or three salient terms from the user's request — feature names, identifiers, file paths, jargon. Stem to the regex root (e.g. `index|indexer|indexing`).
    ```
-   bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+   docs-list \
      --search "<root>" --quiet-tips
    ```
 2. **Structural check.** When the user names a milestone, component, or person, also filter on it:
    ```
-   bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+   docs-list \
      --component live-editor --milestone phase-2 --quiet-tips
    ```
 3. **Subtask check before adding to a known issue.** When adding into an issue you don't have warm context on:
    ```
-   bun .claude/skills/documentation-guide/scripts/issues/subtasks.mjs <issue-id> --quiet-tips
+   docs-subtasks <issue-id> --quiet-tips
    ```
    Skim titles + states. If the work overlaps an existing subtask, surface that to the user instead of duplicating.
 
@@ -388,11 +388,11 @@ Handoff template:
 The user wants to create a subtask: "<one-line summary>". Run these checks
 and report whether anything related already exists. ≤4 sentences.
 
-1. bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+1. docs-list \
      --search "<keyword-roots>" --quiet-tips
-2. bun .claude/skills/documentation-guide/scripts/issues/list.mjs \
+2. docs-list \
      --component <c> --milestone <m> --quiet-tips
-3. bun .claude/skills/documentation-guide/scripts/issues/subtasks.mjs \
+3. docs-subtasks \
      <issue-id> --quiet-tips   (if a target issue is named)
 
 For any hit that looks related, read the file and quote the most relevant

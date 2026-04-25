@@ -374,7 +374,30 @@ Restart the dev server (`bun run dev`) — the new route is live.
 
 ---
 
-## 11. Cross-references
+## 11. Validate
+
+The plugin ships **`docs-check-config`** (on your `PATH` after install) — runs presence + structural checks against `site.yaml` / `navbar.yaml` / `footer.yaml` so you don't have to eyeball each.
+
+```bash
+# Default: checks dynamic_data/config/
+docs-check-config
+
+# Or point at any config dir
+docs-check-config dynamic_data/config
+```
+
+What it checks:
+- All three files exist (`site.yaml` is hard-required; `navbar.yaml` / `footer.yaml` warned)
+- `site.yaml` has the required top-level keys (`site`, `paths`, `theme`, `pages`)
+- Each `pages:` entry has the required fields (`base_url`, `type`, `layout`, `data`)
+- Each page's `data:` path resolves on disk (after `@alias` substitution)
+- `footer.yaml` `page:` references resolve to a registered page in `site.yaml`
+
+Uses regex over the YAML text — no YAML library dependency. Catches the common breakage; for deeper schema validation, run the dev server and watch its startup warnings. Exit code `0` = clean, `1` = errors found.
+
+---
+
+## 12. Cross-references
 
 - `dynamic_data/data/README.md` — map of every top-level data folder (read this first for orientation)
 - `dynamic_data/data/user-guide/05_getting-started/` — installation, aliases, structure

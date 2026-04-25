@@ -1,0 +1,10 @@
+License: TBD
+
+A license has not yet been chosen for this plugin. Until one is set, treat the contents as "all rights reserved" and don't redistribute outside the documentation-template project.
+
+To pick a license:
+- For permissive use (most plugins): MIT
+- For copyleft / share-alike: GPL-3.0
+- See https://choosealicense.com/
+
+Replace the contents of this file with the chosen license text and update plugin.json's metadata to include a "license" field (e.g. "license": "MIT").

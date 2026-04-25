@@ -2,10 +2,35 @@
 
 Astro-based documentation framework with modular layouts, YAML configuration, and live editing via Yjs CRDT.
 
-## Skills
+## Skills + tooling
 
-- **`/docs-guide`** — For writing/editing documentation content: frontmatter, markdown, folder structure, `XX_` prefixes, `settings.json`
-- **`/docs-settings`** — For site configuration: `site.yaml`, `navbar.yaml`, `footer.yaml`, path aliases, page definitions
+This project ships its own Claude Code plugin (`documentation-guide@documentation-template`) — a marketplace lives at the repo root (`.claude-plugin/marketplace.json`) and the project itself dogfoods the install (`.claude/settings.json` enables the plugin). When you clone the repo, run `/plugin marketplace add <this-repo-path>` then `/plugin install documentation-guide@documentation-template` then `/reload-plugins` and the skill + tooling become available. (Use a plain absolute or relative path — `/plugin marketplace add` rejects `file://` URLs.)
+
+**The skill** — `documentation-guide` — triages every docs/issue/blog/config task to one of five reference files (`writing.md`, `docs-layout.md`, `blog-layout.md`, `issue-layout.md`, `settings-layout.md`). Trigger eagerly for anything under `dynamic_data/`.
+
+**11 CLI wrappers on PATH** (Claude Code adds the plugin's `bin/` to PATH automatically):
+
+Issue tracker:
+
+| Command | Use |
+|---|---|
+| `docs-list` | Multi-field filter + free-text regex search over the tracker — drop-in replacement for `grep`/`find` on `dynamic_data/data/todo/` |
+| `docs-show` | One issue's metadata + subtask + log heads |
+| `docs-subtasks` | List subtasks (`--all` for cross-issue) |
+| `docs-agent-logs` | Last N agent-log entries |
+| `docs-set-state` | Update issue or subtask state |
+| `docs-add-comment` / `docs-add-agent-log` | Append with auto-incremented prefix |
+| `docs-review-queue` | Items awaiting review |
+
+Validators (exit `0` clean / `1` on errors):
+
+| Command | Use |
+|---|---|
+| `docs-check-blog` | Validate `dynamic_data/data/blog/` — filename pattern, frontmatter, no nesting |
+| `docs-check-config` | Validate `dynamic_data/config/` — required keys, page structure, alias resolution |
+| `docs-check-section <folder>` | Validate any docs section — `XX_` prefixes, `settings.json`, frontmatter |
+
+Pass `--help` to any wrapper for full flags. **Do not use `Grep` on the tracker** — `docs-list` understands the schema (vocabulary, subtask states, frontmatter); `Grep` only sees text.
 
 ## Source Code Structure
 

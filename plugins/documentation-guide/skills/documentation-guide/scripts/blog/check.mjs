@@ -21,7 +21,7 @@ const ROOT = process.argv[2] && process.argv[2] !== '--help' && process.argv[2] 
   : DEFAULT;
 
 if (process.argv[2] === '--help' || process.argv[2] === '-h') {
-  console.error('Usage: bun .claude/skills/documentation-guide/scripts/blog/check.mjs [blog-folder]\n');
+  console.error('Usage: docs-check-blog [blog-folder]\n');
   console.error(`  Default: ${DEFAULT}\n`);
   console.error('  Validates: YYYY-MM-DD-<slug>.md naming · frontmatter title · no nested folders');
   process.exit(0);

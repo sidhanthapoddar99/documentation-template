@@ -53,6 +53,25 @@ Same as other content — assets live in `dynamic_data/assets/blog/<post-slug>/`
 
 `dynamic_data/data/blog/2026-04-19-introducing-issues.md` → `/blog/introducing-issues` (date stripped from URL).
 
+## Validate
+
+The plugin ships **`docs-check-blog`** (on your `PATH` after install) — runs structural checks against the blog folder so you don't have to eyeball it.
+
+```bash
+# Default: checks dynamic_data/data/blog/
+docs-check-blog
+
+# Or point at any folder
+docs-check-blog dynamic_data/data/blog
+```
+
+What it checks:
+- Filename matches `YYYY-MM-DD-<kebab-case-slug>.md`
+- Frontmatter `title:` is present
+- No nested folders (the blog is flat — `assets/` is the only allowed subfolder)
+
+Exit code `0` = clean, `1` = errors found. Run after creating a new post or if anything renders unexpectedly.
+
 ## Cross-references
 
 - `dynamic_data/data/user-guide/18_blogs/` — full user-guide section

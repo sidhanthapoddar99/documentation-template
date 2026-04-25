@@ -58,24 +58,34 @@ These apply across all domains. Reference files don't repeat them — they assum
 - **Edit, don't rewrite** — prefer `Edit` over `Write` for existing files. Surgical regex replaces preserve formatting and key order in JSON.
 - **`bun` is the project runtime** — `bun run dev`, `bun run build`. For helper scripts and any Node CLI tool, prefer `bun` if available, fall back to `npm` / `node`.
 
-## Helper scripts
+## Helper scripts — 11 CLI wrappers on PATH
 
-The `.claude/skills/documentation-guide/scripts/issues/` directory at the project root ships 8 CLI helpers for the issue tracker (`list`, `show`, `subtasks`, `agent-logs`, `set-state`, `add-comment`, `add-agent-log`, `review-queue`) plus a shared `_lib.mjs`. They're documented in `references/issue-layout.md`.
+This plugin ships 11 CLI wrappers in its `bin/` folder, which Claude Code adds to `PATH` automatically when the plugin is installed. Just type the command — no path needed.
 
-**Run convention** — prefer `bun`, fall back to `node`:
+**Issue tracker (8):**
 
-```bash
-bun .claude/skills/documentation-guide/scripts/issues/list.mjs --help     # preferred (faster startup)
-node .claude/skills/documentation-guide/scripts/issues/list.mjs --help    # fallback
+| Command | What it does |
+|---|---|
+| `docs-list` | Multi-field filter + free-text regex search over the tracker |
+| `docs-show` | One issue's metadata + subtask summary + comment & agent-log heads |
+| `docs-subtasks` | List subtasks for one issue, or across all (`--all`) |
+| `docs-agent-logs` | Last N agent-log entries for an issue |
+| `docs-set-state` | Update issue or subtask state |
+| `docs-add-comment` | Append a comment with auto-incremented prefix |
+| `docs-add-agent-log` | Append an agent-log entry with auto-incremented iteration |
+| `docs-review-queue` | Items awaiting review (status=review issues + open issues with review subtasks) |
 
-# One-liner with auto-fallback
-command -v bun >/dev/null && bun .claude/skills/documentation-guide/scripts/issues/list.mjs --help \
-  || node .claude/skills/documentation-guide/scripts/issues/list.mjs --help
-```
+**Validators (3):**
 
-For installing script dependencies: `bun install` first, `npm install` as fallback.
+| Command | What it does |
+|---|---|
+| `docs-check-blog` | Validate the blog folder — `YYYY-MM-DD-<slug>.md` naming, frontmatter `title:`, no nested folders. Defaults to `dynamic_data/data/blog/`. See `references/blog-layout.md`. |
+| `docs-check-config` | Validate `site.yaml` / `navbar.yaml` / `footer.yaml` — required keys, `pages:` structure, `data:` path resolution, footer `page:` references. Defaults to `dynamic_data/config/`. See `references/settings-layout.md`. |
+| `docs-check-section` | Validate a docs section — `XX_` prefix discipline, `settings.json` presence, frontmatter `title:`, prefix collisions. Required arg: section folder (e.g. `dynamic_data/data/user-guide`). See `references/docs-layout.md`. |
 
-**Searching the tracker — use `list.mjs --search`, not the `Grep` tool.** Any "find / locate / grep / search" verb against `dynamic_data/data/todo/` should route to `list.mjs`, which understands the schema (vocabulary, subtask states, frontmatter), composes structural filters with regex search in one call, and returns exact paths + line numbers. `Grep` only sees text. See `references/issue-layout.md` for the synonym list and examples.
+Each wrapper internally uses `bun` if available, falls back to `node`. Pass `--help` to any of them for the full flag list. Validators exit `0` on clean, `1` on errors found — useful in pre-commit / CI.
+
+**Searching the tracker — use `docs-list --search`, not the `Grep` tool.** Any "find / locate / grep / search" verb against `dynamic_data/data/todo/` should route to `docs-list`, which understands the schema (vocabulary, subtask states, frontmatter), composes structural filters with regex search in one call, and returns exact paths + line numbers. `Grep` only sees text. See `references/issue-layout.md` for the synonym list and examples.
 
 ## When to spawn a subagent
 
