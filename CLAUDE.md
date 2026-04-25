@@ -32,6 +32,13 @@ Validators (exit `0` clean / `1` on errors):
 
 Pass `--help` to any wrapper for full flags. **Do not use `Grep` on the tracker** — `docs-list` understands the schema (vocabulary, subtask states, frontmatter); `Grep` only sees text.
 
+**2 slash commands** for project-level scaffolding:
+
+| Command | Use |
+|---|---|
+| `/docs-init` | Bootstrap a new documentation-template project from zero — interactive: scope (whole repo vs subfolder) → site name → first section → writes `config/`, `data/`, starter page, patches `CLAUDE.md`. Prints framework-clone command at the end. |
+| `/docs-add-section [name]` | Scaffold a new top-level section under `data/` — auto-computes next `XX_` prefix, creates `settings.json` + starter page, optionally registers in `site.yaml`. |
+
 ## Source Code Structure
 
 ```

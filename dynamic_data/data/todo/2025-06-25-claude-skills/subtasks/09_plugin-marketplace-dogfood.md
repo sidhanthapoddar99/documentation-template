@@ -68,7 +68,7 @@ The order below is intentional. Parts 1-3 build the architecture; Parts 4-5 upda
   - Add a short note in `CLAUDE.md` pointing future agents at the installed `documentation-guide` skill (especially the `settings-layout.md` reference for `site.yaml` / `navbar.yaml` work and the `issue-layout.md` reference for the tracker), so the agent knows the skill is available without having to discover it.
   - **Verification:** `/plugin marketplace add <repo-path>` (plain absolute or relative path — `file://` URLs are rejected as "Invalid marketplace source format" in the interactive UI) → `/plugin install documentation-guide@documentation-template` → `/reload-plugins` → run `docs-list --priority high` to confirm the wrapper is on PATH and works end-to-end.
 
-- [ ] **Part 3 — Init slash commands inside the plugin (`/docs-init` + optional `/docs-add-section`)**
+- [x] **Part 3 — Init slash commands inside the plugin (`/docs-init` + optional `/docs-add-section`)** — landed in `plugins/documentation-guide/commands/{docs-init,docs-add-section}.md`. Both verified by `/reload-plugins` after install.
 
   After Part 2 ships, bundle slash commands inside the plugin's `commands/` folder so consumers can scaffold a new docs project from zero with one command. Reduces "clone framework, copy starter files, edit settings, write CLAUDE.md" to one prompt.
 

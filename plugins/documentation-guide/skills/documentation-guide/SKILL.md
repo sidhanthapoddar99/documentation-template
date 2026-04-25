@@ -87,6 +87,17 @@ Each wrapper internally uses `bun` if available, falls back to `node`. Pass `--h
 
 **Searching the tracker — use `docs-list --search`, not the `Grep` tool.** Any "find / locate / grep / search" verb against `dynamic_data/data/todo/` should route to `docs-list`, which understands the schema (vocabulary, subtask states, frontmatter), composes structural filters with regex search in one call, and returns exact paths + line numbers. `Grep` only sees text. See `references/issue-layout.md` for the synonym list and examples.
 
+## Slash commands — bootstrap & section scaffolding
+
+The plugin ships two slash commands for project-level scaffolding:
+
+| Command | What it does |
+|---|---|
+| `/docs-init` | Bootstrap a new documentation-template project from zero — interactive: scope (whole repo vs subfolder) → site name/title/description → first section name → writes `config/`, `data/`, starter page, README, patches `CLAUDE.md` at the repo root. Prints the framework-clone command at the end. |
+| `/docs-add-section [name]` | Add a new top-level docs section under `data/`. Auto-computes next `XX_` prefix, creates `settings.json` + `01_overview.md`, optionally registers in `config/site.yaml`'s `pages:` block. |
+
+When the user says "set up a new docs project", "scaffold a new site", "add a new section / area / handbook", route to these commands rather than hand-authoring.
+
 ## When to spawn a subagent
 
 For bulk file reads (10+ files), spawn a Haiku subagent via the Task/Agent tool to summarise rather than loading every file into the main context. Pattern: give the subagent the file list + the question, ask for a tight report (under 200 words).
