@@ -39,7 +39,24 @@ Pass `--help` to any wrapper for full flags. **Do not use `Grep` on the tracker*
 | `/docs-init` | Bootstrap a new documentation-template project from zero — interactive: scope (whole repo vs subfolder) → site name → first section → writes `config/`, `data/`, starter page, patches `CLAUDE.md`. Prints framework-clone command at the end. |
 | `/docs-add-section [name]` | Scaffold a new top-level section under `data/` — auto-computes next `XX_` prefix, creates `settings.json` + starter page, optionally registers in `site.yaml`. |
 
+## Repository Layout
+
+```
+<repo-root>/
+├── start                    # Bash wrapper — `./start dev | build | preview`
+├── astro-doc-code/          # Framework code (src/, package.json, astro.config.mjs, tsconfig.json, bun.lock)
+├── dynamic_data/            # User content (data, config, themes, assets)
+├── plugins/                 # Repo-local plugin sources (e.g. documentation-guide)
+├── .claude/, .claude-plugin/, .mcp.json
+├── .env, .env.example
+└── CLAUDE.md, README.md
+```
+
+The framework lives entirely in `astro-doc-code/`. The repo root holds user content, config, and the `start` wrapper. `paths.ts` distinguishes `frameworkRoot` (`astro-doc-code/`, where `src/` lives) from `projectRoot` (the repo root, where `dynamic_data/` and `.env` live). `astro.config.mjs` reads `.env` from `repoRoot`, not `process.cwd()` — so it works regardless of which directory you launch from.
+
 ## Source Code Structure
+
+All paths below are relative to `astro-doc-code/`.
 
 ```
 src/
@@ -225,11 +242,19 @@ Three tiers is the whole chrome palette. For card titles, primary buttons, and a
 
 ## Build Commands
 
+Use the `./start` wrapper at the repo root.
+
 ```bash
-bun run dev      # Development (Astro dev server + live editor)
-bun run build    # Production build
-bun run preview  # Preview production build locally
+./start            # Preflight: pick bun (else npm) → install if needed → build sanity check → dev
+./start dev        # Skip preflight, run dev only
+./start build      # Skip preflight, run build only
+./start preview    # Skip preflight, run preview only
+./start <script>   # Forward any package.json script
 ```
+
+Preflight (no-arg form) does: runner detection (bun preferred, npm fallback), `bun install` if `node_modules` is missing, full production build (aborts on failure), then dev. Useful for a clean clone or after dependency changes; for the everyday tight loop use `./start dev` to skip the build step.
+
+If you're inside `astro-doc-code/`, `bun run dev` / `bun run build` / `bun run preview` work directly.
 
 ## Key Rules
 

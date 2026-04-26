@@ -20,7 +20,11 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '../..');
+// __dirname = <repo>/astro-doc-code/src/loaders
+//   frameworkRoot = <repo>/astro-doc-code (where src/ lives)
+//   projectRoot   = <repo>/               (where dynamic_data/, .env live)
+const frameworkRoot = path.resolve(__dirname, '../..');
+const projectRoot = path.resolve(__dirname, '../../..');
 
 // ============================================
 // Env helper
@@ -104,15 +108,15 @@ export const paths: {
 } = {
   root: projectRoot,
   config: earlyConfigDir,
-  src: path.resolve(projectRoot, 'src'),
-  layouts: path.resolve(projectRoot, 'src/layouts'),
-  loaders: path.resolve(projectRoot, 'src/loaders'),
-  hooks: path.resolve(projectRoot, 'src/hooks'),
-  modules: path.resolve(projectRoot, 'src/modules'),
+  src: path.resolve(frameworkRoot, 'src'),
+  layouts: path.resolve(frameworkRoot, 'src/layouts'),
+  loaders: path.resolve(frameworkRoot, 'src/loaders'),
+  hooks: path.resolve(frameworkRoot, 'src/hooks'),
+  modules: path.resolve(frameworkRoot, 'src/modules'),
 
-  pages: path.resolve(projectRoot, 'src/pages'),
-  styles: path.resolve(projectRoot, 'src/styles'),
-  srcAssets: path.resolve(projectRoot, 'src/assets'),
+  pages: path.resolve(frameworkRoot, 'src/pages'),
+  styles: path.resolve(frameworkRoot, 'src/styles'),
+  srcAssets: path.resolve(frameworkRoot, 'src/assets'),
 };
 
 // ============================================

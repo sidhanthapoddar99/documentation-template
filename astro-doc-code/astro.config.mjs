@@ -10,9 +10,12 @@ import { devToolbarIntegration } from './src/dev-tools/integration.ts';
 import { initPaths } from './src/loaders/paths.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Repo root is one level above astro-doc-code/. .env, dynamic_data/, and any
+// relative paths in .env are interpreted from this root, regardless of cwd.
+const repoRoot = path.resolve(__dirname, '..');
 
-// Load environment variables from .env
-const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
+// Load environment variables from .env (lives at repo root)
+const env = loadEnv(process.env.NODE_ENV || 'development', repoRoot, '');
 const { PORT, HOST, CONFIG_DIR, LAYOUT_EXT_DIR } = env;
 
 // Load site config for server.allowedHosts and paths initialization
@@ -26,11 +29,11 @@ if (!CONFIG_DIR) {
   );
 }
 
-const resolvedConfigDir = path.resolve(process.cwd(), CONFIG_DIR);
+const resolvedConfigDir = path.resolve(repoRoot, CONFIG_DIR);
 
 // External layouts directory — optional, mirrors src/layouts/ structure
 const extLayoutsDir = LAYOUT_EXT_DIR
-  ? path.resolve(process.cwd(), LAYOUT_EXT_DIR)
+  ? path.resolve(repoRoot, LAYOUT_EXT_DIR)
   : path.resolve(__dirname, './src/layouts/_ext-stub');
 
 if (LAYOUT_EXT_DIR && !fs.existsSync(extLayoutsDir)) {
@@ -100,8 +103,10 @@ export default defineConfig({
       // allowedHosts can be: array of hostnames, true (allow all), or undefined
       allowedHosts: siteConfig?.server?.allowedHosts ?? true,
       fs: {
+        // Allow the whole repo root so vite can serve files from dynamic_data/
+        // (which lives outside astro-doc-code/).
         allow: [
-          path.resolve(__dirname),
+          repoRoot,
           ...(LAYOUT_EXT_DIR ? [extLayoutsDir] : []),
         ],
       },

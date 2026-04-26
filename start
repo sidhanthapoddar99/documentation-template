@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Entrypoint for the astro-doc-code framework.
+#
+# Usage:
+#   ./start            preflight (install if needed → build sanity check) → dev server
+#   ./start <script>   skip preflight, just run the named script (dev | build | preview | astro …)
+#
+# Preflight steps when invoked with no args:
+#   1. Pick a runner — prefer bun, fall back to npm.
+#   2. Install dependencies if node_modules is missing.
+#   3. Run the production build to catch errors before launching dev.
+#   4. Start the dev server.
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$DIR/astro-doc-code"
+
+# 1. Pick a runner
+if command -v bun >/dev/null 2>&1; then
+  RUNNER="bun"
+  RUN="bun run"
+  INSTALL="bun install"
+elif command -v npm >/dev/null 2>&1; then
+  RUNNER="npm"
+  RUN="npm run"
+  INSTALL="npm install"
+else
+  echo "[start] error: neither bun nor npm found on PATH — install one and retry" >&2
+  exit 1
+fi
+echo "[start] runner: $RUNNER"
+
+# 2. Install if node_modules is missing
+if [ ! -d node_modules ]; then
+  echo "[start] node_modules missing — running '$INSTALL'..."
+  $INSTALL
+fi
+
+# Explicit script — skip preflight, just forward
+if [ $# -gt 0 ]; then
+  exec $RUN "$@"
+fi
+
+# 3. Build sanity check before launching dev
+echo "[start] running build to catch errors before dev launch..."
+if ! $RUN build; then
+  echo "[start] build failed — aborting before dev start" >&2
+  exit 1
+fi
+echo "[start] build clean"
+
+# 4. Start dev
+echo "[start] launching dev server..."
+exec $RUN dev
