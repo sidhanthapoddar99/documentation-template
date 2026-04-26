@@ -7,7 +7,7 @@
   "milestone": "phase-1",
   "labels": ["feature"],
   "author": "sidhantha",
-  "assignees": [],
+  "assignees": ["sidhantha"],
   "updated": "2025-06-25",
   "due": null
 }

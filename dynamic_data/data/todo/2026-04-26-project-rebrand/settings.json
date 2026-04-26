@@ -7,7 +7,7 @@
   "milestone": "backlog",
   "labels": ["refactor", "discussion", "idea"],
   "author": "sidhantha",
-  "assignees": [],
+  "assignees": ["sidhantha"],
   "updated": "2026-04-26",
   "due": null
 }
