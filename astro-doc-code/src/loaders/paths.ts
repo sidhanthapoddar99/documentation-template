@@ -22,7 +22,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // __dirname = <repo>/astro-doc-code/src/loaders
 //   frameworkRoot = <repo>/astro-doc-code (where src/ lives)
-//   projectRoot   = <repo>/               (where dynamic_data/, .env live)
+//   projectRoot   = <repo>/               (where default-docs/, .env live)
 const frameworkRoot = path.resolve(__dirname, '../..');
 const projectRoot = path.resolve(__dirname, '../../..');
 
@@ -83,10 +83,12 @@ export function resolvePathFromConfig(relativePath: string): string {
   return path.resolve(paths.config, relativePath);
 }
 
-// Phase 1 config dir: best-effort from env, overridden by initPaths()
-const earlyConfigDir = CONFIG_DIR_EARLY
-  ? resolvePath(CONFIG_DIR_EARLY)
-  : path.resolve(projectRoot, 'dynamic_data/config');
+// Phase 1 config dir: only set if CONFIG_DIR is in process.env at module load
+// (true in SSR/render contexts after astro.config.mjs propagates it). In the
+// build context, this is empty until initPaths() runs — that is fine because
+// nothing should read paths.config before then. No hardcoded fallback —
+// silent fallbacks mask misconfiguration; getConfigPath() throws if unset.
+const earlyConfigDir = CONFIG_DIR_EARLY ? resolvePath(CONFIG_DIR_EARLY) : '';
 
 /**
  * Resolved absolute paths for directories.
@@ -124,7 +126,7 @@ export const paths: {
 // ============================================
 
 /** Reserved alias keys that cannot be used in paths: section */
-const RESERVED_KEYS = new Set(['docs', 'blog', 'custom', 'navbar', 'footer', 'theme', 'config']);
+const RESERVED_KEYS = new Set(['docs', 'blog', 'custom', 'navbar', 'footer', 'theme', 'config', 'root']);
 
 // Use globalThis to persist state across Vite module reloads
 // (astro.config.mjs and runtime may load this as separate module instances)
@@ -205,7 +207,35 @@ export function initPaths(siteConfig: { paths?: Record<string, string>; configDi
       );
     }
 
-    const absolutePath = resolvePathFromConfig(value);
+    let absolutePath: string;
+    if (value.startsWith('@root/') || value === '@root') {
+      // Allow @root in user paths: values so users can compose paths against
+      // the project root (e.g. default_docs: "@root/default-docs/data").
+      // Other aliases are intentionally rejected — system aliases like @docs
+      // are layout concepts, and allowing user-to-user references creates
+      // declaration-ordering ambiguity.
+      const subpath = value === '@root' ? '' : value.slice('@root/'.length);
+      const joined = subpath ? path.join(projectRoot, subpath) : projectRoot;
+      absolutePath = path.normalize(joined);
+      const normalisedRoot = path.normalize(projectRoot);
+      const inside =
+        absolutePath === normalisedRoot ||
+        absolutePath.startsWith(normalisedRoot + path.sep);
+      if (!inside) {
+        throw new Error(
+          `[paths] @root path escapes project root in "${key}: ${value}" → "${absolutePath}" ` +
+          `(must stay under ${normalisedRoot})`
+        );
+      }
+    } else if (value.startsWith('@')) {
+      throw new Error(
+        `[paths] User path "${key}: ${value}" — only "@root" is supported as an alias in paths: values. ` +
+        `User aliases cannot reference other user aliases (declaration-ordering ambiguity), and ` +
+        `system layout aliases (@docs, @blog, @theme, …) are not meant for content paths.`
+      );
+    } else {
+      absolutePath = resolvePathFromConfig(value);
+    }
 
     if (!fs.existsSync(absolutePath)) {
       throw new Error(
@@ -274,6 +304,16 @@ export function isInitialized(): boolean {
  * Get path to a config file
  */
 export function getConfigPath(filename: string): string {
+  if (!paths.config) {
+    throw new Error(
+      `[paths] paths.config is not set — cannot resolve "${filename}".\n` +
+      `  This means CONFIG_DIR was not in process.env when paths.ts loaded ` +
+      `AND initPaths() has not been called yet.\n` +
+      `  Build context: astro.config.mjs must call initPaths() before any consumer reads config.\n` +
+      `  SSR/render context: astro.config.mjs must propagate CONFIG_DIR to process.env so the ` +
+      `early phase sees it (paths.ts has no hardcoded fallback by design).`
+    );
+  }
   return path.join(paths.config, filename);
 }
 

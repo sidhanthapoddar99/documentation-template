@@ -1,0 +1,35 @@
+# Homepage Data
+hero:
+  title: "My Documentation"
+  subtitle: "A clean, fast, customisable documentation site. Edit me in data/pages/home.yaml."
+  cta:
+    label: "Read the Docs"
+    href: "/docs/getting-started/welcome"
+  secondaryCta:
+    label: "Framework User Guide"
+    href: "/user-guide"
+
+features:
+  - title: "Markdown-first"
+    description: "Write in plain markdown with YAML frontmatter. The framework handles the rest."
+    icon: "📝"
+
+  - title: "Auto sidebar"
+    description: "Sidebar generated from your folder structure — XX_ prefixes control order."
+    icon: "📁"
+
+  - title: "Built-in tracker"
+    description: "Issues, subtasks, and an agent log live alongside your docs."
+    icon: "✅"
+
+  - title: "Themeable"
+    description: "Drop in a theme under themes/ or extend the default. CSS-variable driven."
+    icon: "🎨"
+
+  - title: "Live editor"
+    description: "Edit content in-browser via the dev toolbar with multi-user CRDT sync."
+    icon: "✏️"
+
+  - title: "Fast"
+    description: "Built on Astro — static-first, ships zero JavaScript by default."
+    icon: "⚡"

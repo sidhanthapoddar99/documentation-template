@@ -1,0 +1,28 @@
+# Footer Configuration
+layout: "@footer/default"
+
+copyright: "© {year} My Docs. All rights reserved."
+
+columns:
+  - title: "Documentation"
+    links:
+      - label: "Docs"
+        href: "/docs"
+      - label: "User Guide"
+        href: "/user-guide"
+
+  - title: "Community"
+    links:
+      - label: "Blog"
+        page: "blog"
+      - label: "Issues"
+        href: "/issues"
+
+  - title: "Project"
+    links:
+      - label: "GitHub"
+        href: "https://github.com/your-org/your-repo"
+
+social:
+  - platform: "github"
+    href: "https://github.com/your-org/your-repo"

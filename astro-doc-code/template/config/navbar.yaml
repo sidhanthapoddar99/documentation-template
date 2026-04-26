@@ -1,0 +1,20 @@
+# Navbar Configuration
+# Logo configuration lives in site.yaml.
+
+layout: "@navbar/default"
+
+items:
+  - label: "Home"
+    href: "/"
+
+  - label: "Docs"
+    href: "/docs"
+
+  - label: "Issues"
+    href: "/issues"
+
+  - label: "Blog"
+    href: "/blog"
+
+  - label: "User Guide"
+    href: "/user-guide"

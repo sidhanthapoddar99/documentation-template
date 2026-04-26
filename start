@@ -2,18 +2,36 @@
 # Entrypoint for the astro-doc-code framework.
 #
 # Usage:
-#   ./start            preflight (install if needed → build sanity check) → dev server
-#   ./start <script>   skip preflight, just run the named script (dev | build | preview | astro …)
+#   ./start                preflight (install if needed → build sanity check) → dev server
+#   ./start <script>       skip preflight, just run the named script (dev | build | preview | astro …)
+#   ./start clean          wipe build caches (.astro, dist, node_modules/.vite) and exit
+#   ./start clean <script> wipe caches, then run the script (e.g. './start clean dev')
 #
 # Preflight steps when invoked with no args:
 #   1. Pick a runner — prefer bun, fall back to npm.
 #   2. Install dependencies if node_modules is missing.
 #   3. Run the production build to catch errors before launching dev.
 #   4. Start the dev server.
+#
+# When to use clean: any time CONFIG_DIR or paths in .env / site.yaml change.
+# Astro caches compiled routes by source path; stale entries cause builds to
+# import non-existent dist modules or load configs from the previous location.
 set -e
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR/astro-doc-code"
+
+# Optional `clean` first arg — wipe caches, then either exit or continue
+if [ "${1:-}" = "clean" ]; then
+  shift
+  echo "[start] cleaning caches: .astro/, dist/, node_modules/.vite/"
+  rm -rf .astro dist node_modules/.vite
+  if [ $# -eq 0 ]; then
+    echo "[start] clean done"
+    exit 0
+  fi
+  echo "[start] clean done — continuing with: $*"
+fi
 
 # 1. Pick a runner
 if command -v bun >/dev/null 2>&1; then

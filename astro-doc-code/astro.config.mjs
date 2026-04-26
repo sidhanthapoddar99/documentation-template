@@ -10,7 +10,7 @@ import { devToolbarIntegration } from './src/dev-tools/integration.ts';
 import { initPaths } from './src/loaders/paths.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Repo root is one level above astro-doc-code/. .env, dynamic_data/, and any
+// Repo root is one level above astro-doc-code/. .env, default-docs/, and any
 // relative paths in .env are interpreted from this root, regardless of cwd.
 const repoRoot = path.resolve(__dirname, '..');
 
@@ -18,13 +18,20 @@ const repoRoot = path.resolve(__dirname, '..');
 const env = loadEnv(process.env.NODE_ENV || 'development', repoRoot, '');
 const { PORT, HOST, CONFIG_DIR, LAYOUT_EXT_DIR } = env;
 
+// Propagate to process.env so SSR/render contexts that load paths.ts
+// independently (without going through initPaths()) read the same CONFIG_DIR
+// the build is using. Without this, paths.ts's early fallback kicks in during
+// SSR and navbar/footer/site.yaml get loaded from the wrong directory.
+if (CONFIG_DIR) process.env.CONFIG_DIR = CONFIG_DIR;
+if (LAYOUT_EXT_DIR) process.env.LAYOUT_EXT_DIR = LAYOUT_EXT_DIR;
+
 // Load site config for server.allowedHosts and paths initialization
 
 // CONFIG_DIR is required — it bootstraps the entire config system
 if (!CONFIG_DIR) {
   throw new Error(
     '[config] CONFIG_DIR is not set in .env. This variable is required to locate site.yaml.\n' +
-    '  Add to your .env file: CONFIG_DIR=./dynamic_data/config\n' +
+    '  Add to your .env file: CONFIG_DIR=./default-docs/config\n' +
     '  (relative to project root, or use an absolute path)'
   );
 }
@@ -103,7 +110,7 @@ export default defineConfig({
       // allowedHosts can be: array of hostnames, true (allow all), or undefined
       allowedHosts: siteConfig?.server?.allowedHosts ?? true,
       fs: {
-        // Allow the whole repo root so vite can serve files from dynamic_data/
+        // Allow the whole repo root so vite can serve files from default-docs/
         // (which lives outside astro-doc-code/).
         allow: [
           repoRoot,

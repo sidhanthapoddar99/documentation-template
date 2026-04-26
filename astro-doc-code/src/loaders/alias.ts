@@ -32,6 +32,7 @@ function getReservedAliases(): Record<string, string> {
     '@custom': path.join(paths.layouts, 'custom'),
     '@navbar': path.join(paths.layouts, 'navbar'),
     '@footer': path.join(paths.layouts, 'footer'),
+    '@root': paths.root,
   };
 }
 
@@ -113,6 +114,23 @@ export function resolveAlias(aliasPath: string): ResolvedAlias | null {
     : '';
   const basePath = map[prefix];
   const fullPath = name ? path.join(basePath, name) : basePath;
+
+  // @root must stay under the project root — block "../" escapes.
+  // path.join() collapses traversal segments, so a normalised result that
+  // sits outside basePath is the signal something tried to escape.
+  if (prefix === '@root') {
+    const normalisedFull = path.normalize(fullPath);
+    const normalisedBase = path.normalize(basePath);
+    const inside =
+      normalisedFull === normalisedBase ||
+      normalisedFull.startsWith(normalisedBase + path.sep);
+    if (!inside) {
+      throw new Error(
+        `[alias] @root path escapes project root: "${aliasPath}" → "${normalisedFull}" ` +
+        `(must stay under ${normalisedBase})`
+      );
+    }
+  }
 
   return {
     type: prefix,

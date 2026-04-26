@@ -1,0 +1,86 @@
+# Site Configuration
+site:
+  name: "My Docs"
+  title: "My Documentation"
+  description: "Modern documentation built with Astro"
+
+# Vite Server Configuration
+server:
+  # Set to true to allow all hosts, or provide a list of specific hosts
+  allowedHosts: true
+
+# Directory Paths (relative to this config directory, absolute, or @root-prefixed)
+# Each key becomes an @key alias (e.g. data → @data/..., assets → @assets/...).
+# @root resolves to the project root; other aliases are not allowed here.
+paths:
+  data: "../data"
+  assets: "../assets"
+  themes: "../themes"
+  default_docs: "@root/default-docs/data"   # framework-bundled content (user-guide etc.)
+
+# Theme Configuration
+# "theme" is the active theme name (resolved by scanning theme_paths).
+# "theme_paths" lists directories to scan — user themes plus framework-bundled themes.
+theme: "default"
+theme_paths:
+  - "@themes"
+  - "@root/default-docs/themes"   # framework-bundled themes (ship with the install)
+
+# Logo and Favicon Configuration
+# Replace these with your own brand assets in assets/, then update the paths.
+logo:
+  src: "@assets/astro-dark.svg"
+  alt: "My Docs"
+  theme:
+    dark: "@assets/astro-dark.svg"
+    light: "@assets/astro-light.svg"
+  favicon: "@assets/astro.png"
+
+# Editor Configuration (required for the dev-toolbar live editor)
+editor:
+  autosave_interval: 10000
+  presence:
+    ping_interval: 5000
+    stale_threshold: 30000
+    cursor_throttle: 100
+    content_debounce: 150
+    render_interval: 5000
+    sse_keepalive: 15000
+    sse_reconnect: 2000
+
+# Page Definitions — five top-level sections shipped with the template.
+pages:
+  # Homepage
+  home:
+    base_url: "/"
+    type: custom
+    layout: "@custom/home"
+    data: "@data/pages/home.yaml"
+
+  # The user's documentation
+  docs:
+    base_url: "/docs"
+    type: docs
+    layout: "@docs/default"
+    data: "@data/docs"
+
+  # The user's issue tracker
+  issues:
+    base_url: "/issues"
+    type: issues
+    layout: "@issues/default"
+    data: "@data/issues"
+
+  # Blog
+  blog:
+    base_url: "/blog"
+    type: blog
+    layout: "@blog/default"
+    data: "@data/blog"
+
+  # Framework's bundled User Guide — shipped under default-docs/, not user-editable.
+  user-guide:
+    base_url: "/user-guide"
+    type: docs
+    layout: "@docs/default"
+    data: "@default_docs/user-guide"   # path can also be "@root/default-docs/data/user-guide"
