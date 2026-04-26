@@ -148,7 +148,7 @@ Gets rid of main nav items and footer columns — useful for embedded or single-
 
 During development, you can preview layouts **without editing config**. Astro's dev toolbar surfaces a layout-switcher app:
 
-1. Run `bun run dev`
+1. Run `./start dev`
 2. Navigate to any docs / blog / issues / custom page
 3. Click the toolbar icon at the bottom (appears in dev only)
 4. Pick a layout from the dropdown

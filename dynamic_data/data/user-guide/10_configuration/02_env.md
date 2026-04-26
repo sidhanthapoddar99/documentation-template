@@ -27,14 +27,14 @@ CONFIG_DIR=./dynamic_data/config
 
 All other content directory paths (`data`, `assets`, `themes`) are defined in `site.yaml`'s `paths:` section.
 
-> **Path relativity rule:** `CONFIG_DIR` in `.env` is relative to the **project root** (where `.env` lives). Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). Absolute paths work in both places.
+> **Path relativity rule:** `CONFIG_DIR` in `.env` is relative to the **project root** (where `.env` lives — the repo root, **not** the `astro-doc-code/` folder where `astro.config.mjs` sits). Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). Absolute paths work in both places. Internally the framework distinguishes the **project root** (where your content lives) from the **framework root** (`astro-doc-code/`, where the engine source sits) — `.env` and all user-content paths anchor at the project root regardless of where the dev server is launched from.
 
 ### External Layouts
 
 Optionally, `LAYOUT_EXT_DIR` points to a directory of custom layout components that extend or override the built-in layouts:
 
 ```env
-# Optional: External layout directory (mirrors src/layouts/ structure)
+# Optional: External layout directory (mirrors astro-doc-code/src/layouts/ structure)
 LAYOUT_EXT_DIR=./dynamic_data/layouts
 ```
 
@@ -115,7 +115,7 @@ When `HOST=true`, the server binds to `0.0.0.0` allowing access from:
 # All other paths (data, assets, themes) are defined in site.yaml
 CONFIG_DIR=./dynamic_data/config
 
-# Optional: External layout directory (mirrors src/layouts/ structure)
+# Optional: External layout directory (mirrors astro-doc-code/src/layouts/ structure)
 # External layouts merge with built-in; same-name styles override built-in.
 # LAYOUT_EXT_DIR=./dynamic_data/layouts
 

@@ -5,7 +5,7 @@ description: How your content, configuration, and assets are organised in `dynam
 
 # Data Structure
 
-This page covers **`dynamic_data/`** — the folder you'll actually edit. Everything else in the repository (inside `src/`) is framework code and doesn't need to be touched to run or author a docs site.
+This page covers **`dynamic_data/`** — the folder you'll actually edit. Everything else in the repository (inside `astro-doc-code/`) is framework code and doesn't need to be touched to run or author a docs site.
 
 For the internal code layout, see the [dev-docs](/dev-docs/overview/code-structure).
 

@@ -152,7 +152,7 @@ See [Navbar Configuration](/user-guide/configuration/navbar).
 ## 6. Run dev and verify
 
 ```bash
-bun run dev
+./start dev
 ```
 
 Navigate to the tracker's base URL (`/bugs`). You should see an empty list view with your vocabulary reflected in the filter dropdowns and state tabs.

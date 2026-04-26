@@ -57,8 +57,8 @@ Computes the next `XX_` prefix, scaffolds `settings.json` + `01_overview.md`, an
 
 ## Requirements
 
-- A documentation-template-shaped project (has `dynamic_data/`)
-- `bun` preferred for running the helpers; `node` works as a fallback
+- A documentation-template-shaped project (repo root with `dynamic_data/` for content + `astro-doc-code/` for the framework code, plus a `./start` wrapper)
+- `bun` preferred for running the helpers and the framework; `npm` / `node` work as fallbacks
 
 ## License
 

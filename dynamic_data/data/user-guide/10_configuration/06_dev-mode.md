@@ -16,9 +16,11 @@ The framework behaves differently depending on how it's invoked. This page cover
 
 | Command | Mode | What it's for |
 |---------|------|---------------|
-| `bun run dev` | **Development** | Live editing, hot reload, full dev-tools surface |
-| `bun run build` | **Production build** | Output static `dist/` for deployment |
-| `bun run preview` | **Production preview** | Serves the production build locally for smoke-testing |
+| `./start dev` | **Development** | Live editing, hot reload, full dev-tools surface |
+| `./start build` | **Production build** | Output static `dist/` for deployment |
+| `./start preview` | **Production preview** | Serves the production build locally for smoke-testing |
+
+Run from the repo root. If you've already `cd`'d into `astro-doc-code/`, the equivalent `bun run dev` / `bun run build` / `bun run preview` work as well.
 
 The active mode is exposed as `import.meta.env.PROD` — `true` for build / preview, `false` for dev.
 

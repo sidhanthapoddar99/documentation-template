@@ -1,11 +1,11 @@
 ---
 name: documentation-guide
-description: Use this skill for ANY work in this Astro-based documentation-template project — writing markdown, working with the issue tracker (issues, subtasks, comments, agent-logs), creating blog posts, editing docs pages, configuring site.yaml / navbar.yaml / footer.yaml / .env, and anything touching files under `dynamic_data/data/`. The skill triages the task to a domain-specific reference file (writing, docs-layout, blog-layout, issue-layout, settings-layout). TRIGGER eagerly — documentation work in this project almost always benefits from this skill. Use it whenever the user mentions docs, frontmatter, settings.json, the todo / issues tracker, blog posts, the data folder, content types, themes, or any file path containing `dynamic_data/`. SKIP only for pure source-code work in `src/` that doesn't touch any documentation file.
+description: Use this skill for ANY work in this Astro-based documentation-template project — writing markdown, working with the issue tracker (issues, subtasks, comments, agent-logs), creating blog posts, editing docs pages, configuring site.yaml / navbar.yaml / footer.yaml / .env, and anything touching files under `dynamic_data/data/`. The skill triages the task to a domain-specific reference file (writing, docs-layout, blog-layout, issue-layout, settings-layout). TRIGGER eagerly — documentation work in this project almost always benefits from this skill. Use it whenever the user mentions docs, frontmatter, settings.json, the todo / issues tracker, blog posts, the data folder, content types, themes, or any file path containing `dynamic_data/`. SKIP only for pure framework source-code work under `astro-doc-code/src/` that doesn't touch any documentation file.
 ---
 
 # Documentation skill
 
-Operating manual for working in this Astro-based documentation-template project. The project ships content + config under `dynamic_data/data/` (with a `user-guide/` that is the canonical source of truth) and renders it through Astro layouts under `src/layouts/`.
+Operating manual for working in this Astro-based documentation-template project. The project ships content + config under `dynamic_data/data/` (with a `user-guide/` that is the canonical source of truth) and renders it through Astro layouts under `astro-doc-code/src/layouts/`.
 
 ## Triage — which reference file to read
 
@@ -25,8 +25,10 @@ Cross-cutting tasks read multiple references. Example: *"add a new docs section 
 
 ```
 documentation-template/
-├── src/                          ← framework code (Astro layouts, loaders, parsers)
-│   └── layouts/                  ← per-content-type layouts (docs, blog, issues, custom)
+├── start                         ← bash wrapper: `./start [dev|build|preview|<script>]`
+├── astro-doc-code/               ← framework code (src/, package.json, astro.config.mjs, tsconfig.json, bun.lock)
+│   └── src/
+│       └── layouts/              ← per-content-type layouts (docs, blog, issues, custom)
 ├── dynamic_data/                 ← USER-EDITABLE content + config
 │   ├── config/                   ← site.yaml, navbar.yaml, footer.yaml
 │   ├── assets/                   ← static assets served at /assets/
@@ -36,6 +38,8 @@ documentation-template/
 │       ├── dev-docs/             ← developer docs (architecture, layouts, scripts)
 │       ├── blog/                 ← blog posts
 │       └── todo/                 ← issue tracker (folder-per-item)
+├── plugins/                      ← repo-local plugins (e.g. documentation-guide)
+├── .env, .env.example            ← env (read by astro.config.mjs from the repo root)
 └── .claude/skills/docs/          ← this skill
 ```
 
@@ -54,9 +58,9 @@ These apply across all domains. Reference files don't repeat them — they assum
 - **`XX_` prefix** — folders and files inside `data/<docs-section>/` use a 2-digit numeric prefix (`01_`, `05_`, `10_`, …) for ordering. Issues and blog posts do **not** use this prefix.
 - **`settings.json`** — every docs folder has one (sidebar label, position). Issue trackers have a root `settings.json` declaring vocabulary. Issues have a per-issue `settings.json` for metadata.
 - **Frontmatter `title`** — required on every markdown file. Astro builds will fail without it.
-- **Theme variables only** — when editing CSS in layouts, consume declared theme variables (see `src/styles/theme.yaml → required_variables`). Never hardcode colours, fonts, or invent variable names.
+- **Theme variables only** — when editing CSS in layouts, consume declared theme variables (see `astro-doc-code/src/styles/theme.yaml → required_variables`). Never hardcode colours, fonts, or invent variable names.
 - **Edit, don't rewrite** — prefer `Edit` over `Write` for existing files. Surgical regex replaces preserve formatting and key order in JSON.
-- **`bun` is the project runtime** — `bun run dev`, `bun run build`. For helper scripts and any Node CLI tool, prefer `bun` if available, fall back to `npm` / `node`.
+- **`./start` is the entrypoint** — from the repo root, `./start` (preflight: detect bun/npm → install if needed → sanity build → dev), or `./start dev | build | preview` to skip preflight and forward to that script. Inside `astro-doc-code/`, `bun run dev` / `bun run build` / `bun run preview` still work directly. For helper scripts and any Node CLI tool, prefer `bun` if available, fall back to `npm` / `node`.
 
 ## Helper scripts — 11 CLI wrappers on PATH
 

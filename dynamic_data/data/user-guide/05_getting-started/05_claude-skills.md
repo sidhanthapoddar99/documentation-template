@@ -70,7 +70,7 @@ Typical first-time flow in a fresh directory:
 /docs-init
 ```
 
-Then follow the printed instructions to clone the framework engine and run `bun run dev`.
+Then follow the printed instructions to clone the framework engine and run `./start` from the repo root.
 
 ## CLI wrappers — 11 commands on `$PATH`
 

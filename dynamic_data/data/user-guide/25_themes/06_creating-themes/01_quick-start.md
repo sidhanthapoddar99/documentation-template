@@ -76,7 +76,7 @@ If `theme_paths` already lists `"@themes"`, just change `theme:` to your new the
 ### 5. Run dev, verify
 
 ```bash
-bun run dev
+./start dev
 ```
 
 Open the site. Links and branded elements render in your new colour. Everything else looks identical.

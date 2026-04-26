@@ -131,6 +131,8 @@ Configuration supports path aliases for cleaner references:
 | `@assets/file` | `paths.assets/file` → `/assets/file` | Static assets |
 | `@themes/name` | `paths.themes/name` | Custom themes |
 
+> Layout-alias paths above are relative to the framework root (`astro-doc-code/`). From the repo root, the full path is e.g. `astro-doc-code/src/layouts/docs/default/`.
+
 See [Path Aliases](../getting-started/aliases) for the full reference.
 
 ### Assets Alias

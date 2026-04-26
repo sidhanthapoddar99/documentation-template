@@ -136,7 +136,7 @@ See [Notes](../sub-docs/notes) and [Agent Log](../sub-docs/agent-log).
 ## 7. Verify — open in dev
 
 ```bash
-bun run dev
+./start dev
 ```
 
 Navigate to `/todo` (or your tracker's base URL). The new issue should appear in the list. Click through to the detail page. Check:

@@ -62,7 +62,7 @@ Aliases fall into two camps: **system reserved** (fixed by the framework) and **
 
 ### Layout Aliases (system, reserved)
 
-Each content type has its own layout alias, pointing at a folder under `src/layouts/<type>/<style>/`.
+Each content type has its own layout alias, pointing at a folder under `src/layouts/<type>/<style>/` inside the framework root (`astro-doc-code/`). From the repo root, the full disk path is e.g. `astro-doc-code/src/layouts/docs/default/`.
 
 | Alias | Resolves To | Usage |
 |-------|-------------|-------|

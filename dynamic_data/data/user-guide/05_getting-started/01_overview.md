@@ -18,7 +18,7 @@ Together they support the working model that's actually emerging: **AI + small t
 
 ## Separation of Concerns
 
-Your content lives completely separate from the framework code. You edit `dynamic_data/`; you leave `src/` alone:
+Your content lives completely separate from the framework code. You edit `dynamic_data/` at the repo root; the framework lives in its own subfolder (`astro-doc-code/`) that you don't have to touch:
 
 ```
 project/
@@ -28,10 +28,13 @@ project/
 │   ├── data/            # Content (docs, blog, issues, custom pages)
 │   └── themes/          # Custom themes (optional)
 │
-└── src/                 # FRAMEWORK - don't touch
-    ├── layouts/         # Pre-built layouts
-    ├── loaders/         # Data loading engine
-    └── pages/           # Route handlers
+├── start                # Wrapper script — run ./start from the repo root
+│
+└── astro-doc-code/      # FRAMEWORK - don't touch
+    ├── src/             # Layouts, loaders, parsers, dev-tools
+    ├── astro.config.mjs
+    ├── package.json
+    └── node_modules/
 ```
 
 ## Key Features

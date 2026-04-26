@@ -29,8 +29,8 @@ That's it. The system handles the rest.
 
 | Environment | Drafts visible |
 |-------------|----------------|
-| `bun run dev` (development) | ✅ Yes — visible in the sidebar, reachable by URL |
-| `bun run build` / `bun run preview` (production) | ❌ No — filtered out of every loader and every route |
+| `./start dev` (development) | ✅ Yes — visible in the sidebar, reachable by URL |
+| `./start build` / `./start preview` (production) | ❌ No — filtered out of every loader and every route |
 
 The gate is a single check: `!import.meta.env.PROD`. No config flag, no per-page override.
 

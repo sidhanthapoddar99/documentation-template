@@ -32,7 +32,7 @@ Per-content-type extras:
 
 ## Custom tags
 
-Project-specific markdown extensions live in `src/custom-tags/`. Common ones:
+Project-specific markdown extensions live in `astro-doc-code/src/custom-tags/`. Common ones:
 
 ```markdown
 :::callout{type="info"}
@@ -51,7 +51,7 @@ Hidden content.
 :::
 ```
 
-For the full list and syntax, read `dynamic_data/data/user-guide/15_writing-content/` (and grep `src/custom-tags/`).
+For the full list and syntax, read `dynamic_data/data/user-guide/15_writing-content/` (and grep `astro-doc-code/src/custom-tags/`).
 
 ## Asset embedding
 

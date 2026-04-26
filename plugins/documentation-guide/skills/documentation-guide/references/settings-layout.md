@@ -9,37 +9,40 @@ Site chrome, routing, theming, aliases. Everything *above* the per-content-type 
 ## 1. Project structure (for new installs)
 
 ```
-<project-root>/                            ← OR a docs/ subfolder of a larger project
-├── data/                                  ← USER-EDITABLE layer
-│   ├── assets/                            ← static assets served at /assets/
-│   ├── config/                            ← site.yaml, navbar.yaml, footer.yaml
-│   ├── data/                              ← all content (docs, blog, issues, custom)
-│   │   └── README.md                      ← MAP of every top-level data folder (see SKILL.md)
-│   ├── layouts/                           ← OPTIONAL — only when shipping custom layouts
-│   └── themes/                            ← OPTIONAL — only when shipping custom themes
-└── documentation-template/                ← framework code
-    └── .env                               ← CONFIG_DIR=../data/config
+<repo-root>/                               ← OR a docs/ subfolder of a larger project
+├── start                                  ← bash wrapper: `./start [dev|build|preview]`
+├── .env                                   ← CONFIG_DIR=dynamic_data/config (read from repo root)
+├── astro-doc-code/                        ← framework code (src/, package.json, astro.config.mjs, …)
+└── dynamic_data/                          ← USER-EDITABLE layer
+    ├── assets/                            ← static assets served at /assets/
+    ├── config/                            ← site.yaml, navbar.yaml, footer.yaml
+    ├── data/                              ← all content (docs, blog, issues, custom)
+    │   └── README.md                      ← MAP of every top-level data folder (see SKILL.md)
+    ├── layouts/                           ← OPTIONAL — only when shipping custom layouts
+    └── themes/                            ← OPTIONAL — only when shipping custom themes
 ```
 
-Clone the framework code with:
+Clone the framework with:
 ```bash
 git clone https://github.com/sidhanthapoddar99/documentation-template.git
+cd documentation-template
+./start          # preflight: pick bun (else npm) → install if needed → sanity build → dev
 ```
 
 ---
 
 ## 2. `.env` — the bootstrap layer
 
-The framework reads exactly one thing from `.env`: where to find `config/`. Everything else lives in the YAML files inside that config dir.
+The framework reads exactly one thing from `.env`: where to find `config/`. Everything else lives in the YAML files inside that config dir. **`.env` lives at the repo root** (not inside `astro-doc-code/`); `astro.config.mjs` resolves it from the repo root regardless of the launch directory.
 
 ```bash
-CONFIG_DIR=../data/config            # REQUIRED — path to the folder containing site.yaml
-LAYOUT_EXT_DIR=../data/layouts       # OPTIONAL — only when shipping custom layout styles
+CONFIG_DIR=dynamic_data/config       # REQUIRED — path to the folder containing site.yaml
+LAYOUT_EXT_DIR=dynamic_data/layouts  # OPTIONAL — only when shipping custom layout styles
 PORT=3088                            # dev server port
 HOST=true                            # bind to all interfaces (for LAN access)
 ```
 
-**Path is relative to the framework code directory** (`documentation-template/`). `../data/config` is the typical layout when `data/` and `documentation-template/` are siblings.
+**Paths are relative to the repo root** (where `.env` lives). `dynamic_data/config` is the default layout shipped with the framework.
 
 ---
 
@@ -172,10 +175,10 @@ pages:
 
 | Type | Available styles | Located at |
 |---|---|---|
-| `docs` | `@docs/default`, `@docs/compact` | `src/layouts/docs/<style>/` |
-| `blog` | `@blog/default` | `src/layouts/blogs/<style>/` |
-| `issues` | `@issues/default` | `src/layouts/issues/<style>/` |
-| `custom` | `@custom/home`, `@custom/info`, `@custom/countdown`, plus user-shipped ones | `src/layouts/custom/<style>/` |
+| `docs` | `@docs/default`, `@docs/compact` | `astro-doc-code/src/layouts/docs/<style>/` |
+| `blog` | `@blog/default` | `astro-doc-code/src/layouts/blogs/<style>/` |
+| `issues` | `@issues/default` | `astro-doc-code/src/layouts/issues/<style>/` |
+| `custom` | `@custom/home`, `@custom/info`, `@custom/countdown`, plus user-shipped ones | `astro-doc-code/src/layouts/custom/<style>/` |
 
 User-shipped layouts under `dynamic_data/layouts/<type>/<style>/` are picked up automatically when `LAYOUT_EXT_DIR` is set; they override built-in styles of the same name.
 
@@ -205,7 +208,7 @@ items:
 | `items[].label` | string | Display text |
 | `items[].href` | string | Internal path (`/user-guide`) or external URL |
 
-**Grouping** — the default navbar layout is a flat list. For dropdown groups (e.g. "Resources ▾" expanding to multiple links), check the layout source under `src/layouts/navbar/<style>/` to see what nested item shape it accepts. Some layouts support `items[].children: [...]`. If the layout you've chosen doesn't, either pick a different layout or build a custom one.
+**Grouping** — the default navbar layout is a flat list. For dropdown groups (e.g. "Resources ▾" expanding to multiple links), check the layout source under `astro-doc-code/src/layouts/navbar/<style>/` to see what nested item shape it accepts. Some layouts support `items[].children: [...]`. If the layout you've chosen doesn't, either pick a different layout or build a custom one.
 
 **External links** — any `href` starting with `http://` or `https://` is treated as external (opens in new tab, may render an external icon).
 
@@ -268,12 +271,12 @@ social:
 
 | Alias | Resolves to | Used when |
 |---|---|---|
-| `@docs/<style>` | `src/layouts/docs/<style>/` | `pages[].layout` for docs |
-| `@blog/<style>` | `src/layouts/blogs/<style>/` | `pages[].layout` for blog |
-| `@issues/<style>` | `src/layouts/issues/<style>/` | `pages[].layout` for issues |
-| `@custom/<style>` | `src/layouts/custom/<style>/` | `pages[].layout` for custom |
-| `@navbar/<style>` | `src/layouts/navbar/<style>/` | `navbar.yaml → layout` |
-| `@footer/<style>` | `src/layouts/footer/<style>/` | `footer.yaml → layout` |
+| `@docs/<style>` | `astro-doc-code/src/layouts/docs/<style>/` | `pages[].layout` for docs |
+| `@blog/<style>` | `astro-doc-code/src/layouts/blogs/<style>/` | `pages[].layout` for blog |
+| `@issues/<style>` | `astro-doc-code/src/layouts/issues/<style>/` | `pages[].layout` for issues |
+| `@custom/<style>` | `astro-doc-code/src/layouts/custom/<style>/` | `pages[].layout` for custom |
+| `@navbar/<style>` | `astro-doc-code/src/layouts/navbar/<style>/` | `navbar.yaml → layout` |
+| `@footer/<style>` | `astro-doc-code/src/layouts/footer/<style>/` | `footer.yaml → layout` |
 | `@ext-layouts` | `LAYOUT_EXT_DIR` from `.env` | for user-shipped layouts (overrides built-ins by name) |
 | `@theme/<name>` | a theme folder | inside `theme.yaml → extends:` |
 
@@ -300,8 +303,8 @@ Quick orientation:
 
 | What | Where |
 |---|---|
-| Built-in default theme | `src/styles/` (read-only — don't edit) |
-| Built-in `full-width` theme | `src/themes/full-width/` |
+| Built-in default theme | `astro-doc-code/src/styles/` (read-only — don't edit) |
+| Built-in `full-width` theme | `astro-doc-code/src/themes/full-width/` |
 | User themes | `dynamic_data/themes/<name>/theme.yaml` (usually `extends: "@theme/default"`) |
 | Active theme selector | `site.yaml → theme: "<name>"` |
 | Theme discovery | `site.yaml → theme_paths: ["@themes"]` |
@@ -361,7 +364,7 @@ items:
 | `tutorials/` | Hands-on workflow walkthroughs | XX_ docs | `/tutorials/…` | `@docs/default` |
 ```
 
-Restart the dev server (`bun run dev`) — the new route is live.
+Restart the dev server (`./start dev` from the repo root, or `bun run dev` inside `astro-doc-code/`) — the new route is live.
 
 ---
 

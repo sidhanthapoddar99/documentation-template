@@ -36,20 +36,25 @@ If you'd rather not use the plugin, the framework is a normal Astro project:
 ```bash
 git clone https://github.com/sidhanthapoddar99/documentation-template.git my-docs
 cd my-docs
-bun install      # or npm install
 cp .env.example .env
-bun run dev      # http://localhost:4321
+./start          # http://localhost:4321
 ```
 
-Edit content under `dynamic_data/data/`. See the user-guide ([Installation](https://github.com/sidhanthapoddar99/documentation-template/blob/main/dynamic_data/data/user-guide/05_getting-started/02_installation.md)) for the full walkthrough.
+`./start` is a thin wrapper at the repo root: it detects `bun` (falls back to `npm`), installs dependencies on first run, runs a build sanity check, then starts the dev server. Edit content under `dynamic_data/data/`. See the user-guide ([Installation](https://github.com/sidhanthapoddar99/documentation-template/blob/main/dynamic_data/data/user-guide/05_getting-started/02_installation.md)) for the full walkthrough.
 
 ## Build commands
 
+From the repo root, use the `./start` wrapper:
+
 ```bash
-bun run dev      # development server with hot reload
-bun run build    # production build → dist/
-bun run preview  # preview production build locally
+./start          # preflight (install + build check) then dev server
+./start dev      # dev server with hot reload
+./start build    # production build → astro-doc-code/dist/
+./start preview  # preview production build locally
+./start <script> # forward any package.json script
 ```
+
+Inside `astro-doc-code/`, the usual `bun run dev` / `bun run build` / `bun run preview` still work directly.
 
 ## What's inside the repo
 
@@ -57,15 +62,22 @@ bun run preview  # preview production build locally
 documentation-template/
 ├── .claude-plugin/marketplace.json   ← marketplace manifest (this repo IS a marketplace)
 ├── .claude/settings.json             ← dogfood: enables the plugin in this project
+├── start                             ← bash entrypoint (preflight + dev/build/preview)
 ├── plugins/
 │   └── documentation-guide/          ← the plugin source (skill + wrappers + commands)
-├── src/                              ← framework code (Astro layouts, loaders, parsers)
+├── astro-doc-code/                   ← framework code — leave alone unless you're hacking on it
+│   ├── src/                          ← Astro layouts, loaders, parsers
+│   ├── astro.config.mjs
+│   ├── package.json
+│   └── tsconfig.json
 └── dynamic_data/                     ← USER-EDITABLE content + config
     ├── config/                       ← site.yaml, navbar.yaml, footer.yaml
     ├── assets/                       ← static assets served at /assets/
     ├── themes/                       ← optional custom themes
     └── data/                         ← content (user-guide, dev-docs, blog, todo)
 ```
+
+Framework code lives in `astro-doc-code/`; everything you author day-to-day lives in `dynamic_data/`. That's the same boundary the eventual npm-published version will draw, so for normal use you only need to know `dynamic_data/` + `./start` from the repo root.
 
 The repo is **both** the marketplace and the plugin source — a dogfood setup. The same install command above is what every consumer (and every clone of this repo) runs.
 

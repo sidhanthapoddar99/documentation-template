@@ -23,13 +23,14 @@ Scaffold a new **documentation-template** project from zero. The project layout 
 │       ├── settings.json      ← label + sidebar config
 │       └── 01_welcome.md      ← starter page (XX_ prefix on FILES, not section folder)
 ├── themes/                    ← (empty — for custom themes)
-└── documentation-template/    ← framework engine, git-cloned by the user
-                                  (future: replaced by `bun add documentation-template`)
+├── astro-doc-code/            ← framework code, git-cloned by the user
+│                                  (future: replaced by `bun add documentation-template`)
+└── start                      ← bash wrapper from the framework clone (`./start [dev|build|preview]`)
 ```
 
 **Naming convention:** top-level folders under `data/` use plain kebab-case (e.g. `user-guide`, `dev-docs`). The `XX_` numeric prefix is only used on files within a section, and on subsection folders if the section grows them — never on the top-level section folder.
 
-The framework engine itself (`documentation-template/`) is **not** part of this scaffold — it's a separate clone that the user is told to do at the end. Today it must be cloned; once the npm-package work lands, it becomes a dependency install.
+The framework code itself (`astro-doc-code/`) is **not** part of this scaffold — it's a separate clone the user runs at the end. Today it must be cloned; once the npm-package work lands, it becomes a dependency install.
 
 A patched `CLAUDE.md` lives at the repo root (created if absent) so future Claude Code sessions know the docs layout, the active skill, and the build commands.
 
@@ -119,13 +120,13 @@ Created docs scaffold at <chosen_root>.
 
 Next steps:
 
-1. Clone the framework engine:
+1. Clone the framework code into <chosen_root> as `astro-doc-code/` and launch:
      cd <chosen_root>
-     git clone https://github.com/sidhanthapoddar99/documentation-template.git
-     cd documentation-template
-     bun install
-     echo "CONFIG_DIR=../config" > .env
-     bun run dev
+     git clone https://github.com/sidhanthapoddar99/documentation-template.git astro-doc-code
+     # The clone ships its own ./start wrapper at the repo root. If you want it visible
+     # at <chosen_root>/start, copy or symlink it from astro-doc-code/start, then:
+     echo "CONFIG_DIR=config" > .env       # path is relative to <chosen_root> (where .env lives)
+     ./start                                # preflight: pick bun (else npm) → install → sanity build → dev
 
 2. Open http://localhost:4321 — you should see "<Site Name>" with one page in the sidebar.
 
@@ -303,18 +304,22 @@ Docs site lives at `<chosen_root>/` (relative to repo root).
 - **Content**: `<chosen_root>/data/`
 - **Config**: `<chosen_root>/config/{site,navbar,footer}.yaml`
 - **Themes**: `<chosen_root>/themes/`
-- **Framework engine**: `<chosen_root>/documentation-template/` (cloned separately — see below)
+- **Framework code**: `<chosen_root>/astro-doc-code/` (cloned separately — see below)
 
 ### Build commands
 
+From `<chosen_root>/`, use the `./start` wrapper that ships with the framework clone:
+
 ```bash
-cd <chosen_root>/documentation-template
-bun install     # one-time
-bun run dev     # http://localhost:4321
-bun run build   # production build → dist/
+./start            # preflight: pick bun (else npm) → install if needed → sanity build → dev
+./start dev        # skip preflight, dev only      → http://localhost:4321
+./start build      # skip preflight, build only    → astro-doc-code/dist/
+./start preview    # skip preflight, preview only
 ```
 
-The framework reads `.env` (in `documentation-template/`) for `CONFIG_DIR`, which points at the consumer's `config/` folder.
+Inside `astro-doc-code/`, `bun run dev` / `bun run build` / `bun run preview` work directly.
+
+The framework reads `.env` from the repo root (`<chosen_root>/.env`) for `CONFIG_DIR`, which points at the consumer's `config/` folder (path relative to the repo root).
 
 ### Tooling — `documentation-guide` plugin
 
