@@ -29,7 +29,7 @@ if (args.flags.help || !id || !args.flags.author || !args.flags.body) {
 const tracker = args.flags.tracker || DEFAULT_TRACKER;
 const dir = path.join(tracker, id, 'comments');
 if (!isInsideAllowed(dir)) {
-  console.error(`Refusing to write outside dynamic_data/: ${dir}`);
+  console.error(`Refusing to write outside the content root: ${dir}`);
   process.exit(1);
 }
 fs.mkdirSync(dir, { recursive: true });

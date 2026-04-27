@@ -67,7 +67,7 @@ That's a complete layout — load YAML, render a heading and paragraph, styled v
 YAML file:
 
 ```yaml
-# dynamic_data/data/pages/hello.yaml
+# data/pages/hello.yaml
 title: "Hello from custom layout"
 message: "This was rendered by our own layout, reading this YAML."
 ```
@@ -266,11 +266,11 @@ This requires modifying the framework repo. Reserved for layouts that ship with 
 **The recommended path** for custom layouts specific to your project:
 
 ```
-dynamic_data/layouts/custom/<style-name>/
+layouts/custom/<style-name>/
 └── Layout.astro
 ```
 
-Requires setting `LAYOUT_EXT_DIR=./dynamic_data/layouts` in `.env`. The layout is immediately available at `@custom/<style-name>` in `site.yaml`.
+`layouts/` lives at your project root (sibling of `config/` and `data/`). Set `LAYOUT_EXT_DIR=../layouts` in `.env` (the path is relative to the framework folder where `.env` lives — `../layouts` reaches up to your project root). The layout is immediately available at `@custom/<style-name>` in `site.yaml`.
 
 Full setup: [Custom Layout Styles](/user-guide/layout-system/custom-layout-styles).
 
@@ -304,7 +304,7 @@ import { formatDate } from './util.ts';
 A real-world custom layout often grows past a single file. Standard pattern:
 
 ```
-dynamic_data/layouts/custom/dashboard/
+layouts/custom/dashboard/
 ├── Layout.astro            main entry (loads data, composes parts)
 ├── parts/
 │   ├── Header.astro        hero / title block
@@ -370,7 +370,7 @@ Once a layout is stable, you can distribute it:
 
 The consumer needs:
 - The layout folder
-- Matching YAML file(s) in `dynamic_data/data/pages/`
+- Matching YAML file(s) in `data/pages/`
 - A `pages:` entry in `site.yaml`
 
 Clear README + example YAML in the layout folder goes a long way.

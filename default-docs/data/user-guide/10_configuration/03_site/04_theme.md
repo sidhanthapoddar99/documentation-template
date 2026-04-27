@@ -29,8 +29,9 @@ The `theme_paths` field lists directories to scan for user themes. Each entry ca
 ```yaml
 # Explicit list of directories containing themes
 theme_paths:
-  - "@themes"           # resolves via @themes alias to dynamic_data/themes/
-  # - "/other/themes"   # absolute path also works
+  - "@themes"                          # YOUR themes folder (via the @themes user alias)
+  - "@root/default-docs/themes"        # framework-bundled themes (the defaults)
+  # - "/other/themes"                  # absolute path also works
 ```
 
 If `theme_paths` is omitted, only the built-in `"default"` theme is available.

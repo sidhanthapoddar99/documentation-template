@@ -2,7 +2,7 @@
 
 How to add and configure blog posts.
 
-**Canonical source of truth:** `dynamic_data/data/user-guide/18_blogs/` — read those pages when this reference is unclear.
+**Canonical source of truth:** the framework's bundled `@root/default-docs/data/user-guide/18_blogs/` — read those pages when this reference is unclear.
 
 > **Status:** stub. Detailed spec under `2025-06-25-claude-skills/subtasks/05_blog-layout-skill.md`. For now, this file captures the essentials.
 
@@ -10,7 +10,7 @@ How to add and configure blog posts.
 
 ## File naming
 
-Blog posts are **flat files** (no folders, no `XX_` prefix) under `dynamic_data/data/blog/`:
+Blog posts are **flat files** (no folders, no `XX_` prefix) under the project's `data/blog/`:
 
 ```
 blog/
@@ -47,22 +47,22 @@ Auto-generated at `/blog/`. Shows:
 
 ## Asset embedding
 
-Same as other content — assets live in `dynamic_data/assets/blog/<post-slug>/` and are referenced as `/assets/blog/<post-slug>/<file>`.
+Same as other content — assets live in `assets/blog/<post-slug>/` and are referenced as `/assets/blog/<post-slug>/<file>`.
 
 ## URL
 
-`dynamic_data/data/blog/2026-04-19-introducing-issues.md` → `/blog/introducing-issues` (date stripped from URL).
+`data/blog/2026-04-19-introducing-issues.md` → `/blog/introducing-issues` (date stripped from URL).
 
 ## Validate
 
 The plugin ships **`docs-check-blog`** (on your `PATH` after install) — runs structural checks against the blog folder so you don't have to eyeball it.
 
 ```bash
-# Default: checks dynamic_data/data/blog/
+# Default: resolves the blog path from .env (`<content-root>/blog/`)
 docs-check-blog
 
-# Or point at any folder
-docs-check-blog dynamic_data/data/blog
+# Or point at any folder explicitly
+docs-check-blog ./data/blog
 ```
 
 What it checks:
@@ -74,6 +74,6 @@ Exit code `0` = clean, `1` = errors found. Run after creating a new post or if a
 
 ## Cross-references
 
-- `dynamic_data/data/user-guide/18_blogs/` — full user-guide section
+- `@root/default-docs/data/user-guide/18_blogs/` (the framework's bundled user-guide) — full section
 - `references/writing.md` — markdown / frontmatter basics
 - `references/settings-layout.md` — `site.yaml` blog config (per_page, sort, etc.)

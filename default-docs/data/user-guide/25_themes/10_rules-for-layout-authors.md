@@ -8,7 +8,7 @@ sidebar_position: 10
 
 **Everything in this page is a contract, not a suggestion.** Layouts that violate these rules break theme switching, dark mode, and user customisation in silent and confusing ways.
 
-The audience for this page is: anyone writing CSS in `astro-doc-code/src/layouts/*` or any custom layout under `dynamic_data/layouts/`. The discipline described here is why the current codebase has **zero** hardcoded colours / font sizes / spacing values across 457 `var(--…)` uses. Today's state is clean. Your job is to keep it that way.
+The audience for this page is: anyone writing CSS in `astro-doc-code/src/layouts/*` or any custom layout under `layouts/` (when `LAYOUT_EXT_DIR` is set). The discipline described here is why the current codebase has **zero** hardcoded colours / font sizes / spacing values across 457 `var(--…)` uses. Today's state is clean. Your job is to keep it that way.
 
 ## The core rule
 

@@ -6,7 +6,7 @@ Astro-based documentation framework with modular layouts, YAML configuration, an
 
 This project ships its own Claude Code plugin (`documentation-guide@documentation-template`) — a marketplace lives at the repo root (`.claude-plugin/marketplace.json`) and the project itself dogfoods the install (`.claude/settings.json` enables the plugin). When you clone the repo, run `/plugin marketplace add <this-repo-path>` then `/plugin install documentation-guide@documentation-template` then `/reload-plugins` and the skill + tooling become available. (Use a plain absolute or relative path — `/plugin marketplace add` rejects `file://` URLs.)
 
-**The skill** — `documentation-guide` — triages every docs/issue/blog/config task to one of five reference files (`writing.md`, `docs-layout.md`, `blog-layout.md`, `issue-layout.md`, `settings-layout.md`). Trigger eagerly for anything under `dynamic_data/`.
+**The skill** — `documentation-guide` — triages every docs/issue/blog/config task to one of five reference files (`writing.md`, `docs-layout.md`, `blog-layout.md`, `issue-layout.md`, `settings-layout.md`). Trigger eagerly for anything under `default-docs/`.
 
 **11 CLI wrappers on PATH** (Claude Code adds the plugin's `bin/` to PATH automatically):
 
@@ -14,7 +14,7 @@ Issue tracker:
 
 | Command | Use |
 |---|---|
-| `docs-list` | Multi-field filter + free-text regex search over the tracker — drop-in replacement for `grep`/`find` on `dynamic_data/data/todo/` |
+| `docs-list` | Multi-field filter + free-text regex search over the tracker — drop-in replacement for `grep`/`find` on `default-docs/data/todo/` |
 | `docs-show` | One issue's metadata + subtask + log heads |
 | `docs-subtasks` | List subtasks (`--all` for cross-issue) |
 | `docs-agent-logs` | Last N agent-log entries |
@@ -26,8 +26,8 @@ Validators (exit `0` clean / `1` on errors):
 
 | Command | Use |
 |---|---|
-| `docs-check-blog` | Validate `dynamic_data/data/blog/` — filename pattern, frontmatter, no nesting |
-| `docs-check-config` | Validate `dynamic_data/config/` — required keys, page structure, alias resolution |
+| `docs-check-blog` | Validate `default-docs/data/blog/` — filename pattern, frontmatter, no nesting |
+| `docs-check-config` | Validate `default-docs/config/` — required keys, page structure, alias resolution |
 | `docs-check-section <folder>` | Validate any docs section — `XX_` prefixes, `settings.json`, frontmatter |
 
 Pass `--help` to any wrapper for full flags. **Do not use `Grep` on the tracker** — `docs-list` understands the schema (vocabulary, subtask states, frontmatter); `Grep` only sees text.
@@ -45,14 +45,14 @@ Pass `--help` to any wrapper for full flags. **Do not use `Grep` on the tracker*
 <repo-root>/
 ├── start                    # Bash wrapper — `./start dev | build | preview`
 ├── astro-doc-code/          # Framework code (src/, package.json, astro.config.mjs, tsconfig.json, bun.lock)
-├── dynamic_data/            # User content (data, config, themes, assets)
+├── default-docs/            # User content (data, config, themes, assets)
 ├── plugins/                 # Repo-local plugin sources (e.g. documentation-guide)
 ├── .claude/, .claude-plugin/, .mcp.json
 ├── .env, .env.example
 └── CLAUDE.md, README.md
 ```
 
-The framework lives entirely in `astro-doc-code/`. The repo root holds user content, config, and the `start` wrapper. `paths.ts` distinguishes `frameworkRoot` (`astro-doc-code/`, where `src/` lives) from `projectRoot` (the repo root, where `dynamic_data/` and `.env` live). `astro.config.mjs` reads `.env` from `repoRoot`, not `process.cwd()` — so it works regardless of which directory you launch from.
+The framework lives entirely in `astro-doc-code/`. The repo root holds user content, config, and the `start` wrapper. `paths.ts` distinguishes `frameworkRoot` (`astro-doc-code/`, where `src/` lives) from `projectRoot` (the repo root, where `default-docs/` and `.env` live). `astro.config.mjs` reads `.env` from `repoRoot`, not `process.cwd()` — so it works regardless of which directory you launch from.
 
 ## Source Code Structure
 
@@ -112,7 +112,7 @@ src/
 ## Data Directory
 
 ```
-dynamic_data/
+default-docs/
 ├── config/               # YAML configs (site.yaml, navbar.yaml, footer.yaml)
 ├── assets/               # Static assets (logos, images) → served at /assets/
 ├── themes/               # Custom themes (each has theme.yaml + CSS files)
@@ -137,7 +137,9 @@ dynamic_data/
 
 ## Key Architecture Concepts
 
-**Path resolution**: `site.yaml` `paths:` section defines `@key` aliases (`@data`, `@assets`, `@themes`). User aliases are resolved to absolute paths at config load time. System aliases (`@docs`, `@blog`, `@issues`, `@custom`, `@navbar`, `@footer`) remain as layout references resolved at render time.
+**Path resolution**: `site.yaml` `paths:` section defines `@key` aliases (`@data`, `@assets`, `@themes`). User aliases are resolved to absolute paths at config load time. System aliases (`@docs`, `@blog`, `@issues`, `@custom`, `@navbar`, `@footer`) remain as layout references resolved at render time. **`@root`** is reserved and resolves to **the framework folder** (parent of `astro-doc-code/`, where `.env` and `default-docs/` live) — NOT the consumer's outer project. Usable both as a direct reference (`@root/default-docs/themes/foo.css`) and inside `paths:` values to compose user aliases against the framework folder (e.g. `default-docs: "@root/default-docs/data"`). Path-traversal escapes are rejected; only `@root` is allowed inside `paths:` values (other aliases are layout/theme concepts and user-to-user references are rejected to avoid ordering ambiguity).
+
+**Two operating modes**: *Consumer mode* — framework folder is a subfolder of the user's project (`<user-project>/documentation-template/`), `.env` lives inside it with `CONFIG_DIR=../config` reaching up to the user's content. *Dogfood / framework-dev mode* — framework repo IS the project (this repo), `CONFIG_DIR=./default-docs/config` points at the bundled config. Same code path either way; only `CONFIG_DIR` and the active content location differ. The consumer never edits `default-docs/` — that's the framework's own bundle (its docs, testbed, and source of defaults).
 
 **Theme resolution**: `site.yaml` `theme: "name"` specifies the active theme by name. `theme_paths: ["@themes"]` lists directories to scan for user themes. `resolveThemeName()` scans those directories during `loadSiteConfig()` and resolves to an absolute path. Theme inheritance (`extends` in `theme.yaml`) uses `@theme/` aliases resolved at theme load time.
 
@@ -149,7 +151,7 @@ dynamic_data/
 
 ## Layouts
 
-A **layout** is a folder under `src/layouts/<type>/<style>/` that renders pages of a given content type. Types are fixed by the routing layer; styles are pluggable (each adds a variant like `default`, `compact`, `minimal`). User themes can ship layouts in `dynamic_data/layouts/<type>/<style>/` which override built-in styles via the `@ext-layouts` alias.
+A **layout** is a folder under `src/layouts/<type>/<style>/` that renders pages of a given content type. Types are fixed by the routing layer; styles are pluggable (each adds a variant like `default`, `compact`, `minimal`). User themes can ship layouts in `default-docs/layouts/<type>/<style>/` which override built-in styles via the `@ext-layouts` alias.
 
 ### Layout types
 
@@ -193,7 +195,7 @@ A **layout** is a folder under `src/layouts/<type>/<style>/` that renders pages 
 ### Where themes live
 
 - **Built-in default theme**: `src/styles/` — `theme.yaml` (contract), `color.css`, `font.css`, `element.css`, `markdown.css`, etc.
-- **User themes**: `dynamic_data/themes/<name>/` — each has its own `theme.yaml` (usually `extends: "@theme/default"`) and any CSS overrides.
+- **User themes**: `default-docs/themes/<name>/` — each has its own `theme.yaml` (usually `extends: "@theme/default"`) and any CSS overrides.
 - **Active theme selector**: `site.yaml → theme: "<name>"`; `theme_paths: ["@themes"]` controls which dirs to scan.
 
 ### Typography regulations — two-tier token model

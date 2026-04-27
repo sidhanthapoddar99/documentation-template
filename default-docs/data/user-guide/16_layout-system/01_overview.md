@@ -128,7 +128,7 @@ Response
 
 ## User-shippable layouts — `@ext-layouts`
 
-You can ship your own layout style without editing `src/layouts/`. Drop it in a user-configured directory (typically `dynamic_data/layouts/<type>/<style>/`), set `LAYOUT_EXT_DIR` in `.env`, and the new layout is immediately available via the same `@<type>/<style>` alias — with **override-by-name** semantics against built-ins.
+You can ship your own layout style without editing `src/layouts/`. Drop it in a user-configured directory (typically `layouts/<type>/<style>/` at your project root, sibling of `config/` and `data/`), set `LAYOUT_EXT_DIR` in `.env`, and the new layout is immediately available via the same `@<type>/<style>` alias — with **override-by-name** semantics against built-ins.
 
 Full walkthrough: [Custom Layout Styles](./custom-layout-styles).
 

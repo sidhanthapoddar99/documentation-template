@@ -25,7 +25,7 @@ Path aliases provide a clean, consistent way to reference files and directories 
 │   └──────────────────────────────────────┘                                  │
 │        │                                                                    │
 │        ▼                                                                    │
-│   /path/to/project/dynamic_data/data/docs/overview.md                       │
+│   /path/to/project/data/docs/overview.md                       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -46,6 +46,8 @@ Aliases fall into two camps: **system reserved** (fixed by the framework) and **
 │             @navbar   @footer   @ext-layouts                    │
 │                                                                 │
 │   Themes    @theme/default   @theme/<name>                      │
+│                                                                 │
+│   Framework @root  (the framework folder — bundled content)    │
 └─────────────────────────────────────────────────────────────────┘
 
 ┌─ USER DEFINED ──────────────────────────────────────────────────┐
@@ -73,6 +75,22 @@ Each content type has its own layout alias, pointing at a folder under `src/layo
 | `@navbar/<style>` | `src/layouts/navbar/<style>/` | Navbar layouts |
 | `@footer/<style>` | `src/layouts/footer/<style>/` | Footer layouts |
 | `@ext-layouts/` | External layouts directory (`LAYOUT_EXT_DIR` in `.env`) | Override built-in styles |
+
+### Framework Root Alias (system, reserved)
+
+`@root` resolves to **the framework folder** — specifically, the parent of `astro-doc-code/`, which is also where `.env` and `default-docs/` live. In consumer mode that's `documentation-template/` (a subfolder of your project); in dogfood mode it happens to be your project root because the framework repo *is* the project. Either way, `@root` always points at the framework folder, never at the consumer's outer project.
+
+This is what you want when reaching the framework's bundled content — themes, the user-guide, the init template, etc. all live under `@root/default-docs/...`.
+
+| Alias | Resolves To | Usage |
+|-------|-------------|-------|
+| `@root/<path>` | `<framework-folder>/<path>` | Any file under the framework folder |
+| `@root/default-docs/...` | bundled content | The most common use — themes, the framework's own user-guide, etc. |
+| `@root` (no subpath) | the framework folder itself | Rarely useful directly |
+
+**Path-traversal is blocked** — `@root/../something` is rejected, since the normalised result must stay under the framework folder. This intentionally also prevents `@root` from reaching *out* into the consumer's project (e.g. `@root/../config` would fail). For consumer content, use the user-defined aliases declared in `site.yaml → paths:` (`@data`, `@assets`, etc.) which resolve relative to the config directory.
+
+`@root` can also be used in `paths:` values in `site.yaml` to define your own user aliases against the framework folder — see [Directory Paths](../10_configuration/03_site/03_paths.md). The most common pattern is `default-docs: "@root/default-docs/data"` so the framework's bundled docs become reachable via `@default-docs/...`.
 
 ### Theme Aliases (system, reserved)
 
@@ -176,47 +194,55 @@ Aliases are configured in two places, each with different path relativity:
 
 | Setting | File | Relative To |
 |---------|------|-------------|
-| `CONFIG_DIR` | `.env` | **Project root** (where `.env` lives) |
+| `CONFIG_DIR` | `.env` | **Framework folder** (where `.env` lives — `documentation-template/`) |
 | `paths:` entries | `site.yaml` | **Config directory** (where `site.yaml` lives) |
 
 Absolute paths work in both places.
 
+**Consumer mode** — your content folders sit beside the framework folder:
+
+```env
+# documentation-template/.env — CONFIG_DIR points up to your config/
+CONFIG_DIR=../config
+```
+
 ```yaml
-# site.yaml — paths relative to this file's directory
+# config/site.yaml — paths relative to this file's directory
 paths:
-  data: "../data"       # config dir + ../data → dynamic_data/data
-  assets: "../assets"   # config dir + ../assets → dynamic_data/assets
-  themes: "../themes"   # config dir + ../themes → dynamic_data/themes
+  data: "../data"       # config dir + ../data → <your-project>/data
+  assets: "../assets"   # config dir + ../assets → <your-project>/assets
+  themes: "../themes"   # config dir + ../themes → <your-project>/themes
   # data2: "/other/project/data"   # absolute path → used as-is
 ```
 
+Resolution chain in consumer mode:
+```
+.env:  CONFIG_DIR = ../config   →  <your-project>/config/
+site.yaml:  data = "../data"    →  <your-project>/data/
+```
+
+**Dogfood mode** (only relevant if you're working *on* the framework itself, against its bundled `default-docs/`):
+
 ```env
-# .env — CONFIG_DIR relative to project root
-CONFIG_DIR=./dynamic_data/config   # project root + ./dynamic_data/config
+CONFIG_DIR=./default-docs/config   # framework folder + ./default-docs/config
 ```
 
-For example, with the defaults above the resolution chain is:
-```
-.env:  CONFIG_DIR = ./dynamic_data/config  →  <project>/dynamic_data/config/
-site.yaml:  data = "../data"               →  <project>/dynamic_data/data/
-```
-
-| Alias | Configured In | Default |
+| Alias | Configured In | Default (consumer mode) |
 |-------|---------------|---------|
 | `@data` | `site.yaml` paths | `../data` (relative to config dir) |
 | `@assets` | `site.yaml` paths | `../assets` (relative to config dir) |
 | `@themes` | `site.yaml` paths | `../themes` (relative to config dir) |
-| `@config` | `.env` CONFIG_DIR | `./dynamic_data/config` (relative to project root) |
+| `@config` | `.env` CONFIG_DIR | `../config` (relative to framework folder) |
 
 ## Error Display Aliases
 
 In error logs and the dev toolbar, absolute paths are converted back to aliases for readability:
 
 ```
-/Users/.../dynamic_data/data/docs/overview.md
+/Users/.../data/docs/overview.md
   → @data/docs/overview.md
 
-/Users/.../dynamic_data/config/site.yaml
+/Users/.../config/site.yaml
   → @config/site.yaml
 
 /Users/.../src/layouts/docs/...

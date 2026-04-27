@@ -13,20 +13,39 @@ Get your documentation site running in under 5 minutes.
 - **Git** for version control
 - A code editor (VS Code recommended)
 
-## Step 1: Clone the Repository
+## Step 1: Clone the framework as a subfolder
+
+The framework ships as a self-contained folder you drop *inside* your docs project. From your docs project root:
 
 ```bash
-git clone https://github.com/sidhanthapoddar99/documentation-template.git my-docs
-cd my-docs
+cd your-docs-folder/                                          # or wherever your docs live
+git clone https://github.com/sidhanthapoddar99/documentation-template.git
 ```
+
+Now your project looks like:
+
+```
+your-docs-folder/
+├── config/                       # YOUR content (created in Step 3 or via /docs-init)
+├── data/
+├── assets/
+├── themes/
+└── documentation-template/       # the framework, just cloned
+    ├── .env.example
+    ├── start
+    ├── astro-doc-code/
+    ├── default-docs/             # framework-bundled docs/themes/template
+    └── plugins/
+```
+
+If you'd rather track the framework as a submodule (so updates pull cleanly), substitute `git submodule add https://github.com/.../documentation-template.git` for the plain clone.
 
 ## Step 2: Install Dependencies
 
-The framework's source code lives in the `astro-doc-code/` subfolder. The repo root ships a `./start` wrapper that handles dependency install, build sanity check, and dev launch in one go — you usually don't have to `cd` into `astro-doc-code/` yourself.
-
-First-run bootstrap (does install + build + dev):
+The framework ships a `./start` wrapper at its root that handles dependency install, build sanity check, and dev launch in one go.
 
 ```bash
+cd documentation-template/
 ./start
 ```
 
@@ -61,26 +80,30 @@ For full details (skill internals, wrapper inventory, update flow, scope behavio
 
 ## Step 3: Environment Setup
 
-Create your environment file:
+From inside `documentation-template/`, create your `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-The default `.env` works out of the box:
+The default `.env` is configured for **consumer mode** — it expects your `config/`, `data/`, etc. to be one level up (siblings of the framework folder):
 
 ```env
-# Bootstrap: points to the config directory containing site.yaml
-CONFIG_DIR=./dynamic_data/config
+# Reaches UP from this framework folder to YOUR project root
+CONFIG_DIR=../config
 
 # Dev server
 PORT=3088
 HOST=true
 ```
 
+If you're working *on the framework itself* (editing the bundled `default-docs/`), switch to dogfood mode by changing `CONFIG_DIR` to `./default-docs/config`. See [Environment Variables](/user-guide/configuration/env) for both modes.
+
 Directory paths for content, assets, and themes are configured in `site.yaml`'s `paths:` section (see [Site Configuration](/user-guide/configuration/site/overview)).
 
 ## Step 4: Start Development
+
+From `documentation-template/`:
 
 ```bash
 ./start dev
@@ -97,7 +120,7 @@ You should see:
 
 ## Available Commands
 
-Run from the repo root via the `./start` wrapper:
+Run from inside `documentation-template/` via the `./start` wrapper:
 
 | Command | Description |
 |---------|-------------|
@@ -105,6 +128,8 @@ Run from the repo root via the `./start` wrapper:
 | `./start dev` | Start dev server with hot reload (skip preflight) |
 | `./start build` | Build production site to `dist/` (skip preflight) |
 | `./start preview` | Preview production build locally (skip preflight) |
+| `./start clean` | Wipe `.astro/`, `dist/`, `node_modules/.vite/` (run after changing `.env` or paths) |
+| `./start clean <cmd>` | Wipe caches then forward — e.g. `./start clean build` |
 | `./start <script>` | Forward any other `package.json` script |
 
 The dev server, build output, and preview all run inside `astro-doc-code/`. If you're already `cd`'d into that folder, the equivalent `bun run dev` / `bun run build` / `bun run preview` work as well.
@@ -118,10 +143,19 @@ The server automatically finds an available port. Check terminal output for the 
 ### Module Not Found Errors
 
 ```bash
-# Clear node_modules and reinstall (from the repo root)
+# From inside documentation-template/
 rm -rf astro-doc-code/node_modules astro-doc-code/bun.lockb
 ./start          # re-runs preflight (install + build + dev)
 ```
+
+### Stale build after changing `.env` or paths
+
+```bash
+./start clean    # wipes .astro/, dist/, node_modules/.vite/
+./start          # then rebuild
+```
+
+Astro caches compiled routes by source path; when `CONFIG_DIR` or content paths move, stale cache entries can cause "Cannot find module" failures. `./start clean` is the cure.
 
 ### Build Fails
 

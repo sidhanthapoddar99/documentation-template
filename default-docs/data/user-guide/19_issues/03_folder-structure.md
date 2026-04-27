@@ -10,10 +10,10 @@ Everything about an issue lives on disk. No database, no schema migrations. This
 
 ## The tracker root
 
-A tracker is a directory under `dynamic_data/data/` with a root `settings.json`:
+A tracker is a directory under `data/` with a root `settings.json`:
 
 ```
-dynamic_data/data/todo/              ← one tracker
+data/todo/              ← one tracker
 ├── settings.json                    ← tracker vocabulary (required)
 ├── 2026-04-19-docs-phase-2/         ← one issue
 ├── 2026-04-10-issues-layout/        ← another issue

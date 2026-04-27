@@ -16,7 +16,7 @@ paths:
   data: "../data"
   assets: "../assets"
   themes: "../themes"
-  default_docs: "@root/default-docs/data"   # framework-bundled content (user-guide etc.)
+  default-docs: "@root/default-docs/data"   # framework-bundled content (user-guide etc.)
 
 # Theme Configuration
 # "theme" is the active theme name (resolved by scanning theme_paths).
@@ -83,4 +83,4 @@ pages:
     base_url: "/user-guide"
     type: docs
     layout: "@docs/default"
-    data: "@default_docs/user-guide"   # path can also be "@root/default-docs/data/user-guide"
+    data: "@default-docs/user-guide"   # path can also be "@root/default-docs/data/user-guide"

@@ -40,7 +40,7 @@ cp .env.example .env
 ./start          # http://localhost:4321
 ```
 
-`./start` is a thin wrapper at the repo root: it detects `bun` (falls back to `npm`), installs dependencies on first run, runs a build sanity check, then starts the dev server. Edit content under `dynamic_data/data/`. See the user-guide ([Installation](https://github.com/sidhanthapoddar99/documentation-template/blob/main/dynamic_data/data/user-guide/05_getting-started/02_installation.md)) for the full walkthrough.
+`./start` is a thin wrapper at the repo root: it detects `bun` (falls back to `npm`), installs dependencies on first run, runs a build sanity check, then starts the dev server. Edit content under `default-docs/data/`. See the user-guide ([Installation](https://github.com/sidhanthapoddar99/documentation-template/blob/main/default-docs/data/user-guide/05_getting-started/02_installation.md)) for the full walkthrough.
 
 ## Build commands
 
@@ -70,21 +70,21 @@ documentation-template/
 │   ├── astro.config.mjs
 │   ├── package.json
 │   └── tsconfig.json
-└── dynamic_data/                     ← USER-EDITABLE content + config
+└── default-docs/                     ← USER-EDITABLE content + config
     ├── config/                       ← site.yaml, navbar.yaml, footer.yaml
     ├── assets/                       ← static assets served at /assets/
     ├── themes/                       ← optional custom themes
     └── data/                         ← content (user-guide, dev-docs, blog, todo)
 ```
 
-Framework code lives in `astro-doc-code/`; everything you author day-to-day lives in `dynamic_data/`. That's the same boundary the eventual npm-published version will draw, so for normal use you only need to know `dynamic_data/` + `./start` from the repo root.
+Framework code lives in `astro-doc-code/`; everything you author day-to-day lives in `default-docs/`. That's the same boundary the eventual npm-published version will draw, so for normal use you only need to know `default-docs/` + `./start` from the repo root.
 
 The repo is **both** the marketplace and the plugin source — a dogfood setup. The same install command above is what every consumer (and every clone of this repo) runs.
 
 ## Documentation
 
-- **End-user docs** — `dynamic_data/data/user-guide/` (rendered at `/user-guide` in the live site). Setup, configuration, content authoring, themes, layouts, the issue tracker.
-- **Developer docs** — `dynamic_data/data/dev-docs/` (rendered at `/dev-docs`). Architecture, layouts internals, loader pipeline, scripts, and the **Plugins** section explaining how Claude Code plugins work and how to author one.
+- **End-user docs** — `default-docs/data/user-guide/` (rendered at `/user-guide` in the live site). Setup, configuration, content authoring, themes, layouts, the issue tracker.
+- **Developer docs** — `default-docs/data/dev-docs/` (rendered at `/dev-docs`). Architecture, layouts internals, loader pipeline, scripts, and the **Plugins** section explaining how Claude Code plugins work and how to author one.
 - **CLAUDE.md** at the repo root — orientation for Claude Code sessions working in this repo.
 
 ## What's coming

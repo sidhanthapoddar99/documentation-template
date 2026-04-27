@@ -22,7 +22,7 @@ paths:
 
 **Paths are relative to the config directory** (where `site.yaml` lives). Absolute paths are also supported.
 
-> **How this differs from `.env`:** `CONFIG_DIR` in `.env` is relative to the **project root** (where `.env` lives). Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). For example, with `CONFIG_DIR=./dynamic_data/config` and `data: "../data"`, the data directory resolves to `./dynamic_data/data`.
+> **How this differs from `.env`:** `CONFIG_DIR` in `.env` is relative to **the framework folder** (where `.env` lives — `documentation-template/`). Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). Consumer-mode example: with `CONFIG_DIR=../config` (which puts the config dir at `<your-project>/config/`) and `data: "../data"`, the data directory resolves to `<your-project>/data/`. Dogfood-mode example: with `CONFIG_DIR=./default-docs/config` and `data: "../data"`, it resolves to `<framework-folder>/default-docs/data/`.
 
 ## Multiple Directories
 
@@ -43,9 +43,34 @@ Additional directories are automatically categorized:
 - Keys starting with `theme` → theme category
 - `config` → config category
 
+## Using `@root` in `paths:` values
+
+Values in `paths:` can be relative to the config directory, absolute, or prefixed with `@root` to compose paths against the **framework folder** (where `.env` and `default-docs/` live — see [Path Aliases](../../05_getting-started/03_aliases.md) for what `@root` means in each mode):
+
+```yaml
+paths:
+  data: "../data"                                # relative to config dir
+  assets: "/shared/brand-assets"                 # absolute
+  default-docs: "@root/default-docs/data"        # @root + subpath into the framework folder
+```
+
+This lets a user-defined alias (`@default-docs/...` here) reach into the framework's bundled content — that's the canonical way to make the framework's user-guide / dev-docs / themes available alongside your own content (e.g. include them as nav sections in your site).
+
+`@root` cannot reach *outside* the framework folder (path-traversal is blocked). For your own content, use the regular relative or absolute paths shown above.
+
+**Only `@root` is allowed in `paths:` values.** Other system aliases (`@docs`, `@theme`, …) are layout / theme concepts, and user-aliases-referencing-other-user-aliases is rejected to avoid declaration-ordering ambiguity. The framework will throw a clear error if you try, e.g.:
+
+```yaml
+paths:
+  data: "../data"
+  derived: "@data/something"   # ❌ throws — only @root is supported here
+```
+
+The same path-traversal guard applies — `@root/../escape` is rejected.
+
 ## Reserved Keys
 
-The following keys cannot be used in `paths:` because they conflict with built-in layout / system aliases: `docs`, `blog`, `issues`, `custom`, `navbar`, `footer`, `theme`, `config`.
+The following keys cannot be used in `paths:` because they conflict with built-in layout / system aliases: `docs`, `blog`, `issues`, `custom`, `navbar`, `footer`, `theme`, `config`, `root`.
 
 ## Default Behavior
 

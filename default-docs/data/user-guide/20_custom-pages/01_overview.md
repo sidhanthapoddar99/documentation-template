@@ -40,10 +40,10 @@ Full schemas + examples: [Using Built-in Layouts](./using-built-in-layouts).
 
 Three things make a custom page:
 
-### 1. A YAML file in `dynamic_data/data/pages/`
+### 1. A YAML file in `data/pages/`
 
 ```yaml
-# dynamic_data/data/pages/home.yaml
+# data/pages/home.yaml
 hero:
   title: "Modern Documentation Framework"
   subtitle: "Build beautiful, fast documentation sites"
@@ -155,4 +155,4 @@ Three pages, same layout, different data files. Standard pattern.
 - [Layout System Overview](/user-guide/layout-system/overview) — how layouts are picked in general
 - [Layout System / Custom Layout Styles](/user-guide/layout-system/custom-layout-styles) — shipping layouts via `LAYOUT_EXT_DIR`
 - [Page Configuration](/user-guide/configuration/site/page) — full `pages:` entry schema
-- [Data Structure](/user-guide/getting-started/data-structure) — where `dynamic_data/data/pages/` sits
+- [Data Structure](/user-guide/getting-started/data-structure) — where `data/pages/` sits

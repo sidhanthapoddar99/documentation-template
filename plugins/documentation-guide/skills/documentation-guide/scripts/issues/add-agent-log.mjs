@@ -33,7 +33,7 @@ const tracker = args.flags.tracker || DEFAULT_TRACKER;
 const baseDir = path.join(tracker, id, 'agent-log');
 const dir = args.flags.group ? path.join(baseDir, args.flags.group) : baseDir;
 if (!isInsideAllowed(dir)) {
-  console.error(`Refusing to write outside dynamic_data/: ${dir}`);
+  console.error(`Refusing to write outside the content root: ${dir}`);
   process.exit(1);
 }
 fs.mkdirSync(dir, { recursive: true });

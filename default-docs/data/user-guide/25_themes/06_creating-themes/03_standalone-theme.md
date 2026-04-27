@@ -19,7 +19,7 @@ For most projects, extending default is the right choice — see [Extending Defa
 ## Directory layout
 
 ```
-dynamic_data/themes/brand-zero/
+themes/brand-zero/
 ├── theme.yaml
 ├── color.css
 ├── font.css
@@ -238,7 +238,7 @@ Standalone themes can be distributed as a directory, a git repo, or an npm packa
 
 ```bash
 # Consumer copies the theme into their project
-cp -r brand-zero/ my-project/dynamic_data/themes/
+cp -r brand-zero/ my-project/themes/
 ```
 
 Update `site.yaml`:
@@ -250,7 +250,7 @@ theme: "brand-zero"
 ### Git submodule
 
 ```bash
-cd my-project/dynamic_data/themes/
+cd my-project/themes/
 git submodule add https://github.com/yourorg/brand-zero.git
 ```
 

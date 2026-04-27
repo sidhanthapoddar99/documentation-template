@@ -56,7 +56,7 @@ This documentation framework is built on a modular architecture with five distin
 
 | Layer | Location | Purpose |
 |-------|----------|---------|
-| **User Space** | `dynamic_data/` | User-editable config, content, and assets |
+| **User Space** | `default-docs/` | User-editable config, content, and assets |
 | **Loaders** | `src/loaders/` | Bridges user space to internal systems |
 | **Parser** | `src/parsers/` | Transforms markdown to HTML |
 | **Layout** | `src/layouts/` | Page structure and components |
@@ -87,7 +87,7 @@ When a user visits `/docs/getting-started/overview`:
 
 ## Layer Details
 
-### 1. User Space (`dynamic_data/`)
+### 1. User Space (`default-docs/`)
 
 User-editable files external to the application code:
 

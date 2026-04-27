@@ -21,7 +21,7 @@ No data is passed in from the page — the navbar loads its own config.
 
 ## Expected navbar.yaml shape
 
-See `dynamic_data/config/navbar.yaml` for the full schema. Key fields:
+See `default-docs/config/navbar.yaml` for the full schema. Key fields:
 
 ```yaml
 layout: "@navbar/default"

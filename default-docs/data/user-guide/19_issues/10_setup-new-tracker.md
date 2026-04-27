@@ -6,14 +6,14 @@ sidebar_position: 10
 
 # Setup a New Tracker
 
-Multiple trackers can coexist — `todo/` for engineering tasks, `bugs/` for customer-reported bugs, `roadmap/` for public plans. Each is a separate folder under `dynamic_data/data/` with its own vocabulary, mounted at its own URL.
+Multiple trackers can coexist — `todo/` for engineering tasks, `bugs/` for customer-reported bugs, `roadmap/` for public plans. Each is a separate folder under your `data/` directory with its own vocabulary, mounted at its own URL.
 
 This page walks the setup of a new tracker from scratch. For most projects, the default `todo/` tracker is enough — only follow this if you genuinely need a second one.
 
 ## 1. Create the data folder
 
 ```bash
-mkdir -p dynamic_data/data/bugs/
+mkdir -p data/bugs/
 ```
 
 Pick a folder name that matches the tracker's purpose — `todo`, `bugs`, `roadmap`, `ideas`, etc. This name becomes part of the default URL.
@@ -160,7 +160,7 @@ Navigate to the tracker's base URL (`/bugs`). You should see an empty list view 
 Create a test issue:
 
 ```bash
-cd dynamic_data/data/bugs/
+cd data/bugs/
 mkdir 2026-04-21-test-issue
 cat > 2026-04-21-test-issue/settings.json <<EOF
 {
@@ -192,7 +192,7 @@ Refresh `/bugs`. The issue should appear. Click through, check the detail page r
 If you're setting up a new tracker but don't want it visible in production yet:
 
 ```json
-// dynamic_data/data/bugs/settings.json
+// data/bugs/settings.json
 {
   "label": "Bugs",
   "draft": true,

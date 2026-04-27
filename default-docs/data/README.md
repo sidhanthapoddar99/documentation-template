@@ -24,19 +24,19 @@ The `documentation-guide` Claude skill (`.claude/skills/documentation-guide/SKIL
 
 ## Routing — where pages are wired
 
-Every top-level folder is registered as a route in `dynamic_data/config/site.yaml` under the `pages:` block. Each entry binds a `source:` (filesystem path) to a `base:` (URL prefix) and a `layout:`. To add a new top-level data folder, also register it in `site.yaml`.
+Every top-level folder is registered as a route in `default-docs/config/site.yaml` under the `pages:` block. Each entry binds a `source:` (filesystem path) to a `base:` (URL prefix) and a `layout:`. To add a new top-level data folder, also register it in `site.yaml`.
 
 ## Adding a new top-level folder
 
-1. Create the folder under `dynamic_data/data/<name>/`.
+1. Create the folder under `default-docs/data/<name>/`.
 2. Add a root `settings.json` (for docs sections — sidebar `label`).
-3. Register the route in `dynamic_data/config/site.yaml` under `pages:`.
+3. Register the route in `default-docs/config/site.yaml` under `pages:`.
 4. **Update this README** with a row describing the new folder's purpose.
-5. (Optional) Add a navbar entry in `dynamic_data/config/navbar.yaml`.
+5. (Optional) Add a navbar entry in `default-docs/config/navbar.yaml`.
 
 ## See also
 
-- `dynamic_data/config/site.yaml` — route definitions for each folder above
+- `default-docs/config/site.yaml` — route definitions for each folder above
 - `user-guide/05_getting-started/04_data-structure.md` — end-user explanation of this layout
 - `.claude/skills/documentation-guide/SKILL.md` — the agent skill that reads this README for orientation
 - `.claude/skills/documentation-guide/references/` — per-content-type detail (writing, docs-layout, blog-layout, issue-layout, settings-layout)

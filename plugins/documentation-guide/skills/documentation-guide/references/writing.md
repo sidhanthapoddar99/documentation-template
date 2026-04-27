@@ -2,7 +2,7 @@
 
 Cross-cutting rules for writing markdown content across all content types (docs, blog, issues, custom pages).
 
-**Canonical source of truth:** `dynamic_data/data/user-guide/15_writing-content/` — read those pages when this reference is unclear.
+**Canonical source of truth:** the framework's bundled `@root/default-docs/data/user-guide/15_writing-content/` — read those pages when this reference is unclear.
 
 > **Status:** stub. The detailed spec is being authored under `2025-06-25-claude-skills/subtasks/03_writing-skill.md`. For now, this file captures the essentials.
 
@@ -51,11 +51,11 @@ Hidden content.
 :::
 ```
 
-For the full list and syntax, read `dynamic_data/data/user-guide/15_writing-content/` (and grep `astro-doc-code/src/custom-tags/`).
+For the full list and syntax, read `@root/default-docs/data/user-guide/15_writing-content/` (and grep the framework's `astro-doc-code/src/custom-tags/`).
 
 ## Asset embedding
 
-Images and downloadable files live under `dynamic_data/assets/` and are served from `/assets/`. Reference them with absolute paths:
+Images and downloadable files live under the project's `assets/` folder and are served from `/assets/`. Reference them with absolute paths:
 
 ```markdown
 ![Logo](/assets/logo.png)
@@ -77,12 +77,12 @@ For long blocks, the `collapsible` custom tag wraps the block.
 ## Cross-content-type concerns
 
 - **Drafts** — `draft: true` works on every type
-- **Dev-only content** — see `dynamic_data/data/user-guide/10_configuration/06_dev-mode.md`
+- **Dev-only content** — see `@root/default-docs/data/user-guide/10_configuration/06_dev-mode.md`
 - **`XX_` prefix** — used in docs/dev-docs folders (NOT in blog, NOT in issues)
 
 ## Cross-references
 
-- `dynamic_data/data/user-guide/15_writing-content/` — full user-guide section
+- `@root/default-docs/data/user-guide/15_writing-content/` (the framework's bundled user-guide) — full section
 - `references/docs-layout.md` — docs-specific structure / settings
 - `references/blog-layout.md` — blog-specific naming / frontmatter
 - `references/issue-layout.md` — issue-specific structure

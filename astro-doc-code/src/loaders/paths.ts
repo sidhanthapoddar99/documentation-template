@@ -10,8 +10,8 @@
  *   required `paths:` section, resolves relative to config dir. Errors on
  *   missing config — no silent fallbacks.
  */
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 // ============================================
@@ -210,7 +210,7 @@ export function initPaths(siteConfig: { paths?: Record<string, string>; configDi
     let absolutePath: string;
     if (value.startsWith('@root/') || value === '@root') {
       // Allow @root in user paths: values so users can compose paths against
-      // the project root (e.g. default_docs: "@root/default-docs/data").
+      // the project root (e.g. default-docs: "@root/default-docs/data").
       // Other aliases are intentionally rejected — system aliases like @docs
       // are layout concepts, and allowing user-to-user references creates
       // declaration-ordering ambiguity.

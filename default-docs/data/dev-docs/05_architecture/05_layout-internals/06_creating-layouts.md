@@ -83,7 +83,7 @@ Layouts do not contain CSS files or `<style>` blocks. The CSS classes used here 
 
 ### 2. Update Configuration
 
-**File:** `dynamic_data/config/site.yaml`
+**File:** `default-docs/config/site.yaml`
 
 ```yaml
 pages:
@@ -274,7 +274,7 @@ const data = await loadFile(dataPath);
 </div>
 ```
 
-**Data file:** `dynamic_data/data/pages/landing.yaml`
+**Data file:** `default-docs/data/pages/landing.yaml`
 
 ```yaml
 hero:

@@ -35,7 +35,7 @@ features:                       # optional — omit for hero-only page
 ### Example
 
 ```yaml
-# dynamic_data/data/pages/home.yaml
+# data/pages/home.yaml
 hero:
   title: "Modern Documentation Framework"
   subtitle: "Build beautiful, fast documentation sites with Astro. Easy to customize, simple to maintain."
@@ -111,7 +111,7 @@ That's it. The layout renders `title` + `description`.
 ### Example
 
 ```yaml
-# dynamic_data/data/pages/about.yaml
+# data/pages/about.yaml
 title: "About"
 description: "Learn more about this documentation framework."
 ```
@@ -160,7 +160,7 @@ note: string               # optional — italic note below timer
 ### Example
 
 ```yaml
-# dynamic_data/data/pages/launch.yaml
+# data/pages/launch.yaml
 title: "v2 Launch Event"
 subtitle: "We're shipping something big."
 targetDate: "2026-12-01T18:00:00"
@@ -259,10 +259,10 @@ Each page has its own URL, its own YAML file, and its own layout. They coexist w
 
 ## File organisation
 
-Custom page YAML files live in `dynamic_data/data/pages/` by convention:
+Custom page YAML files live in `data/pages/` by convention:
 
 ```
-dynamic_data/data/pages/
+data/pages/
 ├── home.yaml
 ├── about.yaml
 ├── contact.yaml

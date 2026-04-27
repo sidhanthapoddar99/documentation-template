@@ -88,8 +88,9 @@ No runtime switching — the active theme is baked in at build/dev-start time. S
 
 | Kind | Where | How to activate |
 |---|---|---|
-| **Built-in default** | `src/styles/` | `theme: "default"` |
-| **Custom** | `dynamic_data/themes/<name>/` | `theme: "<name>"` with `theme_paths: ["@themes"]` |
+| **Built-in default** | `astro-doc-code/src/styles/` (inside the framework) | `theme: "default"` |
+| **Framework-bundled** | `default-docs/themes/<name>/` (e.g. `full-width`, `minimal`) | `theme: "<name>"` with `theme_paths: ["@root/default-docs/themes"]` |
+| **Your custom** | `themes/<name>/` (your project root) | `theme: "<name>"` with `theme_paths: ["@themes"]` |
 
 Custom themes almost always `extend: "@theme/default"` — you get all 46 variables for free and only override what you actually want to change. A color-only custom theme can be **two files and 30 lines**. See [Creating Themes / Quick Start](./creating-themes/quick-start).
 

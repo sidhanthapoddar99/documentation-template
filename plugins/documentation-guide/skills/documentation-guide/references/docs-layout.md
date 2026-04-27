@@ -2,7 +2,7 @@
 
 How to add, organise, and configure pages in a docs section (e.g. `user-guide/`, `dev-docs/`).
 
-**Canonical source of truth:** `dynamic_data/data/user-guide/17_docs/` — read those pages when this reference is unclear.
+**Canonical source of truth:** the framework's bundled `@root/default-docs/data/user-guide/17_docs/` — read those pages when this reference is unclear.
 
 > **Status:** stub. Detailed spec under `2025-06-25-claude-skills/subtasks/04_docs-layout-skill.md`. For now, this file captures the essentials.
 
@@ -10,7 +10,7 @@ How to add, organise, and configure pages in a docs section (e.g. `user-guide/`,
 
 ## Folder structure
 
-A docs section is a folder under `dynamic_data/data/<section>/`. Both files and subfolders use a 2-digit `XX_` prefix for ordering:
+A docs section is a folder under the project's `data/<section>/` (e.g. `data/user-guide/`, `data/dev-docs/`). Both files and subfolders use a 2-digit `XX_` prefix for ordering:
 
 ```
 user-guide/
@@ -66,7 +66,7 @@ draft: false
 
 URL = section base + nested path (without prefixes):
 
-- `dynamic_data/data/user-guide/05_getting-started/02_installation.md`
+- `data/user-guide/05_getting-started/02_installation.md`
 - → `/user-guide/getting-started/installation`
 
 The `XX_` prefixes are stripped when building URLs.
@@ -90,8 +90,8 @@ The plugin ships **`docs-check-section`** (on your `PATH` after install) — run
 
 ```bash
 # Section-folder is required (no default — there can be many sections)
-docs-check-section dynamic_data/data/user-guide
-docs-check-section dynamic_data/data/dev-docs
+docs-check-section ./data/user-guide
+docs-check-section ./data/dev-docs
 ```
 
 What it checks:
@@ -104,6 +104,6 @@ Exit code `0` = clean, `1` = errors found. Run after restructuring a section or 
 
 ## Cross-references
 
-- `dynamic_data/data/user-guide/17_docs/` — full user-guide section
+- `@root/default-docs/data/user-guide/17_docs/` (the framework's bundled user-guide) — full section
 - `references/writing.md` — markdown / frontmatter basics
 - `references/settings-layout.md` — registering a new docs section in `site.yaml`

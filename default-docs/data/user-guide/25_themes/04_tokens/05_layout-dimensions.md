@@ -25,14 +25,14 @@ Not required doesn't mean unimportant — these are the tokens that most visibly
 ### Example override — full width theme
 
 ```css
-/* dynamic_data/themes/full-width/element.css */
+/* default-docs/themes/full-width/element.css */
 :root {
   --max-width-primary: none;        /* remove the page-width cap */
   --max-width-secondary: 1200px;    /* widen secondary */
 }
 ```
 
-This is exactly what the `full-width/` example theme in `dynamic_data/themes/` does. A single CSS override + `extends: "@theme/default"` gets you a wider site without touching anything else.
+This is exactly what the `full-width/` example theme in `default-docs/themes/` does. A single CSS override + `extends: "@theme/default"` gets you a wider site without touching anything else.
 
 ## Column widths
 

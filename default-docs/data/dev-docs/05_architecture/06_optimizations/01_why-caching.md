@@ -25,7 +25,7 @@ In server mode, every page request triggers a full content reload:
 │                        ▼                                                    │
 │   ┌──────────────────────────────────────┐                                  │
 │   │     Read ALL markdown files          │  ◄── Disk I/O (slow)             │
-│   │     from dynamic_data/data/docs/     │                                  │
+│   │     from default-docs/data/docs/     │                                  │
 │   └──────────────────────────────────────┘                                  │
 │                        │                                                    │
 │                        ▼                                                    │

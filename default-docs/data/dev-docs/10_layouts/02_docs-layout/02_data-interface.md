@@ -154,7 +154,7 @@ Absolute filesystem path to the docs content folder:
 
 ```typescript
 const { dataPath } = Astro.props;
-// "/Users/.../dynamic_data/data/docs"
+// "/Users/.../default-docs/data/docs"
 ```
 
 Used to:

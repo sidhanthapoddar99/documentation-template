@@ -2,28 +2,35 @@
 
 Site chrome, routing, theming, aliases. Everything *above* the per-content-type layer.
 
-**Canonical source of truth:** `dynamic_data/data/user-guide/05_getting-started/`, `10_configuration/`, `16_layout-system/`, `20_custom-pages/`, `25_themes/` — read those when this reference is unclear or when you need depth this file doesn't cover.
+**Canonical source of truth:** the framework's bundled `@root/default-docs/data/user-guide/05_getting-started/`, `10_configuration/`, `16_layout-system/`, `20_custom-pages/`, `25_themes/` — read those when this reference is unclear or when you need depth this file doesn't cover.
 
 ---
 
-## 1. Project structure (for new installs)
+## 1. Project structure
+
+**Consumer mode** (default — framework is a subfolder of the user's project):
 
 ```
-<repo-root>/                               ← OR a docs/ subfolder of a larger project
-├── start                                  ← bash wrapper: `./start [dev|build|preview]`
-├── .env                                   ← CONFIG_DIR=dynamic_data/config (read from repo root)
-├── astro-doc-code/                        ← framework code (src/, package.json, astro.config.mjs, …)
-└── dynamic_data/                          ← USER-EDITABLE layer
-    ├── assets/                            ← static assets served at /assets/
-    ├── config/                            ← site.yaml, navbar.yaml, footer.yaml
-    ├── data/                              ← all content (docs, blog, issues, custom)
-    │   └── README.md                      ← MAP of every top-level data folder (see SKILL.md)
-    ├── layouts/                           ← OPTIONAL — only when shipping custom layouts
-    └── themes/                            ← OPTIONAL — only when shipping custom themes
+<your-project>/                            ← user's project root
+├── config/                                ← site.yaml, navbar.yaml, footer.yaml
+├── data/                                  ← all content (docs, blog, issues, custom)
+│   └── README.md                          ← MAP of every top-level data folder (see SKILL.md)
+├── assets/                                ← static assets served at /assets/
+├── themes/                                ← OPTIONAL — your custom themes
+├── layouts/                               ← OPTIONAL — your custom layouts
+└── documentation-template/                ← FRAMEWORK FOLDER — don't edit
+    ├── start                              ← bash wrapper: `./start [dev|build|preview]`
+    ├── .env                               ← CONFIG_DIR=../config (consumer mode)
+    ├── astro-doc-code/                    ← framework code
+    ├── default-docs/                      ← framework's bundled docs/themes/template
+    └── plugins/                           ← repo-local plugins
 ```
 
-Clone the framework with:
+**Dogfood mode** — the framework repo *is* the project; content lives under `documentation-template/default-docs/`, `.env` has `CONFIG_DIR=./default-docs/config`. Same code path, only `CONFIG_DIR` differs.
+
+Clone the framework into a project:
 ```bash
+# Inside your project root:
 git clone https://github.com/sidhanthapoddar99/documentation-template.git
 cd documentation-template
 ./start          # preflight: pick bun (else npm) → install if needed → sanity build → dev
@@ -33,16 +40,21 @@ cd documentation-template
 
 ## 2. `.env` — the bootstrap layer
 
-The framework reads exactly one thing from `.env`: where to find `config/`. Everything else lives in the YAML files inside that config dir. **`.env` lives at the repo root** (not inside `astro-doc-code/`); `astro.config.mjs` resolves it from the repo root regardless of the launch directory.
+The framework reads exactly one thing from `.env`: where to find `config/`. Everything else lives in the YAML files inside that config dir. **`.env` lives inside the framework folder** (`documentation-template/.env`, not inside `astro-doc-code/`). Paths are relative to the framework folder.
 
 ```bash
-CONFIG_DIR=dynamic_data/config       # REQUIRED — path to the folder containing site.yaml
-LAYOUT_EXT_DIR=dynamic_data/layouts  # OPTIONAL — only when shipping custom layout styles
+# Consumer mode — config sits beside the framework folder
+CONFIG_DIR=../config                 # REQUIRED — path to the folder containing site.yaml
+LAYOUT_EXT_DIR=../layouts            # OPTIONAL — only when shipping custom layout styles
 PORT=3088                            # dev server port
 HOST=true                            # bind to all interfaces (for LAN access)
+
+# Dogfood mode — config inside the framework's bundled default-docs/
+# CONFIG_DIR=./default-docs/config
+# LAYOUT_EXT_DIR=./default-docs/layouts
 ```
 
-**Paths are relative to the repo root** (where `.env` lives). `dynamic_data/config` is the default layout shipped with the framework.
+Absolute paths work too. The plugin's helper scripts (and `_env.mjs`) derive the project's content root from `CONFIG_DIR`, so this single env var locates everything.
 
 ---
 
@@ -180,7 +192,7 @@ pages:
 | `issues` | `@issues/default` | `astro-doc-code/src/layouts/issues/<style>/` |
 | `custom` | `@custom/home`, `@custom/info`, `@custom/countdown`, plus user-shipped ones | `astro-doc-code/src/layouts/custom/<style>/` |
 
-User-shipped layouts under `dynamic_data/layouts/<type>/<style>/` are picked up automatically when `LAYOUT_EXT_DIR` is set; they override built-in styles of the same name.
+User-shipped layouts under your `layouts/<type>/<style>/` (consumer mode — sibling of `config/` and `data/`) are picked up automatically when `LAYOUT_EXT_DIR=../layouts` is set in `.env`; they override built-in styles of the same name.
 
 ---
 
@@ -279,17 +291,21 @@ social:
 | `@footer/<style>` | `astro-doc-code/src/layouts/footer/<style>/` | `footer.yaml → layout` |
 | `@ext-layouts` | `LAYOUT_EXT_DIR` from `.env` | for user-shipped layouts (overrides built-ins by name) |
 | `@theme/<name>` | a theme folder | inside `theme.yaml → extends:` |
+| `@root/<sub>` | the framework folder + `<sub>` | reaching the framework's bundled content (`@root/default-docs/...`); path-traversal blocked. NOT the consumer's outer project root — see env.md for the two-mode model |
 
 **User-defined aliases** — declared in `site.yaml → paths:`:
 
 ```yaml
 paths:
-  data: "../data"           # → @data/<sub>
-  assets: "../assets"       # → @assets/<sub>
-  themes: "../themes"       # → @themes/<sub>
-  # Add your own:
-  shared: "../shared"       # → @shared/<sub>
+  data: "../data"                            # → @data/<sub>
+  assets: "../assets"                        # → @assets/<sub>
+  themes: "../themes"                        # → @themes/<sub>
+  # Add your own (relative to config dir, absolute, or @root-prefixed):
+  shared: "../shared"                        # → @shared/<sub>
+  default-docs: "@root/default-docs/data"    # → @default-docs/<sub>
 ```
+
+Values can be relative (to config dir), absolute, or `@root/<path>` — that last form is the only alias allowed inside `paths:` values. User-aliases-referencing-other-user-aliases (e.g. `derived: "@data/sub"`) and other system aliases (`@docs`, `@theme`, …) are rejected with a clear error to keep declaration order unambiguous.
 
 These are resolved at config load (paths become absolute), then used wherever the YAML accepts a path-like string (`pages[].data`, `logo.src`, etc.).
 
@@ -297,19 +313,19 @@ These are resolved at config load (paths become absolute), then used wherever th
 
 ## 8. Themes
 
-The full theme contract (46 required CSS variables) lives in `dynamic_data/data/user-guide/25_themes/` — **read it before doing any theme work**. Don't invent variable names. Don't hardcode colours / fonts / spacing.
+The full theme contract (46 required CSS variables) lives in the framework's bundled `@root/default-docs/data/user-guide/25_themes/` — **read it before doing any theme work**. Don't invent variable names. Don't hardcode colours / fonts / spacing.
 
 Quick orientation:
 
 | What | Where |
 |---|---|
-| Built-in default theme | `astro-doc-code/src/styles/` (read-only — don't edit) |
-| Built-in `full-width` theme | `astro-doc-code/src/themes/full-width/` |
-| User themes | `dynamic_data/themes/<name>/theme.yaml` (usually `extends: "@theme/default"`) |
+| Built-in default theme | the framework's `astro-doc-code/src/styles/` (read-only — don't edit) |
+| Framework-bundled themes | `@root/default-docs/themes/<name>/` (e.g. `full-width`, `minimal`) — accessed via `theme_paths: ["@root/default-docs/themes"]` |
+| User themes | the project's `themes/<name>/theme.yaml` (usually `extends: "@theme/default"`) — accessed via `theme_paths: ["@themes"]` |
 | Active theme selector | `site.yaml → theme: "<name>"` |
-| Theme discovery | `site.yaml → theme_paths: ["@themes"]` |
+| Theme discovery | `site.yaml → theme_paths: ["@themes"]` (and/or `["@root/default-docs/themes"]`) |
 
-**For any non-trivial theme work, read `dynamic_data/data/user-guide/25_themes/` first. The skill doesn't duplicate the theme contract.**
+**For any non-trivial theme work, read `@root/default-docs/data/user-guide/25_themes/` first. The skill doesn't duplicate the theme contract.**
 
 ---
 
@@ -319,8 +335,9 @@ Quick orientation:
 
 ```bash
 # 1. Create the folder + root settings.json (sidebar label)
-mkdir -p dynamic_data/data/tutorials
-cat > dynamic_data/data/tutorials/settings.json <<'EOF'
+#    (Paths shown for consumer mode — adjust to default-docs/data/tutorials/ in dogfood mode.)
+mkdir -p data/tutorials
+cat > data/tutorials/settings.json <<'EOF'
 {
   "label": "Tutorials",
   "position": 17
@@ -328,7 +345,7 @@ cat > dynamic_data/data/tutorials/settings.json <<'EOF'
 EOF
 
 # 2. Add a starter page
-cat > dynamic_data/data/tutorials/01_overview.md <<'EOF'
+cat > data/tutorials/01_overview.md <<'EOF'
 ---
 title: Tutorials Overview
 description: Hands-on tutorials for common workflows.
@@ -360,11 +377,11 @@ items:
 ```
 
 ```markdown
-<!-- 5. Update dynamic_data/data/README.md so future agents see the new folder -->
+<!-- 5. Update data/README.md so future agents see the new folder -->
 | `tutorials/` | Hands-on workflow walkthroughs | XX_ docs | `/tutorials/…` | `@docs/default` |
 ```
 
-Restart the dev server (`./start dev` from the repo root, or `bun run dev` inside `astro-doc-code/`) — the new route is live.
+Restart the dev server (`./start dev` from the framework folder, or `bun run dev` inside `astro-doc-code/`) — the new route is live.
 
 ---
 
@@ -382,11 +399,11 @@ Restart the dev server (`./start dev` from the repo root, or `bun run dev` insid
 The plugin ships **`docs-check-config`** (on your `PATH` after install) — runs presence + structural checks against `site.yaml` / `navbar.yaml` / `footer.yaml` so you don't have to eyeball each.
 
 ```bash
-# Default: checks dynamic_data/config/
+# Default: resolves the config dir from .env
 docs-check-config
 
-# Or point at any config dir
-docs-check-config dynamic_data/config
+# Or point at any config dir explicitly
+docs-check-config ./config
 ```
 
 What it checks:
@@ -402,11 +419,11 @@ Uses regex over the YAML text — no YAML library dependency. Catches the common
 
 ## 12. Cross-references
 
-- `dynamic_data/data/README.md` — map of every top-level data folder (read this first for orientation)
-- `dynamic_data/data/user-guide/05_getting-started/` — installation, aliases, structure
-- `dynamic_data/data/user-guide/10_configuration/` — every config file in microscopic detail (per-field reference)
-- `dynamic_data/data/user-guide/16_layout-system/` — picking + customising layouts
-- `dynamic_data/data/user-guide/20_custom-pages/` — custom page definitions + creating custom layouts
-- `dynamic_data/data/user-guide/25_themes/` — theme contract + creation walkthroughs
+- `data/README.md` (the project's) — map of every top-level data folder (read this first for orientation)
+- `@root/default-docs/data/user-guide/05_getting-started/` (framework's bundled) — installation, aliases, structure
+- `@root/default-docs/data/user-guide/10_configuration/` — every config file in microscopic detail (per-field reference)
+- `@root/default-docs/data/user-guide/16_layout-system/` — picking + customising layouts
+- `@root/default-docs/data/user-guide/20_custom-pages/` — custom page definitions + creating custom layouts
+- `@root/default-docs/data/user-guide/25_themes/` — theme contract + creation walkthroughs
 - `references/writing.md` — markdown content authoring (per-content-type concerns are NOT in this file)
 - `references/docs-layout.md` / `blog-layout.md` / `issue-layout.md` — per-content-type structure

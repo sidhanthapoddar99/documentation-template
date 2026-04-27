@@ -161,7 +161,7 @@ Resolves `@` prefixed paths:
 import { resolveAliasPath, resolveAssetUrl } from '@loaders/alias';
 
 // Filesystem paths
-resolveAliasPath('@data/docs');      // → /abs/path/to/dynamic_data/data/docs
+resolveAliasPath('@data/docs');      // → /abs/path/to/default-docs/data/docs
 resolveAliasPath('@docs/default'); // → /abs/path/to/src/layouts/docs/default
 
 // Web URLs (for assets)

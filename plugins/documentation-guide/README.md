@@ -6,7 +6,7 @@ Claude Code plugin for the [documentation-template](https://github.com/sidhantha
 - **11 CLI wrappers** — 8 for the issue tracker (`docs-list`, `docs-show`, `docs-subtasks`, `docs-agent-logs`, `docs-set-state`, `docs-add-comment`, `docs-add-agent-log`, `docs-review-queue`) plus 3 validators (`docs-check-blog`, `docs-check-config`, `docs-check-section`)
 - **2 slash commands** — `/docs-init` (bootstrap a new docs project from zero) and `/docs-add-section` (scaffold a new top-level section)
 
-The skill teaches Claude Code how to navigate this Astro-based docs framework: the `dynamic_data/` content layout, frontmatter conventions, the folder-per-issue tracker, `site.yaml` configuration, custom themes, and more. Triages every task to a domain-specific reference file rather than dumping everything into one long prompt.
+The skill teaches Claude Code how to navigate this Astro-based docs framework: the project's `data/` content layout, frontmatter conventions, the folder-per-issue tracker, `site.yaml` configuration, custom themes, and more. Triages every task to a domain-specific reference file rather than dumping everything into one long prompt.
 
 ## Install
 
@@ -23,10 +23,10 @@ docs-list --priority high
 docs-list --search "indexer" --status open,review
 docs-review-queue
 docs-check-config             # validate site.yaml / navbar.yaml / footer.yaml
-docs-check-section dynamic_data/data/user-guide
+docs-check-section ./data/user-guide
 ```
 
-The skill triggers automatically whenever you work on docs in a project that has a `dynamic_data/` directory.
+The skill triggers automatically whenever you work on docs in a documentation-template project (i.e. one with a `documentation-template/` framework folder, with `.env`'s `CONFIG_DIR` pointing at the project's config).
 
 ## Bootstrap a new project
 
@@ -57,7 +57,7 @@ Computes the next `XX_` prefix, scaffolds `settings.json` + `01_overview.md`, an
 
 ## Requirements
 
-- A documentation-template-shaped project (repo root with `dynamic_data/` for content + `astro-doc-code/` for the framework code, plus a `./start` wrapper)
+- A documentation-template-shaped project (the `documentation-template/` framework folder cloned somewhere, with `.env`'s `CONFIG_DIR` pointing at the project's `config/`)
 - `bun` preferred for running the helpers and the framework; `npm` / `node` work as fallbacks
 
 ## License

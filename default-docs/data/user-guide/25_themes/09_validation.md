@@ -89,10 +89,10 @@ Errors block. Warnings don't. You can ship a theme with warnings — but they're
 
 ```
 Error: Theme "nordic" not found. Searched:
-  - /path/to/project/dynamic_data/themes
+  - /path/to/project/themes
 ```
 
-**Cause**: `site.yaml theme: "nordic"` but no folder at `dynamic_data/themes/nordic/`.
+**Cause**: `site.yaml theme: "nordic"` but no folder at `themes/nordic/` (or wherever your `theme_paths` points).
 
 **Fix**:
 - Check spelling of theme name in `site.yaml`

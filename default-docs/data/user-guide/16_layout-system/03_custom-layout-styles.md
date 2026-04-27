@@ -30,27 +30,29 @@ Custom layouts are for **structural changes** — changing what components rende
 
 ### 1. Create an extension directory
 
-Typical location: `dynamic_data/layouts/`. Name doesn't matter — `LAYOUT_EXT_DIR` tells the framework where to look.
+Typical location: `layouts/` at your project root (sibling of `config/`, `data/`, `assets/`, `themes/`). Name doesn't matter — `LAYOUT_EXT_DIR` tells the framework where to look.
 
 ```bash
-mkdir -p dynamic_data/layouts
+mkdir -p layouts
 ```
 
 ### 2. Set `LAYOUT_EXT_DIR` in `.env`
 
+`.env` lives inside the framework folder (`documentation-template/`), so the path is relative to *that*. In consumer mode `../layouts` reaches up to your project root:
+
 ```env
-# .env
-LAYOUT_EXT_DIR=./dynamic_data/layouts
+# .env (inside documentation-template/)
+LAYOUT_EXT_DIR=../layouts
 ```
 
-Relative to the project root, or absolute. Astro reads this at startup and wires the `@ext-layouts` Vite alias to point at it.
+Absolute paths work too. Astro reads this at startup and wires the `@ext-layouts` Vite alias to point at it.
 
 ### 3. Mirror the `src/layouts/` structure
 
 The extension directory's layout mirrors `src/layouts/`:
 
 ```
-dynamic_data/layouts/
+layouts/
 ├── docs/
 │   └── kanban/                      ← new docs style "kanban"
 │       └── Layout.astro
@@ -113,7 +115,7 @@ Built-in layouts register first, then extension layouts. The registry is a `Map`
 To override the built-in default docs layout entirely:
 
 ```
-dynamic_data/layouts/docs/default/Layout.astro
+layouts/docs/default/Layout.astro
 ```
 
 That folder's `Layout.astro` now renders every `type: docs` page configured with `layout: "@docs/default"`. The built-in at `src/layouts/docs/default/` is ignored for that style name.
@@ -147,7 +149,7 @@ Extension layouts live **outside `src/`**, so `../../some-component` paths won't
 
 ```astro
 ---
-// ❌ doesn't work — relative path from dynamic_data/ to src/
+// ❌ doesn't work — relative path from your layouts/ to the framework's src/
 // import Body from '../../src/layouts/docs/default/Body.astro';
 
 // ✅ use the @layouts alias
@@ -215,7 +217,7 @@ Extension layouts can be distributed as directories, git submodules, or (eventua
 
 ```bash
 # As a submodule
-cd dynamic_data/layouts/
+cd layouts/
 git submodule add https://github.com/org/docs-kanban.git docs/kanban
 ```
 

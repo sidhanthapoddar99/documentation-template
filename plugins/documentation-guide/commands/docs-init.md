@@ -44,7 +44,7 @@ Before asking anything, check the current working directory for evidence the pro
 
 - Does `./config/site.yaml` exist?
 - Does `./data/` exist with any subdirectories?
-- Does `./dynamic_data/config/site.yaml` exist (legacy layout)?
+- Does `./default-docs/config/site.yaml` exist (legacy layout)?
 
 If **any** of these is true, stop and tell the user:
 > Looks like docs are already initialised here (`<path-found>` exists). Use `/docs-add-section` to add a new section, or remove the existing structure first.

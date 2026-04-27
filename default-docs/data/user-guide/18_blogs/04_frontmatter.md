@@ -119,7 +119,7 @@ image: /images/blog/typescript-cover.jpg
 
 **Image guidelines:**
 - Recommended size: 1200x630px (social sharing)
-- Place in `dynamic_data/assets/` (served at `/assets/…` — see [Path Aliases](/user-guide/getting-started/aliases))
+- Place in your `assets/` folder (served at `/assets/…` — see [Path Aliases](/user-guide/getting-started/aliases))
 - Use descriptive filenames
 
 ### `draft`

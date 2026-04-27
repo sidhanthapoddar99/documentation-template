@@ -18,24 +18,50 @@ Together they support the working model that's actually emerging: **AI + small t
 
 ## Separation of Concerns
 
-Your content lives completely separate from the framework code. You edit `dynamic_data/` at the repo root; the framework lives in its own subfolder (`astro-doc-code/`) that you don't have to touch:
+Your content sits at *your* project root. The framework ships as a single subfolder (`documentation-template/`) that contains all of its own files — code, bundled docs, `.env`, the `start` wrapper, plugins. You only edit what's at your project root.
 
 ```
-project/
-├── dynamic_data/        # YOUR STUFF - edit freely
-│   ├── config/          # Site configuration
-│   ├── assets/          # Static assets (logos, images)
-│   ├── data/            # Content (docs, blog, issues, custom pages)
-│   └── themes/          # Custom themes (optional)
+your-docs-folder/                  # YOUR project root
+├── config/                        # ← YOU EDIT — site/navbar/footer YAML
+├── data/                          # ← YOU EDIT — docs · blog · issues · custom pages
+├── assets/                        # ← YOU EDIT — logos, images
+├── themes/                        # ← YOU EDIT — custom themes (optional)
 │
-├── start                # Wrapper script — run ./start from the repo root
-│
-└── astro-doc-code/      # FRAMEWORK - don't touch
-    ├── src/             # Layouts, loaders, parsers, dev-tools
-    ├── astro.config.mjs
-    ├── package.json
-    └── node_modules/
+└── documentation-template/        # the framework — clone or git submodule, self-contained
+    ├── .env                       #   CONFIG_DIR=../config (reaches UP to YOUR config/)
+    ├── start                      #   ./start dev | build | preview
+    ├── astro-doc-code/            #   framework source — don't touch
+    ├── default-docs/              #   framework's bundled content — don't touch
+    │   ├── config/                #     bundled site config (used in dogfood mode only)
+    │   ├── data/                  #     bundled content — including the user-guide
+    │   │   ├── user-guide/        #     you're reading right now + dev-docs
+    │   │   ├── dev-docs/
+    │   │   └── …
+    │   ├── assets/                #     bundled placeholder branding
+    │   └── themes/                #     bundled themes (default available out of the box)
+    └── plugins/                   #   framework's bundled plugins (skill + CLI tools)
 ```
+
+**`default-docs/` is the framework's content, not yours.** It ships *inside* the framework folder so the bundled user-guide / dev-docs / themes / placeholder branding are available out of the box — your `site.yaml` references them via `@root/default-docs/...` (e.g. the `User Guide` nav item points at `@default-docs/user-guide`). When you ran `init`, the scaffold for *your* content (`config/`, `data/`, `assets/`, `themes/`) was placed at the project root *next to* (not inside) the framework folder.
+
+### What's in `default-docs/`?
+
+`default-docs/` serves three purposes for the framework — none of which involve the consumer editing it:
+
+1. **Documentation of the framework itself** — the `user-guide` you're reading right now and the `dev-docs` (architecture, internals) live here. Updating them is part of releasing the framework.
+2. **Dogfood / testbed platform** — when working *on the framework*, devs run the site against `default-docs/` as the active config to exercise every layout, content type, and edge case. New features land here first.
+3. **Bundled defaults shipped to consumers** — the `init` template, the default themes, sample blog/issues/pages, and placeholder branding all live under `default-docs/` so consumers can reference them via `@root/default-docs/...` (e.g. include the framework's user-guide as a nav section in their own site, or extend a bundled theme).
+
+So `default-docs/` is *the framework's own docs/test/template directory*, packaged with the install. Treat it as read-only from the consumer side.
+
+### Two modes the framework supports
+
+| Mode | Who uses it | `.env` `CONFIG_DIR` | What you edit |
+|---|---|---|---|
+| **Consumer** | Anyone using the framework to publish their own docs | `../config` (reaches up from framework folder to your project root) | `config/`, `data/`, `assets/`, `themes/` at your project root |
+| **Dogfood / framework-dev** | People working on the framework itself | `./default-docs/config` (the bundled config) | `default-docs/config/`, `default-docs/data/`, etc. — i.e. the bundled docs |
+
+The framework code is identical in both modes; only `CONFIG_DIR` and where the active content lives differ.
 
 ## Key Features
 
@@ -77,4 +103,4 @@ It automatically appears at `/docs/getting-started/hello` in the sidebar.
 
 1. **[Installation](/user-guide/getting-started/installation)** — set up your project
 2. **[Configuration](/user-guide/configuration/overview)** — configure your site
-3. **[Data Structure](/user-guide/getting-started/structure/overview)** — understand the `dynamic_data/` layout
+3. **[Data Structure](/user-guide/getting-started/data-structure)** — understand your `data/` layout (docs sections, blog, issues, pages)

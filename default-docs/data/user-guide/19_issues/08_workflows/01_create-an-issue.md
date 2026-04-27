@@ -34,7 +34,7 @@ The full folder name is `YYYY-MM-DD-<slug>` — today's date, then the slug:
 ## 2. Create the folder
 
 ```bash
-cd dynamic_data/data/todo/
+cd data/todo/
 mkdir 2026-04-21-editor-v2-perf
 cd 2026-04-21-editor-v2-perf
 ```

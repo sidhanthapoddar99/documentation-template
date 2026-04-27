@@ -32,7 +32,7 @@ Better (specific, includes triggers):
 ```
 description: Use this skill for ANY work in this Astro-based docs project — writing markdown,
 working with the issue tracker, configuring site.yaml, blog posts, or any file under
-dynamic_data/. Triages the task to a domain-specific reference. TRIGGER eagerly — documentation
+default-docs/. Triages the task to a domain-specific reference. TRIGGER eagerly — documentation
 work in this project almost always benefits from this skill.
 ```
 

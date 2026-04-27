@@ -8,13 +8,15 @@ sidebar_position: 1
 
 Configuration is centralized in YAML files. The `.env` file only provides `CONFIG_DIR` (bootstrap to locate `site.yaml`). All other directory paths are defined in `site.yaml`'s `paths:` section.
 
-> **Path relativity:** `CONFIG_DIR` in `.env` is relative to the **project root**. Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). Absolute paths work in both places.
+> **Path relativity:** `CONFIG_DIR` in `.env` is relative to **the framework folder** (where `.env` lives). Paths in `site.yaml`'s `paths:` section are relative to the **config directory** (where `site.yaml` lives). Absolute paths work in both places.
 
-## Directory Structure
+## Directory Structure (consumer mode)
+
+Your content sits at *your* project root, next to the framework folder:
 
 ```
-dynamic_data/
-├── config/           # Configuration files (CONFIG_DIR from .env)
+your-docs-folder/
+├── config/           # Configuration files (CONFIG_DIR=../config from .env)
 │   ├── site.yaml     # Site metadata, logo, paths, pages
 │   ├── navbar.yaml   # Navigation items
 │   └── footer.yaml   # Footer configuration
@@ -27,9 +29,13 @@ dynamic_data/
 │   ├── issues/
 │   └── pages/
 ├── themes/           # Custom themes (paths.themes in site.yaml)
-└── layouts/          # External layouts (LAYOUT_EXT_DIR from .env, optional)
-    └── docs/default/ # Custom doc layouts, etc.
+├── layouts/          # External layouts (LAYOUT_EXT_DIR=../layouts, optional)
+│   └── docs/default/ # Custom doc layouts, etc.
+│
+└── documentation-template/   # the framework (don't edit)
 ```
+
+In *dogfood mode* (working on the framework itself), the same folders live under `documentation-template/default-docs/` instead, and `CONFIG_DIR=./default-docs/config`. See [Environment Variables](./env) for the two-mode model.
 
 ## Configuration Files
 

@@ -8,15 +8,36 @@ Land the `@root` system alias along with the surrounding scaffolding it depends 
 
 ## Checklist
 
-- [ ] **Rename `dynamic_data/` → `default-docs/`** (or `defaults/` — pick one; see open question below). This is the framework's bundled content + themes + scripts that ship as the starter template.
-- [ ] **Add `@root` system alias.** Resolves to `paths.projectRoot`. Constrain to `@root/<path>` where the normalised result must remain under `projectRoot` (path-traversal blocking — no `..` escapes). A sensitive-file deny-list (`.env`, `.git`, `node_modules`, lockfiles) is optional defense-in-depth — see "Deny-list vs path-traversal blocking" below for the tradeoff.
-- [ ] **Create a starter template doc** that becomes the source for `init`. Contains:
-  - **5 navbar items**: homepage (default landing), docs (sample with init + small README), issues (sample tracker), blogs (sample posts), user-guide (points at `@root/default-docs/data/user-guide/...` — the framework's bundled docs)
-  - Pre-configured `config/site.yaml` with Astro placeholder branding (logo, SVGs), placeholder name + description fields the user customises after init
-  - `themes/` includes `@root/default-docs/themes/...` so framework-bundled themes are available out of the box
+- [x] **Rename `dynamic_data/` → `default-docs/`** — done. Build is path-name-agnostic via `CONFIG_DIR`; only inert comments + the early fallback in `paths.ts` referenced the old name (all updated). Plugin CLI tools still hardcode `dynamic_data/` and break until the sweep below lands.
+- [x] **Add `@root` system alias.** Done in `astro-doc-code/src/loaders/alias.ts:35` (`@root → paths.root`) and `paths.ts:127` (`'root'` reserved). Path-traversal guard in `alias.ts:115` throws on escapes. Also extended `initPaths()` (`paths.ts:208`) to allow `@root/...` in user `paths:` values (with the same traversal guard). Sensitive-file deny-list intentionally skipped per design discussion.
+- [x] **Create a starter template** at `astro-doc-code/template/`. Contains:
+  - 5 navbar items (Home / Docs / Issues / Blog / User Guide) wired in `template/config/{site,navbar,footer}.yaml`
+  - Pre-configured `site.yaml` with Astro placeholder branding (`assets/astro-{dark,light}.svg`, `astro.png` copied in)
+  - `theme_paths` includes `@root/default-docs/themes` so framework-bundled themes are picked up
+  - User-guide section uses the new `default-docs` user-alias: `data: "@default-docs/user-guide"` (alternative form `@root/default-docs/data/user-guide` noted in a comment)
+  - Verified end-to-end with `CONFIG_DIR=./astro-doc-code/template/config` → 89 pages built, navbar/footer both correct
 - [ ] **Update `/docs-init` skill / plugin** to use the template as the starting point — essentially `cp -r template/ <user-target>/` plus prompts for name + description + URL substitution into placeholders.
-- [ ] **Sweep skills + docs to introduce `@root`** — touchpoints: user-guide alias page (`dynamic_data/data/user-guide/05_getting-started/03_aliases.md`), dev-docs alias / config pages, plugin `SKILL.md` + relevant references in `plugins/documentation-guide/`, **CLAUDE.md** alias table, **README.md** (if it lists aliases).
-- [ ] **Sweep skills + docs for the `dynamic_data/` → `default-docs/` rename** — touchpoints: every page under `dynamic_data/data/user-guide/` and `dynamic_data/data/dev-docs/` that references `dynamic_data/`, all of `plugins/documentation-guide/skills/...` + `commands/...`, **CLAUDE.md** (multiple sections — repo layout, build commands, source-code structure, key rules), **README.md** (the "What's inside the repo" tree we just updated this morning), and any leftover code-level path strings in `astro-doc-code/src/` (esp. error messages, defaults, comments). ~30+ surface points; worth running a `grep -rn "dynamic_data" .` after the rename to catch stragglers.
+- [x] **Sweep skills + docs to introduce `@root`** — added to:
+  - User-guide alias page (`05_getting-started/03_aliases.md`) — new "Framework Root Alias" section (sharpened from "Project Root" — `@root` resolves to the framework folder, not the consumer's outer project) + diagram update.
+  - User-guide paths config page (`10_configuration/03_site/03_paths.md`) — new "Using `@root` in `paths:` values" section, only-`@root`-allowed rule, path-traversal guard, both consumer + dogfood examples.
+  - **CLAUDE.md** "Path resolution" key-concept — sharpened paragraph + new two-mode (consumer / dogfood) note.
+  - Plugin skill reference (`settings-layout.md`) — `@root/<sub>` row added to the built-in alias table; cross-ref to env.md for the two-mode model.
+  - README.md doesn't list aliases, so no edit needed.
+- [x] **Reframe user-guide for consumer-mode (framework as a subfolder)** — full conceptual rewrite (not just string-replace):
+  - `05_getting-started/01_overview.md` — new "What's in `default-docs/`" section with the three-purpose framing (docs / dogfood / source-of-defaults) + "Two operating modes" table.
+  - `05_getting-started/04_data-structure.md` — full rewrite around YOUR content folders at YOUR project root, not `default-docs/`. Shows the `your-docs-folder/ → documentation-template/(framework)` layout explicitly.
+  - `05_getting-started/02_installation.md` — install flow rewritten for consumer mode (clone framework as a subfolder, `cd documentation-template/`, `CONFIG_DIR=../config`).
+  - `10_configuration/02_env.md` — both modes documented; consumer mode (`CONFIG_DIR=../config`) shown as primary, dogfood as alternative.
+  - `10_configuration/01_overview.md` — directory-structure tree updated for consumer-mode layout.
+  - `10_configuration/03_site/{03_paths,04_theme}.md` — sharpened examples; theme_paths now shows both `@themes` and `@root/default-docs/themes`.
+  - `25_themes/{01_overview,06_creating-themes/02,06_creating-themes/03,10_rules-for-layout-authors}.md` — custom-theme paths shown at `themes/` (your project root), not `default-docs/themes/`.
+  - `19_issues/{03_folder-structure,08_workflows/01_create-an-issue,10_setup-new-tracker}.md` and other user-content path examples — bulk sed dropped `default-docs/data/` prefix on user-content paths (`pages`, `todo`, `bugs`, `blog`, `docs`, `issues`); kept the prefix where it correctly refers to framework-bundled content.
+- [x] **Sweep skills + docs for the `dynamic_data/` → `default-docs/` rename** — done via single mechanical pass (`grep -rln dynamic_data | xargs sed -i 's|dynamic_data|default-docs|g'`) across 57 files: CLAUDE.md, README.md, all user-guide pages, all dev-docs pages, plugin SKILL.md + 5 references, plugin commands, `default-docs/data/README.md`, `astro-doc-code/src/layouts/navbar/default/README.md`, plus the plugin's 8 `.mjs` scripts (which previously hardcoded `dynamic_data/` in path-safety checks and *refused to write outside it*). Tracker history under `default-docs/data/todo/` was deliberately excluded so old issues remain factually accurate. Verified clean with `grep -rln dynamic_data` (only `data/todo/` matches remain). Build re-ran clean: 338 pages.
+- [x] **Refactor plugin scripts — no hardcoded path defaults** (follow-up to the rename sweep): the mechanical replacement left scripts hardcoded with `default-docs/` instead of `dynamic_data/`, which was still a default. Created shared `scripts/_env.mjs` that:
+  - walks up to find the framework's `.env`, parses it, reads `CONFIG_DIR`, and derives the content root as the parent of the resolved CONFIG_DIR (matches the convention `data/` is sibling of `config/`);
+  - throws clearly if `.env` or `CONFIG_DIR` is missing — no silent fallback to a hardcoded folder.
+  - Allows `DOCS_PROJECT_ROOT` env var as an explicit override.
+  Updated `issues/_lib.mjs`, `blog/check.mjs`, `config/check.mjs` to consume `_env.mjs`. Removed all `default-docs/` literals from script error messages and help text. Smoke-tested all four primary tools (`docs-list`, `docs-show`, `docs-check-config`, `docs-check-blog`) — all resolve paths correctly via `.env`. Note: requires `/plugin update && /reload-plugins` for the cached plugin install to pick up the changes.
 - [ ] **Document the template + init flow** — new user-guide page (or section in getting-started) explaining: "run `docs init`, get a working starter, customise from there."
 
 ## What `@root` resolves to (table)
@@ -61,11 +82,11 @@ paths:
 
 Resolution order: system aliases (`@root`, `@theme`, ...) resolve first because they don't depend on user aliases. User aliases (`@data`, `@assets`, `@<custom>`) come from `paths:` values and *can* reference system aliases — but probably shouldn't reference each other (avoids ordering issues). Implementation is a small extension to `resolvePathFromConfig()`.
 
-## Open questions to resolve before implementation
+## Open questions
 
-1. **`defaults/` vs `default-docs/` for the rename.** User used both interchangeably. `default-docs/` is more descriptive (says it's docs, not just any defaults); `defaults/` is shorter. Pick one before the rename sweep starts so all the docs / skills updates use the same name. *Working assumption: `default-docs/`.*
-2. **Was "4 nav bar items" meant as 4 or 5?** List contains 5 (homepage, docs, issues, blogs, user-guide). *Working assumption: 5.*
-3. **Stay as one subtask or split into smaller ones?** Currently captured here as a single subtask with a 7-item checklist. Splitting (e.g., `01_root-alias`, `02_defaults-rename`, `03_template-scaffold`, `04_init-wiring`, `05_docs-sweep`) would make each unit shippable on its own and easier to review; bundling keeps the dependency story visible in one place. User's call.
+1. ~~**`defaults/` vs `default-docs/` for the rename.**~~ **Resolved:** `default-docs/`.
+2. ~~**Was "4 nav bar items" meant as 4 or 5?**~~ **Resolved:** 5 (Home / Docs / Issues / Blog / User Guide).
+3. **Stay as one subtask or split into smaller ones?** Still bundled — top three boxes done, bottom three (skill/docs sweeps + init wiring) deferred for the user-led review pass. Split if those grow.
 
 ## Out of scope for this subtask
 

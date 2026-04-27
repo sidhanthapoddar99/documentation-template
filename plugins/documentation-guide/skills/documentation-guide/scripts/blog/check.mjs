@@ -14,17 +14,25 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { resolveProjectContext } from '../_env.mjs';
 
-const DEFAULT = path.join(process.cwd(), 'dynamic_data', 'data', 'blog');
-const ROOT = process.argv[2] && process.argv[2] !== '--help' && process.argv[2] !== '-h'
-  ? process.argv[2]
-  : DEFAULT;
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 if (process.argv[2] === '--help' || process.argv[2] === '-h') {
   console.error('Usage: docs-check-blog [blog-folder]\n');
-  console.error(`  Default: ${DEFAULT}\n`);
+  console.error('  When [blog-folder] is omitted, derives <content-root>/data/blog from the framework\'s .env (CONFIG_DIR).\n');
   console.error('  Validates: YYYY-MM-DD-<slug>.md naming · frontmatter title · no nested folders');
   process.exit(0);
+}
+
+let ROOT;
+if (process.argv[2]) {
+  ROOT = process.argv[2];
+} else {
+  // Derive from .env — no hardcoded folder name
+  const ctx = resolveProjectContext(SCRIPT_DIR);
+  ROOT = path.join(ctx.contentRoot, 'data', 'blog');
 }
 
 if (!fs.existsSync(ROOT)) {

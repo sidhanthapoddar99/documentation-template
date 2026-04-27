@@ -36,13 +36,13 @@ pages:
 
 ## Step 1 — Resolve the project root
 
-Find the docs project root by looking for `config/site.yaml` (or fall back to `dynamic_data/config/site.yaml` for the legacy layout) walking up from the current working directory. If neither is found:
+Find the docs project root by looking for `config/site.yaml` (or fall back to `default-docs/config/site.yaml` for the legacy layout) walking up from the current working directory. If neither is found:
 
 > No documentation-template project detected here (no `config/site.yaml` found walking up). Run `/docs-init` first to scaffold a project.
 
 Stop.
 
-If found, the **project root** is the parent of `config/`. The **data root** is `<project_root>/data/` (or `<project_root>/dynamic_data/data/` for legacy).
+If found, the **project root** is the parent of `config/`. The **data root** is `<project_root>/data/` (or `<project_root>/default-docs/data/` for legacy).
 
 State the resolved paths back to the user before doing anything else:
 

@@ -1,8 +1,8 @@
 # Issue tracker — reference
 
-How to read, write, and navigate any issue tracker in this project. The default tracker lives at `dynamic_data/data/todo/`; a project may have multiple trackers, all following this same shape.
+How to read, write, and navigate any issue tracker in this project. The default tracker lives at `data/todo/`; a project may have multiple trackers, all following this same shape.
 
-**Canonical source of truth:** `dynamic_data/data/user-guide/19_issues/` — read those pages when this reference is unclear or you need depth this file doesn't cover.
+**Canonical source of truth:** the framework's bundled `@root/default-docs/data/user-guide/19_issues/` — read those pages when this reference is unclear or you need depth this file doesn't cover.
 
 ---
 
@@ -11,7 +11,7 @@ How to read, write, and navigate any issue tracker in this project. The default 
 Every tracker has the same skeleton:
 
 ```
-<tracker-base>/                                  ← e.g. dynamic_data/data/todo/
+<tracker-base>/                                  ← e.g. data/todo/
 ├── settings.json                                ← TRACKER VOCABULARY (status, priority, component, milestone, labels)
 └── <YYYY-MM-DD-slug>/                           ← one folder per issue
     ├── settings.json                            ← issue metadata
@@ -230,7 +230,7 @@ Two patterns, both about keeping the main context lean and pushing bulk reading 
 **Pattern A — bulk classification across many issues.** When the task requires reading **>10 issue files** to summarise / classify:
 
 ```
-Read all issues under dynamic_data/data/todo/ with status:open.
+Read all issues under data/todo/ with status:open.
 For each, return: id, title, priority, top blocker (1 sentence).
 Output as a markdown table. Under 300 words.
 ```
@@ -275,11 +275,11 @@ The plugin ships 8 CLI wrappers (`docs-list`, `docs-show`, `docs-subtasks`, `doc
 
 | Script | What it does |
 |---|---|
-| `list.mjs` | Multi-field filter **+ free-text regex search** over the tracker. Returns file paths + line numbers + excerpts. Drop-in replacement for `grep` / `find` over `dynamic_data/data/todo/`. Default scope: open + review. |
+| `list.mjs` | Multi-field filter **+ free-text regex search** over the tracker. Returns file paths + line numbers + excerpts. Drop-in replacement for `grep` / `find` over `data/todo/`. Default scope: open + review. |
 | `show.mjs` | Print one issue's metadata + subtask state summary + comment & agent-log heads. `--full` for bodies. |
 | `subtasks.mjs` | List subtasks for one issue, or across all issues with `--all`. Default state: open + review. |
 | `agent-logs.mjs` | Print the last N agent-log entries (default 3) — for catching up before resuming work. |
-| `set-state.mjs` | Update issue status (`settings.json`) or subtask state (frontmatter). Path-allow-listed to `dynamic_data/`. Subtask flips also sync `done:`. |
+| `set-state.mjs` | Update issue status (`settings.json`) or subtask state (frontmatter). Path-allow-listed to the project's content root (resolved from `.env`). Subtask flips also sync `done:`. |
 | `add-comment.mjs` | Append a comment with auto-incremented `NNN_` prefix. |
 | `add-agent-log.mjs` | Append an agent-log entry with auto-incremented iteration. Supports `--group` for subgroups. |
 | `review-queue.mjs` | List items needing review — `status: review` issues + `open` issues with `review` subtasks. |
@@ -485,8 +485,8 @@ Or via the editor API if running locally: `POST /__editor/subtask-toggle`. The s
 
 ## 9. Cross-references
 
-- `dynamic_data/data/user-guide/19_issues/` — full user-guide section
-- `dynamic_data/data/user-guide/19_issues/06_lifecycle-and-review.md` — deep dive on the 4-state model
-- `dynamic_data/data/user-guide/19_issues/09_using-with-ai.md` — agent-facing rules
-- `dynamic_data/data/user-guide/19_issues/04_settings/02_vocabulary.md` — tracker vocabulary spec
+- `@root/default-docs/data/user-guide/19_issues/` (the framework's bundled user-guide) — full section
+- `@root/default-docs/data/user-guide/19_issues/06_lifecycle-and-review.md` — deep dive on the 4-state model
+- `@root/default-docs/data/user-guide/19_issues/09_using-with-ai.md` — agent-facing rules
+- `@root/default-docs/data/user-guide/19_issues/04_settings/02_vocabulary.md` — tracker vocabulary spec
 - `2025-06-25-claude-skills/subtasks/02_issues-skill.md` — internal spec for this reference + planned helper scripts

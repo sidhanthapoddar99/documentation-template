@@ -20,7 +20,7 @@ const ROOT = process.argv[2];
 
 if (!ROOT || ROOT === '--help' || ROOT === '-h') {
   console.error('Usage: docs-check-section <section-folder>\n');
-  console.error('  Example: docs-check-section dynamic_data/data/user-guide\n');
+  console.error('  Example: docs-check-section ./data/user-guide  (or any docs section folder)\n');
   console.error('  Validates: XX_ prefix discipline · settings.json presence · frontmatter title · prefix collisions');
   process.exit(ROOT ? 0 : 1);
 }

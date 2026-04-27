@@ -267,9 +267,9 @@ Path aliases are resolved at build time:
 
 | Alias | Resolves To |
 |-------|-------------|
-| `@data/` | `dynamic_data/data/` |
-| `@assets/` | `dynamic_data/assets/` |
-| `@config/` | `dynamic_data/config/` |
+| `@data/` | `default-docs/data/` |
+| `@assets/` | `default-docs/assets/` |
+| `@config/` | `default-docs/config/` |
 | `@docs/` | `src/layouts/docs/` |
 | `@blogs/` | `src/layouts/blogs/` |
 | `@custom/` | `src/layouts/custom/` |

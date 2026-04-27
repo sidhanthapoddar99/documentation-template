@@ -31,7 +31,7 @@ Astro's development server provides near-instant feedback:
 | Style changes | Instant (HMR) |
 | Configuration | Auto restart |
 
-The dev server watches all files in `dynamic_data/` and `src/`, automatically rebuilding only what changed.
+The dev server watches all files in `default-docs/` and `src/`, automatically rebuilding only what changed.
 
 ## Astro Dev Toolbar
 
@@ -64,7 +64,7 @@ Edit markdown files and see changes instantly:
 npm run start
 
 # Terminal 2: Edit content
-code dynamic_data/data/docs/
+code default-docs/data/docs/
 ```
 
 ### 2. Layout Development

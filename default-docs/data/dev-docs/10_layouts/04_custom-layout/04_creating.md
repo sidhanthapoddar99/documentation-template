@@ -151,7 +151,7 @@ The `<style>` block is scoped to the component, keeping styles modular and avoid
 
 ## Step 4: Create the Data File
 
-**File:** `dynamic_data/data/pages/pricing.yaml`
+**File:** `default-docs/data/pages/pricing.yaml`
 
 ```yaml
 title: "Simple, Transparent Pricing"
@@ -204,7 +204,7 @@ plans:
 
 ## Step 5: Configure in site.yaml
 
-**File:** `dynamic_data/config/site.yaml`
+**File:** `default-docs/config/site.yaml`
 
 ```yaml
 pages:

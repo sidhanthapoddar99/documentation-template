@@ -48,7 +48,7 @@ Switch between footer styles globally:
 
 ### Color Themes
 
-Switch between color themes defined in `dynamic_data/themes/`:
+Switch between color themes defined in `default-docs/themes/`:
 - Default theme
 - Minimal theme
 - Custom themes
@@ -197,7 +197,7 @@ You can add layouts either as built-in (in `src/`) or external (via `LAYOUT_EXT_
 3. The layout appears automatically in the dev toolbar
 
 **External Doc Layout:**
-1. Set `LAYOUT_EXT_DIR` in `.env` (e.g., `LAYOUT_EXT_DIR=./dynamic_data/layouts`)
+1. Set `LAYOUT_EXT_DIR` in `.env` (e.g., `LAYOUT_EXT_DIR=./default-docs/layouts`)
 2. Create folder: `<LAYOUT_EXT_DIR>/docs/styles/my-layout/`
 3. Add `Layout.astro` (use `@layouts/` aliases for imports, not relative paths)
 4. Restart dev server — the layout appears in the toolbar with an "ext" badge

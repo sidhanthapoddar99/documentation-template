@@ -18,17 +18,25 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { resolveProjectContext } from '../_env.mjs';
 
-const DEFAULT = path.join(process.cwd(), 'dynamic_data', 'config');
-const ROOT = process.argv[2] && process.argv[2] !== '--help' && process.argv[2] !== '-h'
-  ? process.argv[2]
-  : DEFAULT;
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 if (process.argv[2] === '--help' || process.argv[2] === '-h') {
   console.error('Usage: docs-check-config [config-dir]\n');
-  console.error(`  Default: ${DEFAULT}\n`);
+  console.error('  When [config-dir] is omitted, uses CONFIG_DIR from the framework\'s .env (resolved absolute).\n');
   console.error('  Validates: required keys · pages structure · data: path resolution · footer page: refs');
   process.exit(0);
+}
+
+let ROOT;
+if (process.argv[2]) {
+  ROOT = process.argv[2];
+} else {
+  // Derive from .env — config dir is exactly CONFIG_DIR
+  const ctx = resolveProjectContext(SCRIPT_DIR);
+  ROOT = ctx.configDir;
 }
 
 const SITE = path.join(ROOT, 'site.yaml');

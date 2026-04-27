@@ -26,7 +26,7 @@ if (args.flags.help) {
   printHelp('check', [
     '[--tracker <path>]',
     '',
-    'Validate the structure of an issue tracker. Default: dynamic_data/data/todo.',
+    'Validate the structure of an issue tracker. Defaults to <content-root>/data/todo (derived from .env CONFIG_DIR).',
     'Reports errors (will fail loaders) and warnings (lint-only).',
   ]);
   process.exit(0);

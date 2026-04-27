@@ -1,23 +1,23 @@
 ---
 title: Data Structure
-description: How your content, configuration, and assets are organised in `dynamic_data/`.
+description: How your content, configuration, and assets are organised at your project root.
 ---
 
 # Data Structure
 
-This page covers **`dynamic_data/`** — the folder you'll actually edit. Everything else in the repository (inside `astro-doc-code/`) is framework code and doesn't need to be touched to run or author a docs site.
+This page covers **your project's content folders** — `config/`, `data/`, `assets/`, `themes/`. These live at the root of *your* docs project (the parent of the framework folder), and they're the only files you actually author or edit. Everything inside the framework folder (`astro-doc-code/`, `default-docs/`, `plugins/`) is shipped by the framework and shouldn't be touched.
 
-For the internal code layout, see the [dev-docs](/dev-docs/overview/code-structure).
+For the framework's internal code layout, see the [dev-docs](/dev-docs/overview/code-structure). For what `default-docs/` is and why it ships inside the framework, see the [Overview](./overview).
 
 ## What the framework actually requires
 
-Only **one path is fixed**: a `.env` at the project root with `CONFIG_DIR` pointing at a folder that contains `site.yaml`. Everything else flows from `site.yaml`'s `paths:` section and can live anywhere on disk.
+Only **one path is fixed**: a `.env` inside the framework folder with `CONFIG_DIR` pointing at a folder that contains `site.yaml`. Everything else flows from `site.yaml`'s `paths:` section and can live anywhere on disk.
 
 ```
                         REQUIRED CHAIN
                         ══════════════
 
-   .env  (at project root)
+   .env  (inside the framework folder)
      │
      │  CONFIG_DIR=<path-to-config-dir>     ◀── only this line is fixed
      ▼
@@ -34,27 +34,55 @@ Only **one path is fixed**: a `.env` at the project root with `CONFIG_DIR` point
            └──▶ @themes/   →  custom theme packages  (optional)
 ```
 
-Because `@data/`, `@assets/`, and `@themes/` are pointed wherever `site.yaml` says, the `dynamic_data/` grouping the template ships with is **pure convention**. You could set `CONFIG_DIR=/etc/my-docs/config/`, point `@data/` at `/var/content/`, and the site would build exactly the same way. The default groups everything under one folder because that's easy to reason about in a single repo — nothing more.
+Because `@data/`, `@assets/`, and `@themes/` are pointed wherever `site.yaml` says, the **physical layout is convention, not requirement**. The recommended consumer layout (below) groups everything at your project root because that's what `init` produces and it's easy to reason about — but you could set `CONFIG_DIR=/etc/my-docs/config/`, point `@data/` at `/var/content/`, and the site would build identically.
 
+## Recommended layout (consumer mode)
 
-## Default structure (as shipped)
+After running `/docs-init`, your project looks like this:
 
 ```
-dynamic_data/
-├── config/        # YAML config (site, navbar, footer)       — CONFIG_DIR bootstrap
-├── assets/        # Static files served at /assets/*          — @assets alias
-├── data/          # All content (docs, blog, issues, custom)  — @data alias
-└── themes/        # Custom themes (optional)                  — @themes alias
+your-docs-folder/                # YOUR project root
+├── config/                      # ← YOU EDIT — site/navbar/footer YAML
+├── data/                        # ← YOU EDIT — docs · blog · issues · custom pages
+├── assets/                      # ← YOU EDIT — logos, images served at /assets/
+├── themes/                      # ← YOU EDIT — custom themes (optional)
+│
+└── documentation-template/      # the framework — added as a clone or git submodule
+    ├── .env                     #   CONFIG_DIR=../config (reaches up to YOUR config/)
+    ├── start                    #   ./start dev | build | preview
+    ├── astro-doc-code/          #   framework source — don't touch
+    ├── default-docs/            #   framework's bundled content (user-guide, dev-docs, themes,
+    │                            #     placeholder branding, the init template) — don't touch
+    └── plugins/                 #   framework's bundled plugin source — don't touch
 ```
 
 | Directory | Purpose | Accessed via |
 |---|---|---|
 | `config/` | Site metadata, page definitions, navbar + footer | `CONFIG_DIR` in `.env` |
+| `data/` | Your actual content (docs, blog, issues, pages) | `@data/` |
 | `assets/` | Logos, favicons, images served at `/assets/*` | `@assets/` |
-| `data/` | Your actual content | `@data/` |
-| `themes/` | Optional custom theme packages | `@themes/` |
+| `themes/` | Optional custom themes | `@themes/` |
 
-## 1. YAML configuration -- `config/`
+## Alternative: dogfood / framework-dev mode
+
+If you're working *on the framework itself* (not consuming it), the layout collapses — you don't need a wrapping project, the framework repo IS your project root and you edit `default-docs/` directly:
+
+```
+documentation-template/          # the framework repo (you cloned this)
+├── .env                         #   CONFIG_DIR=./default-docs/config
+├── start
+├── astro-doc-code/
+├── default-docs/                # ← YOU EDIT — when changing the bundled docs/themes/template
+│   ├── config/
+│   ├── data/
+│   ├── assets/
+│   └── themes/
+└── plugins/
+```
+
+This is what the framework's own development uses — see [Overview → What's in `default-docs/`](./overview) for why this dogfood mode exists.
+
+## 1. YAML configuration — `config/`
 
 ```
 config/
@@ -65,7 +93,7 @@ config/
 
 See [Configuration](/user-guide/configuration/overview) for field-by-field reference.
 
-## 2. Assets Static files -- `assets/`
+## 2. Static assets — `assets/`
 
 Static files served at `/assets/*` URLs.
 
@@ -91,11 +119,11 @@ logo:
 | `@assets/logo.svg` | `/assets/logo.svg` |
 | `@assets/images/hero.png` | `/assets/images/hero.png` |
 
-## 3. Data & Content -- `Data`
+## 3. Content — `data/`
 
 This is the default starting point — **how you organise content inside `data/` is entirely up to you**. Multiple doc sections, independent issue trackers side by side, any set of custom pages — declare each folder in `site.yaml` (under `paths:` for the alias, and `pages:` for the URL + layout) and the framework renders it.
 
-Here's a richer example showing what a real project might look like:
+A richer real-project example:
 
 ```
 data/
@@ -115,7 +143,7 @@ data/
     └── roadmap/       #   public roadmap
 ```
 
-Nothing in that tree is hard-coded. Rename folders, drop sections, add new ones, point `@data/` at a completely different path in `site.yaml` — the framework doesn't care, as long as each section is declared. See [Path Aliases](/user-guide/getting-started/aliases) for custom alias declarations.
+Nothing in that tree is hard-coded. Rename folders, drop sections, add new ones, point `@data/` at a completely different path in `site.yaml` — the framework doesn't care, as long as each section is declared. See [Path Aliases](./aliases) for custom alias declarations.
 
 The file-level structure *inside* each content type is specific to its layout family. Each has its own authoring guide:
 
@@ -126,8 +154,7 @@ The file-level structure *inside* each content type is specific to its layout fa
 | `data/issues/` | `/issues` | `YYYY-MM-DD-slug/` (folder) | `@issues/*` | [Issues section](/user-guide/issues/overview) |
 | `data/pages/` | (per page) | Any `.yaml` / `.md` | `@custom/*` | [Custom Pages section](/user-guide/custom-pages/overview) |
 
-
-## 4. Themes — custom themes -- `themes/`
+## 4. Themes — `themes/`
 
 ```
 themes/
@@ -137,4 +164,4 @@ themes/
     └── font.css
 ```
 
-Custom themes inherit from the default via `extends: "@theme/default"` in `theme.yaml`. See [Themes](/user-guide/themes/overview).
+Custom themes inherit from the default via `extends: "@theme/default"` in `theme.yaml`. The framework's bundled themes live under `default-docs/themes/` and are automatically picked up — point `theme_paths:` in `site.yaml` at both your folder AND `@root/default-docs/themes` to see all of them. See [Themes](/user-guide/themes/overview).

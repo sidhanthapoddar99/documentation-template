@@ -50,7 +50,7 @@ The skill triages every docs task to one of five domain references. The model lo
 | `references/issue-layout.md` | Issue tracker — folder-per-item, vocabulary, 4-state lifecycle, AI rules |
 | `references/settings-layout.md` | `site.yaml`, `navbar.yaml`, `footer.yaml`, `.env`, path aliases, themes |
 
-The skill triggers automatically whenever you work on docs in a project that has a `dynamic_data/` directory (or any layout matching the framework). You don't have to invoke it explicitly.
+The skill triggers automatically whenever you work on docs in a project that uses this framework (i.e. one where the `documentation-template/` folder is present, or you're inside it). You don't have to invoke it explicitly.
 
 ## Slash commands
 
@@ -80,7 +80,7 @@ Claude Code adds the plugin's `bin/` folder to your `$PATH` automatically. Each 
 
 | Command | What it does |
 |---|---|
-| `docs-list` | Multi-field filter + free-text regex search over the tracker — drop-in replacement for `grep`/`find` on `dynamic_data/data/todo/` |
+| `docs-list` | Multi-field filter + free-text regex search over the tracker — drop-in replacement for `grep`/`find` on `data/todo/` |
 | `docs-show <issue-id>` | One issue's metadata + subtask summary + comment & agent-log heads |
 | `docs-subtasks <issue-id>` | List subtasks for one issue (or `--all` for cross-issue) |
 | `docs-agent-logs <issue-id>` | Last N agent-log entries for an issue |

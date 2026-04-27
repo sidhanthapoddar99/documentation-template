@@ -20,14 +20,16 @@ Everything else — fonts, spacing, layouts — inherits from the default theme.
 
 ### 1. Create the theme folder
 
+Custom themes live in your `themes/` folder at the project root (sibling of `config/`, `data/`, `assets/`):
+
 ```bash
-mkdir -p dynamic_data/themes/my-brand
+mkdir -p themes/my-brand
 ```
 
 ### 2. Write the manifest — `theme.yaml`
 
 ```yaml
-# dynamic_data/themes/my-brand/theme.yaml
+# themes/my-brand/theme.yaml
 name: "My Brand"
 version: "1.0.0"
 extends: "@theme/default"
@@ -47,7 +49,7 @@ Five fields:
 ### 3. Write the override — `color.css`
 
 ```css
-/* dynamic_data/themes/my-brand/color.css */
+/* themes/my-brand/color.css */
 
 :root {
   --color-brand-primary: #7c3aed;      /* purple */
@@ -65,7 +67,7 @@ Two colours, both modes. The rest of the 14 colours inherit from the default.
 ### 4. Activate in `site.yaml`
 
 ```yaml
-# dynamic_data/config/site.yaml
+# config/site.yaml
 theme: "my-brand"
 theme_paths:
   - "@themes"
@@ -188,7 +190,7 @@ The `supports_dark_mode` field is declarative — the loader doesn't enforce. Wh
 
 Full working example (this is what a real colour-only theme looks like):
 
-**`dynamic_data/themes/sunset/theme.yaml`**
+**`themes/sunset/theme.yaml`**
 
 ```yaml
 name: "Sunset"
@@ -200,7 +202,7 @@ files:
   - color.css
 ```
 
-**`dynamic_data/themes/sunset/color.css`**
+**`themes/sunset/color.css`**
 
 ```css
 :root {

@@ -1,11 +1,13 @@
 ---
 name: documentation-guide
-description: Use this skill for ANY work in this Astro-based documentation-template project — writing markdown, working with the issue tracker (issues, subtasks, comments, agent-logs), creating blog posts, editing docs pages, configuring site.yaml / navbar.yaml / footer.yaml / .env, and anything touching files under `dynamic_data/data/`. The skill triages the task to a domain-specific reference file (writing, docs-layout, blog-layout, issue-layout, settings-layout). TRIGGER eagerly — documentation work in this project almost always benefits from this skill. Use it whenever the user mentions docs, frontmatter, settings.json, the todo / issues tracker, blog posts, the data folder, content types, themes, or any file path containing `dynamic_data/`. SKIP only for pure framework source-code work under `astro-doc-code/src/` that doesn't touch any documentation file.
+description: Use this skill for ANY work in a documentation-template project — writing markdown, working with the issue tracker (issues, subtasks, comments, agent-logs), creating blog posts, editing docs pages, configuring site.yaml / navbar.yaml / footer.yaml / .env, and anything touching files under the project's `data/` folder. The skill triages the task to a domain-specific reference file (writing, docs-layout, blog-layout, issue-layout, settings-layout). TRIGGER eagerly — documentation work in this project almost always benefits from this skill. Use it whenever the user mentions docs, frontmatter, settings.json, the todo / issues tracker, blog posts, the data folder, content types, themes, or any file under the project's content folders. SKIP only for pure framework source-code work under `astro-doc-code/src/` that doesn't touch any documentation file.
 ---
 
 # Documentation skill
 
-Operating manual for working in this Astro-based documentation-template project. The project ships content + config under `dynamic_data/data/` (with a `user-guide/` that is the canonical source of truth) and renders it through Astro layouts under `astro-doc-code/src/layouts/`.
+Operating manual for working in an Astro-based documentation-template project. The project's content + config live under the user's `data/` and `config/` folders and render through Astro layouts shipped inside the `documentation-template/` framework folder. The framework's *own* bundled docs (the canonical user-guide for the framework itself) live at `documentation-template/default-docs/data/user-guide/` — read those when this skill is unclear.
+
+> **Two modes.** *Consumer mode* (the default) — the framework is a subfolder of the user's project (`<project>/documentation-template/`) and the user's content lives at the project root (`config/`, `data/`, `assets/`, `themes/` next to the framework folder). *Dogfood mode* — the framework repo *is* the project; content lives under `default-docs/`. The scripts derive the actual location from `.env` (`CONFIG_DIR`), so this skill describes paths relative to **the user's content folders** and the underlying scripts handle both modes. Where this skill says `data/`, the script resolves to `<project>/data/` (consumer) or `<framework>/default-docs/data/` (dogfood).
 
 ## Triage — which reference file to read
 
@@ -14,42 +16,46 @@ Pick the reference file that matches the task. Read **only the one(s) you need**
 | If the task involves… | Domain | Read |
 |---|---|---|
 | Writing markdown, frontmatter, custom tags, asset embedding (across any content type) | writing | `references/writing.md` |
-| Files under `dynamic_data/data/<sidebar-driven-section>/` (e.g. `user-guide/`, `dev-docs/`) | docs-layout | `references/docs-layout.md` |
-| Files under `dynamic_data/data/blog/` (flat `YYYY-MM-DD-<slug>.md`) | blog-layout | `references/blog-layout.md` |
-| Files under `dynamic_data/data/todo/` or any issue tracker (folder-per-item, `settings.json`, subtasks, comments, agent-logs) | issue-layout | `references/issue-layout.md` |
+| Files under `data/<sidebar-driven-section>/` (e.g. `user-guide/`, `dev-docs/`) | docs-layout | `references/docs-layout.md` |
+| Files under `data/blog/` (flat `YYYY-MM-DD-<slug>.md`) | blog-layout | `references/blog-layout.md` |
+| Files under `data/todo/` or any issue tracker (folder-per-item, `settings.json`, subtasks, comments, agent-logs) | issue-layout | `references/issue-layout.md` |
 | `site.yaml` / `navbar.yaml` / `footer.yaml` / `.env` / paths / themes / project setup | settings-layout | `references/settings-layout.md` |
 
 Cross-cutting tasks read multiple references. Example: *"add a new docs section and write its first page"* → read `settings-layout.md` (registering the section) **and** `writing.md` (writing the page).
 
 ## Project orientation
 
+**Consumer mode** (default) — the user's project root, with the framework as a subfolder:
+
 ```
-documentation-template/
-├── start                         ← bash wrapper: `./start [dev|build|preview|<script>]`
-├── astro-doc-code/               ← framework code (src/, package.json, astro.config.mjs, tsconfig.json, bun.lock)
-│   └── src/
-│       └── layouts/              ← per-content-type layouts (docs, blog, issues, custom)
-├── dynamic_data/                 ← USER-EDITABLE content + config
-│   ├── config/                   ← site.yaml, navbar.yaml, footer.yaml
-│   ├── assets/                   ← static assets served at /assets/
-│   ├── themes/                   ← optional custom themes
-│   └── data/
-│       ├── user-guide/           ← END-USER docs about the framework (canonical reference)
-│       ├── dev-docs/             ← developer docs (architecture, layouts, scripts)
-│       ├── blog/                 ← blog posts
-│       └── todo/                 ← issue tracker (folder-per-item)
-├── plugins/                      ← repo-local plugins (e.g. documentation-guide)
-├── .env, .env.example            ← env (read by astro.config.mjs from the repo root)
-└── .claude/skills/docs/          ← this skill
+<your-project>/                   ← user's project root
+├── config/                       ← site.yaml, navbar.yaml, footer.yaml
+├── data/                         ← all content (docs, blog, issues, custom)
+│   ├── user-guide/               ← (your own user-guide, if any)
+│   ├── blog/                     ← blog posts
+│   ├── todo/                     ← issue tracker (folder-per-item)
+│   └── README.md                 ← MAP of every top-level data folder (read first)
+├── assets/                       ← static assets served at /assets/
+├── themes/                       ← optional custom themes
+├── layouts/                      ← optional custom layouts (with LAYOUT_EXT_DIR set)
+└── documentation-template/       ← FRAMEWORK FOLDER — don't edit
+    ├── start                     ← bash wrapper: `./start [dev|build|preview|<script>]`
+    ├── .env                      ← CONFIG_DIR=../config (consumer) or ./default-docs/config (dogfood)
+    ├── astro-doc-code/           ← framework code (src/, package.json, astro.config.mjs)
+    │   └── src/layouts/          ← per-content-type layouts (docs, blog, issues, custom)
+    ├── default-docs/             ← framework's bundled content (its own user-guide / dev-docs / themes / template)
+    └── plugins/                  ← repo-local plugins (e.g. documentation-guide)
 ```
 
-**The most important rule:** the user-guide under `dynamic_data/data/user-guide/` is the **canonical source of truth** for everything this skill describes. When this skill is unclear, ambiguous, or stale, the user-guide wins. Each reference file points to its corresponding user-guide section.
+**Dogfood mode** — the framework repo *is* the project; the structure above collapses (no outer wrapper). Content lives under `documentation-template/default-docs/` and `CONFIG_DIR=./default-docs/config`. Same code path either way; only `CONFIG_DIR` differs.
+
+**The most important rule:** the framework's bundled user-guide at `documentation-template/default-docs/data/user-guide/` is the **canonical source of truth** for everything this skill describes. When this skill is unclear, ambiguous, or stale, the user-guide wins. Each reference file points to its corresponding user-guide section.
 
 ## Read `data/README.md` first
 
-Every project should have a `dynamic_data/data/README.md` that maps the data layout — what each top-level folder contains, its purpose, and how it's served. **Read it at the start of any task** to learn the project's content shape. The framework supports `user-guide/`, `dev-docs/`, `blog/`, `todo/`, `pages/` out of the box, but a project may add custom ones (e.g. an `internal-knowledge-base/`, a separate `meeting-notes/`, etc.).
+Every project should have a `data/README.md` that maps the data layout — what each top-level folder contains, its purpose, and how it's served. **Read it at the start of any task** to learn the project's content shape. The framework supports `user-guide/`, `dev-docs/`, `blog/`, `todo/`, `pages/` out of the box, but a project may add custom ones (e.g. an `internal-knowledge-base/`, a separate `meeting-notes/`, etc.).
 
-If `dynamic_data/data/README.md` doesn't exist, **create one** before doing the requested task — the skill is far more useful when this map exists, and the cost is low. When you add or remove a top-level folder under `dynamic_data/data/`, **update the README in the same change** so future agents (and humans) don't drift.
+If `data/README.md` doesn't exist, **create one** before doing the requested task — the skill is far more useful when this map exists, and the cost is low. When you add or remove a top-level folder under `data/`, **update the README in the same change** so future agents (and humans) don't drift.
 
 ## Universal conventions
 
@@ -83,13 +89,13 @@ This plugin ships 11 CLI wrappers in its `bin/` folder, which Claude Code adds t
 
 | Command | What it does |
 |---|---|
-| `docs-check-blog` | Validate the blog folder — `YYYY-MM-DD-<slug>.md` naming, frontmatter `title:`, no nested folders. Defaults to `dynamic_data/data/blog/`. See `references/blog-layout.md`. |
-| `docs-check-config` | Validate `site.yaml` / `navbar.yaml` / `footer.yaml` — required keys, `pages:` structure, `data:` path resolution, footer `page:` references. Defaults to `dynamic_data/config/`. See `references/settings-layout.md`. |
-| `docs-check-section` | Validate a docs section — `XX_` prefix discipline, `settings.json` presence, frontmatter `title:`, prefix collisions. Required arg: section folder (e.g. `dynamic_data/data/user-guide`). See `references/docs-layout.md`. |
+| `docs-check-blog` | Validate the blog folder — `YYYY-MM-DD-<slug>.md` naming, frontmatter `title:`, no nested folders. Resolves the blog path from `.env` (`<content-root>/blog/`); pass an explicit folder to override. See `references/blog-layout.md`. |
+| `docs-check-config` | Validate `site.yaml` / `navbar.yaml` / `footer.yaml` — required keys, `pages:` structure, `data:` path resolution, footer `page:` references. Resolves the config dir from `.env`; pass an explicit folder to override. See `references/settings-layout.md`. |
+| `docs-check-section` | Validate a docs section — `XX_` prefix discipline, `settings.json` presence, frontmatter `title:`, prefix collisions. Required arg: section folder (e.g. `data/user-guide`). See `references/docs-layout.md`. |
 
 Each wrapper internally uses `bun` if available, falls back to `node`. Pass `--help` to any of them for the full flag list. Validators exit `0` on clean, `1` on errors found — useful in pre-commit / CI.
 
-**Searching the tracker — use `docs-list --search`, not the `Grep` tool.** Any "find / locate / grep / search" verb against `dynamic_data/data/todo/` should route to `docs-list`, which understands the schema (vocabulary, subtask states, frontmatter), composes structural filters with regex search in one call, and returns exact paths + line numbers. `Grep` only sees text. See `references/issue-layout.md` for the synonym list and examples.
+**Searching the tracker — use `docs-list --search`, not the `Grep` tool.** Any "find / locate / grep / search" verb against `data/todo/` (or any tracker folder) should route to `docs-list`, which understands the schema (vocabulary, subtask states, frontmatter), composes structural filters with regex search in one call, and returns exact paths + line numbers. `Grep` only sees text. See `references/issue-layout.md` for the synonym list and examples.
 
 ## Slash commands — bootstrap & section scaffolding
 
@@ -110,4 +116,4 @@ The reference files (especially `issue-layout.md`) document concrete subagent pa
 
 ## When to update this skill
 
-This skill mirrors the user-guide. If you discover the skill is wrong or out of date relative to the user-guide, **update the skill** rather than working around it — and tell the user. The skill catalogue page (`dynamic_data/data/user-guide/05_getting-started/05_claude-skills.md`) is the user-facing index of installed skills; keep it in sync.
+This skill mirrors the framework's bundled user-guide. If you discover the skill is wrong or out of date relative to the user-guide, **update the skill** rather than working around it — and tell the user. The skill catalogue page (`@root/default-docs/data/user-guide/05_getting-started/05_claude-skills.md` — i.e. inside the framework folder) is the user-facing index of installed skills; keep it in sync.

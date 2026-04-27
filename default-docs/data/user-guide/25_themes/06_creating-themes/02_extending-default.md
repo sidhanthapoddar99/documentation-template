@@ -34,7 +34,7 @@ A custom theme that:
 ### Directory
 
 ```
-dynamic_data/themes/nordic/
+themes/nordic/
 ├── theme.yaml
 ├── color.css          ← colour palette override
 ├── font.css           ← Inter + Lora + @font-face

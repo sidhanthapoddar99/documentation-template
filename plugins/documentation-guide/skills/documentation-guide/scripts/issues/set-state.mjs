@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /**
  * set-state.mjs — update an issue's status (top-level settings.json) or
- * a subtask's state (frontmatter). Path is allow-listed to dynamic_data/.
+ * a subtask's state (frontmatter). Path is allow-listed to the content root.
  *
  * Subtask flips also keep `done:` in sync (true for closed/cancelled).
  */
@@ -25,7 +25,7 @@ if (args.flags.help || !target || !state) {
     '',
     'state must be one of: open | review | closed | cancelled.',
     'Subtask writes also update done:true|false to match.',
-    'Refuses to write outside dynamic_data/.',
+    'Refuses to write outside the content root.',
   ]);
   process.exit(target && state ? 0 : 1);
 }
@@ -42,7 +42,7 @@ if (target.endsWith('.md') || target.includes('/')) {
   // Subtask path
   const abs = path.isAbsolute(target) ? target : path.resolve(tracker, target);
   if (!isInsideAllowed(abs)) {
-    console.error(`Refusing to write outside dynamic_data/: ${abs}`);
+    console.error(`Refusing to write outside the content root: ${abs}`);
     process.exit(1);
   }
   result = setFrontmatterField(abs, 'state', state);
@@ -53,7 +53,7 @@ if (target.endsWith('.md') || target.includes('/')) {
   // Issue id — mutate top-level settings.json
   const settingsPath = path.join(tracker, target, 'settings.json');
   if (!isInsideAllowed(settingsPath)) {
-    console.error(`Refusing to write outside dynamic_data/: ${settingsPath}`);
+    console.error(`Refusing to write outside the content root: ${settingsPath}`);
     process.exit(1);
   }
   result = setJsonField(settingsPath, 'status', state);

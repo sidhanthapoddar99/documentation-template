@@ -13,29 +13,23 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
+import { resolveProjectContext } from '../_env.mjs';
 
 // ---------- Paths & validation ----------------------------------------------
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 
-/**
- * Walk up from SCRIPT_DIR looking for the project root marker (`dynamic_data/`).
- * Works whether the skill is installed project-local (`<repo>/.claude/skills/…`)
- * or user-level (`~/.claude/skills/…` with cwd inside the project). Override
- * with the DOCS_PROJECT_ROOT env var if auto-detect ever guesses wrong.
- */
-function findProjectRoot(startDir) {
-  let dir = startDir;
-  while (dir !== path.dirname(dir)) {
-    if (fs.existsSync(path.join(dir, 'dynamic_data'))) return dir;
-    dir = path.dirname(dir);
-  }
-  if (fs.existsSync(path.join(process.cwd(), 'dynamic_data'))) return process.cwd();
-  return process.cwd();
-}
+// Resolve the project context from the framework's .env (the same one
+// astro.config.mjs reads). No hardcoded content-folder names — see _env.mjs
+// for the full resolution policy. Errors at module-load if .env or CONFIG_DIR
+// is missing, which is the right time to fail loud.
+const ctx = resolveProjectContext(SCRIPT_DIR);
 
-export const PROJECT_ROOT = process.env.DOCS_PROJECT_ROOT || findProjectRoot(SCRIPT_DIR);
-export const DEFAULT_TRACKER = path.join(PROJECT_ROOT, 'dynamic_data', 'data', 'todo');
+/** Absolute path to the user's content root (parent of CONFIG_DIR by convention). */
+export const CONTENT_ROOT = ctx.contentRoot;
+
+/** Default tracker path: <content-root>/data/todo. Override per-call with --tracker. */
+export const DEFAULT_TRACKER = path.join(CONTENT_ROOT, 'data', 'todo');
 
 const FOLDER_PATTERN = /^(\d{4}-\d{2}-\d{2})-([a-z0-9][a-z0-9-]*)$/;
 const COMMENT_PATTERN = /^(\d+)_(\d{4}-\d{2}-\d{2})_([a-z0-9-]+)\.md$/i;
@@ -45,11 +39,10 @@ export function isValidState(s) {
   return VALID_STATES.includes(s);
 }
 
-/** Allow-list: refuse to write anywhere outside dynamic_data/. */
+/** Allow-list: refuse to write anywhere outside the resolved content root. */
 export function isInsideAllowed(filePath) {
   const abs = path.resolve(filePath);
-  const allowed = path.join(PROJECT_ROOT, 'dynamic_data');
-  return abs === allowed || abs.startsWith(allowed + path.sep);
+  return abs === CONTENT_ROOT || abs.startsWith(CONTENT_ROOT + path.sep);
 }
 
 // ---------- Args parsing ----------------------------------------------------
