@@ -1,7 +1,7 @@
 ---
 title: "@root alias + supporting scaffold (defaults rename, template, init)"
-done: false
-state: review
+done: true
+state: closed
 ---
 
 Land the `@root` system alias along with the surrounding scaffolding it depends on: rename `dynamic_data/` to a clearer name, build a copyable starter template, wire `init` to use that template, and propagate the renames through skills and docs. Captured here as one subtask because the pieces are interlocking (e.g., `@root/default-docs/themes` only resolves cleanly once the rename + template both exist).
@@ -16,7 +16,7 @@ Land the `@root` system alias along with the surrounding scaffolding it depends 
   - `theme_paths` includes `@root/default-docs/themes` so framework-bundled themes are picked up
   - User-guide section uses the new `default-docs` user-alias: `data: "@default-docs/user-guide"` (alternative form `@root/default-docs/data/user-guide` noted in a comment)
   - Verified end-to-end with `CONFIG_DIR=./astro-doc-code/template/config` → 89 pages built, navbar/footer both correct
-- [ ] **Update `/docs-init` skill / plugin** to use the template as the starting point — essentially `cp -r template/ <user-target>/` plus prompts for name + description + URL substitution into placeholders.
+- [x] **Update `/docs-init` skill / plugin** to use the template as the starting point — done. Bundled `astro-doc-code/template/` into `plugins/documentation-guide/template/` (byte-identical copy). Rewrote `commands/docs-init.md` to: (1) locate the bundled template via `find ~/.claude/plugins/cache -path "*/documentation-guide/*/template" -type d`, (2) `rsync -a --exclude='README.md'` it to the chosen root, (3) `sed`-substitute four known placeholder strings (`My Docs` → site name, `My Documentation` → title, `Modern documentation built with Astro` → description, `your-org/your-repo` → repo URL) across `config/site.yaml`, `config/footer.yaml`, `data/pages/home.yaml`. Pre-flight aborts if `./config/site.yaml` or `./documentation-template/` already exists. Does **not** clone the framework, does **not** write `.env` (lives inside the framework folder which doesn't exist yet) — both deferred to printed post-init clone instructions. Patches `CLAUDE.md` at the project root with the consumer-mode layout description.
 - [x] **Sweep skills + docs to introduce `@root`** — added to:
   - User-guide alias page (`05_getting-started/03_aliases.md`) — new "Framework Root Alias" section (sharpened from "Project Root" — `@root` resolves to the framework folder, not the consumer's outer project) + diagram update.
   - User-guide paths config page (`10_configuration/03_site/03_paths.md`) — new "Using `@root` in `paths:` values" section, only-`@root`-allowed rule, path-traversal guard, both consumer + dogfood examples.
@@ -38,7 +38,8 @@ Land the `@root` system alias along with the surrounding scaffolding it depends 
   - throws clearly if `.env` or `CONFIG_DIR` is missing — no silent fallback to a hardcoded folder.
   - Allows `DOCS_PROJECT_ROOT` env var as an explicit override.
   Updated `issues/_lib.mjs`, `blog/check.mjs`, `config/check.mjs` to consume `_env.mjs`. Removed all `default-docs/` literals from script error messages and help text. Smoke-tested all four primary tools (`docs-list`, `docs-show`, `docs-check-config`, `docs-check-blog`) — all resolve paths correctly via `.env`. Note: requires `/plugin update && /reload-plugins` for the cached plugin install to pick up the changes.
-- [ ] **Document the template + init flow** — new user-guide page (or section in getting-started) explaining: "run `docs init`, get a working starter, customise from there."
+- [x] **Document the template + init flow** — new user-guide page at `default-docs/data/user-guide/05_getting-started/06_init-and-template.md`. Covers: what ships in the template (5-section breakdown table), what `/docs-init` does (the 5-question flow + the rsync + 4-placeholder substitution mechanic), what it deliberately doesn't do (clone, write `.env`, overwrite existing files), the complete first-time flow (plugin install → init → clone → `.env` → start), the manual scaffold path (without the plugin, via the framework's `astro-doc-code/template/`), the substitution table, and customisation pointers. Build verified: 339 pages clean (one new).
+- [x] **Sweep plugin skill + references for consumer-mode framing** (follow-on to the user-guide reframe). Stripped hardcoded `default-docs/` prefixes from prose paths describing the consumer's content across SKILL.md + all 5 references (`writing`, `docs-layout`, `blog-layout`, `issue-layout`, `settings-layout`); paths now read mode-agnostic (`data/<X>`, `themes/<name>/`, `assets/`, `config/`) with `_env.mjs` doing the actual mode-aware lookup. Cross-references to the framework's *bundled* user-guide rewritten as `@root/default-docs/data/user-guide/...` so they're explicit about pointing at the framework folder regardless of mode. SKILL.md got a top-of-file two-mode note. settings-layout §1 got a full rewrite with consumer + dogfood structures side-by-side. README.md, plugin.json description, and `_env.mjs` comment ordering all updated. Plugin bumped to **0.1.2**.
 
 ## What `@root` resolves to (table)
 
@@ -86,7 +87,7 @@ Resolution order: system aliases (`@root`, `@theme`, ...) resolve first because 
 
 1. ~~**`defaults/` vs `default-docs/` for the rename.**~~ **Resolved:** `default-docs/`.
 2. ~~**Was "4 nav bar items" meant as 4 or 5?**~~ **Resolved:** 5 (Home / Docs / Issues / Blog / User Guide).
-3. **Stay as one subtask or split into smaller ones?** Still bundled — top three boxes done, bottom three (skill/docs sweeps + init wiring) deferred for the user-led review pass. Split if those grow.
+3. ~~**Stay as one subtask or split into smaller ones?**~~ **Resolved:** stayed bundled. The pieces turned out interlocking enough (rename + @root + template + init + sweeps all share the same mental model of "framework folder vs consumer content") that splitting late would have just added bookkeeping. Closed as one unit.
 
 ## Out of scope for this subtask
 

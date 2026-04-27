@@ -452,7 +452,7 @@ export function setFrontmatterField(filePath, field, value) {
     : `${fmBlock}\n${newLine}`;
   const replaced = original.replace(fmMatch[0], `${openDelim}${newFmBlock}${closeDelim}`);
   fs.writeFileSync(filePath, replaced);
-  return { ok: true, message: `Set ${field}: ${value} in ${path.relative(PROJECT_ROOT, filePath)}` };
+  return { ok: true, message: `Set ${field}: ${value} in ${path.relative(CONTENT_ROOT, filePath)}` };
 }
 
 function formatYamlScalar(v) {
@@ -479,7 +479,7 @@ export function setJsonField(filePath, field, value) {
   }
   const replaced = original.replace(re, `$1${formatted}`);
   fs.writeFileSync(filePath, replaced);
-  return { ok: true, message: `Set ${field}: ${value} in ${path.relative(PROJECT_ROOT, filePath)}` };
+  return { ok: true, message: `Set ${field}: ${value} in ${path.relative(CONTENT_ROOT, filePath)}` };
 }
 
 function formatJsonScalar(v) {

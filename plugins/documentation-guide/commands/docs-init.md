@@ -1,5 +1,5 @@
 ---
-description: Bootstrap a new documentation-template project (config + sample data + CLAUDE.md patch). Walks through scope, site name, and first section interactively.
+description: Bootstrap a new documentation-template project from the bundled starter template (5 sections wired up — Home, Docs, Issues, Blog, User Guide). Walks through site name, description, repo URL.
 allowed-tools: Read, Write, Edit, Bash
 argument-hint: (no arguments — fully interactive)
 ---
@@ -8,318 +8,232 @@ You are running the `/docs-init` slash command from the `documentation-guide` pl
 
 # Goal
 
-Scaffold a new **documentation-template** project from zero. The project layout this command produces:
+Scaffold a new **documentation-template** project from zero by **copying the plugin's bundled starter template** into the user's chosen directory, then substituting their site name / description / repo URL into the copied files.
+
+The template ships **5 sections wired up**: Home (`/`), Docs (`/docs`), Issues (`/issues`), Blog (`/blog`), and the framework's bundled User Guide (`/user-guide`). It's a working site out of the box — the user customises the content from there.
+
+## Final layout (consumer mode)
 
 ```
-<chosen-root>/
-├── assets/                    ← logos, images (served at /assets/)
-├── config/
-│   ├── site.yaml              ← site name, theme, page definitions
-│   ├── navbar.yaml            ← top-nav links
-│   └── footer.yaml            ← footer columns
-├── data/
-│   ├── README.md              ← maps the data layout for future agents
-│   └── <section>/             ← first docs section (e.g. user-guide)
-│       ├── settings.json      ← label + sidebar config
-│       └── 01_welcome.md      ← starter page (XX_ prefix on FILES, not section folder)
-├── themes/                    ← (empty — for custom themes)
-├── astro-doc-code/            ← framework code, git-cloned by the user
-│                                  (future: replaced by `bun add documentation-template`)
-└── start                      ← bash wrapper from the framework clone (`./start [dev|build|preview]`)
+<chosen_root>/                     ← user's project root
+├── config/                        ← site.yaml, navbar.yaml, footer.yaml
+├── data/                          ← all editable content
+│   ├── docs/                      ← user's docs section (XX_-prefixed)
+│   ├── blog/                      ← YYYY-MM-DD-slug.md
+│   ├── issues/                    ← folder-per-issue tracker
+│   └── pages/                     ← custom-page YAML (home.yaml)
+├── assets/                        ← logos, images (served at /assets/)
+├── themes/                        ← (empty — for custom themes)
+├── .gitignore
+└── documentation-template/        ← framework folder — cloned by the user AFTER init
+    ├── .env                       ← CONFIG_DIR=../config (created post-clone)
+    ├── start                      ← bash wrapper
+    ├── astro-doc-code/            ← framework code
+    └── default-docs/              ← framework's bundled docs (the User Guide section reads from here)
 ```
 
-**Naming convention:** top-level folders under `data/` use plain kebab-case (e.g. `user-guide`, `dev-docs`). The `XX_` numeric prefix is only used on files within a section, and on subsection folders if the section grows them — never on the top-level section folder.
+The framework folder (`documentation-template/`) lives **inside** the user's project root as a sibling of `config/` and `data/`. The user's content is OUTSIDE the framework folder — this is the consumer-mode architecture. `.env` lives inside the framework folder with `CONFIG_DIR=../config` to reach back up to the content.
 
-The framework code itself (`astro-doc-code/`) is **not** part of this scaffold — it's a separate clone the user runs at the end. Today it must be cloned; once the npm-package work lands, it becomes a dependency install.
-
-A patched `CLAUDE.md` lives at the repo root (created if absent) so future Claude Code sessions know the docs layout, the active skill, and the build commands.
+A patched `CLAUDE.md` at the project root tells future Claude Code sessions the layout, the active skill, and the build commands.
 
 # Workflow
 
 Walk the user through these steps **in order**. Be conversational — ask questions, confirm before writing files, summarise at the end.
 
-## Step 1 — Pre-flight check
+## Step 1 — Pre-flight
 
-Before asking anything, check the current working directory for evidence the project is already initialised:
+Check the current working directory for evidence of an existing docs project:
 
-- Does `./config/site.yaml` exist?
-- Does `./data/` exist with any subdirectories?
-- Does `./default-docs/config/site.yaml` exist (legacy layout)?
+```bash
+test -f ./config/site.yaml && echo "config/site.yaml exists"
+test -d ./documentation-template && echo "documentation-template/ exists"
+test -f ./default-docs/config/site.yaml && echo "default-docs/config/site.yaml exists (legacy/dogfood layout)"
+```
 
-If **any** of these is true, stop and tell the user:
+If **any** of these prints, stop:
 > Looks like docs are already initialised here (`<path-found>` exists). Use `/docs-add-section` to add a new section, or remove the existing structure first.
 
-Do not proceed.
+If none exist, continue.
 
-If none of these exist, continue.
+## Step 2 — Locate the bundled template
 
-## Step 2 — Ask: scope
+The starter template is bundled inside this plugin at `<plugin-root>/template/`. Locate it:
 
-Ask the user:
-> Will this entire repo be the docs site, or should the docs live in a subfolder?
->
-> 1. **Whole repo** — initialise at the current directory
-> 2. **Subfolder** (recommended for projects that already have source code) — pick a folder name (default: `docs`)
+```bash
+TEMPLATE_DIR=$(find ~/.claude/plugins/cache -path "*/documentation-guide/*/template" -type d 2>/dev/null | sort -V | tail -1)
+echo "Template: $TEMPLATE_DIR"
+test -d "$TEMPLATE_DIR/config" || { echo "ERROR: bundled template not found"; exit 1; }
+```
 
-Capture the answer:
-- If "whole repo" → `chosen_root = "."`
-- If "subfolder" → ask for name (default `docs`), create the folder if missing → `chosen_root = "./<name>"`
+If not found, tell the user the plugin install is broken and they should `/plugin update documentation-guide@documentation-template && /reload-plugins`.
 
-Print the resolved absolute path back to the user for confirmation before writing anything.
-
-## Step 3 — Ask: site identity
-
-Ask three short questions (one message, the user can answer all at once):
-
-1. **Site name** — short label, shown in the navbar (e.g. "Acme Docs")
-2. **Site title** — full title used in `<title>` tags (default: same as site name)
-3. **Description** — one-sentence tagline (default: "Documentation built with documentation-template")
-
-## Step 4 — Ask: first section name
+## Step 3 — Ask: scope
 
 Ask:
-> What's the first docs section called? (e.g. `user-guide`, `dev-docs`, `handbook`, `getting-started`)
+> Will this entire repo be the docs site, or should the docs live in a subfolder?
+>
+> 1. **Whole repo** — initialise at the current directory (`<cwd>`)
+> 2. **Subfolder** (recommended for projects that already have source code) — pick a folder name (default: `docs`)
 
-Default to `user-guide`. Use kebab-case. This becomes the first folder under `data/` and the first entry in `pages:` in `site.yaml`.
+Capture:
+- "whole repo" → `chosen_root="."`
+- "subfolder" → ask for name (default `docs`); create the folder if missing → `chosen_root="./<name>"`
 
-## Step 5 — Confirm and scaffold
+Print the resolved absolute path (`realpath "$chosen_root"`) for confirmation before writing anything.
 
-Show the user the full plan, then wait for confirmation. If they say no, stop. If they say yes, write all files using the templates in the next section.
+## Step 4 — Ask: site identity
 
+Ask three short questions in one message — the user can answer all at once:
+
+1. **Site name** — short label shown in the navbar (e.g. "Acme Docs"). Default: the basename of `chosen_root`.
+2. **Site title** — full title used in `<title>` tags. Default: same as site name.
+3. **Description** — one-sentence tagline. Default: "Documentation built with documentation-template".
+4. **GitHub repo URL** (or `org/repo` shorthand) — used in footer + social links. Default: leave the placeholder `your-org/your-repo` (the user can edit `config/footer.yaml` later).
+
+Bind these to shell vars:
+```bash
+SITE_NAME="..."
+SITE_TITLE="..."
+DESCRIPTION="..."
+REPO_URL="..."        # full URL, e.g. https://github.com/acme/docs
 ```
-Will create at <chosen_root>:
-  assets/                                           (empty)
-  config/site.yaml                                  (site name, theme: default, first section: <section>)
-  config/navbar.yaml                                (Home, <Section Title>)
-  config/footer.yaml                                (minimal default)
-  data/README.md                                    (data layout map)
-  data/<section>/settings.json                      (label "<Section Title>", sidebar config)
-  data/<section>/01_welcome.md                      (frontmatter + starter content)
-  themes/                                           (empty)
 
-Will patch:
-  CLAUDE.md                                         (at repo root — created if absent)
+## Step 5 — Show the plan, confirm
 
-Will print clone instructions for the framework engine at the end.
+Show:
+```
+Will copy template (5 sections — Home/Docs/Issues/Blog/User Guide) into <absolute-chosen-root>:
+
+  config/site.yaml         (substitutions: name=<SITE_NAME>, title=<SITE_TITLE>, description=<DESCRIPTION>)
+  config/navbar.yaml       (no substitution — uses <SITE_NAME> only via the rendered logo alt)
+  config/footer.yaml       (substitutions: copyright=<SITE_NAME>, repo=<REPO_URL>)
+  data/docs/               (one starter page under 05_getting-started/)
+  data/blog/               (one welcome post)
+  data/issues/             (empty tracker — vocabulary in settings.json)
+  data/pages/home.yaml     (substitution: hero.title=<SITE_TITLE>)
+  assets/                  (Astro placeholder logos — replace with your branding later)
+  themes/                  (empty)
+  .gitignore               (.env, .astro/, node_modules/, dist/)
+
+Will patch CLAUDE.md at <chosen_root>/CLAUDE.md (created if absent).
+
+Will print clone + .env setup instructions for the framework engine at the end
+(the framework gets cloned INTO <chosen_root>/documentation-template/ as a subfolder).
 
 Proceed?
 ```
 
-## Step 6 — Patch CLAUDE.md
+## Step 6 — Copy + substitute
 
-Open `./CLAUDE.md` (the repo root, NOT inside `chosen_root` if it's a subfolder). If absent, create it with the full `CLAUDE.md` template below. If present, append the **"## Documentation"** section from the template (or merge intelligently if there's already such a section).
+Run:
 
-The CLAUDE.md patch is the **single most important output** — without it, future sessions don't know the docs layout, that the `documentation-guide` skill is installed and applies to this project, or how to build/run.
+```bash
+# Copy everything except the template's own README (it documents the template, not the user's project)
+rsync -a --exclude='README.md' "$TEMPLATE_DIR/" "$chosen_root/"
 
-## Step 7 — Print summary + next steps
+# Substitute placeholders. Be precise — these strings appear in known files only.
+# Use single-quoted sed expressions and pipe through xargs to handle absent files gracefully.
 
-End with a clear next-actions block:
+cd "$chosen_root"
+
+# site.yaml — site.name + site.title + site.description + logo.alt
+sed -i \
+  -e "s|name: \"My Docs\"|name: \"$SITE_NAME\"|" \
+  -e "s|title: \"My Documentation\"|title: \"$SITE_TITLE\"|" \
+  -e "s|description: \"Modern documentation built with Astro\"|description: \"$DESCRIPTION\"|" \
+  -e "s|alt: \"My Docs\"|alt: \"$SITE_NAME\"|" \
+  config/site.yaml
+
+# footer.yaml — copyright + repo URLs
+sed -i \
+  -e "s|© {year} My Docs. All rights reserved.|© {year} $SITE_NAME. All rights reserved.|" \
+  config/footer.yaml
+
+if [ -n "$REPO_URL" ] && [ "$REPO_URL" != "https://github.com/your-org/your-repo" ]; then
+  # escape forward slashes for sed
+  REPO_ESCAPED=$(printf '%s\n' "$REPO_URL" | sed 's|[\&/]|\\&|g')
+  sed -i "s|https://github.com/your-org/your-repo|$REPO_ESCAPED|g" config/footer.yaml
+fi
+
+# pages/home.yaml — hero.title
+sed -i "s|title: \"My Documentation\"|title: \"$SITE_TITLE\"|" data/pages/home.yaml
+
+cd - > /dev/null
+```
+
+**Important:** the `.env` file is **not** written here — it belongs inside the framework folder, which doesn't exist yet. It's created in step 8 after the user clones the framework.
+
+## Step 7 — Patch CLAUDE.md
+
+Open `$chosen_root/CLAUDE.md`. If absent, write the full template below. If present, append the **`## Documentation`** section (or merge intelligently if there's already such a section). Substitute `<SITE_NAME>`, `<DESCRIPTION>`, and `<chosen_root>` (use `.` if `chosen_root="."`).
+
+The CLAUDE.md patch is the single most important post-init artifact — without it, future sessions don't know the docs layout, that the `documentation-guide` skill is installed, or how to build/run.
+
+## Step 8 — Print summary + next steps
+
+End with a concrete next-actions block:
 
 ```
-Created docs scaffold at <chosen_root>.
+✅ Created docs scaffold at <absolute-chosen-root>.
 
-Next steps:
+Next step — clone the framework alongside your content:
 
-1. Clone the framework code into <chosen_root> as `astro-doc-code/` and launch:
-     cd <chosen_root>
-     git clone https://github.com/sidhanthapoddar99/documentation-template.git astro-doc-code
-     # The clone ships its own ./start wrapper at the repo root. If you want it visible
-     # at <chosen_root>/start, copy or symlink it from astro-doc-code/start, then:
-     echo "CONFIG_DIR=config" > .env       # path is relative to <chosen_root> (where .env lives)
-     ./start                                # preflight: pick bun (else npm) → install → sanity build → dev
+  cd <chosen_root>
+  git clone https://github.com/sidhanthapoddar99/documentation-template.git
+  cd documentation-template
+  echo "CONFIG_DIR=../config" > .env
+  ./start                  # preflight: pick bun (else npm) → install if needed → sanity build → dev
 
-2. Open http://localhost:4321 — you should see "<Site Name>" with one page in the sidebar.
+Open http://localhost:4321 — you should see "<SITE_NAME>" with five sections in the navbar
+(Home / Docs / Issues / Blog / User Guide).
 
-3. To add another top-level section later: run /docs-add-section.
+To customise:
+  • Site identity     → config/site.yaml
+  • Navbar / footer   → config/{navbar,footer}.yaml
+  • Branding (logos)  → drop replacements into assets/, then update site.yaml → logo:
+  • Add a section     → /docs-add-section
+  • New theme         → themes/<name>/theme.yaml (extends: "@theme/default")
 
-4. Edit `<chosen_root>/data/<section>/01_welcome.md` to start writing.
+The User Guide section already points at the framework's bundled documentation
+(@root/default-docs/data/user-guide) — you get the framework's own docs in your site
+out of the box. To remove it, delete the `user-guide:` block from config/site.yaml's
+pages: section and the matching entry in config/navbar.yaml.
 ```
 
 ---
 
-# Templates
+# CLAUDE.md template (used in step 7 if file is absent)
 
-Use these EXACTLY (substitute `<...>` placeholders with the user's answers).
+````markdown
+# <SITE_NAME>
 
-## `config/site.yaml`
-
-```yaml
-# Site Configuration
-site:
-  name: "<site_name>"
-  title: "<site_title>"
-  description: "<description>"
-
-# Vite Server Configuration
-server:
-  allowedHosts: true
-
-# Directory Paths (relative to this config directory)
-# Each key becomes an @key alias.
-paths:
-  data: "../data"
-  assets: "../assets"
-  themes: "../themes"
-
-# Theme Configuration
-theme: "default"
-theme_paths:
-  - "@themes"
-
-# Logo
-logo:
-  src: "@assets/logo.svg"
-  alt: "<site_name>"
-  favicon: "@assets/favicon.png"
-
-# Editor Configuration (required — framework throws if missing)
-editor:
-  autosave_interval: 10000  # milliseconds
-
-# Page Definitions
-pages:
-  <section>:
-    base_url: "/<section>"
-    type: docs
-    layout: "@docs/default"
-    data: "@data/<section>"
-```
-
-## `config/navbar.yaml`
-
-```yaml
-layout: "@navbar/default"
-
-items:
-  - label: "Home"
-    href: "/"
-
-  - label: "<Section Title>"
-    href: "/<section>"
-```
-
-`<Section Title>` = the user's section name converted to Title Case (e.g. `user-guide` → "User Guide").
-
-## `config/footer.yaml`
-
-```yaml
-layout: "@footer/default"
-
-copyright: "© {year} <site_name>. All rights reserved."
-
-columns:
-  - title: "Documentation"
-    links:
-      - label: "<Section Title>"
-        href: "/<section>"
-
-  - title: "Project"
-    links:
-      - label: "GitHub"
-        href: "https://github.com/your-org/your-repo"
-```
-
-## `data/README.md`
-
-```markdown
-# Data Layout
-
-This folder holds all editable content for the docs site. Each top-level folder is either a docs section, a content type, or supporting data.
-
-## Top-level folders
-
-| Folder | Purpose | Served at |
-|---|---|---|
-| `<section>/` | First docs section — sidebar-driven, files use `XX_` numeric prefix for ordering | `/<section>` |
-
-## Adding a new section
-
-Run `/docs-add-section` from Claude Code, or:
-
-1. Create `data/<kebab-name>/` (top-level — no `XX_` prefix on the folder)
-2. Add `settings.json` with `{ "label": "...", "sidebar": { "collapsed": false, "collapsible": true } }`
-3. Add `01_overview.md` with frontmatter `title:` (the `XX_` prefix on FILES controls sidebar order)
-4. Add a matching entry to `config/site.yaml` under `pages:`
-
-## Conventions
-
-- **`XX_` prefix** — applies to **files** inside a section (e.g. `01_overview.md`, `05_setup.md`) and to **subsection folders** (e.g. `data/<section>/05_getting-started/`). It does NOT apply to top-level section folders themselves.
-- **`settings.json` required** — every section folder needs one (label + sidebar config)
-- **`title` frontmatter required** — every markdown file needs `title: "..."` in frontmatter
-- See the `documentation-guide` skill (installed via the plugin marketplace) for full conventions
-```
-
-## `data/<section>/settings.json`
-
-```json
-{
-  "label": "<Section Title>",
-  "sidebar": {
-    "collapsed": false,
-    "collapsible": true,
-    "sort": "position",
-    "depth": 3
-  }
-}
-```
-
-## `data/<section>/01_welcome.md`
-
-```markdown
----
-title: Welcome
-description: Start here.
----
-
-# Welcome to <site_name>
-
-This is the first page of your documentation site. Edit `data/<section>/01_welcome.md` to replace this content.
-
-## What you can do next
-
-- **Add a page** to this section: create `data/<section>/02_<slug>.md` with frontmatter `title:`. The `XX_` prefix controls sidebar order — leave gaps so future inserts don't require renumbering.
-- **Add a subsection folder**: create `data/<section>/05_<sub-name>/` with its own `settings.json` and pages
-- **Add a new top-level section**: run `/docs-add-section` from Claude Code
-- **Customise the navbar**: edit `config/navbar.yaml`
-- **Switch themes**: edit `theme: "..."` in `config/site.yaml`
-
-## Conventions
-
-The `XX_` numeric prefix on files (`01_`, `05_`, `10_`, …) controls sidebar order — gaps are fine. Every folder needs `settings.json`; every markdown file needs `title:` in frontmatter.
-
-For full conventions and tooling, see the `documentation-guide` skill — Claude Code triggers it automatically when you work in `data/`.
-```
-
-## `CLAUDE.md` (root) — full template if absent
-
-```markdown
-# <Site Name>
-
-<one-sentence description>
+<DESCRIPTION>
 
 ## Documentation
 
-Docs site lives at `<chosen_root>/` (relative to repo root).
+This project uses the **documentation-template** framework. The docs site lives at `<chosen_root>/`.
 
-- **Content**: `<chosen_root>/data/`
-- **Config**: `<chosen_root>/config/{site,navbar,footer}.yaml`
-- **Themes**: `<chosen_root>/themes/`
-- **Framework code**: `<chosen_root>/astro-doc-code/` (cloned separately — see below)
+### Layout (consumer mode)
+
+- **Content** — `<chosen_root>/data/` (docs, blog, issues, custom pages)
+- **Config** — `<chosen_root>/config/{site,navbar,footer}.yaml`
+- **Assets** — `<chosen_root>/assets/` (served at `/assets/`)
+- **Themes** — `<chosen_root>/themes/` (custom themes; framework themes auto-available via `@root/default-docs/themes`)
+- **Framework** — `<chosen_root>/documentation-template/` (cloned separately — don't edit, treat as a vendored dependency)
 
 ### Build commands
 
-From `<chosen_root>/`, use the `./start` wrapper that ships with the framework clone:
+From `<chosen_root>/documentation-template/`:
 
 ```bash
-./start            # preflight: pick bun (else npm) → install if needed → sanity build → dev
-./start dev        # skip preflight, dev only      → http://localhost:4321
-./start build      # skip preflight, build only    → astro-doc-code/dist/
+./start            # preflight: pick bun (else npm) → install → sanity build → dev
+./start dev        # skip preflight, dev only       → http://localhost:4321
+./start build      # skip preflight, build only     → astro-doc-code/dist/
 ./start preview    # skip preflight, preview only
+./start clean      # wipe .astro/, dist/, node_modules/.vite/
 ```
 
-Inside `astro-doc-code/`, `bun run dev` / `bun run build` / `bun run preview` work directly.
-
-The framework reads `.env` from the repo root (`<chosen_root>/.env`) for `CONFIG_DIR`, which points at the consumer's `config/` folder (path relative to the repo root).
+The framework reads `.env` from `documentation-template/.env`. Default for consumer mode: `CONFIG_DIR=../config` (points back up to `<chosen_root>/config/`).
 
 ### Tooling — `documentation-guide` plugin
 
@@ -329,7 +243,7 @@ This project uses the `documentation-guide` Claude Code plugin. It ships:
 - **CLI wrappers on PATH** — `docs-list`, `docs-show`, `docs-subtasks`, `docs-agent-logs`, `docs-set-state`, `docs-add-comment`, `docs-add-agent-log`, `docs-review-queue` (issue tracker), `docs-check-blog`, `docs-check-config`, `docs-check-section` (validators)
 - **Slash commands** — `/docs-init`, `/docs-add-section`
 
-Install (per repo):
+Install (per workstation, one-time):
 
 ```
 /plugin marketplace add https://github.com/sidhanthapoddar99/documentation-template
@@ -337,16 +251,14 @@ Install (per repo):
 /reload-plugins
 ```
 
-To enable for everyone who clones this repo, the plugin is also enabled in committed `.claude/settings.json`.
-
 ### Adding content
 
 - **New page in existing section** — create `data/<section>/<XX>_<slug>.md` with `title:` frontmatter. `XX_` is the next 2-digit prefix in the section.
 - **New top-level section** — run `/docs-add-section` (creates `data/<name>/`, `settings.json`, starter page; optionally registers in `site.yaml`)
-- **Validate before commit** — `docs-check-section <chosen_root>/data/<section>` flags missing `settings.json`, missing frontmatter, prefix collisions
-```
+- **Validate before commit** — `docs-check-config` and `docs-check-section <chosen_root>/data/<section>` flag missing `settings.json`, missing frontmatter, prefix collisions
+````
 
-If `CLAUDE.md` already exists, append the `## Documentation` section (everything from `## Documentation` to the end of the template) — don't overwrite the rest of the file.
+If `CLAUDE.md` already exists, append everything from `## Documentation` onward — don't overwrite the rest of the file.
 
 ---
 
@@ -355,5 +267,6 @@ If `CLAUDE.md` already exists, append the `## Documentation` section (everything
 - Ask one question at a time when you genuinely need user input; batch related questions where natural.
 - Show the file plan before writing — never silently scaffold.
 - If the user has chosen a non-default for any answer, restate it back so they can correct typos.
-- After scaffolding, validate by running `docs-check-config <chosen_root>/config` and `docs-check-section <chosen_root>/data/<section>` — both should exit clean. If they don't, fix the issue or report it.
-- Do not clone the framework engine for the user (network operation, license decision, fork preference). Print the clone command in the summary instead.
+- After scaffolding, validate by running `docs-check-config` (with the resolved `<chosen_root>/config` path passed explicitly, since `.env` doesn't exist yet) — it should exit clean. If it doesn't, fix the issue or report it.
+- Do **not** clone the framework engine for the user (network operation, license/fork preference). Print the clone command in the summary instead.
+- Do **not** write `.env` — it lives inside the framework folder which doesn't exist yet. The post-clone step creates it.
