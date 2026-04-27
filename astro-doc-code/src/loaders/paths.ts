@@ -126,7 +126,7 @@ export const paths: {
 // ============================================
 
 /** Reserved alias keys that cannot be used in paths: section */
-const RESERVED_KEYS = new Set(['docs', 'blog', 'custom', 'navbar', 'footer', 'theme', 'config', 'root']);
+const RESERVED_KEYS = new Set(['docs', 'blog', 'issues', 'custom', 'navbar', 'footer', 'theme', 'config', 'root']);
 
 // Use globalThis to persist state across Vite module reloads
 // (astro.config.mjs and runtime may load this as separate module instances)

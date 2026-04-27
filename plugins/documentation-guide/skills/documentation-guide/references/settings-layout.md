@@ -291,7 +291,7 @@ social:
 | `@footer/<style>` | `astro-doc-code/src/layouts/footer/<style>/` | `footer.yaml → layout` |
 | `@ext-layouts` | `LAYOUT_EXT_DIR` from `.env` | for user-shipped layouts (overrides built-ins by name) |
 | `@theme/<name>` | a theme folder | inside `theme.yaml → extends:` |
-| `@root/<sub>` | the framework folder + `<sub>` | reaching the framework's bundled content (`@root/default-docs/...`); path-traversal blocked. NOT the consumer's outer project root — see env.md for the two-mode model |
+| `@root/<sub>` | the framework folder + `<sub>` (i.e. the framework's install location on disk — `documentation-template/` in consumer mode, the repo root in dogfood mode) | reaching the framework's bundled content (`@root/default-docs/...`); path-traversal blocked. **NOT the consumer's outer project root** — see env.md for the two-mode model |
 
 **User-defined aliases** — declared in `site.yaml → paths:`:
 

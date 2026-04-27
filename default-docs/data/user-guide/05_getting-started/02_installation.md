@@ -109,7 +109,7 @@ From `documentation-template/`:
 ./start dev
 ```
 
-Open `http://localhost:3088` in your browser. (`./start` with no args also works — it just runs the install-and-build preflight first.)
+Open `http://localhost:4321` in your browser (or whatever `PORT` you set in `.env` — this repo's bundled `.env.example` ships with `PORT=3088`, so the dogfood site runs there). `./start` with no args also works — it just runs the install-and-build preflight first.
 
 ## Verifying Installation
 

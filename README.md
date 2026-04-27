@@ -29,18 +29,40 @@ The fastest path is via the bundled Claude Code plugin — three commands to ins
 
 All 11 wrappers land on your `$PATH` automatically after install — no path configuration. Pass `--help` to any of them for the full flag list.
 
-## Manual setup (without the plugin)
+## Manual setup (without `/docs-init`)
 
-If you'd rather not use the plugin, the framework is a normal Astro project:
+The framework supports two operating modes — pick the one that matches your situation.
+
+### Consumer mode (recommended for new projects)
+
+You have a project (a repo, a folder, anything) and you want docs alongside your code or content. Clone the framework as a **subfolder** named `documentation-template/`, write your own `config/`/`data/`/`assets/`/`themes/` next to it at the project root, and point `.env` (inside the framework folder) back up to your content.
 
 ```bash
-git clone https://github.com/sidhanthapoddar99/documentation-template.git my-docs
-cd my-docs
-cp .env.example .env
-./start          # http://localhost:4321
+cd <your-project>
+git clone https://github.com/sidhanthapoddar99/documentation-template.git
+# Author your config/, data/, assets/, themes/ at the project root
+# (or run /docs-init to scaffold them from the bundled template).
+cd documentation-template
+echo "CONFIG_DIR=../config" > .env
+./start                            # http://localhost:4321
 ```
 
-`./start` is a thin wrapper at the repo root: it detects `bun` (falls back to `npm`), installs dependencies on first run, runs a build sanity check, then starts the dev server. Edit content under `default-docs/data/`. See the user-guide ([Installation](https://github.com/sidhanthapoddar99/documentation-template/blob/main/default-docs/data/user-guide/05_getting-started/02_installation.md)) for the full walkthrough.
+The framework folder is treated as a vendored dependency — you don't edit anything inside `documentation-template/`. Your content lives outside it.
+
+### Dogfood / framework-dev mode (working *on* the framework itself)
+
+This is what running this repo directly does — you're hacking on the framework, with `default-docs/` doubling as both the framework's own docs and the testbed:
+
+```bash
+git clone https://github.com/sidhanthapoddar99/documentation-template.git
+cd documentation-template
+cp .env.example .env               # CONFIG_DIR=./default-docs/config (dogfood default)
+./start
+```
+
+`./start` is a thin wrapper at the framework folder root: it detects `bun` (falls back to `npm`), installs dependencies on first run, runs a build sanity check, then starts the dev server.
+
+For a deeper walkthrough (folder layout, what each path means, when to use which mode), see the user-guide: [Installation](https://github.com/sidhanthapoddar99/documentation-template/blob/main/default-docs/data/user-guide/05_getting-started/02_installation.md), [Environment Variables](https://github.com/sidhanthapoddar99/documentation-template/blob/main/default-docs/data/user-guide/10_configuration/02_env.md), [Init and the Starter Template](https://github.com/sidhanthapoddar99/documentation-template/blob/main/default-docs/data/user-guide/05_getting-started/06_init-and-template.md).
 
 ## Build commands
 
@@ -59,25 +81,26 @@ Inside `astro-doc-code/`, the usual `bun run dev` / `bun run build` / `bun run p
 ## What's inside the repo
 
 ```
-documentation-template/
-├── .claude-plugin/marketplace.json   ← marketplace manifest (this repo IS a marketplace)
-├── .claude/settings.json             ← dogfood: enables the plugin in this project
-├── start                             ← bash entrypoint (preflight + dev/build/preview)
+documentation-template/                 ← THIS repo (= framework folder)
+├── .claude-plugin/marketplace.json     ← marketplace manifest (this repo IS a marketplace)
+├── .claude/settings.json               ← dogfood: enables the plugin in this project
+├── start                               ← bash entrypoint (preflight + dev/build/preview/clean)
+├── .env, .env.example                  ← bootstrap (CONFIG_DIR points at the active config dir)
 ├── plugins/
-│   └── documentation-guide/          ← the plugin source (skill + wrappers + commands)
-├── astro-doc-code/                   ← framework code — leave alone unless you're hacking on it
-│   ├── src/                          ← Astro layouts, loaders, parsers
+│   └── documentation-guide/            ← plugin source (skill + wrappers + commands + bundled template)
+├── astro-doc-code/                     ← framework code — don't edit unless you're hacking on it
+│   ├── src/                            ← Astro layouts, loaders, parsers
 │   ├── astro.config.mjs
 │   ├── package.json
 │   └── tsconfig.json
-└── default-docs/                     ← USER-EDITABLE content + config
-    ├── config/                       ← site.yaml, navbar.yaml, footer.yaml
-    ├── assets/                       ← static assets served at /assets/
-    ├── themes/                       ← optional custom themes
-    └── data/                         ← content (user-guide, dev-docs, blog, todo)
+└── default-docs/                       ← framework's BUNDLED content (this repo's docs + testbed)
+    ├── config/                         ← site.yaml, navbar.yaml, footer.yaml
+    ├── assets/                         ← static assets served at /assets/
+    ├── themes/                         ← framework-bundled themes (full-width, minimal, …)
+    └── data/                           ← user-guide, dev-docs, blog, todo (the framework's own docs)
 ```
 
-Framework code lives in `astro-doc-code/`; everything you author day-to-day lives in `default-docs/`. That's the same boundary the eventual npm-published version will draw, so for normal use you only need to know `default-docs/` + `./start` from the repo root.
+`default-docs/` is the framework's **own** content — its user-guide, its dev-docs, its sample blog/issues, its bundled themes — packaged with the install. **Consumers don't edit it.** When you use the framework via consumer mode (clone as a subfolder), you write your content at YOUR project root (in `config/`, `data/`, `assets/`, `themes/` next to the framework folder), and `default-docs/` stays read-only as a vendored dependency. In dogfood mode (this repo), `default-docs/` doubles as both the framework's own docs and the live testbed for any framework changes.
 
 The repo is **both** the marketplace and the plugin source — a dogfood setup. The same install command above is what every consumer (and every clone of this repo) runs.
 

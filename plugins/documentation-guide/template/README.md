@@ -13,9 +13,10 @@ documentation site with five top-level sections: **Home**, **Docs**, **Issues**,
 
 ## Layout once copied
 
+`/docs-init` rsyncs everything in this template to the user's chosen root **except the template's own README.md** (this file — it's documentation about the template itself, not part of the scaffold).
+
 ```
 <user-project>/
-├── .env.example         → rename to .env (CONFIG_DIR=./config)
 ├── .gitignore
 ├── config/
 │   ├── site.yaml        # site name, paths, theme, page sections
@@ -30,6 +31,8 @@ documentation site with five top-level sections: **Home**, **Docs**, **Issues**,
 └── themes/              # user-authored themes (framework themes auto-available
                           # via @root/default-docs/themes — see site.yaml theme_paths)
 ```
+
+**`.env` is NOT written by init** — it lives inside the framework folder (`<user-project>/documentation-template/.env`) which doesn't exist yet at this point. The init flow's printed next-step instructions tell the user to clone the framework next, then `echo "CONFIG_DIR=../config" > documentation-template/.env`. That's why `.env.example` in this template is for reference only — the post-clone step writes the *real* `.env` directly, with the consumer-mode value (`CONFIG_DIR=../config`).
 
 ## Sections explained
 

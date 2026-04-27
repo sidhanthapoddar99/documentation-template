@@ -50,13 +50,13 @@ The **User Guide** section points at the framework's bundled docs (the page you'
 /docs-init
 ```
 
-Walks you through four short questions then copies + substitutes the template:
+Walks you through five short questions (the last is optional) then copies + substitutes the template:
 
 1. **Scope** — whole repo (init at current directory) or subfolder (default name: `docs`)
 2. **Site name** — short label for the navbar (e.g. "Acme Docs")
 3. **Site title** — full `<title>` string (defaults to site name)
 4. **Description** — one-sentence tagline
-5. **Repo URL** — `https://github.com/org/repo` (used in footer + social links; can be skipped)
+5. **Repo URL** *(optional)* — `https://github.com/org/repo` (used in footer + social links; skip to leave the placeholder)
 
 Then it:
 

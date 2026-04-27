@@ -122,11 +122,11 @@ Add more by declaring new keys — e.g. `paths: { shared_data: "../../shared" }`
 # Layout aliases
 pages:
   docs:
-    layout: "@docs/default"    # src/layouts/docs/styles/default/
+    layout: "@docs/default"    # src/layouts/docs/default/
     data: "@data/docs/final_docs" # paths.data/docs/final_docs/
 
   blog:
-    layout: "@blog/default"   # src/layouts/blogs/styles/default/
+    layout: "@blog/default"   # src/layouts/blogs/default/
     data: "@data/blog"            # paths.data/blog/
 
 # Theme (just the name — not an alias)
