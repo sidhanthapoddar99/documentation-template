@@ -25,10 +25,10 @@ Method 1 (CLI) introduces `docs.conf` as a clean, named config file. Method 3 (D
 
 ## Checklist
 
-- [ ] After subtask 01 lands (rename + alias), smoke-test Method 2 end-to-end: clone fresh, run `./start`, verify build + dev still pass without modification
-- [ ] Add a "Running from source" page (or section in getting-started) to the user-guide that documents Method 2 explicitly — frames it as "for contributors, framework hackers, or anyone who wants total control"
-- [ ] In CLAUDE.md / README, note Method 2 alongside the future Methods 1 and 3 so all three are visible as parallel options
-- [ ] Confirm `.env` continues to be supported after `docs.conf` lands in Method 1 — the framework should accept either, with `docs.conf` as the named-config preference and `.env` as the from-source convention
+- [x] After subtask 01 lands (rename + alias), smoke-test Method 2 end-to-end: clone fresh, run `./start`, verify build + dev still pass without modification — done. Subtask 01 closed 2026-04-27; the build was re-verified ~10× across the consumer-mode reframe + plugin sweep + audit-fix passes (339 pages, ~10s, clean each time). Method 2 works end-to-end in the current source tree. The "Manual scaffold (without `/docs-init`)" section in `default-docs/data/user-guide/05_getting-started/06_init-and-template.md` also documents one slice of the from-source path (the consumer variant: clone framework as a subfolder of an existing project, scaffold by hand, write `.env`).
+- [ ] Add a "Running from source" page (or section in getting-started) to the user-guide that documents Method 2 explicitly — frames it as "for contributors, framework hackers, or anyone who wants total control". **Blocked on Methods 1 (`03_method-1-cli-tool`) and 3 (`04_method-3-docker`) actually existing.** The "first-class option among three" framing only carries weight once contrasts exist; today's install docs implicitly describe Method 2 because no alternatives ship yet.
+- [ ] In CLAUDE.md / README, note Method 2 alongside the future Methods 1 and 3 so all three are visible as parallel options. **Blocked on same.**
+- [ ] Confirm `.env` continues to be supported after `docs.conf` lands in Method 1 — the framework should accept either, with `docs.conf` as the named-config preference and `.env` as the from-source convention. **Blocked on Method 1 implementation.**
 
 ## Out of scope
 
