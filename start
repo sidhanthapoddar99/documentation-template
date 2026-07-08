@@ -129,10 +129,11 @@ deprecation_migrate() {
   #    In dogfood mode your content lives INSIDE this folder; deleting would
   #    destroy it, so we refuse and print manual steps instead.
   local config_dir consumer=0
-  config_dir="$(grep -E '^CONFIG_DIR=' "$DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"' | tr -d "'")"
+  config_dir="$(grep -E '^CONFIG_DIR=' "$DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- \
+    | sed -e 's/[[:space:]]*#.*$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'\$/\1/")"
   if [ -n "$config_dir" ]; then
     case "$(cd "$DIR" && cd "$config_dir" 2>/dev/null && pwd)" in
-      "$DIR"/*|"") consumer=0 ;;
+      "$DIR"|"$DIR"/*|"") consumer=0 ;;
       *) consumer=1 ;;
     esac
   fi
@@ -142,13 +143,15 @@ deprecation_migrate() {
     read -r -p "[start] delete $DIR in favor of $NEW_DIR_NAME? [y/N] " reply
     case "$reply" in
       y|Y|yes|YES)
-        # exec a fresh shell so nothing keeps reading from the deleted folder
-        exec bash -c "
-          rm -rf '$DIR' &&
-          printf '\033[1;32m[start] upgrade complete — documentation-template is now agent-knowledge-system.\033[0m\n' &&
-          echo '[start] your content and .env carried over untouched.' &&
-          echo '[start] next: cd $target && ./start'
-        "
+        # exec a fresh shell so nothing keeps reading from the deleted folder;
+        # paths travel as positional args (never interpolated into the script
+        # string), so spaces/quotes in paths can't change what gets deleted
+        exec bash -c '
+          rm -rf "$1" &&
+          printf "\033[1;32m[start] upgrade complete — documentation-template is now agent-knowledge-system.\033[0m\n" &&
+          echo "[start] your content and .env carried over untouched." &&
+          echo "[start] next: cd \"$2\" && ./start"
+        ' _ "$DIR" "$target"
         ;;
       *)
         echo "[start] keeping this folder. When ready: rm -rf '$DIR' && cd '$target' && ./start"
