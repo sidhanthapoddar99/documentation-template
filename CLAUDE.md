@@ -1,5 +1,11 @@
 # Project Overview
 
+> **DEPRECATED / ARCHIVED.** This repo moved to
+> https://github.com/sidhanthapoddar99/agent-knowledge-system (project
+> *agent-knowledge-system*; plugin `agent-ks`, CLI `agent-ks`, skills
+> `agent-ks-*`). Do not start new work here — run `./start` to migrate this
+> checkout, or see the README banner for manual steps.
+
 Astro-based documentation framework with modular layouts, YAML configuration, and live editing via Yjs CRDT.
 
 ## Skills + tooling

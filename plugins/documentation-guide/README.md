@@ -1,5 +1,8 @@
 # documentation-guide
 
+> [!CAUTION]
+> **DEPRECATED.** This plugin moved with the framework rebrand — it is now **`agent-ks`** in [agent-knowledge-system](https://github.com/sidhanthapoddar99/agent-knowledge-system). This copy receives no further updates.
+
 Claude Code plugin for the [documentation-template](https://github.com/sidhanthapoddar99/documentation-template) framework. Ships:
 
 - **3 skills** — `documentation-guide` (operating manual for docs / blog / config / writing / themes — triages to domain-specific reference files), `doc-issues` (the complete, self-contained issue-tracker skill: anatomy, creation rules, subtasks, brainstorms, agent-logs, agent-memory, the dump — also fires on the execution verbs audit / refactor / loop / discuss), and `artifact-authoring` (building self-contained HTML artifacts — reports, dashboards, data visualizations, design systems — as `.html` content files served at `/artifacts`, with a `.meta.json` sidecar; bundles a palette validator)

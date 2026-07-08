@@ -1,3 +1,21 @@
+> [!CAUTION]
+> ## ⚠️ This repository is ARCHIVED — the project moved
+>
+> **documentation-template is now [agent-knowledge-system](https://github.com/sidhanthapoddar99/agent-knowledge-system).**
+> Same engine, same content format, new identity (plugin `agent-ks`, CLI `agent-ks`, skills `agent-ks-*`). Full history was carried over — nothing was lost in the move.
+>
+> **Migrating an existing checkout:** run `./start` — it detects this deprecated clone and walks you through the move (clones the new repo next to this folder, carries your `.env` over, and offers to remove this folder). Or do it by hand:
+>
+> ```bash
+> cd <your-project>                     # the folder that contains documentation-template/
+> git clone --depth 1 https://github.com/sidhanthapoddar99/agent-knowledge-system.git
+> cp documentation-template/.env agent-knowledge-system/.env   # keep your CONFIG_DIR wiring
+> rm -rf documentation-template                                # your content lives outside; nothing is lost
+> cd agent-knowledge-system && ./start
+> ```
+>
+> This repo stays up read-only for history. No further updates land here.
+
 # documentation-template
 
 Astro-based documentation framework with modular layouts, YAML configuration, a folder-per-issue tracker, and live editing via Yjs CRDT. Ships its own Claude Code plugin so authoring docs is one slash command away.

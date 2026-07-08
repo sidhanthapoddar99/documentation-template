@@ -65,6 +65,61 @@ function Update-Check {
   }
 }
 
+# -1. Deprecation notice + assisted migration. This repo moved to
+#     github.com/sidhanthapoddar99/agent-knowledge-system. Always warn; when
+#     interactive, clone the new repo as a sibling and carry .env over.
+#     Windows cannot delete the folder of a running script, so removal of this
+#     folder is printed as a manual step (mirrors ./start's consumer-only rule).
+$NewRepoUrl = 'https://github.com/sidhanthapoddar99/agent-knowledge-system.git'
+$NewDirName = 'agent-knowledge-system'
+
+function Deprecation-Migrate {
+  Write-Host '============================================================' -ForegroundColor Red
+  Write-Host '[start] DEPRECATED: documentation-template has moved.' -ForegroundColor Red
+  Write-Host '[start] New home: https://github.com/sidhanthapoddar99/agent-knowledge-system' -ForegroundColor Red
+  Write-Host '[start] This archived copy receives no further updates.' -ForegroundColor Red
+  Write-Host '============================================================' -ForegroundColor Red
+
+  if ($env:START_SKIP_UPDATE_CHECK -eq '1') { return }
+  if ([Console]::IsInputRedirected) { return }
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
+
+  $parent = Split-Path -Parent $Dir
+  $target = Join-Path $parent $NewDirName
+
+  $reply = Read-Host "[start] migrate this checkout to agent-knowledge-system now? [Y/n]"
+  if ($reply -ne '' -and $reply -notmatch '^(?i)(y|yes)$') {
+    Write-Host "[start] continuing on the deprecated copy - migrate any time by re-running .\start.cmd"
+    return
+  }
+
+  if (Test-Path $target) {
+    Write-Host "[start] $target already exists - using it"
+  } else {
+    Write-Host "[start] cloning $NewRepoUrl -> $target (shallow)..."
+    & git clone --depth 1 $NewRepoUrl $target
+    if ($LASTEXITCODE -ne 0) {
+      Write-Host "[start] clone failed (offline?) - aborting migration, nothing was changed"
+      return
+    }
+  }
+
+  $envSrc = Join-Path $Dir '.env'
+  $envDst = Join-Path $target '.env'
+  if ((Test-Path $envSrc) -and -not (Test-Path $envDst)) {
+    Copy-Item $envSrc $envDst
+    Write-Host "[start] copied .env -> $NewDirName\.env"
+  }
+
+  Write-Host "[start] the new copy is ready. Windows locks a running script's folder, so finish by hand:" -ForegroundColor Green
+  Write-Host "[start]   cd $target"
+  Write-Host "[start]   Remove-Item -Recurse -Force '$Dir'   # consumer mode only: your content lives outside this folder"
+  Write-Host "[start]   .\start.cmd"
+  exit 0
+}
+
+Deprecation-Migrate
+
 Update-Check
 
 Set-Location (Join-Path $Dir 'astro-doc-code')

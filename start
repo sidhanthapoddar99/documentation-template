@@ -76,6 +76,94 @@ update_check() {
   esac
 }
 
+# -1. Deprecation notice + assisted migration.
+#     This repo moved to github.com/sidhanthapoddar99/agent-knowledge-system.
+#     Always warn; when interactive, offer to migrate this checkout in place:
+#     clone the new repo as a sibling folder, carry .env over, then (consumer
+#     mode only, with confirmation) remove this folder. Dogfood checkouts
+#     (content inside this folder) are never deleted — manual steps printed.
+NEW_REPO_URL="https://github.com/sidhanthapoddar99/agent-knowledge-system.git"
+NEW_DIR_NAME="agent-knowledge-system"
+
+deprecation_migrate() {
+  printf '\033[1;31m============================================================\033[0m\n' >&2
+  printf '\033[1;31m[start] DEPRECATED: documentation-template has moved.\033[0m\n' >&2
+  printf '\033[31m[start] New home: https://github.com/sidhanthapoddar99/agent-knowledge-system\033[0m\n' >&2
+  printf '\033[31m[start] This archived copy receives no further updates.\033[0m\n' >&2
+  printf '\033[1;31m============================================================\033[0m\n' >&2
+
+  # Non-interactive / scripted runs: warn only, never block.
+  [ "${START_SKIP_UPDATE_CHECK:-0}" = "1" ] && return 0
+  [ -t 0 ] || return 0
+  command -v git >/dev/null 2>&1 || return 0
+
+  local parent target reply
+  parent="$(dirname "$DIR")"
+  target="$parent/$NEW_DIR_NAME"
+
+  read -r -p "[start] migrate this checkout to agent-knowledge-system now? [Y/n] " reply
+  case "$reply" in
+    ""|y|Y|yes|YES) ;;
+    *) echo "[start] continuing on the deprecated copy — migrate any time by re-running ./start"; return 0 ;;
+  esac
+
+  # 1. Clone the new repo as a sibling (skip if already there).
+  if [ -d "$target" ]; then
+    echo "[start] $target already exists — using it"
+  else
+    echo "[start] cloning $NEW_REPO_URL → $target (shallow)..."
+    if ! git clone --depth 1 "$NEW_REPO_URL" "$target"; then
+      echo "[start] clone failed (offline?) — aborting migration, nothing was changed" >&2
+      return 0
+    fi
+  fi
+
+  # 2. Carry the .env wiring over (don't clobber one already in place).
+  if [ -f "$DIR/.env" ] && [ ! -f "$target/.env" ]; then
+    cp "$DIR/.env" "$target/.env"
+    echo "[start] copied .env → $NEW_DIR_NAME/.env"
+  fi
+
+  # 3. Offer to remove this folder — but ONLY when it's a pure vendored
+  #    framework (consumer mode: CONFIG_DIR points outside this folder).
+  #    In dogfood mode your content lives INSIDE this folder; deleting would
+  #    destroy it, so we refuse and print manual steps instead.
+  local config_dir consumer=0
+  config_dir="$(grep -E '^CONFIG_DIR=' "$DIR/.env" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"' | tr -d "'")"
+  if [ -n "$config_dir" ]; then
+    case "$(cd "$DIR" && cd "$config_dir" 2>/dev/null && pwd)" in
+      "$DIR"/*|"") consumer=0 ;;
+      *) consumer=1 ;;
+    esac
+  fi
+
+  if [ "$consumer" = "1" ]; then
+    echo "[start] your content (config/, data/, …) lives OUTSIDE this folder — deleting it loses no data."
+    read -r -p "[start] delete $DIR in favor of $NEW_DIR_NAME? [y/N] " reply
+    case "$reply" in
+      y|Y|yes|YES)
+        # exec a fresh shell so nothing keeps reading from the deleted folder
+        exec bash -c "
+          rm -rf '$DIR' &&
+          printf '\033[1;32m[start] upgrade complete — documentation-template is now agent-knowledge-system.\033[0m\n' &&
+          echo '[start] your content and .env carried over untouched.' &&
+          echo '[start] next: cd $target && ./start'
+        "
+        ;;
+      *)
+        echo "[start] keeping this folder. When ready: rm -rf '$DIR' && cd '$target' && ./start"
+        ;;
+    esac
+  else
+    printf '\033[33m[start] this looks like a dogfood checkout (content inside this folder) — NOT deleting it.\033[0m\n' >&2
+    echo "[start] move your content out (or keep both), then remove this folder manually."
+  fi
+  echo "[start] the new copy is ready: cd $target && ./start"
+  exit 0
+}
+
+deprecation_migrate
+
 update_check
 
 cd "$DIR/astro-doc-code"
